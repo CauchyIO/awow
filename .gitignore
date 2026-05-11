@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Generated harness surfaces — .agents/ is the source of truth.
+# These are committed on purpose: a fresh clone needs them to be recognised
+# by Claude Code / GitHub Copilot. Every file carries a "generated from .agents/"
+# banner that points readers back to the source. Do not gitignore them.
+
+# Distribution targets (per-machine config)
+tools/.distribute-targets

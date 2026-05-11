@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic Transcript Workflow — Getting Started</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #181b23;
+    --accent: #4f8ff7;
+    --accent-dim: #2d4a7a;
+    --text: #e2e4e9;
+    --muted: #8b8fa3;
+    --border: #2a2d38;
+    --success: #3ecf8e;
+    --warn: #f5a623;
+    --code-bg: #1e2130;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ─── Top bar ─── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+    flex-shrink: 0;
+  }
+  .topbar h1 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: .3px;
+    color: var(--muted);
+  }
+  .topbar h1 span { color: var(--accent); }
+
+  /* ─── Progress dots ─── */
+  .progress {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .progress .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background .3s, transform .3s;
+    cursor: pointer;
+  }
+  .progress .dot.active {
+    background: var(--accent);
+    transform: scale(1.3);
+  }
+  .progress .dot.visited {
+    background: var(--accent-dim);
+  }
+
+  /* ─── Slide area ─── */
+  .slider-viewport {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+  .slider-track {
+    display: flex;
+    height: 100%;
+    transition: transform .45s cubic-bezier(.4, 0, .2, 1);
+  }
+  .slide {
+    min-width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    overflow-y: auto;
+  }
+  .slide-inner {
+    max-width: 720px;
+    width: 100%;
+  }
+
+  /* ─── Slide typography ─── */
+  .slide-inner .step-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .slide-inner h2 {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 18px;
+  }
+  .slide-inner p, .slide-inner li {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+  .slide-inner p { margin-bottom: 14px; }
+  .slide-inner ul, .slide-inner ol {
+    padding-left: 22px;
+    margin-bottom: 16px;
+  }
+  .slide-inner li { margin-bottom: 8px; }
+  .slide-inner li strong { color: var(--text); }
+
+  .slide-inner code {
+    background: var(--code-bg);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 13px;
+    color: var(--success);
+  }
+  .slide-inner pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--success);
+  }
+
+  /* callout boxes */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: rgba(79, 143, 247, .07);
+    padding: 14px 18px;
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 16px;
+  }
+  .callout.warn {
+    border-left-color: var(--warn);
+    background: rgba(245, 166, 35, .07);
+  }
+  .callout.success {
+    border-left-color: var(--success);
+    background: rgba(62, 207, 142, .07);
+  }
+  .callout p { margin-bottom: 0; color: var(--text); font-size: 14px; }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+  .badge.required { background: rgba(79,143,247,.15); color: var(--accent); }
+  .badge.optional { background: rgba(245,166,35,.12); color: var(--warn); }
+
+  /* ─── Bottom nav ─── */
+  .bottombar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 32px;
+    border-top: 1px solid var(--border);
+    background: var(--card);
+    flex-shrink: 0;
+  }
+  .nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 22px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
+  }
+  .nav-btn:hover { background: var(--code-bg); border-color: var(--accent-dim); }
+  .nav-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .nav-btn.primary:hover { background: #3a7ae0; }
+  .nav-btn:disabled { opacity: .3; cursor: default; }
+  .page-num { font-size: 13px; color: var(--muted); }
+
+  /* keyboard hint */
+  .kbd-hint {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    padding: 6px 0 0;
+  }
+  .kbd-hint kbd {
+    display: inline-block;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-family: inherit;
+    font-size: 11px;
+  }
+
+  /* diagram box */
+  .diagram {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    text-align: center;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--text);
+    overflow-x: auto;
+    white-space: pre;
+  }
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <h1><span>◆</span> Agentic Transcript Workflow</h1>
+  <div class="progress" id="progress"></div>
+</div>
+
+<!-- Slides -->
+<div class="slider-viewport">
+  <div class="slider-track" id="track">
+
+    <!-- ───────── SLIDE 0: Intro ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Welcome</div>
+        <h2>From Meeting to Board in Minutes</h2>
+        <p>This guide walks you through the <strong>agentic transcript workflow</strong> — a method for turning raw meeting recordings into structured proposals, board items, and architectural artefacts using GitHub Copilot in VS Code.</p>
+
+        <div class="diagram">Meeting ─→ VTT transcript ─→ Copilot processes ─→ Proposal.md
+                                                          ├─→ Board items
+                                                          ├─→ Architecture diagrams
+                                                          └─→ Questionnaires</div>
+
+        <p>The philosophy: <strong>talk like a human, let the agent handle the admin.</strong> Every meeting becomes a structured input that feeds your project board, your documentation, and your next meeting — creating a compounding loop.</p>
+
+        <div class="callout">
+          <p>This workflow works with any project. You only need VS Code, GitHub Copilot (Agent mode), and a meeting transcript.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 1: Prerequisites ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 1</div>
+        <h2>Set Up Your Repository</h2>
+        <span class="badge required">Required</span>
+
+        <p>Before you process your first transcript, your repository needs three things:</p>
+
+        <ol>
+          <li><strong>A <code>.github/prompts/</code> folder</strong> — contains <code>process-transcript.prompt.md</code>, which is the engine behind the workflow. Copy from the awow starter pack or your team's existing prompt library.</li>
+          <li><strong>A <code>.github/transcripts/</code> folder</strong> — this is where you drop your <code>.vtt</code> files. It should be <em>empty</em> to start.</li>
+          <li><strong>A <code>.gitignore</code> entry</strong> — add <code>.github/transcripts/</code> to your <code>.gitignore</code>. Transcripts are working files; they should not be committed to the repository.</li>
+        </ol>
+
+        <pre># .gitignore — add at the bottom
+.github/transcripts/</pre>
+
+        <div class="callout warn">
+          <p><strong>Cloud PC users:</strong> If your VS Code runs on a Cloud PC but your recording downloads to your laptop, you'll need to copy the VTT file across. Use OneDrive, email it to yourself, or paste via the clipboard if your Cloud PC supports it.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 2: Download ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 2</div>
+        <h2>Download Your Transcript</h2>
+        <span class="badge required">Required</span>
+
+        <p>After your meeting ends (or during — it's available live):</p>
+
+        <ol>
+          <li>Open the meeting in <strong>Microsoft Teams</strong>.</li>
+          <li>Click the <strong>Transcript</strong> tab (in the meeting recap or during the call).</li>
+          <li>Click <strong>Download</strong> → choose <strong>.vtt</strong> format (WebVTT).</li>
+          <li>Save the file into your <code>.github/transcripts/</code> folder.</li>
+        </ol>
+
+        <div class="callout">
+          <p>The <code>.vtt</code> format preserves speaker tags (<code>&lt;v Speaker Name&gt;</code>) and timestamps, which the processor uses for speaker attribution and chronological ordering. Prefer VTT over <code>.docx</code>.</p>
+        </div>
+
+        <p>Name the file descriptively — use the meeting title or a short label like <code>refinement-payments-rewrite.vtt</code>. The filename helps Copilot classify the meeting type.</p>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 3: Process ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 3</div>
+        <h2>Process the Transcript</h2>
+        <span class="badge required">Required</span>
+
+        <p>Open <strong>GitHub Copilot Chat</strong> in VS Code (the side panel). Start a <strong>new session</strong> — a clean context produces better results.</p>
+
+        <p>Type the prompt command and point it to your transcript file:</p>
+
+        <pre>/process-transcript C:\path\to\.github\transcripts\your-meeting.vtt</pre>
+
+        <p>Or attach the prompt and file manually:</p>
+
+        <pre># In Copilot Chat, attach:
+#  1. The prompt file:  .github/prompts/process-transcript.prompt.md
+#  2. The transcript:   .github/transcripts/your-meeting.vtt
+# Then just press Enter.</pre>
+
+        <p>Copilot will now:</p>
+        <ol>
+          <li>Load the team context file (if it exists)</li>
+          <li>Parse the entire VTT — disambiguate speakers, fix garbled names</li>
+          <li>Classify the meeting type (standup, refinement, 1:1, architecture discovery, etc.)</li>
+          <li>Extract structured content using the matching template</li>
+          <li>Present <strong>Gate 1</strong> — a summary for you to review</li>
+        </ol>
+
+        <div class="callout warn">
+          <p><strong>This takes time.</strong> Processing a 30–60 min transcript may take 1–3 minutes. The agent is reading the full transcript, cross-referencing names, and classifying content.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 4: Gate 1 ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 4</div>
+        <h2>Review Gate 1 — The Summary</h2>
+        <span class="badge required">Required</span>
+
+        <p>Copilot stops at <strong>Gate 1</strong> and presents a structured summary. This is your chance to verify it understood the conversation correctly:</p>
+
+        <ul>
+          <li><strong>Meeting type</strong> — did it classify correctly? (e.g. "Ad-hoc 1:1" vs "Refinement")</li>
+          <li><strong>Participants</strong> — are names correct?</li>
+          <li><strong>Decisions vs discussion</strong> — did it distinguish what was decided from what was merely explored?</li>
+          <li><strong>Disambiguation</strong> — check that garbled words were corrected reasonably</li>
+          <li><strong>Action items</strong> — are they attributed to the right people?</li>
+        </ul>
+
+        <p>If anything is off, tell Copilot:</p>
+        <pre>"The person you labelled as 'Sam' is actually Pat. Also, we
+decided on option B, not A — the discussion was exploring A
+but we landed on B at the end."</pre>
+
+        <p>Once you're satisfied, confirm and Copilot moves to <strong>Gate 2</strong> — board proposals.</p>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 5: Choose path ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 5</div>
+        <h2>Choose Your Output Path</h2>
+        <span class="badge required">Required</span>
+
+        <p>At Gate 2, Copilot proposes board actions (create/update work items). You have a choice:</p>
+
+        <div class="callout success">
+          <p><strong>Path A — Execute board actions.</strong><br>If your project is mature enough and you have a board set up, say <code>"go"</code> and Copilot will create/update work items directly.</p>
+        </div>
+
+        <div class="callout">
+          <p><strong>Path B — Save as proposal.md.</strong><br>If the project is early-stage (e.g. pre-requirements, prototype phase), tell Copilot:<br><br><em>"I don't want to proceed with the board. Just drop everything in a proposal.md file that I can use later."</em><br><br>This captures all the detail without committing to board structure yet.</p>
+        </div>
+
+        <p><strong>When to use Path B:</strong></p>
+        <ul>
+          <li>The project is still in discovery / prototype phase</li>
+          <li>You haven't validated requirements with business users yet</li>
+          <li>You want to accumulate context from multiple meetings first</li>
+          <li>The board doesn't exist yet or you're not sure about the hierarchy</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 6: Enrich ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 6</div>
+        <h2>Enrich the Output</h2>
+        <span class="badge optional">Optional — Recommended</span>
+
+        <p>Once you have your proposal or board items, continue the conversation to extract more value. The agent still has the full meeting context loaded.</p>
+
+        <p><strong>Ask for clarifying questions:</strong></p>
+        <pre>"Add clarifying questions at the bottom — what's still
+missing to execute this project in its entirety?"</pre>
+        <p>This produces a list of unknowns and gaps — great prep for your next meeting.</p>
+
+        <p><strong>Ask for a questionnaire:</strong></p>
+        <pre>"Tomorrow I'm meeting with the business. Help me prepare
+a questionnaire based on what we discussed — questions
+where I really need their input."</pre>
+        <p>Copilot generates 20–30 targeted questions you can bring to stakeholders.</p>
+
+        <p><strong>Ask for architecture diagrams:</strong></p>
+        <pre>"Based on our conversation, create an architectural
+diagram of the data flows we discussed."</pre>
+        <p>Copilot produces Mermaid or ASCII diagrams that visualize what was talked about.</p>
+
+        <p><strong>Ask for wireframes:</strong></p>
+        <pre>"Create wireframes for the UI components we discussed."</pre>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 7: Iterate ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 7</div>
+        <h2>Iterate Across Meetings</h2>
+        <span class="badge optional">Optional — Power Move</span>
+
+        <p>The real power comes from <strong>compounding context</strong> across multiple meetings. After your next meeting:</p>
+
+        <ol>
+          <li>Download the new transcript (VTT)</li>
+          <li>Open a <strong>new</strong> Copilot session</li>
+          <li>Point the processor at <strong>both</strong> the new transcript <strong>and</strong> the existing proposal.md</li>
+        </ol>
+
+        <pre>/process-transcript .github/transcripts/new-meeting.vtt
+
+# Also attach: proposal.md (from the previous session)</pre>
+
+        <p>Copilot will <strong>intersect</strong> the previous context with the new conversation — updating decisions, resolving open questions, adding new requirements, and flagging contradictions.</p>
+
+        <div class="diagram">Meeting 1 ─→ proposal.md (v1)
+                         ↓
+Meeting 2 + proposal.md (v1) ─→ proposal.md (v2)
+                                    ↓
+Meeting 3 + proposal.md (v2) ─→ proposal.md (v3) ─→ Board items</div>
+
+        <p>Each iteration enriches the proposal. When you're confident in the requirements, <em>then</em> push to the board.</p>
+
+        <div class="callout success">
+          <p><strong>Voice-to-text shortcut:</strong> You can also answer the generated questionnaire by dictating into your machine (macOS dictation, Windows voice typing with <kbd>Win</kbd>+<kbd>H</kbd>). Save the text, and process <em>that</em> as a transcript too. It's like having a conversation with yourself — and the agent captures it all.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 8: Go Agentic ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 8</div>
+        <h2>Go Agentic — Parallel Execution</h2>
+        <span class="badge optional">Optional — Advanced</span>
+
+        <p>Once you have board items (Azure DevOps work items or GitHub Issues), the workflow shifts from planning to execution:</p>
+
+        <div class="diagram">Board
+  ├── Item A ──→ Agent Session 1 (working)
+  ├── Item B ──→ Agent Session 2 (working)
+  ├── Item C ──→ (not started)
+  └── Item D ──→ Agent Session 3 (working)</div>
+
+        <ol>
+          <li><strong>Open multiple Copilot sessions</strong> — one per board item</li>
+          <li><strong>Point each session at a specific work item:</strong>
+            <pre>"Pick up work item PROJ-1042 and implement it."</pre>
+          </li>
+          <li><strong>Let them work in parallel</strong> — each agent is autonomous and tracks its own progress on the board</li>
+          <li><strong>When you lose track</strong> — just look at the board. It reflects reality because the agents update it as they work.</li>
+        </ol>
+
+        <div class="callout">
+          <p><strong>The board becomes your orchestration layer.</strong> You think less about admin and more about direction. The agents handle the 80% — you steer the remaining 20%.</p>
+        </div>
+
+        <p>This is the <strong>agentic way of working</strong>: meeting → transcript → structured work → parallel agent execution → delivered output.</p>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 9: Team Context ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Appendix A</div>
+        <h2>Team Context File</h2>
+        <span class="badge optional">Optional — Improves Accuracy</span>
+
+        <p>A <code>team-context.md</code> file (placed next to the prompt) tells Copilot about your team, your sprint, your vocabulary, and your board structure. This dramatically improves disambiguation and board matching.</p>
+
+        <pre># team-context.md
+Last updated: YYYY-MM-DD
+
+## Team Members
+| Name        | Role              | Focus Areas              |
+|-------------|-------------------|--------------------------|
+| Alex M.     | Data Scientist    | Internal AI, NLP         |
+| Sam K.      | Data Engineer     | Platform, Governance     |
+
+## Current Sprint
+Sprint 12 (Apr 21 – May 2)
+- Goal: Prototype internal AI dashboard
+
+## Glossary
+- SDW: Source Data Warehouse
+- BDW: Business Data Warehouse
+- DAB: Databricks Asset Bundle
+
+## Dependent Teams
+| Team           | Owns                 |
+|----------------|----------------------|
+| Platform Team  | Catalogue, CI/CD     |
+| BI Team        | Reporting layer      |</pre>
+
+        <p>Without this file, the processor still works — but speaker disambiguation and board matching will be best-effort.</p>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 10: Summary ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Summary</div>
+        <h2>The Complete Flow</h2>
+
+        <div class="diagram">┌─────────────────────────────────────────────────────┐
+│                   PREPARATION                       │
+│  1. Set up repo (.github/prompts + transcripts)     │
+│  2. Add .gitignore entry                            │
+│  3. (Optional) Create team-context.md               │
+└───────────────────────┬─────────────────────────────┘
+                        ▼
+┌─────────────────────────────────────────────────────┐
+│                   PER MEETING                        │
+│  4. Record meeting → download VTT                   │
+│  5. /process-transcript → review Gate 1             │
+│  6. Choose: board actions OR proposal.md            │
+│  7. Enrich: questions, diagrams, wireframes         │
+└───────────────────────┬─────────────────────────────┘
+                        ▼
+┌─────────────────────────────────────────────────────┐
+│                ITERATE & COMPOUND                    │
+│  8. Next meeting: process with previous context     │
+│  9. Repeat until requirements are solid             │
+│ 10. Push to board → go agentic                      │
+└─────────────────────────────────────────────────────┘</div>
+
+        <p style="text-align:center; color: var(--accent); font-weight: 600; font-size: 16px; margin-top: 24px;">
+          Talk like a human. Let the agent handle the admin.<br>
+          Every meeting compounds into structured, actionable output.
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /track -->
+</div><!-- /viewport -->
+
+<!-- Bottom bar -->
+<div class="bottombar">
+  <button class="nav-btn" id="prevBtn" onclick="navigate(-1)">← Previous</button>
+  <div>
+    <span class="page-num" id="pageNum">1 / 11</span>
+    <div class="kbd-hint">Navigate: <kbd>←</kbd> <kbd>→</kbd> or <kbd>Space</kbd></div>
+  </div>
+  <button class="nav-btn primary" id="nextBtn" onclick="navigate(1)">Next →</button>
+</div>
+
+<script>
+  const track = document.getElementById('track');
+  const slides = track.children;
+  const total = slides.length;
+  const progress = document.getElementById('progress');
+  const pageNum = document.getElementById('pageNum');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  let current = 0;
+
+  // Build dots
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => goTo(i));
+    progress.appendChild(d);
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total) return;
+    current = idx;
+    track.style.transform = `translateX(-${current * 100}%)`;
+    // Update dots
+    const dots = progress.children;
+    for (let i = 0; i < total; i++) {
+      dots[i].className = 'dot' + (i === current ? ' active' : (i < current ? ' visited' : ''));
+    }
+    pageNum.textContent = `${current + 1} / ${total}`;
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === total - 1;
+    nextBtn.textContent = current === total - 1 ? 'Done ✓' : 'Next →';
+  }
+
+  function navigate(dir) { goTo(current + dir); }
+
+  // Keyboard
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); navigate(1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); navigate(-1); }
+  });
+
+  // Touch swipe
+  let touchStartX = 0;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) navigate(dx < 0 ? 1 : -1);
+  });
+
+  // Init
+  goTo(0);
+</script>
+
+</body>
+</html>

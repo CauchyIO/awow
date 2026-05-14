@@ -4,7 +4,7 @@ prerequisites:
   - "Step 0 of /setup-awow complete (board MCP wired)"
   - "Team has shipped at least three Seed cycles"
   - "Most of the team actively committing"
-removes_pain: "TODO — fill in"
+removes_pain: "the I-can't-see-across-the-portfolio problem"
 ---
 
 # /programme-board-projection

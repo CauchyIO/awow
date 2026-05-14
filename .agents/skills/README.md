@@ -10,7 +10,10 @@ A *skill* sits between raw prompts and full MCP servers. The skill tells the age
 
 The original shape. One markdown file at `.agents/skills/<name>.md` whose body describes the target output (an example, a checklist, an anti-pattern list).
 
-Example: [`user-story-template.md`](./user-story-template.md).
+Examples shipped with the starter pack:
+
+- [`user-story-template.md`](./user-story-template.md) — the shape of a well-structured user story.
+- [`agent-directive-voice.md`](./agent-directive-voice.md) — voice rules for authoring or editing any prompt under `.agents/`.
 
 ### Operational skill — a directory with `SKILL.md` and bundled `scripts/`
 

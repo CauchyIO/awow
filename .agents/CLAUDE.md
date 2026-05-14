@@ -43,6 +43,10 @@ Until then, do not propose:
 
 Iterate on the cheap-to-change artefact. A markdown file under `proposals/` is free; the board, the knowledge base, and `CLAUDE.md` itself are expensive to change well. Always draft first; land only after a human approves.
 
+## When you author or edit prompts
+
+When you edit any file under `.agents/commands/` or any declarative skill under `.agents/skills/`, follow the voice rules in [`.agents/skills/agent-directive-voice.md`](skills/agent-directive-voice.md). Prompts are rules the agent follows mid-session, not documentation for human readers — write them in second-person imperative.
+
 ## Tracing
 
 If `claudetracing` is installed (post-v0.3 `/awow-add claudetracing-setup`), session metadata is written to `traces/`. The `traces/` directory is gitignored.

@@ -134,28 +134,11 @@ If `target_sessions == 0`, stop and tell the user the export contains no session
 
 This is the load-bearing part. The nudge is **a rule the agent reads at session start and follows during the session.**
 
-**Voice rules:**
-- **Second person, addressed to the agent.** "When you have…", "Before you write…", "After you apply…", "Do not chain…". Never "the user should" or "ask Claude to".
-- **Imperative, terse.** Match awow's existing CLAUDE.md sentences: *"Drafts: always to `proposals/<artefact>.md` first."* *"Body edits are reserved for scope or acceptance-criteria changes."*
-- **Two sentences max.** First sentence: the rule. Optional second sentence: the guardrail or exception.
-- **No exclamation marks, no emojis, no "always remember to".**
-- **No restating the evidence in the rule.** Stats and quotes go in the `Evidence:` line, not in the rule itself.
+Follow the voice rules in [`.agents/skills/agent-directive-voice.md`](../agent-directive-voice.md) — second person, imperative, ≤2 sentences, no evidence inside the rule. That skill carries worked rewrites (human-aimed → agent-directive) you can use as templates.
 
-**Worked example:**
-
-❌ *Verbose, human-aimed advice:*
-> "After Claude executes a `propose`d change, ask for a one-line readback before moving on. 'Show the diff you applied and confirm the brevity rule still holds.' Don't stack a second `propose` on top of an unverified first one."
-
-✅ *Tight, agent-directive:*
-> "After you apply a proposed change, summarise the diff in one line and stop. Do not chain a second proposal on the unverified first."
-
-❌ *Human-aimed:*
-> "If the question has a likely follow-up — 'and then I'll need a conclusion,' 'and we'll have to update the diagrams' — open the session with the goal, not the first sub-task."
-
-✅ *Agent-directive:*
-> "When a session's first prompt is a single-line action without surrounding goal, ask: 'what's the larger goal this fits into?' before acting. Skip the question only if the prompt explicitly marks itself as one-off."
-
-The rewrite preserves the intent but flips the addressee from human to agent. If the rewrite cannot be made agent-actionable, **the pattern probably belongs in coaching (Mode B), not a CLAUDE.md nudge.**
+Nudge-specific addenda:
+- **No restating evidence in the rule.** Stats and quotes go in the `Evidence:` line, not in the rule itself.
+- **If the rewrite cannot be made agent-actionable, the pattern belongs in coaching (Mode B), not a CLAUDE.md nudge.**
 
 ### Quality bar
 

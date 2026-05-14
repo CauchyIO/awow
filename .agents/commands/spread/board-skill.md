@@ -3,7 +3,7 @@ phase: spread
 prerequisites:
   - "Step 0 of /setup-awow complete (board MCP wired)"
   - "Team has shipped at least one Seed cycle"
-removes_pain: "TODO — fill in"
+removes_pain: "the commits-and-issues-never-link problem"
 ---
 
 # /board-skill

@@ -56,16 +56,18 @@ Do not draft if potential duplicates exist without confirmation.
 
 Output to `proposals/refinement/<feature-slug>.md` with the structure below.
 
-A right-sized story is one an agent or engineer can produce a working PR for in a single session. Sizing checks:
+Right-size every story so a single session can ship a working PR. Each story must:
 
-- 1–5 files touched
-- 2–3 sentences to describe without hand-waving
-- No architectural decisions left for the agent — the story tells *what*, the codebase tells *how*
-- 5 or fewer acceptance criteria
+- touch 1–5 files,
+- be describable in 2–3 sentences without hand-waving,
+- leave no architectural decisions to the agent — the story tells *what*, the codebase tells *how*,
+- carry 5 or fewer acceptance criteria.
 
-If a story fails these, split.
+Split anything that fails these.
 
 ## Output template
+
+The feature wrapper:
 
 ```markdown
 # <Feature title — verb-first per issue-titles.md>
@@ -78,51 +80,7 @@ If a story fails these, split.
 
 ## Stories
 
-<3–7 user stories, each right-sized. Use the template below per story.>
-
----
-
-### <Story title — verb-first>
-
-**As a:** <Role — be specific. Examples: financial analyst, platform engineer, support lead, data steward>
-**I want to:** <One sentence: what change is needed>
-**So that:** <Why — what reporting / analysis / capability is enabled>
-
-#### Acceptance criteria (Given / When / Then)
-
-**Scenario 1: <happy path name>**
-- Given <precondition>
-- When <action>
-- Then <observable outcome>
-
-**Scenario 2: <edge case name>**
-- Given <precondition>
-- When <action>
-- Then <observable outcome>
-
-#### Priority
-P1 / P2 / P3 — <one line: why this priority>
-
-#### Independent test
-<How this story can be verified in isolation>
-
-#### Scope boundary
-- In scope: <explicit list>
-- Out of scope: <explicit list>
-
-#### Entry point
-- File(s): <path/to/file.ext, path/to/other.ext>
-- Function / component: <name>
-- Related config: <any config files that need updating, reference only>
-
-#### Verification
-- Command: `<test or build command>`
-- Manual check: <what to look for in the output / UI / API response>
-
-#### Labels
-<type:, area: per conventions/REQUIRED/labels.md>
-
----
+<3–7 user stories. Use the shape defined in [`.agents/skills/user-story-template.md`](../../skills/user-story-template.md).>
 
 ## Dependencies
 
@@ -141,21 +99,15 @@ P1 / P2 / P3 — <one line: why this priority>
 <Screenshots, sample data, references to upstream documents. Link, do not embed.>
 ```
 
+For the per-story shape inside `## Stories`, follow [`.agents/skills/user-story-template.md`](../../skills/user-story-template.md). The template defines what every story carries, what to add only when needed, and the anti-patterns to avoid. Do not duplicate the per-story structure here.
+
 ## Anti-patterns
 
-| Anti-pattern | Why it's bad | Better |
-|---|---|---|
-| Multiple unrelated tasks in one story | Confusing, harder to track | Separate stories per logical unit |
-| Missing entry point | Requires back-and-forth | Always include named files / components |
-| Vague target ("update the dashboard") | Which dashboard? What changes? | Specific, fully-qualified names |
-| Empty "So that" | No clear business value | Explain the capability enabled |
-| Stories with the word "and" in the title | Two stories in one | Split |
-| Acceptance-criteria-as-tasks ("create branch, write code, open PR") | Process, not outcome | AC describes the outcome, not the process |
-| Gold-plating (error handling, logging, metrics added to a feature that doesn't exist yet) | Premature scope | First story delivers the feature; observability is a follow-up |
+See the anti-patterns table in [`.agents/skills/user-story-template.md`](../../skills/user-story-template.md#anti-patterns). The same rules apply to every story produced by this command.
 
 ## Quality bar
 
-The feature owner should be able to confidently stand behind this draft in the refinement session. If they would not put their name on it, iterate until they would. **The agent is a co-author, not a ghost-writer.**
+Iterate until the feature owner would put their name on the draft in the refinement session. If they would not, the draft is not done. **Co-author the feature; never ghost-write it.**
 
 ## What not to do
 

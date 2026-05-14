@@ -153,7 +153,7 @@ Person D                █████                        █
 Person E                ██                           ███
 ```
 
-Use 1–5 blocks to represent relative time allocation (not precise hours). Derive from voice-memo mentions, board issue assignments, and commits. Leave blank if no signals.
+Use 1–5 blocks to represent relative time allocation (not precise hours). Derive from board issue assignments and commits; if `/process-transcript` outputs are present for the week, fold in their attribution signals. Leave blank if no signals.
 
 ---
 

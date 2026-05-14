@@ -64,7 +64,6 @@ KNOWN_COMMANDS = {
     "release-notes": "spread",
     "board-skill": "spread",
     "sprint-review-prep": "spread",
-    "voice-memo-capture": "standardise",
     "claudetracing-setup": "standardise",
     "daily-digest": "standardise",
     "weekly-digest": "standardise",

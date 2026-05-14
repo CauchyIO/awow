@@ -35,7 +35,11 @@ Confirm to the user: title, state, number of children, the archetype you plan to
 
 ### 2. Classify and route
 
-Match the story to an archetype registered in `.agents/commands/_archetypes/` (common ones: `feature`, `bugfix`, `refactor`, `doc`; teams register others as their work demands). The archetype handler carries the work-specific rules. If nothing matches, the story is either too broad — split it — or a new handler is needed. Ask the user.
+Match the story to an archetype registered in `.agents/commands/_archetypes/` (common ones: `feature`, `bugfix`, `refactor`, `doc`; teams register others as their work demands). The archetype handler carries the work-specific rules.
+
+**If the `_archetypes/` directory is empty** (apart from `README.md`), proceed generically: use the validation, planning, and verification rules from this file as-is, but tell the user no archetype was matched and suggest scaffolding one based on the work just classified. Capture the suggestion as a stub proposal at `proposals/archetypes/<name>.md` so the next cycle starts richer. Do not block on this — generic execution is the day-one fallback.
+
+**If archetypes exist but none match**, the story is either too broad — split it — or a new handler is needed. Ask the user.
 
 ### 3. Validate inputs
 

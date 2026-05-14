@@ -8,16 +8,18 @@ A *kind of work item* that has its own validation steps, planning rules, and com
 
 ## Common archetypes
 
-| Archetype | Handler addresses |
-|---|---|
-| `column-add` / `schema-change` | Extending a table with new columns: source validation, type matching, downstream propagation |
-| `source-onboard` | Adding a new source system to the data platform |
-| `bugfix` | Defect with a known symptom: reproduction, narrow fix, regression test |
-| `infra-change` | Modifying infrastructure: state-file safety, ordering, idempotency |
-| `doc` | Documentation updates: scope, placement, accuracy |
-| `refactor` | Restructuring without behaviour change: equivalence proof, test coverage |
-| `spike` | Investigation with no code deliverable: time-box, capture, decision |
-| `api-change` | Public API surface: versioning, deprecation, caller enumeration |
+| Archetype | Handler addresses | Status |
+|---|---|---|
+| `bugfix` | Defect with a known symptom: reproduction, narrow fix, regression test | **Shipped (v0.1)** — `bugfix.md` |
+| `column-add` / `schema-change` | Extending a table with new columns: source validation, type matching, downstream propagation | Example |
+| `source-onboard` | Adding a new source system to the data platform | Example |
+| `infra-change` | Modifying infrastructure: state-file safety, ordering, idempotency | Example |
+| `doc` | Documentation updates: scope, placement, accuracy | Example |
+| `refactor` | Restructuring without behaviour change: equivalence proof, test coverage | Example |
+| `spike` | Investigation with no code deliverable: time-box, capture, decision | Example |
+| `api-change` | Public API surface: versioning, deprecation, caller enumeration | Example |
+
+`bugfix.md` ships as the day-one starter so `/process-workitem` has something to dispatch to. The rest are listed as starting points — write the ones your team actually needs.
 
 ## Adding a new archetype
 

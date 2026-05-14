@@ -5,7 +5,6 @@ Standardise-phase commands. Adopted once most of the team is actively committing
 | Command | What it does |
 |---|---|
 | `daily-digest.md` | Aggregates daily board, code, and chat activity into a team-wide synthesis (optional email mode) |
-| `voice-memo-capture.md` | End-of-day check-in: structures a voice memo into board updates |
 | `weekly-digest.md` | Aggregates the week's daily digests into a trajectory view with heatmap |
 | `cross-team-view.md` | Projects across multiple teams' boards (programme view) |
 | `programme-board-projection.md` | Renders a programme-altitude view of in-flight work |

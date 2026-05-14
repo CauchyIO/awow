@@ -37,15 +37,42 @@ Linear's default states map cleanly: Backlog/Todo, In Progress, In Review, Done,
 
 ## MCP
 
-Linear's official MCP server: `https://github.com/linear/mcp-server-linear` (or the equivalent in the team's package manager).
+**Source docs:** [linear.app/docs/mcp](https://linear.app/docs/mcp) — start here. The install command and config snippets below are summaries; if Linear changes either, the docs page is authoritative.
 
-Read-write semantics are required. The agent drafts changes under `proposals/` first; only after human approval does it use Linear's mutation API to land them.
+Read-write semantics required. The agent drafts changes under `proposals/` first; only after human approval does it use Linear's mutation API to land them.
 
-`/setup-awow` Step 0 walks the user through installation. Once installed:
+### Install — Claude Code
 
-1. `mcp__linear-server__list_issues` to verify read access
-2. A no-op write on a scratch issue (e.g. update its description to the same value) to verify write access
-3. Record the verified status in `context/tooling/board.md`
+Run once at the repo root:
+
+```bash
+claude mcp add --transport http linear-server https://mcp.linear.app/mcp
+```
+
+This adds a `linear-server` entry to the local `.mcp.json` (or `.claude/settings.json`, depending on scope). Restart Claude Code so the new server is picked up; Linear's OAuth flow runs on first call.
+
+### Install — Copilot
+
+Copilot reads MCP servers from `.vscode/mcp.json`. Add the Linear server entry per [the Linear MCP docs](https://linear.app/docs/mcp); the shape is roughly:
+
+```json
+{
+  "servers": {
+    "linear-server": {
+      "type": "http",
+      "url": "https://mcp.linear.app/mcp"
+    }
+  }
+}
+```
+
+The exact field names (`type`/`transport`, `url`/`endpoint`) and any auth fields can drift — confirm against the Linear docs page when running the wizard.
+
+### Verify
+
+1. `mcp__linear-server__list_issues` to verify read access.
+2. A no-op write on a scratch issue (set the description to its current value) to verify write access.
+3. Record the verification status (`read-ok`, `write-ok`, `pending`) in `context/tooling/board.md`.
 
 ## Label taxonomy
 

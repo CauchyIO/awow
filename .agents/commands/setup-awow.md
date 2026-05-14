@@ -10,6 +10,12 @@ You are the setup wizard for the agentic way of working starter pack. Your job i
 
 The wizard is **incremental and resumable.** State lives in `setup-progress.md` at the repo root. Read it on every invocation. Only **Step 0** is required for the repo to be usable. All subsequent steps are recommended-next, in any order.
 
+## Prerequisite — shell-level install
+
+Before this command runs, the user should have executed `./setup/install.sh` (macOS / Linux) or `.\setup\install.ps1` (Windows / PowerShell) from the repo root. That installer wires up Python via `uv`, creates `.venv`, and runs the initial `tools/gather.py` so the harness can discover this very command.
+
+On invocation, sanity-check the prerequisite: `.venv/` exists at the repo root, and the harness surfaces (`.claude/commands/`, `.github/prompts/`) contain pointer stubs. If either is missing, tell the user to run the installer first and stop — do not try to recover by running gather yourself, because the user may simply not have `uv` available yet, and the installer's error message is the right place to learn that.
+
 ## On every invocation
 
 1. Read `setup-progress.md`.
@@ -20,21 +26,42 @@ The wizard is **incremental and resumable.** State lives in `setup-progress.md` 
 
 ## Step 0 — Kickoff (REQUIRED)
 
-Ask the user for a board URL. Refuse to continue without one.
+The outcome of Step 0 is a **wired-up board MCP** plus a recorded `context/tooling/board.md`. The board URL is collected along the way, but it is not the headline — the MCP is. Detect first, ask second.
 
-Once provided:
+1. **Establish harness.** The starter pack ships both `.claude/` and `.github/` directories, so their presence is not a signal — do **not** infer "both harnesses in use" from directory listing alone. The real signal is which harness you (the model) are currently running inside:
+   - If you are Claude Code, the user's current harness is Claude Code.
+   - If you are GitHub Copilot, the user's current harness is Copilot.
 
-1. Infer the tool family from the URL hostname:
+   Tell the user: "I can see I'm running in `<current harness>`. Does your team also use `<the other one>`, or is `<current>` the only harness to wire up?" Accept one of: *current only*, *both*. Record the choice; this drives which install snippets you surface in step 4.
+
+2. **Detect existing board MCP.** Look for an MCP server entry whose name or URL references a supported board tool (`linear`, `jira`, `azure`, `github`) in:
+   - `.claude/settings.json` and `.claude/settings.local.json`
+   - `.mcp.json` at the repo root
+   - `.github/copilot-instructions.md` (MCP block) and `.vscode/mcp.json`
+
+   If you find one:
+   - Read the workspace / team identifier from the config.
+   - Verify read access with a single MCP call (e.g. `list_issues` or equivalent).
+   - Tell the user what you found and ask them to confirm or paste the canonical board URL (used for `context/tooling/board.md` and so the wizard can surface team-page links later). Then skip to step 5.
+
+3. **No MCP wired yet — ask for the board URL.** Tell the user you need the URL for two reasons: (a) to know which MCP to install, (b) to extract the workspace / team identifier that the MCP itself requires for config. Refuse to continue without one. Infer the tool family from the URL hostname:
    - `linear.app` → Linear
    - `dev.azure.com` or `*.visualstudio.com` → Azure DevOps
    - `*.atlassian.net` → Jira
    - `github.com/.../issues` → GitHub Issues
    - Anything else → tell the user the tool is not supported and stop.
-2. Load `context/tooling/boards/<tool>.md` and read it.
-3. Check whether the corresponding MCP is wired (look at `.claude/settings.json` or `.github/copilot-instructions.md` for an MCP block). If not, walk the user through installing it. Read-write semantics; verify with a no-op write call to a scratch story if possible.
-4. Detect harness: presence of `.claude/` and/or `.github/` directories. If both, support both. If neither, ask the user which they use.
-5. Draft `context/tooling/board.md` with the board URL, tool family, MCP install status, and harness choices. Land it under `proposals/setup/step-0/board.md` first. Wait for user approval. Move to `context/tooling/board.md` once approved.
-6. Update `setup-progress.md` to check off Step 0.
+
+4. **Install and verify the MCP.** Load `context/tooling/boards/<tool>.md` and read its `## MCP` section. That section is structured as: **Source docs** link, **Install — Claude Code** snippet, **Install — Copilot** snippet, **Verify** checklist. The two harnesses get different config (CLI command vs. `.vscode/mcp.json` JSON), so:
+   - Pick the install snippet that matches the harness recorded in step 1. If the user confirmed they use both, surface both — they will need to wire each.
+   - Surface the **Source docs** URL first and tell the user it is authoritative: the snippet in the reference is a summary and may have drifted from upstream.
+   - Print the exact install command (or JSON snippet) for the user to run / paste. Configure it using the workspace / team identifier extracted from the URL where applicable.
+   - Verify read access with a single MCP call (e.g. `list_issues` or equivalent).
+   - Verify write access with a **no-op** write against a scratch issue (e.g. set the description to its current value). If write access is not granted yet, surface that as a blocker — the agent cannot do its job read-only.
+   - If the user cannot complete the install in this session (token in another browser, IT ticket, etc.), record the MCP as `pending` in `setup-progress.md` and continue with the rest of Step 0 so the repo is at least partially usable.
+
+5. **Record.** Draft `context/tooling/board.md` with: tool family, board URL, MCP server name, workspace / team identifier, MCP verification status (`read-ok`, `write-ok`, or `pending`), harness choices. Land it under `proposals/setup/step-0/board.md` first. Wait for user approval. Move to `context/tooling/board.md` once approved.
+
+6. Update `setup-progress.md` to check off Step 0 (note any `pending` MCP so the next invocation re-offers the install).
 
 After Step 0, tell the user:
 

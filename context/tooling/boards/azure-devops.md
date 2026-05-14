@@ -37,9 +37,44 @@ The wizard reads the team's actual workflow during Step 0 and customises the map
 
 ## MCP
 
-The Microsoft Azure DevOps MCP server: `https://github.com/microsoft/azure-devops-mcp` (or as included in the official Azure MCP bundle).
+**Source docs:** Microsoft's Azure DevOps MCP server at `https://github.com/microsoft/azure-devops-mcp` (or as included in the official Azure MCP bundle). The repo README has the current install steps and any required env vars (PAT, organisation, project).
 
 Read-write semantics required. ADO has a per-organisation rate limit; `/process-workitem` and `/refinement-prep` batch their writes to stay under it.
+
+### Install — Claude Code
+
+TODO — confirmed install command. The Azure DevOps MCP is typically a local stdio server (not HTTP), so the shape is closer to:
+
+```bash
+claude mcp add azure-devops-server -- npx -y @azure/azure-devops-mcp
+```
+
+Confirm against the repo README before running. Auth is via a PAT passed through env vars; see the README.
+
+### Install — Copilot
+
+TODO — confirmed `.vscode/mcp.json` snippet. For a stdio-based MCP the shape is roughly:
+
+```json
+{
+  "servers": {
+    "azure-devops-server": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@azure/azure-devops-mcp"],
+      "env": { "ADO_PAT": "${env:ADO_PAT}" }
+    }
+  }
+}
+```
+
+Confirm field names and env-var binding against the Azure DevOps MCP repo README.
+
+### Verify
+
+1. List work items from a known project to verify read access.
+2. A no-op write on a scratch work item (set a field to its current value) to verify write access.
+3. Record the verification status in `context/tooling/board.md`.
 
 ## Label / tag taxonomy
 

@@ -19,9 +19,13 @@ Layout produced
                                          → .github/copilot-instructions.md
                                          → .github/AGENTS.md
     .agents/commands/<phase>/<name>.md   → .claude/commands/<name>.md
-                                         → .github/prompts/<name>.md
+                                         → .github/prompts/<name>.prompt.md
     .agents/commands/<name>.md (top)     → same as above (phase folder flat-
                                             tens; meta commands also flat)
+
+The `.prompt.md` extension under .github/prompts/ is required: VS Code's
+GitHub Copilot Chat discovers prompt files by that exact suffix; plain `.md`
+is silently ignored.
     .agents/skills/<name>/SKILL.md       → .claude/skills/<name>/SKILL.md
                                          → .github/skills/<name>/SKILL.md
     .agents/skills/<name>.md             → .claude/skills/<name>/SKILL.md
@@ -254,11 +258,11 @@ def plan_commands() -> list[Stub]:
     for source in sorted(commands_root.rglob("*.md")):
         if is_skipped(source):
             continue
-        for target_dir, _label in [
-            (CLAUDE_DIR / "commands", ".claude/"),
-            (GITHUB_DIR / "prompts", ".github/"),
+        for target_dir, ext in [
+            (CLAUDE_DIR / "commands", ".md"),
+            (GITHUB_DIR / "prompts", ".prompt.md"),
         ]:
-            target = target_dir / source.name
+            target = target_dir / (source.stem + ext)
             plans.append(Stub(target, gen_command_stub(source, target)))
     return plans
 

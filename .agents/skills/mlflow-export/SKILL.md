@@ -5,7 +5,7 @@ description: "Export all traces and grouped chat sessions from a Databricks MLfl
 
 # MLflow Experiment Export
 
-> **One example backend.** This skill ships as a starter for teams whose agent sessions land in **Databricks MLflow**. Teams on a different tracing backend (LangSmith, Helicone, OpenTelemetry, raw session JSONL on disk, etc.) should swap this skill for their backend's equivalent during `/setup-awow` Step 9 (Skills review). The downstream skills (`prompt-skill-analysis`, `awow-usage-coach`) consume the JSON layout this skill produces, so any replacement should match the output shape documented below.
+> **One example backend.** This skill ships as a starter for teams whose agent sessions land in **Databricks MLflow**. Teams on a different tracing backend (LangSmith, Helicone, OpenTelemetry, raw session JSONL on disk, etc.) should swap this skill for their backend's equivalent during `/setup-awow` Step 8 (Skills review). The downstream skills (`prompt-skill-analysis`, `awow-usage-coach`) consume the JSON layout this skill produces, so any replacement should match the output shape documented below.
 
 Exports every trace in a Databricks MLflow experiment, including full spans, plus a per-session view that groups traces by their `mlflow.trace.session` metadata (this is what powers the "Chat sessions" tab in the Databricks MLflow UI).
 

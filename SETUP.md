@@ -80,17 +80,11 @@ Output: `context/company/neighbouring-teams.md`.
 
 1° teams as empty stubs. The convention: each team writes its own summary. The wizard generates stubs the team can fill in later or hand to the neighbouring teams.
 
-### Step 8 — Adoption plan
-
-Output: `adoption-plan.md` at repo root.
-
-Pick the early adopter (using the signals from `input/research/.../adoption_interview_guide.md` if available). Pick the first feature. Record the 4-week Seed schedule.
-
-### Step 9 — Surface the extras
+### Step 8 — Surface the extras
 
 The wizard reads `.agents/commands/{spread,standardise}/` and lists what's available behind `/awow-add`, with phase and prerequisites. Nothing is installed; the user sees what's there.
 
-### Step 10 — Skills review (keep / customise / drop)
+### Step 9 — Skills review (keep / customise / drop)
 
 The starter pack ships several skills under `.agents/skills/`. Each is opinionated about *some* part of the stack — the harness session format (Claude Code JSONL vs. Copilot vs. other), the tracing backend (Databricks MLflow vs. LangSmith vs. raw files), or the rubric (the seeded user-story template). They will not fit every team out of the box.
 

@@ -12,9 +12,8 @@ State file for `/setup-awow`. The wizard reads this file on every invocation to 
 - [ ] Step 5 — `CLAUDE.md` / `AGENTS.md` bootstrap
 - [ ] Step 6 — Knowledge base seed
 - [ ] Step 7 — Neighbouring teams
-- [ ] Step 8 — Adoption plan
-- [ ] Step 9 — Extras surfaced
-- [ ] Step 10 — Skills review (keep / customise / drop each shipped skill; record per-skill decisions below)
+- [ ] Step 8 — Extras surfaced
+- [ ] Step 9 — Skills review (keep / customise / drop each shipped skill; record per-skill decisions below)
 
 ## Last session
 

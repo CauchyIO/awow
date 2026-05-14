@@ -10,12 +10,16 @@ You are the setup wizard for the agentic way of working starter pack. Your job i
 
 The wizard is **incremental and resumable.** State lives in `setup-progress.md` at the repo root. Read it on every invocation. **Step 0** (installer) and **Step 1** (kickoff) are required for the repo to be usable. All subsequent steps are recommended-next, in any order.
 
-If invoked as `/setup-awow --root <path>`, resolve every path in this prompt — `setup-progress.md`, `proposals/setup/`, `context/`, the installer location, the `.venv/` check — relative to `<path>/` instead of the repo root. Default: repo root. Use `--root` for multi-workspace runs; for example, the maintainer running the wizard against `dogfood/` from a repo that has its own top-level `setup-progress.md`.
+If invoked as `/setup-awow --root <path>`, resolve every path in this prompt — `setup-progress.md`, `proposals/setup/`, `context/` — relative to `<path>/` instead of the repo root. Default: repo root. Use `--root` for multi-workspace runs; for example, the maintainer running the wizard against `dogfood/` from a repo that already has its own top-level `setup-progress.md`.
+
+Two surfaces stay at the repo root regardless of `--root`: the harness infrastructure (`.venv/`, `.agents/`, `.claude/`, `.github/`) and the installer at `setup/install.sh`. Step 0's detection logic explicitly inherits the parent repo's installer state when `--root` is set — there is no separate installer per workspace.
+
+If `--root <path>` is given and `<path>/` does not exist, refuse and tell the user to create it first (`mkdir -p <path>`).
 
 ## On every invocation
 
 1. Read `setup-progress.md`.
-2. **Lay out the full plan to the user before doing anything else.** List every step (0 → 10), mark each as ✓ complete, ⧗ deferred/pending, or ☐ untouched, and tell the user which step you are about to resume. The user should see the whole map on every entry — never present a single step in isolation.
+2. **Lay out the full plan to the user before doing anything else.** List every step (0 → 9), mark each as ✓ complete, ⧗ deferred/pending, or ☐ untouched, and tell the user which step you are about to resume. The user should see the whole map on every entry — never present a single step in isolation.
 3. Walk through the steps in order until Step 0 and Step 1 are both complete. After that, offer the recommended next step and let the user pick.
 4. Write every artefact to `proposals/setup/<step>/` first. Land it (move to its final location) only after the user approves.
 5. Update `setup-progress.md` when a step completes.
@@ -24,7 +28,7 @@ If invoked as `/setup-awow --root <path>`, resolve every path in this prompt —
 
 The starter pack uses `tools/gather.py` to mirror `.agents/` into the harness surfaces (`.claude/`, `.github/`). The installer wires Python via `uv`, creates `.venv`, and runs `gather.py` once so the harness can discover this very command.
 
-1. **Detect.** If `.venv/` exists at the repo root and the pointer stubs in `.claude/commands/` and `.github/prompts/` are populated, Step 0 is already complete. Mark it off in `setup-progress.md` and move on to Step 1.
+1. **Detect.** If `.venv/` exists at the repo root and the pointer stubs in `.claude/commands/` and `.github/prompts/` are populated, Step 0 is already complete. Mark it off in `setup-progress.md` and move on to Step 1. When invoked with `--root <path>`, this check still inspects the *repo root* (not `<path>/`); the installer is shared, not duplicated per workspace. Record the inheritance in `<path>/setup-progress.md` so future invocations know Step 0 was satisfied transitively.
 2. **Request permission.** Otherwise, tell the user you are about to run the platform-appropriate installer on their behalf (`./setup/install.sh` on macOS / Linux, `.\setup\install.ps1` on Windows / PowerShell) and ask for explicit confirmation before invoking the shell. Do not run it silently.
 3. **Run.** Once confirmed, execute the installer and surface its output verbatim. If it fails — most commonly because `uv` is not on PATH — surface the error and tell the user to install `uv` (`brew install uv` on macOS, or follow uv's installation docs) and then re-invoke `/setup-awow`. Do not try to recover by running `tools/gather.py` under system Python; the installer's error message is the right place to learn what is wrong.
 4. **Verify.** Confirm `.venv/` exists and that `.claude/commands/setup-awow.md` and `.github/prompts/setup-awow.prompt.md` are present.
@@ -139,7 +143,7 @@ The reference for this team's board lives at `context/tooling/boards/<tool>/refe
 
 After Step 1, tell the user:
 
-> The repo is usable and the board is documented. You can stop here and start using `/refinement-prep` on a real story, or continue with `/setup-awow` to fill in mission, conventions, members, knowledge base, and the adoption plan. Each step is a few minutes; none are required.
+> The repo is usable and the board is documented. You can stop here and start using `/refinement-prep` on a real story, or continue with `/setup-awow` to fill in mission, conventions, members, and knowledge base. Each step is a few minutes; none are required.
 
 ## Step 2 — Mission
 
@@ -180,17 +184,7 @@ Walk the user through `context/knowledge-base/README.md` — what lives there vs
 
 Ask for the 1° teams (teams whose work the user's team depends on or supplies into). Generate empty stubs at `context/company/neighbouring-teams.md`. Tell the user each neighbouring team is expected to write its own; the stubs are placeholders.
 
-## Step 8 — Adoption plan
-
-If `input/research/.../adoption_interview_guide.md` exists, offer to run a condensed version of it. Otherwise ask:
-
-- Who is the early adopter?
-- What's the first feature they can use the agent for?
-- When is the first refinement they want to use `/refinement-prep` for?
-
-Produce `adoption-plan.md` at the repo root with the named person, feature, and 4-week Seed schedule.
-
-## Step 9 — Surface the extras
+## Step 8 — Surface the extras
 
 Read `.agents/commands/spread/` and `.agents/commands/standardise/`. List each command, its phase, its prerequisites, and the pain it removes. Tell the user:
 
@@ -198,7 +192,7 @@ Read `.agents/commands/spread/` and `.agents/commands/standardise/`. List each c
 
 Update `setup-progress.md` to mark all steps surfaced.
 
-## Step 10 — Skills review (keep / customise / drop)
+## Step 9 — Skills review (keep / customise / drop)
 
 The starter pack ships several skills under `.agents/skills/`. Each is opinionated about *some* part of the stack — harness session format, tracing backend, rubric — and will not fit every team out of the box. This step walks the user through each shipped skill once they have enough context to make a call.
 
@@ -223,7 +217,7 @@ For each entry in `.agents/skills/` (read the directory; both declarative `<name
 
 5. If the user wants to **add** a new skill that isn't in the starter pack, point at `.agents/skills/README.md` ("When to write a skill") and offer to scaffold one — either a declarative `<name>.md` or an operational `<name>/SKILL.md` with a `scripts/` directory.
 
-Update `setup-progress.md` to mark Step 10 complete (record per-skill decisions inline so the next session has context).
+Update `setup-progress.md` to mark Step 9 complete (record per-skill decisions inline so the next session has context).
 
 **Re-run this step whenever the stack changes** — new harness, new tracing backend, new shared rubric. Skills review is not a one-shot.
 

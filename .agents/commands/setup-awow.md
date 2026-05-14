@@ -10,6 +10,8 @@ You are the setup wizard for the agentic way of working starter pack. Your job i
 
 The wizard is **incremental and resumable.** State lives in `setup-progress.md` at the repo root. Read it on every invocation. **Step 0** (installer) and **Step 1** (kickoff) are required for the repo to be usable. All subsequent steps are recommended-next, in any order.
 
+If invoked as `/setup-awow --root <path>`, resolve every path in this prompt — `setup-progress.md`, `proposals/setup/`, `context/`, the installer location, the `.venv/` check — relative to `<path>/` instead of the repo root. Default: repo root. Use `--root` for multi-workspace runs; for example, the maintainer running the wizard against `dogfood/` from a repo that has its own top-level `setup-progress.md`.
+
 ## On every invocation
 
 1. Read `setup-progress.md`.
@@ -30,7 +32,11 @@ The starter pack uses `tools/gather.py` to mirror `.agents/` into the harness su
 
 ## Step 1 — Kickoff (REQUIRED)
 
-The outcome of Step 1 is a **wired-up board MCP** plus a recorded `context/tooling/board.md`. The board URL is collected along the way, but it is not the headline — the MCP is. Detect first, ask second.
+The outcome of Step 1 is a **wired-up board read/write surface** plus a fully-populated `context/tooling/board.md` that specifies this team's board — state machine, hierarchy, label taxonomy, fields, team-page conventions — not just the MCP wiring. The agent reads `board.md` thereafter whenever it needs to know what a label means, which states are terminal, or where in the hierarchy a new issue belongs.
+
+Step 1 has two phases. Phase 1a wires up the read/write surface (an MCP or, for GitHub, the `gh` CLI). Phase 1b walks the team through configuration — either **Mode A** (set up from the reference for greenfield / under-configured boards) or **Mode B** (assess and capture current state for already-running boards). Phase choice is automatic, driven by counting closed issues.
+
+### Phase 1a — Wire the read/write surface
 
 1. **Establish harness.** The starter pack ships both `.claude/` and `.github/` directories, so their presence is not a signal — do **not** infer "both harnesses in use" from directory listing alone. The real signal is which harness you (the model) are currently running inside:
    - If you are Claude Code, the user's current harness is Claude Code.
@@ -38,38 +44,102 @@ The outcome of Step 1 is a **wired-up board MCP** plus a recorded `context/tooli
 
    Tell the user: "I can see I'm running in `<current harness>`. Does your team also use `<the other one>`, or is `<current>` the only harness to wire up?" Accept one of: *current only*, *both*. Record the choice; this drives which install snippets you surface in step 4.
 
-2. **Detect existing board MCP.** Look for an MCP server entry whose name or URL references a supported board tool (`linear`, `jira`, `azure`, `github`) in:
+2. **Detect existing board surface.** Look for an existing MCP server entry whose name or URL references a supported board tool (`linear`, `jira`, `azure`, `github`) in:
    - `.claude/settings.json` and `.claude/settings.local.json`
    - `.mcp.json` at the repo root
    - `.github/copilot-instructions.md` (MCP block) and `.vscode/mcp.json`
 
-   If you find one:
-   - Read the workspace / team identifier from the config.
-   - Verify read access with a single MCP call (e.g. `list_issues` or equivalent).
-   - Tell the user what you found and ask them to confirm or paste the canonical board URL (used for `context/tooling/board.md` and so the wizard can surface team-page links later). Then skip to step 5.
+   For GitHub-hosted boards also check whether `gh auth status` shows an authenticated CLI with `repo`, `project`, and `read:org` scopes — that is the `gh` CLI alternative documented in `context/tooling/boards/github-issues/reference/mcp.md`. If `gh` is authenticated for the right org, treat it as a valid surface and offer it alongside the MCP option.
 
-3. **No MCP wired yet — ask for the board URL.** Tell the user you need the URL for two reasons: (a) to know which MCP to install, (b) to extract the workspace / team identifier that the MCP itself requires for config. Refuse to continue without one. Infer the tool family from the URL hostname:
+   If you find an existing surface:
+   - Read the workspace / team identifier from the config.
+   - Verify read access with a single call (`list_issues` or `gh repo view`).
+   - Tell the user what you found and ask them to confirm or paste the canonical board URL (used for `board.md` and so the wizard can surface team-page links later). Then skip to step 5.
+
+3. **No surface wired yet — ask for the board URL.** Tell the user you need the URL for two reasons: (a) to know which surface to install, (b) to extract the workspace / team identifier that the surface itself requires for config. Refuse to continue without one. Infer the tool family from the URL hostname:
    - `linear.app` → Linear
    - `dev.azure.com` or `*.visualstudio.com` → Azure DevOps
    - `*.atlassian.net` → Jira
-   - `github.com/.../issues` → GitHub Issues
+   - `github.com/.../issues` or `github.com/orgs/<org>/projects/<n>` → GitHub Issues + Projects
    - Anything else → tell the user the tool is not supported and stop.
 
-4. **Install and verify the MCP.** Load `context/tooling/boards/<tool>.md` and read its `## MCP` section. That section is structured as: **Source docs** link, **Install — Claude Code** snippet, **Install — Copilot** snippet, **Verify** checklist. The two harnesses get different config (CLI command vs. `.vscode/mcp.json` JSON), so:
+4. **Install and verify the read/write surface.** Load `context/tooling/boards/<tool>/reference/mcp.md` (the same file the per-tool `<tool>/README.md` indexes). That file is structured as: **Source docs** link, **Install — Claude Code** snippet, **Install — Copilot** snippet, **Verify** checklist; for GitHub it also includes the **`gh` CLI alternative**. Then:
    - Pick the install snippet that matches the harness recorded in step 1. If the user confirmed they use both, surface both — they will need to wire each.
    - Surface the **Source docs** URL first and tell the user it is authoritative: the snippet in the reference is a summary and may have drifted from upstream.
+   - For GitHub, ask whether the user prefers the MCP (full-feature, PAT-managed) or the `gh` CLI (lighter; reuses existing auth). Record the choice as `surface: mcp` or `surface: gh-cli`.
    - Print the exact install command (or JSON snippet) for the user to run / paste. Configure it using the workspace / team identifier extracted from the URL where applicable.
-   - Verify read access with a single MCP call (e.g. `list_issues` or equivalent).
-   - Verify write access with a **no-op** write against a scratch issue (e.g. set the description to its current value). If write access is not granted yet, surface that as a blocker — the agent cannot do its job read-only.
-   - If the user cannot complete the install in this session (token in another browser, IT ticket, etc.), record the MCP as `pending` in `setup-progress.md` and continue with the rest of Step 1 so the repo is at least partially usable.
+   - Verify read access with a single call.
+   - Verify write access with a **no-op** write against a scratch issue (set the description to its current value, or re-add an existing label). If write access is not granted yet, surface that as a blocker — the agent cannot do its job read-only.
+   - If the user cannot complete the install in this session (token in another browser, IT ticket, etc.), record the surface as `pending` in `setup-progress.md` and continue with Phase 1b so the repo is at least partially usable; mark configuration items that depend on write access as `pending-write`.
 
-5. **Record.** Draft `context/tooling/board.md` with: tool family, board URL, MCP server name, workspace / team identifier, MCP verification status (`read-ok`, `write-ok`, or `pending`), harness choices. Land it under `proposals/setup/step-1/board.md` first. Wait for user approval. Move to `context/tooling/board.md` once approved.
+### Phase 1b — Board configuration (from reference or assess current)
 
-6. Update `setup-progress.md` to check off Step 1 (note any `pending` MCP so the next invocation re-offers the install).
+The reference for this team's board lives at `context/tooling/boards/<tool>/reference/`. The wizard reads it section by section and walks the team through either configuring from it (Mode A) or capturing what's already there (Mode B).
+
+5. **Pick mode by counting closed issues.** Use the surface to count closed (or `Done`) issues on the team's board. The threshold is **10 closed issues**: at or above, run Mode B; below, run Mode A. Surface the count and the chosen mode to the user before proceeding:
+
+   > "I see **<n>** closed issues on this board. **<n> < 10**, so I'm running **Mode A — Set up from reference**. I will walk you through each section of the reference and ask you to accept, override, or skip."
+   >
+   > _or_
+   >
+   > "I see **<n>** closed issues on this board. **<n> ≥ 10**, so I'm running **Mode B — Assess and capture current**. I will pull what is actually on the board, write it to `board.md` under the same section headings the reference uses, and surface any divergence so you can decide what to close, override, or accept."
+
+   If the count cannot be obtained (e.g. surface is `pending`), default to Mode A and note the deferral.
+
+6. **Tell the user which reference layer is in use.** Before walking any section, check for an enterprise override at `.agents-overrides/tooling/boards/<tool>/reference/`. If it exists, that layer supersedes the starter pack's reference per file. Tell the user explicitly, e.g.:
+
+   > "Reading from `.agents-overrides/tooling/boards/linear/reference/labels.md` (enterprise override) for the label taxonomy; everything else is from the starter pack."
+
+   Repeat this preamble whenever the source layer changes for the next section.
+
+7. **Walk the reference sections in order.** For each file under `<tool>/reference/` (`states.md`, `hierarchy.md`, `labels.md`, `fields.md`, `team-page.md`, `mcp.md` already covered in Phase 1a, `cycles.md` / `iterations.md` if present):
+
+   - **Mode A.** Read the reference file. Summarise its decisions to the user. For each decision the reference asks the wizard to surface, ask **accept / override / skip**. Where the surface supports mutation (Linear MCP can create labels; `gh` can edit Project fields), apply the accepted choices. Where it does not (Linear Free workflow states, ADO process templates, Jira project workflows), emit a step-by-step manual checklist for the user to run in the board UI and re-verify after the user confirms. Skipped decisions land in `board.md` as `skipped: <reason>`.
+   - **Mode B.** Read the same reference file for its `## What lands in board.md` shape. Pull the current state from the surface (workflow statuses, labels in use, native fields, team page contents). Write it to the corresponding `board.md` section. Diff against the reference; populate the `## Divergence from reference` section of `board.md` with each gap and the user's resolution (`close`, `override`, `accept`).
+
+   Land each section's draft under `proposals/setup/step-1/board.md` incrementally — append, do not overwrite — and keep the user in the loop after each section. Do not silently progress through all sections without stopping; one section per agent turn is fine.
+
+8. **Update labels.md to match reality.** If Mode B surfaces label names that diverge from the reference (e.g. team uses `bug` instead of `type:bug`), update `context/team/conventions/REQUIRED/labels.md` to reflect what is actually on the board, so future agent proposals match the team's reality. Draft the update under `proposals/setup/step-1/labels.md` and ask the user to approve before landing.
+
+### Record and complete
+
+9. **Final board.md.** When all sections are drafted, the file shape under `proposals/setup/step-1/board.md` is:
+
+   ```
+   # Board — <team name>
+
+   ## Tool & wiring          # tool family, URL, surface (MCP or gh-cli), identifier, verification, harness choices
+   ## State machine
+   ## Hierarchy
+   ## Label taxonomy
+   ## Required fields
+   ## Team page conventions
+   ## Cycles / iterations    # if applicable for this tool
+   ## Divergence from reference   # populated by Mode B; empty for Mode A
+   ```
+
+   Ask the user for final approval. Move to `context/tooling/board.md` once approved.
+
+10. **Review-and-adjust gate.** With `context/tooling/board.md` now in place, do **not** silently move on. Read the landed file back, summarise it to the user in a few bullets — surface (MCP / `gh` CLI / pending), state-machine mapping, hierarchy levels in use, label prefixes, fields in use, and any `## Divergence from reference` entries — and ask:
+
+    > "`context/tooling/board.md` is in place. Want me to adjust or evaluate any section before moving on, or are you happy with this and we proceed?"
+
+    Accept one of:
+    - **Proceed.** Continue to step 11.
+    - **Adjust `<section>`.** Re-enter Phase 1b for that section only. Re-walk it in Mode A or Mode B (whichever was used originally; the user can switch), update the draft under `proposals/setup/step-1/board.md`, ask for approval, replace the corresponding section of `context/tooling/board.md`, then return to this gate.
+    - **Evaluate `<section>`.** Re-pull the live board state for that section via the surface, diff it against what is in `board.md`, surface differences, and ask the user whether to update `board.md` or leave as-is. Return to this gate.
+
+    Loop on the gate until the user says proceed. Do not skip the gate even if the user approved the final draft in step 9 — the file existing on disk changes the question from "is this draft good enough to land?" to "now that it is the source of truth, does it still represent the team?".
+
+11. Update `setup-progress.md` to check off Step 1. Record:
+    - The mode used (A or B).
+    - Any `pending` items (surface install, manual board-UI checklists, label normalisation).
+    - The reference layer used per section (starter pack vs. enterprise override).
+    - Any sections the user re-walked or evaluated at the gate (so a later session has the audit trail).
 
 After Step 1, tell the user:
 
-> The repo is usable. You can stop here and start using `/refinement-prep` on a real story, or continue with `/setup-awow` to fill in mission, conventions, members, knowledge base, and the adoption plan. Each step is a few minutes; none are required.
+> The repo is usable and the board is documented. You can stop here and start using `/refinement-prep` on a real story, or continue with `/setup-awow` to fill in mission, conventions, members, knowledge base, and the adoption plan. Each step is a few minutes; none are required.
 
 ## Step 2 — Mission
 
@@ -83,8 +153,8 @@ Land at `context/team/mission.md` via `proposals/setup/step-2/mission.md`. Updat
 
 For each of the four REQUIRED conventions (`issue-titles.md`, `labels.md`, `branches.md`, `output-discipline.md`):
 
-- If the board has ≥10 closed issues, **observe**: query the board, summarise the existing pattern, and draft the convention to match. Show the user three real examples from their board so they can confirm.
-- If the board is greenfield (<10 issues), **guide**: propose sensible defaults from the reference docs in `context/tooling/boards/<tool>.md`. Let the user opt out of any rule that does not fit.
+- If the board has ≥10 closed issues, **observe**: query the board, summarise the existing pattern, and draft the convention to match. Show the user three real examples from their board so they can confirm. `labels.md` may already have been drafted in Step 1 Phase 1b (Mode B); reuse that draft and extend it with the rules.
+- If the board is greenfield (<10 issues), **guide**: propose sensible defaults from `context/tooling/boards/<tool>/reference/`. Let the user opt out of any rule that does not fit.
 
 `output-discipline.md` is non-negotiable. If the user objects, explain why (the agent over-produces without it). Iterate on the rules, do not skip the file.
 

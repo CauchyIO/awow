@@ -12,11 +12,19 @@ What gets reset
   restored to HEAD.
 - Untracked artefacts the walkthrough creates (`proposals/setup/`,
   `proposals/awow-add/`, `context/tooling/board.md`) are removed.
+- Open GitHub issues on the repo's `origin` remote that carry the
+  `dogfood` label are bulk-closed via `gh issue close`. This keeps the
+  board interpretable across repeated dogfood iterations. The repo is
+  resolved from `git remote get-url origin`; if the remote is not a
+  GitHub URL or `gh` is not installed, this step is skipped.
 
 What is kept by default
 -----------------------
 - All edits under `.agents/`, `tools/`, `setup/`, `README.md`, `SETUP.md`,
   `mcps/`, etc. — these are the template iterations you are testing.
+- `dogfood/` — awow's own lived team context (the "awow applied to itself"
+  worked example). This is *not* adopter state; it is preserved across
+  resets.
 - `.venv/`, `.mcp.json`, `.vscode/`, `.claude/settings.local.json` — heavy
   infrastructure and MCP credentials. Pass `--full` to wipe these too for a
   cleanroom run.
@@ -34,6 +42,7 @@ in-progress `.agents/` edits are mirrored into the harness surfaces.
 from __future__ import annotations
 
 import argparse
+import re
 import shutil
 import subprocess
 import sys
@@ -110,6 +119,59 @@ def remove_path(rel: str, dry_run: bool) -> None:
         full.unlink()
 
 
+def repo_full_name() -> str | None:
+    """Return `owner/repo` from `git remote get-url origin`, or None."""
+    if shutil.which("gh") is None:
+        return None
+    result = subprocess.run(
+        ["git", "config", "--get", "remote.origin.url"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    url = result.stdout.strip()
+    if not url:
+        return None
+    match = re.search(r"github\.com[:/]([^/]+?)/([^/]+?)(?:\.git)?$", url)
+    if not match:
+        return None
+    return f"{match.group(1)}/{match.group(2)}"
+
+
+def close_dogfood_issues(dry_run: bool) -> None:
+    repo = repo_full_name()
+    if not repo:
+        print("  - skipping `dogfood`-label cleanup (not a github origin remote or `gh` not installed)")
+        return
+    list_result = subprocess.run(
+        [
+            "gh", "issue", "list",
+            "-R", repo,
+            "-l", "dogfood",
+            "--state", "open",
+            "--json", "number",
+            "-q", ".[].number",
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    numbers = list_result.stdout.split()
+    if not numbers:
+        print(f"  - no open `dogfood`-labelled issues on {repo}")
+        return
+    print(f"  close {len(numbers)} `dogfood`-labelled issue(s) on {repo}:")
+    for num in numbers:
+        print(f"  x #{num}")
+        if dry_run:
+            continue
+        subprocess.run(
+            ["gh", "issue", "close", "-R", repo, num],
+            check=True,
+        )
+
+
 def run_gather(dry_run: bool) -> None:
     cmd = [sys.executable, "tools/gather.py"]
     print(f"  $ {' '.join(cmd)}")
@@ -147,6 +209,10 @@ def main() -> int:
     print("Remove untracked walkthrough artefacts:")
     for rel in UNTRACKED_CREATED:
         remove_path(rel, args.dry_run)
+    print()
+
+    print("Close `dogfood`-labelled open issues (board inflation control):")
+    close_dogfood_issues(args.dry_run)
     print()
 
     if args.full:

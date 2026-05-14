@@ -27,11 +27,12 @@ The first of the two required steps. After Step 1 the agent can read and propose
 
 **What the wizard does:**
 1. Infers the board tool family from the URL (Linear / ADO / Jira / GitHub Issues).
-2. Loads the matching reference from `context/tooling/boards/<tool>.md`.
-3. Prompts the user to install the corresponding MCP if it is not wired.
-4. Verifies read-write MCP semantics (writes go through `proposals/` first).
-5. Writes `context/tooling/board.md` with the team's actual choices.
-6. Records Step 1 complete in `setup-progress.md`.
+2. Loads the matching reference from `context/tooling/boards/<tool>/reference/` (states, hierarchy, labels, fields, team-page, mcp, cycles/iterations).
+3. Prompts the user to install the corresponding MCP (or, for GitHub, offers `gh` CLI as a lighter alternative).
+4. Verifies read-write semantics (writes go through `proposals/` first).
+5. **Picks Mode A or Mode B by counting closed issues:** Mode A (from reference) for greenfield / <10; Mode B (assess and capture current) at or above. Walks the team through each section accept / override / skip; applies via the MCP where supported.
+6. Writes `context/tooling/board.md` with the team's full board spec (tool & wiring, state machine, hierarchy, labels, fields, team page, cycles, divergence from reference).
+7. Records Step 1 complete in `setup-progress.md`.
 
 ## Recommended next (NOT REQUIRED — any order)
 

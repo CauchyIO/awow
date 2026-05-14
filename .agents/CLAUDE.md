@@ -10,7 +10,7 @@ Until then, the rules below are the minimum the agent needs to operate inside th
 
 - **Team context:** `context/team/` — mission, members, conventions, style
 - **Knowledge base:** `context/knowledge-base/` — durable reference; link from stories, do not embed
-- **Tooling reference:** `context/tooling/boards/<your-board>.md` once Step 1 of `/setup-awow` has run
+- **Tooling reference:** `context/tooling/board.md` (the team's actual board spec — single source of truth once Step 1 of `/setup-awow` has run); the per-tool `context/tooling/boards/<your-board>/reference/` is for the wizard, not for runtime use
 - **Setup state:** `setup-progress.md` at the repo root — read this if `/setup-awow` is invoked
 
 ## Where to write

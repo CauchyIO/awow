@@ -19,3 +19,8 @@ uv.lock
 
 # Distribution targets (per-machine config)
 tools/.distribute-targets
+
+# Claude Code Tracing
+.claude/settings.local.json
+.claude/mlflow/
+mlruns/

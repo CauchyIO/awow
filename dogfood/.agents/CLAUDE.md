@@ -24,6 +24,18 @@ Solo team. Casper (`@hetspookjee` on GitHub, `casper@cauchy.io`) maintains all o
 - **Awow template surface (parent repo):** `.agents/`, `tools/`, `context/tooling/boards/` — the awow product itself; modify with the agent-directive-voice rules when authoring or editing prompts.
 - **Setup state:** `dogfood/setup-progress.md` — what the wizard has completed in this workspace.
 
+## Before starting a new initiative
+
+Before starting work on something with a discernible outcome — a new bug, a new feature, a refactor, anything that would warrant a commit — go to the board first.
+
+1. **Look first.** Use the `gh` CLI to search `CauchyIO/awow` issues and the `Dogfood` project (project #3 on `CauchyIO`) for an existing ticket that already covers the scope. `dogfood/context/tooling/board.md` is the source of truth for state, labels, and hierarchy. If you find a matching ticket, use it; do not create a duplicate.
+2. **No match? Propose one.** Draft the issue under `dogfood/proposals/` first (proposal-first principle), get Casper's approval, then create it on the board with the required labels (`dogfood`, `type:*`, `area:*`).
+3. **Update through the lifecycle.** Move state forward when you start ("In progress"), comment when blocked or you have a finding worth recording, close when the change has landed.
+
+Gated to **new initiatives**, not every edit. Reading files, running a grep, answering a clarifying question, fixing a typo Casper named — these do not need a ticket. Rule of thumb: would a future-Casper reasonably expect to find this on the board next week? If yes, ticket. If no, just do it.
+
+If Casper has already named a ticket (e.g. "work on #42"), skip the lookup. Comment on the ticket as you progress.
+
 ## Where to write
 
 - **Drafts:** always to `dogfood/proposals/<artefact>.md` first. Never write directly to the board, team context, or knowledge base without human approval.
@@ -67,7 +79,7 @@ When you edit any file under `.agents/commands/` or any declarative skill under 
 
 ## Tracing
 
-`MLFLOW_CLAUDE_TRACING_ENABLED=true` is set in `.claude/settings.json`; Stop hook writes session metadata to MLflow (experiment `/Workspace/Shared/awow`). The `traces/` directory is gitignored.
+Tracing is on by default: `MLFLOW_CLAUDE_TRACING_ENABLED=true` in `.claude/settings.local.json` (gitignored — Casper's Databricks credentials). The Stop hook writes session metadata to the Databricks MLflow experiment `/Workspace/Shared/awow`. **Do not disable tracing mid-session or strip the Stop hook** — the traces are what `awow-usage-coach`, `daily-digest`, `weekly-digest`, `prompt-skill-analysis`, and `sprint-review-prep` all read. If the hook fails, surface the error to Casper; do not paper over it.
 
 ## Commit messages
 
@@ -75,4 +87,4 @@ Two sentences maximum (user's global guideline). The "why" lives in the issue/PR
 
 ---
 
-This file is the dogfood worked example of `tools/bootstrap-claude-md.py`'s output. Implementing the tool — and pointing it at `dogfood/` via a `--root` flag — is tracked on the Dogfood project.
+This file is the dogfood worked example of what `tools/bootstrap-claude-md.py` should produce. The tool's implementation is captured in `dogfood/backlog.md` (current preference: drop the script and have the wizard aggregate in-prompt). The wizard itself now supports `/setup-awow --root dogfood` to operate against this workspace without leaking into the template.

@@ -1,0 +1,6 @@
+# Fixture has .venv/ and populated .claude/commands/ + .github/prompts/ stubs,
+# representing Step 0 inherited from a parent repo. The wizard should detect
+# this and move to Step 1 Phase 1a §1 without asking for installer permission.
+# One reply for the harness question; script ends there so the wizard stops
+# at Phase 1a §2 (detect existing surface), which the next scenario covers.
+current only

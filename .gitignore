@@ -24,3 +24,5 @@ tools/.distribute-targets
 .claude/settings.local.json
 .claude/mlflow/
 mlruns/
+
+# Regression suite — run files now live at /tmp/awow-test-runs/, not in-repo

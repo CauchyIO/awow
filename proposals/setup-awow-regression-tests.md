@@ -7,23 +7,27 @@
 
 ## Why
 
-`/setup-awow` is a long, branching, state-dependent wizard. The prompt is iterated frequently. Manual walkthroughs are the only current way to confirm the wizard still asks for permission before running the installer, still shows the full plan on every invocation, still detects an existing MCP before asking for a board URL, etc.
+`/setup-awow` is a long, branching, state-dependent wizard. The prompt is iterated frequently. Manual walkthroughs are the only current way to confirm the wizard still asks for permission before running the installer, still shows the full plan on every invocation, still detects an existing surface before asking for a URL, etc.
 
-Each walkthrough takes ~1 hour and runs against one fixture (a clean clone). It is not repeatable, not parallelisable, and not run on every prompt edit. The risk: a small wording change silently removes the "ask before running the installer" gate and nobody notices until an adopter loses work.
+Each walkthrough takes ~1 hour and runs against one fixture (a clean clone). It is not repeatable, not parallelisable, and the grading is informal ("did it feel right?"). The risk: a small wording change silently removes the "ask before running the installer" gate and nobody notices until an adopter loses work.
 
-A regression suite turns the implicit invariants in the prompt into explicit, machine-checkable assertions.
+A regression suite turns the implicit invariants in the prompt into explicit, machine-checkable assertions. It does **not** automate the execution — the maintainer still walks each scenario in a Claude Code session — but it makes the grading deterministic.
 
 ---
 
 ## Functional design
 
+### Constraint that shapes the design
+
+The maintainer does **not** have an Anthropic API key or a Claude Code subscription. Every test must run inside an interactive Claude Code session the maintainer is already in. No `claude -p`, no programmatic invocation, no API charges. This rules out headless drivers and CI-triggered LLM judges and pushes the design toward "human drives the run, machine grades the result."
+
 ### What gets tested
 
-The current `/setup-awow` prompt encodes ~12 load-bearing invariants. Each becomes one assertion:
+The current `/setup-awow` prompt encodes 14 load-bearing invariants:
 
 | # | Invariant | Source (in `.agents/commands/setup-awow.md`) |
 |---|---|---|
-| 1 | Every invocation lists all 11 steps with ✓ / ⧗ / ☐ status markers, never a step in isolation | "On every invocation" §2 |
+| 1 | Every invocation lists all 10 steps with ✓ / ⧗ / ☐ status markers, never a step in isolation | "On every invocation" §2 |
 | 2 | Wizard resumes at the right step given `setup-progress.md` state | "On every invocation" §1, §5 |
 | 3 | Installer (`./setup/install.sh` / `install.ps1`) is never run without explicit user approval | Step 0 §2 |
 | 4 | Harness is self-detected ("am I Claude Code or Copilot?"), not inferred from `.claude/` / `.github/` presence | Step 1 Phase 1a §1 |
@@ -31,74 +35,98 @@ The current `/setup-awow` prompt encodes ~12 load-bearing invariants. Each becom
 | 6 | Wizard refuses to proceed past Step 1 without a board URL | Step 1 Phase 1a §3 |
 | 7 | Tool family is inferred from URL hostname; unknown host stops with "not supported" | Step 1 Phase 1a §3 |
 | 8 | Every artefact is drafted under `proposals/setup/<step>/` before moving to its final location | "On every invocation" §4 |
-| 9 | `context/tooling/board.md` contains: tool & wiring (family, URL, `surface: mcp \| gh-cli \| pending`, identifier, verification, harness), state machine, hierarchy, label taxonomy, required fields, team-page conventions, cycles/iterations, divergence-from-reference (Mode B) | Step 1 "Record and complete" §9 |
-| 10 | Step 10 enumerates every entry in `.agents/skills/` and surfaces each skill's bake-in assumption + interplay | Step 10 |
+| 9 | `context/tooling/board.md` contains: tool & wiring, state machine, hierarchy, label taxonomy, required fields, team-page conventions, cycles/iterations, divergence-from-reference (Mode B) | Step 1 "Record and complete" §9 |
+| 10 | Step 9 (skills review) enumerates every entry in `.agents/skills/` and surfaces each skill's bake-in assumption + interplay | Step 9 |
 | 11 | Non-MCP read/write surface (`gh` CLI) is accepted as a valid Step 1 outcome and recorded as `surface: gh-cli` in `board.md` | Step 1 Phase 1a §2, §4 |
 | 12 | URL inference covers both `github.com/.../issues` and `github.com/orgs/<org>/projects/<n>` | Step 1 Phase 1a §3 |
-| 13 | Mode-pick rule: count closed issues; ≥10 → Mode B (assess current), <10 → Mode A (set up from reference); surface the count and mode choice to the user before proceeding | Step 1 Phase 1b §5 |
-| 14 | Review-and-adjust gate after landing `board.md`: do not silently move on, summarise the landed file, accept `proceed` / `adjust <section>` / `evaluate <section>`, loop until proceed | Step 1 "Record and complete" §10 |
+| 13 | Mode-pick rule: count closed issues; ≥10 → Mode B, <10 → Mode A; surface the count and mode choice to the user before proceeding | Step 1 Phase 1b §5 |
+| 14 | Review-and-adjust gate after landing `board.md`: do not silently move on, accept `proceed` / `adjust <section>` / `evaluate <section>`, loop until proceed | Step 1 "Record and complete" §10 |
 
-Invariants 11 and 12, flagged as prompt gaps in earlier drafts, are **now encoded in the prompt** (Step 1 was substantially reworked into Phases 1a/1b with `surface: mcp \| gh-cli` recorded explicitly). The dogfood walkthrough is what surfaced them; the prompt update happened during proposal review. Phase 1 of the execution plan collapses to just the `--root` flag, already landed.
+Earlier drafts included an "MCP write-blocked" invariant. Dropped — exercising it requires either a scoped-down token or a mock failure-mode MCP, and the failure path is not on the critical adoption flow. Manual smoke test once per release is enough.
 
-Invariants 13 and 14 are also new — they came in with the Phase 1a/1b rework. They are testable structurally: invariant 13 by asserting the wizard's mode-announcement message matches the closed-issue count in the fixture; invariant 14 by asserting the wizard does not advance to Step 2 until the user types `proceed`.
+### Execution model: real execution against scratch, one command
 
-The previous draft included an "MCP write-blocked" invariant. Dropped — exercising it requires either a scoped-down token or a mock failure-mode MCP, and the failure path is not on the critical adoption flow. Manual smoke test once per release is enough.
+The maintainer stays in their current Claude Code session and types one slash command:
 
-### The model: dogfood IS the test suite
+```
+> /test-setup-awow             # runs every scenario
+> /test-setup-awow clean-clone # runs just one
+> /test-setup-awow --keep      # keep scratch dirs around for inspection
+```
 
-Earlier drafts treated the dogfood repo as a *source of fixtures* the tests would `cp -R` from. That was overbuilt. The wizard is **structurally board-family-agnostic** — only invariants 7 and 12 (URL inference) and the install snippet pick in Step 1 differ across families. Everything else (full plan, installer permission, proposal-first, board.md fields, harness self-detect, Step 10 skills review) is identical regardless of board.
+The command discovers scenarios by listing `tests/setup-awow/scripts/` ∩ `tests/setup-awow/rubrics/`. Per scenario:
 
-So: run the regression suite directly against snapshots of `dogfood/` at each step boundary. The `gh` CLI is a real read/write surface — invariants 5/8/9/11 are exercised genuinely, no mocks needed. The handful of cases dogfood does not naturally cover get tiny synthetic fixtures.
+1. **Set up scratch.** Bash: `mkdir -p /tmp/awow-test-<scenario>-<ts>/ && cp -R tests/setup-awow/fixtures/<scenario>/. /tmp/awow-test-<scenario>-<ts>/`. The fixture seeds the workspace state the wizard would otherwise be told to start from.
+2. **Run the wizard for real.** Read `.agents/commands/setup-awow.md` and follow it **as if invoked with `--root <scratch>`**. Every path resolves to `<scratch>/<path>`. Real tool calls: `Read $SCRATCH/setup-progress.md`, `Write $SCRATCH/proposals/setup/step-1/board.md`, `Bash $SCRATCH/setup/install.sh` (only if approved by the script), etc. At each "ask the user" point, consume the next non-blank line of `tests/setup-awow/scripts/<scenario>.txt` as the user's reply.
+3. **Grade against the rubric.** `tests/setup-awow/rubrics/<scenario>.md` mixes three kinds of questions:
+   - **Behavioural** ("did your first wizard response list all 10 steps?") — answered by reviewing your own messages this turn.
+   - **Tool-call** ("did you avoid running `setup/install.sh`?") — answered by reviewing your own tool-call history this turn.
+   - **State** ("does `$SCRATCH/context/tooling/board.md` contain `surface: gh-cli`?") — answered by reading the scratch filesystem post-run.
+
+   Each answer is yes/no/n/a with a one-sentence evidence pointer.
+4. **Write the run file** at `tests/setup-awow/runs/<scenario>-<UTC-timestamp>.json`.
+5. **Clean up scratch** (unless `--keep`).
+
+After all scenarios, prints `<scenario>: walked to <X>; <Y> yes / <Z> no / <W> n/a → PASS|FAIL` and an overall pass count.
+
+**Real execution, not simulation.** The wizard runs against an actual scratch workspace; its file writes happen for real; its Bash calls actually execute (against scratch). The only "scripting" is the source of user replies — they come from a text file instead of live typing.
+
+**Fidelity caveats.** The wizard runs in a single agent turn inside `/test-setup-awow` rather than alternating turns with a live user. The agent must discipline itself to reason through each wizard turn fully before consuming the next script line — explicit instruction in the command prompt. If the agent compresses turns, the rubric catches it on `clean-clone`.
+
+What this catches:
+- Prompt edits that remove a required wizard step (the resulting state diverges).
+- Prompt edits that change which files get written or where.
+- Prompt edits that skip a "ask permission" gate (tool-call assertions catch it).
+
+What it does not catch:
+- Issues that only surface with live alternating-turn timing.
+- Bugs in real Linear / Jira / Azure MCPs — the suite exercises `gh` for dogfood scenarios but does not stand up other MCPs. Manual smoke-test those before release.
 
 ### Test inventory
 
-| Test | Mechanism | Invariants exercised |
+| Test | Fixture state | Invariants graded |
 |---|---|---|
-| `dogfood-step0-inherited` | Run `/setup-awow --root dogfood/` against snapshot of `dogfood/` after Step 0 detected the parent repo's `.venv/` | 1, 2, 3 (skip installer) |
-| `dogfood-step1a-cli` | Run against snapshot after Phase 1a wired `gh` CLI | 1, 2, 9, 11, 12 |
-| `dogfood-step1b-mode-a` | Run against snapshot mid-Phase 1b walking the reference sections | 1, 2, 8, 13 |
-| `dogfood-step1-gate` | Run against snapshot just after `board.md` landed | 14 (review-and-adjust gate) |
-| `dogfood-step2-mission` | Run against snapshot after mission landed | 1, 2, 8 |
-| `dogfood-step3-conventions` | Run against snapshot after conventions drafted | 1, 2, 8 |
-| `dogfood-step10-skills-review` | Run against snapshot after all prior steps ✓ | 10 (deferred — blocked on dogfood reaching Step 10) |
-| `clean-clone` | Empty workspace, no `.venv/`, no `setup-progress.md` | 1, 3 (asks permission) |
-| `linear-mcp-wired` | `dogfood/` + a `.claude/settings.local.json` containing one Linear MCP block | 4, 5 |
-| `url-routing` | First-turn-only prompt-resolution tests against hostnames | 6, 7 |
+| `clean-clone` | Empty workspace | 1, 3 |
+| `dogfood-step0-inherited` | `.venv/` + populated pointer stubs | 1, 2, 3 (skip installer) |
+| `dogfood-step1a-cli` | Above + Step 0 ✓ in `setup-progress.md` + GitHub board reference tree | 1, 2, 9, 11, 12 |
+| `dogfood-step1b-mode-a` | Above + Phase 1a section drafted in `proposals/setup/step-1/board.md` | 1, 2, 8, 13 |
+| `dogfood-step1-gate` | Above + landed `context/tooling/board.md` | 14 |
+| `dogfood-step2-mission` | Step 1 complete | 1, 2, 8 |
+| `dogfood-step3-conventions` | Step 2 complete (board.md + mission.md present) | 1, 2, 8 |
+| `dogfood-walkthrough` | Same as `dogfood-step0-inherited` | End-to-end coverage of invariants 1, 2, 3, 4, 5, 7, 8, 9, 11, 13, 14 in one run |
+| `dogfood-step9-skills-review` | Deferred — blocked on dogfood reaching Step 9 | 10 |
+| `linear-mcp-wired` | Deferred — `dogfood/` + a fake Linear MCP block | 4, 5 |
+| `url-routing` | Deferred — six tiny scenarios (one URL each) or one batched | 6, 7 |
 
-Ten tests covering invariants 1–14. No FastMCP mocks, no per-family install verification (those are static markdown the wizard quotes — see "What this framework does NOT test").
+`dogfood-walkthrough` is the broad-coverage scenario: one fixture, one long script, one rubric covering every step from 0 through 3. Each `dogfood-step*` scenario is a narrower slice for sharper failure attribution. They overlap on purpose — when something regresses, the walkthrough catches it broadly and the slice tells you exactly which step.
 
-Each `dogfood-step*` test runs in ~30–90s of model time. `url-routing` is a few seconds per case (first-turn only). Total suite: ~6–10 min.
+### Three kinds of rubric question
 
-### Assertion layers
+Rubrics mix three assertion shapes. All are answered inside the same `/test-setup-awow` invocation.
 
-Two flavours, applied per assertion:
+| Kind | Evidence the agent inspects | Example |
+|---|---|---|
+| **Behavioural** | The agent's own messages this turn (the wizard's responses) | "Did your first wizard response list every step 0 → 9 with a status marker?" |
+| **Tool-call** | The agent's own tool-call history this turn | "Did you avoid invoking `setup/install.sh` given the script's only reply was `no`?" |
+| **State** | The scratch filesystem after the wizard run | "Does `$SCRATCH/context/tooling/board.md` exist and contain `surface: gh-cli`?" |
 
-- **Hard / structural** — regex or tool-call presence over the trace. Cheap, deterministic. Example: "no `Bash` call whose command matches `setup/install\.(sh|ps1)` appears before a user message containing a yes-equivalent." Covers invariants 2, 3, 5, 8, 9, 11.
-- **Soft / LLM-judge** — one extra Claude call against the assistant's first message, with a yes/no rubric. Example: "Does the assistant's opening message present all eleven steps with status markers?" Covers invariants 1, 4, 6, 7, 10, 12 — the ones that resist regex.
-
-LLM-judge calls cost money and are themselves non-deterministic, so the design budget is ≤2 per test.
+Self-grading is acceptable because every question reduces to a count, a presence check, or a filesystem read — not an aesthetic judgement. The `clean-clone` scenario is the canary: if the agent ever marks an obvious `no` as `yes`, the rubric needs rewording until it cannot be charitably interpreted.
 
 ### What this framework does NOT test
 
 - Output **wording quality** — only structural behaviour. Prompt edits that change phrasing without changing behaviour will pass.
 - **Snapshot diffs** against the full walkthrough trace. Full-trace diffs are flaky against intended phrasing changes. The walkthrough is the source for *which assertions to write*, not the snapshot itself.
-- **Real Linear / Jira / Azure MCP installs.** The wizard quotes install snippets from `context/tooling/boards/<tool>.md`; the wizard never runs them. Snippet correctness is verified by manual smoke test once per release, not per-PR.
-- **MCP write-blocked recovery.** Off the critical adoption flow; manual smoke before release.
+- **Real Linear / Jira / Azure MCP installs.** The wizard quotes install snippets from `context/tooling/boards/<tool>/reference/mcp.md`; the wizard never runs them. Snippet correctness is a manual smoke before release.
+- **MCP write-blocked recovery.** Off the critical adoption flow.
 - The downstream commands (`/refinement-prep`, `/process-workitem`, etc.). They get their own tests later in the same framework.
 
 ### Relationship to the dogfood repo
 
-The dogfood repo (`dogfood/` in this repo) plays two roles, both essential:
+The dogfood folder is the **worked example** the regression suite cross-references. Dogfood is what `/setup-awow` produces when walked against a specific set of user replies for a specific team (Cauchyio, GitHub Projects + `gh` CLI). Each dogfood-anchored scenario's script (`tests/setup-awow/scripts/dogfood-*.txt`) encodes the same replies the maintainer typed when walking dogfood for real. Re-running `/test-setup-awow dogfood-step1a-cli` against a fresh copy of `dogfood/` should reproduce dogfood's actual state.
 
-1. **Live walkthrough — the source of invariants and snapshots.** Watching `/setup-awow` work against `dogfood/` is the cheapest way to discover load-bearing behaviours and to capture realistic mid-walkthrough state. Each step boundary produces a natural snapshot the regression suite consumes.
-2. **Test target.** Unlike the earlier "tests live elsewhere, dogfood is upstream" framing — the regression suite runs the wizard *against snapshots of dogfood*. The snapshots travel with the prompt in this repo, so the suite is self-contained for adopters who template the repo.
+This means: when the prompt is edited, the regression run will diverge from dogfood's checked-in state if the edit changed behaviour. The `runs/` file flags it; the maintainer either accepts the divergence (rewalk dogfood, update its checked-in state) or rejects the prompt edit.
 
-**Prerequisite — `--root` support.** Dogfood writes artefacts under `dogfood/`, not the repo root (see `dogfood/setup-progress.md` L4–5: *"the wizard prompt … references paths relative to the repo root, this dogfood run lands artefacts under `dogfood/` instead"*). Two reconciliations:
-
-- **(a)** Teach the wizard a `--root <path>` argument so dogfood writes to canonical locations under `dogfood/`, and the snapshot tool captures `dogfood/...` → `tests/snapshots/<step>/...` (rebasing the prefix on the way in).
-- **(b)** Drop the `dogfood/` prefix from the dogfood walkthrough entirely (move artefacts to repo root, accept the cross-pollination cost) and snapshot directly.
-
-Pick before authoring the snapshot tool. Option (a) is the longer-lived answer because adopters will eventually want `--root` for their own multi-workspace cases; option (b) is the cheap-and-now answer.
+The standalone tests (`clean-clone`, `linear-mcp-wired`, `url-routing`) exist because dogfood does not naturally walk those branches.
 
 ---
 
@@ -109,132 +137,58 @@ Pick before authoring the snapshot tool. Option (a) is the longer-lived answer b
 ```
 tests/
   setup-awow/
-    runner.py                       # the test harness (see below)
-    assertions.py                   # shared assertion helpers
-    snapshots/
-      step0-inherited/              # cp of dogfood/ at this step boundary
-      step1-cli/
-      step2-mission/
-      step3-conventions/
-      step10-skills-review/         # deferred — dogfood not yet at Step 10
-    fixtures/
-      clean-clone/                  # empty workspace; the only fully synthetic one
-      linear-mcp-wired/             # dogfood/ + .claude/settings.local.json with Linear MCP
-    unit/
-      url-routing.py                # first-turn assertions over URL hostnames
-    tests.yaml                      # test → snapshot/fixture + script + expects
-    README.md
-  tools/
-    snapshot-fixture.py             # cp dogfood/ → snapshots/<step>/ (with --root rebasing)
+    fixtures/                   # workspace state copied into scratch at the start of each run
+      clean-clone/              # empty (no .venv/, no setup-progress.md)
+      linear-mcp-wired/         # dogfood/ + .claude/settings.local.json with Linear MCP
+    scripts/                    # one .txt per scenario; user replies, one per line
+      clean-clone.txt           # single line: "no"
+      dogfood-step1a-cli.txt    # multi-line; derived from dogfood's lived state
+      ...
+    rubrics/                    # one .md per scenario; behavioural + tool-call + state questions
+      clean-clone.md
+      ...
+    runs/                       # written by /test-setup-awow; gitignored
+      <scenario>-<UTC-timestamp>.json
+    README.md                   # how to run a scenario
+
+.agents/commands/
+  test-setup-awow.md            # top-level so it is discoverable as a slash command.
+                                # Maintainer-only; adopters delete this file alongside `tests/` and `dogfood/`.
 ```
 
-### Snapshot capture
+No `conftest.py`, no `expects/`, no `helpers.py`, no `pytest`. The single `/test-setup-awow` command does scratch setup, wizard execution, grading, run-file write, and cleanup. Scratch workspaces live at `/tmp/awow-test-<scenario>-<ts>/` and are removed after each scenario (unless `--keep`).
 
-`tools/snapshot-fixture.py` runs against the live `dogfood/` workspace. After each manual step boundary the maintainer runs:
+### `/test-setup-awow` — the unified command
 
-```bash
-uv run python tools/snapshot-fixture.py --step step1-cli
+Takes an optional scenario name and an optional `--keep` flag. With no scenario, runs every scenario discovered by listing `scripts/` ∩ `rubrics/`. Per scenario it sets up a scratch dir, runs the wizard against scratch for real (with scripted user replies), grades, writes the run file, and cleans up. The full prompt lives at `.agents/commands/test-setup-awow.md`.
+
+Example run file (`tests/setup-awow/runs/clean-clone-2026-05-14T16-42-11Z.json`):
+
+```json
+{
+  "scenario": "clean-clone",
+  "timestamp": "2026-05-14T16:42:11Z",
+  "scratch": "/tmp/awow-test-clean-clone-2026-05-14T16-42-11Z",
+  "walked_to": "Step 0 — installer declined",
+  "rubric": [
+    {"q": 1, "invariant": 2, "answer": "yes", "evidence": "first tool call was Read of $SCRATCH/setup-progress.md; returned 'file not found'"},
+    {"q": 2, "invariant": 1, "answer": "yes", "evidence": "first wizard message listed Step 0 through Step 9 with markers"},
+    {"q": 6, "invariant": 3, "answer": "yes", "evidence": "no Bash call to setup/install.sh in this turn's tool-call list"},
+    {"q": 7, "invariant": null, "answer": "yes", "evidence": "ls $SCRATCH/setup-progress.md → not present"}
+  ]
+}
 ```
 
-It `cp -R dogfood/ tests/setup-awow/snapshots/step1-cli/`. If `--root` (option a above) is adopted, it also rebases path prefixes so the snapshot looks like a repo-root install. Re-runnable: snapshots are overwritten when the underlying dogfood state changes.
+Console summary at the end of the suite:
 
-### Script + assertion DSL
-
-Each test in `tests.yaml` references a snapshot or fixture, a `script.jsonl` of user turns, and an `expect` block. One JSON object per line in `script.jsonl`:
-
-```jsonl
-{"role": "user", "content": "/setup-awow"}
-{"role": "user", "content": "yes, go ahead"}
+```
+clean-clone: walked to Step 0 — installer declined; 8 yes / 0 no / 0 n/a → PASS
+OVERALL: 1/1 scenarios pass
 ```
 
-A test that should terminate early (e.g. `unknown-board-url` in `url-routing`) provides only the turns up to the expected stop point; the runner asserts the wizard does not request further input.
+### `url-routing` — the awkward case
 
-`expect` blocks declare assertions:
-
-```yaml
-hard:
-  - name: "lists setup-progress.md before deciding"
-    kind: tool_call
-    tool: Read
-    arg_match: "setup-progress\\.md$"
-    order: first
-
-  - name: "no installer run before user approval"
-    kind: ordering
-    must_precede:
-      user_message_matches: "^(yes|y|go|ok)"
-    must_follow:
-      bash_command_matches: "setup/install\\."
-
-  - name: "board.md drafted to proposals/setup/step-1/"
-    kind: file_write
-    path_match: "proposals/setup/step-1/board\\.md$"
-
-soft:
-  - name: "opening message shows full plan with status markers"
-    target: assistant_messages[0]
-    rubric: |
-      Does this message list all eleven setup steps (0 through 10)
-      with a status marker (✓ / ⧗ / ☐ or equivalent) on each, and
-      identify which step is being resumed?
-    expect: yes
-```
-
-Three `kind`s in v1: `tool_call`, `ordering`, `file_write`. Easy to extend.
-
-### Driver
-
-Use `claude -p` in headless mode with `--input-format stream-json` and `--output-format stream-json`. The runner:
-
-1. Copies the snapshot or fixture into a temp dir.
-2. Spawns `claude -p` in that dir.
-3. Feeds `script.jsonl` lines on stdin, one at a time, waiting for the assistant's stop event between turns.
-4. Collects the full JSON stream as the trace.
-5. Evaluates the test's `expect` block against the trace.
-
-Why headless `claude -p` over the Agent SDK: zero extra dependency, same prompt resolution path as the user's real invocations, MLflow tracing already wired. The SDK becomes worth it if you need tool-call interception or sandboxed permissions later.
-
-### URL-routing unit tests
-
-`url-routing.py` is a thin harness around `claude -p` that runs only the first turn (the URL paste) and asserts the wizard's response. Cases:
-
-- `https://linear.app/cauchyio/team/CAU` → picks Linear install path (soft assertion)
-- `https://github.com/orgs/CauchyIO/projects/3` → picks GitHub Projects path (soft assertion; invariant 12)
-- `https://github.com/CauchyIO/awow/issues` → picks GitHub Issues path
-- `https://acme.atlassian.net/jira/...` → picks Jira path
-- `https://dev.azure.com/...` → picks Azure path
-- `https://trello.com/...` → refuses (hard assertion: assistant message contains "not supported", no follow-up question)
-
-No MCP, no fixture state, just the prompt resolution. ~6 cases × 5–10s each = under a minute.
-
-### `gh` in CI
-
-The `dogfood-step1-cli` test inherits dogfood's `gh` CLI surface. In CI: install `gh`, authenticate with a token scoped to a read-only org so writes against the Dogfood project fail loudly. Or run that test only locally / nightly, not per-PR. Open decision (4) below.
-
-### Trace adapter
-
-The runner reuses the trace shape that `awow-usage-coach` and `prompt-skill-analysis` already parse (tool calls, files modified, assistant messages). Same parser, new consumer. Avoids reinventing a trace model.
-
-### Running
-
-```bash
-# all tests
-uv run python tests/setup-awow/runner.py
-
-# one test, useful while iterating on the prompt
-uv run python tests/setup-awow/runner.py --test dogfood-step1-cli --verbose
-
-# write blessed traces (first time only, after a manual walkthrough confirms behaviour)
-uv run python tests/setup-awow/runner.py --bless
-```
-
-`--bless` is for the first run only — it stores the raw trace alongside each test for later debugging, never as a diff target.
-
-### CI hook
-
-A GitHub Actions workflow at `.github/workflows/setup-awow-tests.yml` runs the suite on any PR that touches `.agents/commands/setup-awow.md` or `.agents/skills/setup-awow/`. Roughly $0.10–$0.30 per run at current rates (small input × eight tests × one LLM-judge call per soft assertion).
-
-Manual local trigger: `uv run python tests/setup-awow/runner.py`.
+Six short scenarios, each a fresh workspace with a single scripted reply (the URL). Either six separate `scripts/url-routing-<n>.txt` + six fresh `claude` sessions, or one batched scenario `scripts/url-routing.txt` with six URL lines and a rubric that checks the wizard's reply to each. Batched is faster to run (one session) but the wizard's state advances between URLs so the second-and-onward URLs are not "first turn" tests; the rubric can still check "did the wizard correctly identify Linear when shown the first URL, Jira when shown the third, etc." because the agent has the full simulated history in context. Open decision (2) below.
 
 ---
 
@@ -242,37 +196,41 @@ Manual local trigger: `uv run python tests/setup-awow/runner.py`.
 
 Ordered for minimum-viable-loop first:
 
-1. **Prompt updates.** *Done.* `--root` flag added; CLI-only branch and broadened URL inference already in the prompt from the Step 1 Phase-1a/1b rework. ~10 lines net.
-2. **`runner.py` + `clean-clone` test.** Proves the driver works and the assertion vocabulary feels right. ~half a day.
-3. **`snapshot-fixture.py` + first dogfood snapshot.** Capture `step1a-cli` from the live dogfood state, wire `dogfood-step1a-cli` test against it. ~2 hours.
-4. **Remaining dogfood snapshots** — `step0-inherited`, `step1b-mode-a`, `step1-gate`, `step2-mission`, `step3-conventions`. Snapshot as dogfood progresses through them. ~hour each, parallel with the dogfood walkthrough.
-5. **`linear-mcp-wired` synthetic fixture + test.** ~hour.
-6. **`url-routing` unit tests.** ~hour.
-7. **`step10-skills-review`** — blocked on dogfood reaching Step 10. Snapshot once it does. ~half hour after unblock.
-8. **CI workflow** — wire to `pull_request` filtered on the prompt paths. ~half hour.
-9. **Extend to a second command** (e.g. `/refinement-prep`) — proves the framework is not setup-awow-specific. Out of scope for this proposal.
+1. **Prompt updates.** *Done.* `--root` flag added; CLI-only branch and broadened URL inference in the prompt from the Step 1 Phase-1a/1b rework.
+2. **Author `/test-setup-awow` + first scenario (`clean-clone`).** *Done.* Command at `.agents/commands/test-setup-awow.md`; script at `tests/setup-awow/scripts/clean-clone.txt`; rubric at `tests/setup-awow/rubrics/clean-clone.md`; fixture at `tests/setup-awow/fixtures/clean-clone/`.
+3. **Run `/test-setup-awow` (default — runs all).** Sanity-check the unified flow on the only scenario authored so far. Iterate on the rubric wording if the agent self-grades inconsistently.
+4. **Author scripts + rubrics + fixtures for the four `dogfood-step*` scenarios already reachable.** Derive scripts from dogfood's lived state. ~2 hours.
+5. **Author `linear-mcp-wired` fixture + script + rubric.** ~hour.
+6. **Author `url-routing` script + rubric.** Decide batched vs. one-per-URL during authoring. ~hour.
+7. **`dogfood-step9-skills-review`.** Blocked on dogfood reaching Step 9. ~half hour after unblock.
+8. **Extend to a second command** (e.g. `/refinement-prep`) — proves the framework is not setup-awow-specific. Out of scope for this proposal.
 
-Total to a green suite (excluding the Step 10 test waiting on dogfood): ~1 focused day plus passive snapshot capture during the dogfood walkthrough.
+Total: ~1 focused day plus passive script-derivation as the dogfood walkthrough progresses.
 
 ---
 
 ## Open decisions
 
-1. **Headless `claude -p` vs. Agent SDK.** Proposal favours `claude -p` for simplicity. Switch to SDK if Phase 2 reveals it cannot script multi-turn cleanly. *(Probed during Phase 2; no pre-decision needed.)*
-2. **LLM-judge model.** Haiku 4.5 should be sufficient for yes/no rubrics. Worth confirming on the first soft assertion.
-3. **Per-test API budget guardrail.** Worth adding a hard timeout / token cap per test so a runaway wizard turn does not silently rack up cost. *(Set during Phase 5 CI wiring.)*
+1. **Self-grading bias.** The agent grades its own wizard run. Behavioural + tool-call + state questions are all concrete (counts, presence, file contents), so bias should be low, but worth checking on `clean-clone` whether the agent ever marks an obvious `no` as `yes`. If it does, reword until it cannot be charitably interpreted.
+2. **`url-routing` shape.** Batched into one scenario (six URL lines, the rubric checks the wizard's response per line) or split into six tiny scenarios. Batched is simpler; per-URL is cleaner-isolated.
+3. **Walk-fidelity drift.** The wizard runs in one agent turn inside `/test-setup-awow`, not as alternating live turns. The agent must reason through each wizard turn fully before consuming the next script line. If on `clean-clone` the agent compresses turns or short-circuits, tighten the discipline rules in the command or split each scenario into multiple sequential `/test-setup-awow` invocations driven by an outer driver.
+4. **`Bash` permission prompts.** Real execution means real `Bash` calls — `mkdir -p /tmp/...`, `cp -R`, `rm -rf /tmp/awow-test-*`, possibly `gh auth status`, etc. The maintainer may be prompted to approve each. Worth setting an allowlist in `.claude/settings.local.json` for the regular ones once the suite stabilises.
 
 **Resolved during review:**
 
-- ~~MCP mocking strategy.~~ No MCP mocks. Dogfood's `gh` CLI is a real read/write surface that exercises invariants 5/8/9/11 genuinely. Linear/Jira/Azure end-to-end paths are not tested — install snippets are static markdown the wizard quotes, and snippet correctness is a manual smoke test before release.
-- ~~MCP write-blocked invariant.~~ Dropped from the regression suite. Off the critical adoption flow.
-- ~~`--root` support in the wizard.~~ Add `--root <path>` flag to `/setup-awow`; default is the repo root. Maintainer explicitly passes `--root dogfood/` for dogfood runs. Snapshot tool rebases the prefix on capture.
-- ~~Prompt updates for invariants 11 (CLI-only) and 12 (GitHub Projects URL).~~ Land first, as PR #1, before any test that locks them in.
-- ~~`gh` in CI for `dogfood-step1-cli`.~~ Read-only token in CI; writes fail loudly. Acceptable side-effect profile.
-- ~~`tests/` location.~~ Inside this repo at `tests/setup-awow/`. Documented as maintainer-only, alongside `dogfood/` — adopters who template the repo can delete `tests/` the same way they can delete `dogfood/`. Nothing in the adopter flow references it; nothing breaks when it is gone.
+- ~~MCP mocking strategy.~~ No mocks. Dogfood's `gh` CLI is a real read/write surface; Linear/Jira/Azure end-to-end paths are not tested in the regression suite.
+- ~~Headless `claude -p` vs. Agent SDK.~~ Neither. The maintainer's Claude Code session is the only runtime; no programmatic invocation.
+- ~~LLM-judge model / cost.~~ Replaced by in-session self-grading inside `/test-setup-awow`.
+- ~~Pytest layer.~~ Dropped. The unified `/test-setup-awow` command does walking, soft grading, and hard structural grading in one shot. The session JSONL is auditable but not required for grading.
+- ~~CI hook.~~ No CI. Regression runs when the maintainer types `/test-setup-awow <scenario>`. Discipline: run before merging a prompt edit.
+- ~~`--root` support in the wizard.~~ Added. Default is repo root; `--root <path>` for multi-workspace runs.
+- ~~Prompt updates for invariants 11 (CLI-only) and 12 (GitHub Projects URL).~~ Already in the prompt from the Phase-1a/1b rework.
+- ~~Manual script-feeding of the wizard.~~ Replaced by encoded scripts at `tests/setup-awow/scripts/<scenario>.txt`. Maintainer types one slash command per scenario, not a sequence of wizard replies.
+- ~~`tests/` location.~~ Inside this repo, documented as maintainer-only.
+- ~~Maintainer-only command location.~~ `/test-setup-awow` lives top-level at `.agents/commands/test-setup-awow.md` so it is discoverable as a slash command. Maintainer-only in body; adopters delete it alongside `tests/` and `dogfood/`.
 
 ---
 
 ## Status
 
-Decisions resolved (D3/D4/D6/D7 above). Phase 1 (prompt-iteration PR) unblocked.
+Decisions resolved; execution model settled on **real wizard execution against scratch, one command in the maintainer's current session, scripted user replies**. First scenario (`clean-clone`) is drafted (fixture + script + rubric). Next concrete deliverable: invoke `/test-setup-awow` right here and check the run-file.

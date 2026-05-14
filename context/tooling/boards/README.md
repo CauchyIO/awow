@@ -2,7 +2,7 @@
 
 Reference instructions per board tool. One file per supported board.
 
-`/setup-awow` Step 0 reads the relevant reference based on the board URL the user provides, and uses it to configure `context/tooling/board.md` (the team's actual choice).
+`/setup-awow` Step 1 reads the relevant reference based on the board URL the user provides, and uses it to configure `context/tooling/board.md` (the team's actual choice).
 
 ## Supported in v0.1
 

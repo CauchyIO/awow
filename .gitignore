@@ -4,6 +4,7 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
+uv.lock
 
 # OS / IDE
 .DS_Store

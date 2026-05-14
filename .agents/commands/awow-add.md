@@ -1,6 +1,6 @@
 ---
 phase: meta
-prerequisites: ["Step 0 of /setup-awow complete"]
+prerequisites: ["Step 1 of /setup-awow complete"]
 removes_pain: "the I-want-the-daily-digest-but-don't-want-the-whole-phase-4-stack problem"
 ---
 

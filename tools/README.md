@@ -10,6 +10,7 @@ Python scripts the team runs occasionally to keep the repo coherent. None of the
 | `bootstrap-claude-md.py` | Generate the team's `CLAUDE.md` from the stub + answers | `/setup-awow` Step 4; also after major context changes |
 | `validate-context.py` | Lint `context/` for staleness and missing required files | Quarterly, or after refactors |
 | `distribute.py` | Push core updates into sibling repos (mono-repo mode) | When the team has grown into multiple repos |
+| `reset-adopter-state.py` | Wipe adopter-produced artefacts to re-run the walkthrough | Maintainer iteration loop (invoked by `/awow-reset`) |
 
 ## v0.1 status
 

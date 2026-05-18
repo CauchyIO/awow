@@ -349,4 +349,4 @@ Manual follow-up needed:
 - **Respect existing conventions.** Follow the team's naming patterns, labels, and project structure as defined in `context/team/conventions/`.
 - **Note uncovered topics where relevant.** If a refinement never mentioned testing or rollback, note it — but frame as observation, not critique. The team may have covered it elsewhere.
 - **Be succinct in reporting, thorough in work items.** Gate summaries are compact. Work-item descriptions follow `output-discipline.md` — short bodies, durable content promoted to the knowledge base.
-- **Trace the file reference, not the content.** When tracing is enabled (`/awow-add claudetracing-setup`), the trace records the path to this transcript, not its contents. Voice memos and transcripts may contain personal data; the trace pipeline does not capture them.
+- **Trace the file reference, not the content.** When tracing is enabled (Stop hook wired in `.claude/settings.local.json`), the trace records the path to this transcript, not its contents. Voice memos and transcripts may contain personal data; the trace pipeline does not capture them.

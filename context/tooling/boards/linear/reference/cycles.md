@@ -11,7 +11,7 @@ Linear's Cycles are the team's iteration rhythm — typically one or two weeks. 
 | Auto-roll incomplete Issues | On | Carry slipped work to the next cycle so cycle-time stats stay honest. |
 | Cycle start day | Monday | Aligns with most working weeks; less load-bearing than the others. |
 
-The agent reads the current cycle to scope `/sprint-review-prep` and to answer "what's in flight" questions. It does not create or close cycles autonomously.
+The agent reads the current cycle to answer "what's in flight" questions and to scope digests. It does not create or close cycles autonomously.
 
 ## Cycle time
 

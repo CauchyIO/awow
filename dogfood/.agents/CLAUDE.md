@@ -79,7 +79,7 @@ When you edit any file under `.agents/commands/` or any declarative skill under 
 
 ## Tracing
 
-Tracing is on by default: `MLFLOW_CLAUDE_TRACING_ENABLED=true` in `.claude/settings.local.json` (gitignored — Casper's Databricks credentials). The Stop hook writes session metadata to the Databricks MLflow experiment `/Workspace/Shared/awow`. **Do not disable tracing mid-session or strip the Stop hook** — the traces are what `awow-usage-coach`, `daily-digest`, `weekly-digest`, `prompt-skill-analysis`, and `sprint-review-prep` all read. If the hook fails, surface the error to Casper; do not paper over it.
+Tracing is on by default: `MLFLOW_CLAUDE_TRACING_ENABLED=true` in `.claude/settings.local.json` (gitignored — Casper's Databricks credentials). The Stop hook writes session metadata to the Databricks MLflow experiment `/Workspace/Shared/awow`. **Do not disable tracing mid-session or strip the Stop hook** — the traces are what `awow-usage-coach`, `daily-digest`, `weekly-digest`, and `prompt-skill-analysis` all read. If the hook fails, surface the error to Casper; do not paper over it.
 
 ## Commit messages
 

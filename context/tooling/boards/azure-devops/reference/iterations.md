@@ -8,7 +8,7 @@ ADO's Iterations are the team's sprint rhythm.
 |---|---|---|
 | Length | 2 weeks | 1-week iterations work for high-cadence teams. |
 | Iteration Path naming | `<root>/<team>/<YYYY>/Sprint <N>` | Predictable; sortable. |
-| Default iteration | Current sprint | Agent reads this to scope `/sprint-review-prep`. |
+| Default iteration | Current sprint | Agent reads this to scope digests and in-flight queries. |
 
 ## Cycle / lead time
 

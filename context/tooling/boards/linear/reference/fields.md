@@ -6,7 +6,7 @@ Linear ships native fields for Priority, Estimate, Cycle, Due date, and Assignee
 |---|---|---|
 | Priority | Yes | Drives the agent's pick order in `/process-workitem` when no other signal is present. |
 | Estimate | Optional | Useful for cycle-time analysis; the agent neither requires nor proposes estimates by default. |
-| Cycle | Yes if the team runs cycles | Scopes "what's in flight this week"; surfaced by `/sprint-review-prep`. See `cycles.md`. |
+| Cycle | Yes if the team runs cycles | Scopes "what's in flight this week" for digests and in-flight queries. See `cycles.md`. |
 | Due date | Situational | Used only when a real external deadline exists; the agent never invents one. |
 | Assignee | Yes | The agent reads this to know whose work it is picking up; refuses to pick up issues assigned to another human. |
 | Project | Yes | Mandatory for any non-trivial Issue — every Issue must live under an L2 Project. |
@@ -27,7 +27,7 @@ Do not duplicate Priority via labels (see `labels.md`).
 
 Linear estimates are configurable per team (Fibonacci, T-shirt, linear 0–5). The convention:
 
-- **If the team estimates,** the agent surfaces estimate-vs-cycle-time delta in `/sprint-review-prep` but does not propose estimates itself.
+- **If the team estimates,** the agent surfaces estimate-vs-cycle-time delta in digests but does not propose estimates itself.
 - **If the team does not estimate,** no agent behaviour depends on it. Skip the field.
 
 ## Assignee

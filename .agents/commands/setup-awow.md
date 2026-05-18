@@ -28,8 +28,17 @@ If `--root <path>` is given and `<path>/` does not exist, refuse and tell the us
 
 The starter pack uses `tools/gather.py` to mirror `.agents/` into the harness surfaces (`.claude/`, `.github/`). The installer wires Python via `uv`, creates `.venv`, and runs `gather.py` once so the harness can discover this very command.
 
-1. **Detect.** If `.venv/` exists at the repo root and the pointer stubs in `.claude/commands/` and `.github/prompts/` are populated, Step 0 is already complete. Mark it off in `setup-progress.md` and move on to Step 1. When invoked with `--root <path>`, this check still inspects the *repo root* (not `<path>/`); the installer is shared, not duplicated per workspace. Record the inheritance in `<path>/setup-progress.md` so future invocations know Step 0 was satisfied transitively.
-2. **Request permission.** Otherwise, tell the user you are about to run the platform-appropriate installer on their behalf (`./setup/install.sh` on macOS / Linux, `.\setup\install.ps1` on Windows / PowerShell) and ask for explicit confirmation before invoking the shell. Do not run it silently.
+1. **Detect.** Run a cheap two-file probe — do not scan further:
+   - `.claude/commands/setup-awow.md` present? (signals `gather.py` has run, i.e. stubs are populated)
+   - `.venv/` present at repo root? (signals the Python env is wired)
+
+   Three cases:
+   - **Both present.** Step 0 is already complete. Skip to step 5.
+   - **Stubs present, `.venv/` missing.** Gather has already run, only the venv needs restoring. Tell the user you will run `uv sync --python 3.12` (not the full installer) and ask for explicit confirmation. Once confirmed, run it and skip to step 4.
+   - **Stubs missing.** Continue to step 2 for the full installer.
+
+   When invoked with `--root <path>`, both probes still inspect the *repo root* (not `<path>/`); the installer is shared, not duplicated per workspace. Record the inheritance in `<path>/setup-progress.md` so future invocations know Step 0 was satisfied transitively.
+2. **Request permission.** Tell the user you are about to run the platform-appropriate installer on their behalf (`./setup/install.sh` on macOS / Linux, `.\setup\install.ps1` on Windows / PowerShell) and ask for explicit confirmation before invoking the shell. Do not run it silently.
 3. **Run.** Once confirmed, execute the installer and surface its output verbatim. If it fails — most commonly because `uv` is not on PATH — surface the error and tell the user to install `uv` (`brew install uv` on macOS, or follow uv's installation docs) and then re-invoke `/setup-awow`. Do not try to recover by running `tools/gather.py` under system Python; the installer's error message is the right place to learn what is wrong.
 4. **Verify.** Confirm `.venv/` exists and that `.claude/commands/setup-awow.md` and `.github/prompts/setup-awow.prompt.md` are present.
 5. Mark Step 0 complete in `setup-progress.md` and continue to Step 1.

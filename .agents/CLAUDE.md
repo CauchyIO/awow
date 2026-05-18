@@ -61,7 +61,7 @@ When you edit any file under `.agents/commands/` or any declarative skill under 
 
 ## Tracing
 
-If `claudetracing-setup` is installed (post-`/awow-add claudetracing-setup`), the Stop hook writes session metadata to the team's MLflow experiment. **Treat tracing as on-by-default once installed.** Do not disable it mid-session or strip the Stop hook to "speed things up" — the traces are the substrate every coaching, digest, sprint-review, and prompt-skill skill reads. If the hook fails, surface the error to the user; do not paper over it.
+If the team has wired up trace recording (Stop hook plus `MLFLOW_CLAUDE_TRACING_ENABLED=true` in `.claude/settings.local.json`), the hook writes session metadata to the team's MLflow experiment. **Treat tracing as on-by-default once wired up.** Do not disable it mid-session or strip the Stop hook to "speed things up" — the traces are the substrate every coaching, digest, and prompt-skill skill reads. If the hook fails, surface the error to the user; do not paper over it.
 
 ---
 

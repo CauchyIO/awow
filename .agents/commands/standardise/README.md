@@ -7,7 +7,5 @@ Standardise-phase commands. Adopted once most of the team is actively committing
 | `daily-digest.md` | Aggregates daily board, code, and chat activity into a team-wide synthesis (optional email mode) |
 | `weekly-digest.md` | Aggregates the week's daily digests into a trajectory view with heatmap |
 | `cross-team-view.md` | Projects across multiple teams' boards (programme view) |
-| `programme-board-projection.md` | Renders a programme-altitude view of in-flight work |
-| `claudetracing-setup.md` | Wires up trace recording for agent sessions |
 
 Adopt via `/awow-add <name>`. Most of these have non-trivial prerequisites (team participation, chat MCP wired, transcripts being processed). The wizard surfaces these on invocation.

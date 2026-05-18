@@ -61,13 +61,9 @@ KNOWN_COMMANDS = {
     "refinement-prep": "seed",
     "process-workitem": "seed",
     "process-transcript": "seed",
-    "release-notes": "spread",
     "board-skill": "spread",
-    "sprint-review-prep": "spread",
-    "claudetracing-setup": "standardise",
     "daily-digest": "standardise",
     "weekly-digest": "standardise",
-    "programme-board-projection": "standardise",
     "cross-team-view": "standardise",
 }
 

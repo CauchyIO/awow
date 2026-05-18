@@ -10,7 +10,7 @@ Promote a phase-tagged command from "documented but inactive" to "wired up and r
 
 ## Inputs
 
-- The command name (e.g. `daily-digest`, `board-skill`, `claudetracing-setup`)
+- The command name (e.g. `daily-digest`, `board-skill`, `weekly-digest`)
 
 ## Steps
 

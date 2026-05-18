@@ -5,7 +5,7 @@ description: "Assess prompt-engineering quality from a Claude Code session and w
 
 # Prompt-Skill Analysis
 
-> **Starter shape — adjust for your harness.** This skill ships supporting two input shapes: raw **Claude Code** session JSONL and the JSON layout produced by the bundled `mlflow-export` skill. Teams running primarily on GitHub Copilot, Cursor, or another harness should extend `scripts/extract_prompts.py` with a reader for their session format during `/setup-awow` Step 9 (Skills review). The report rubric below is harness-agnostic — only the input parsing is tied to a specific shape.
+> **Starter shape — adjust for your harness.** This skill ships supporting two input shapes: raw **Claude Code** session JSONL and the JSON layout produced by the bundled `mlflow-export` skill. Teams running primarily on GitHub Copilot, Cursor, or another harness should extend `scripts/extract_prompts.py` with a reader for their session format during `/setup-awow` Step 8 (Skills review). The report rubric below is harness-agnostic — only the input parsing is tied to a specific shape.
 
 Reads an agent session (or batch of sessions) and produces an honest, evidence-backed markdown assessment of how the user prompts: clarity, specificity, structure, iteration patterns, voice, and concrete suggestions for improvement.
 

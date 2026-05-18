@@ -10,8 +10,20 @@ Until then, the rules below are the minimum the agent needs to operate inside th
 
 - **Team context:** `context/team/` — mission, members, conventions, style
 - **Knowledge base:** `context/knowledge-base/` — durable reference; link from stories, do not embed
-- **Tooling reference:** `context/tooling/boards/<your-board>.md` once Step 0 of `/setup-awow` has run
+- **Tooling reference:** `context/tooling/board.md` (the team's actual board spec — single source of truth once Step 1 of `/setup-awow` has run); the per-tool `context/tooling/boards/<your-board>/reference/` is for the wizard, not for runtime use
 - **Setup state:** `setup-progress.md` at the repo root — read this if `/setup-awow` is invoked
+
+## Before starting a new initiative
+
+Before starting work on something with a discernible outcome — a new bug, a new feature, a refactor, anything that would warrant a commit — go to the board first.
+
+1. **Look first.** Read `context/tooling/board.md` for the team's board pointer and read/write surface (MCP or `gh` CLI). Search the board for an existing ticket that already covers the scope. If you find one, use it; do not create a duplicate.
+2. **No match? Propose one.** Draft the issue under `proposals/` first (proposal-first principle), get user approval, then create the ticket on the board.
+3. **Update through the lifecycle.** Move state forward when you start ("In progress"), comment when blocked or you have a finding worth recording, close when the change has landed.
+
+Gated to **new initiatives**, not every edit. Reading files, running a grep, answering a clarifying question, fixing a typo the user named — these do not need a ticket. Rule of thumb: would a teammate reasonably expect to find this on the board next week? If yes, ticket. If no, just do it.
+
+If the user has already named a ticket (e.g. "work on AWOW-42"), skip the lookup. Comment on the ticket as you progress.
 
 ## Where to write
 
@@ -49,7 +61,7 @@ When you edit any file under `.agents/commands/` or any declarative skill under 
 
 ## Tracing
 
-If `claudetracing` is installed (post-v0.3 `/awow-add claudetracing-setup`), session metadata is written to `traces/`. The `traces/` directory is gitignored.
+If `claudetracing-setup` is installed (post-`/awow-add claudetracing-setup`), the Stop hook writes session metadata to the team's MLflow experiment. **Treat tracing as on-by-default once installed.** Do not disable it mid-session or strip the Stop hook to "speed things up" — the traces are the substrate every coaching, digest, sprint-review, and prompt-skill skill reads. If the hook fails, surface the error to the user; do not paper over it.
 
 ---
 

@@ -26,7 +26,7 @@ The single source of truth is `.agents/`. Edits to `.claude/` are overwritten on
 
 ## Settings
 
-`.claude/settings.json` is the harness configuration: permissions, MCP servers, environment variables, hooks. `/setup-awow` Step 0 writes the MCP block for the team's board.
+`.claude/settings.json` is the harness configuration: permissions, MCP servers, environment variables, hooks. `/setup-awow` Step 1 writes the MCP block for the team's board.
 
 ## Reference
 

@@ -1,0 +1,8 @@
+[project]
+name = "awow"
+version = "0.1.0"
+description = "Agentic way-of-working scaffolding"
+requires-python = ">=3.10"
+dependencies = [
+    "claudetracing>=0.2.0",
+]

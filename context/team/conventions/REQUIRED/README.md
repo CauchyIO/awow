@@ -11,7 +11,7 @@ The four conventions every team needs to make the agent useful. These are non-ne
 
 ## Populated by
 
-`/setup-awow` Step 2. If the board has been used and shows existing patterns, the wizard *observes* and drafts from what it sees. Greenfield teams are *guided* through sensible defaults.
+`/setup-awow` Step 3. If the board has been used and shows existing patterns, the wizard *observes* and drafts from what it sees. Greenfield teams are *guided* through sensible defaults.
 
 ## The "REQUIRED" name is load-bearing
 

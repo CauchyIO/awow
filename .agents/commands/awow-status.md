@@ -1,6 +1,6 @@
 ---
 phase: meta
-prerequisites: ["Step 0 of /setup-awow complete"]
+prerequisites: ["Step 1 of /setup-awow complete"]
 removes_pain: "the where-am-I-in-the-rollout problem"
 ---
 

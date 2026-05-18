@@ -5,7 +5,7 @@ description: "Analyse how a team or an individual works through agent sessions i
 
 # awow Usage Coach
 
-> **Starter shape — adjust for your harness and backend.** This skill ships expecting input in the shape produced by the bundled `mlflow-export` skill (Databricks MLflow). Teams on a different harness or tracing backend should either (a) emit the same JSON layout from their backend, or (b) extend `scripts/awow_extract.py` to read their format. The analysis itself — intent taxonomy, sequence patterns, edit footprint — is harness-agnostic and built around `working_directory`, `files_modified`, prompt text, and per-prompt timestamps. Adjust the script's input parser; leave the rubric alone unless the team genuinely wants a different report shape. Customisation lands during `/setup-awow` Step 9 (Skills review).
+> **Starter shape — adjust for your harness and backend.** This skill ships expecting input in the shape produced by the bundled `mlflow-export` skill (Databricks MLflow). Teams on a different harness or tracing backend should either (a) emit the same JSON layout from their backend, or (b) extend `scripts/awow_extract.py` to read their format. The analysis itself — intent taxonomy, sequence patterns, edit footprint — is harness-agnostic and built around `working_directory`, `files_modified`, prompt text, and per-prompt timestamps. Adjust the script's input parser; leave the rubric alone unless the team genuinely wants a different report shape. Customisation lands during `/setup-awow` Step 8 (Skills review).
 
 Reads sessions captured in an `mlflow_export/` directory (or equivalent), filters to the target repo, and produces one of two markdown reports.
 

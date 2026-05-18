@@ -11,11 +11,12 @@ Slash commands the agent can run, organised by adoption phase.
 | `standardise/` | Phase 4 (most of team active, governance in place) | Opt-in via `/awow-add <command>` |
 | `_archetypes/` | Phase-agnostic | Handlers loaded by `process-workitem` |
 
-Plus three top-level meta commands:
+Plus four top-level meta commands:
 
 - `setup-awow.md` — the incremental, resumable bootstrap wizard
 - `awow-add.md` — promote a Spread/Standardise command into the active set
 - `awow-status.md` — report current phase and readiness signals
+- `awow-reset.md` — wipe adopter-produced state so the walkthrough can be re-run end-to-end (maintainer iteration loop)
 
 ## Phase frontmatter
 

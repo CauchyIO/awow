@@ -1,0 +1,4 @@
+# Review-and-adjust gate (Step 1 "Record and complete" §10).
+# Wizard summarises the landed board.md and asks: proceed / adjust <section> /
+# evaluate <section>. Dogfood proceeds without adjustment.
+proceed

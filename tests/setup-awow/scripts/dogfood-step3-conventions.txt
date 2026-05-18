@@ -1,0 +1,13 @@
+# Step 3 — Required conventions. For each of issue-titles, labels, branches,
+# output-discipline: wizard proposes defaults (greenfield → Guide mode), drafts
+# under proposals/setup/step-3/, asks approval to move into
+# context/team/conventions/REQUIRED/. We accept defaults and approve each move.
+# Order matches the prompt's listing in the Step 3 section.
+accept
+approve
+accept
+approve
+accept
+approve
+accept
+approve

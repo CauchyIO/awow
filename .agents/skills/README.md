@@ -36,7 +36,7 @@ The script is the deterministic part. The judgement still lives in `SKILL.md`.
 
 ### These ship as starters, not as required ingredients
 
-Every operational skill in this folder is opinionated about *some* part of the stack — the tracing backend, the harness session format, the analysis rubric. That is fine for a starter pack; it is not fine for a long-lived team config. `/setup-awow` Step 9 (Skills review) walks the team through each shipped skill and asks: keep as-is, customise to your stack, or drop. Re-run that step whenever the stack changes.
+Every operational skill in this folder is opinionated about *some* part of the stack — the tracing backend, the harness session format, the analysis rubric. That is fine for a starter pack; it is not fine for a long-lived team config. `/setup-awow` Step 8 (Skills review) walks the team through each shipped skill and asks: keep as-is, customise to your stack, or drop. Re-run that step whenever the stack changes.
 
 ## When to write a skill
 

@@ -4,6 +4,13 @@ A clone-and-go template for engineering teams adopting an agentic way of working
 
 > The agentic way of working is a method for running engineering teams in which agents maintain the plan — the board, the context, and the ceremonies — so people can spend their time on judgement, not coordination. Its aim is to make the plan as trustworthy and current as the code. This repo is the bootstrap for that method.
 
+## tl;dr
+
+- **For humans:** clone the repo, open it in an agent (Claude Code or GitHub Copilot), and run `/setup-awow`. The wizard wires your board and walks you through the rest — you answer and approve, it does the work.
+- **Want the tour first?** Open [`guides/index.html`](guides/index.html) in a browser: a visual map of how the work actually flows.
+
+Everything below is the detail behind those two lines.
+
 ## Install
 
 awow's scaffolding tools (`tools/gather.py`, `tools/bootstrap-claude-md.py`) are stdlib-only Python — there are no third-party packages to install — but they do need a Python 3.10+ interpreter. The recommended path uses [`uv`](https://docs.astral.sh/uv/) so you do not need a system-wide Python:
@@ -30,11 +37,11 @@ After that, every subsequent gather is `uv run python tools/gather.py`. The `set
 
 ## Day one — five steps
 
-1. **Install:** `git clone … && cd awow && ./install.sh` (see [Install](#install) above).
+1. **Install:** `git clone … && cd awow && ./setup/install.sh` (see [Install](#install) above).
 2. **Open an agent session** at the repo root. Claude Code (`claude` in the directory) or GitHub Copilot (open the folder in VS Code) — both are wired up at install time. The wizard auto-detects which one you are running in and asks if you also use the other.
 3. **Run `/setup-awow`.** The wizard lays out its full plan up front on every invocation. Step 0 is the installer (requests your confirmation, then runs `./setup/install.sh` or the PowerShell equivalent). Step 1 walks you through the **board MCP** (Linear / Jira / Azure DevOps / GitHub Issues) and harness configuration — these two are the only required steps. The wizard surfaces the harness-specific install command for your board, with a link to the upstream docs. Subsequent steps (mission, conventions, members, knowledge base, neighbours) are *recommended-next* in any order.
 4. **Review the proposals** under `proposals/setup/`, then let the wizard land them into their final paths.
-5. **Pick a real story** and run `/refinement-prep` against it. The first ceremony is what proves the value.
+5. **Pick a real story** and run `/refinement-prep` against it. The first ceremony is what proves the value. (Teams already in steady state often start with `/process-retro` on a recorded retro instead — same point: a single concrete ceremony beats abstract setup.)
 
 The wizard is **incremental and resumable.** It reads `setup-progress.md` on every invocation and offers the next unfilled step.
 
@@ -42,7 +49,7 @@ The wizard is **incremental and resumable.** It reads `setup-progress.md` on eve
 
 ```
 .agents/           Source of truth for agent instructions — edit here
-  commands/        Slash commands (seed / spread / standardise + archetypes)
+  commands/        Slash commands + work-item archetypes (_workitem-archetypes/)
   skills/          "What good looks like" markdown the agent reads at session start
 .claude/           Pointer stubs for Claude Code — generated, redirect to .agents/
 .github/           Pointer stubs for GitHub Copilot (copilot-instructions.md
@@ -52,17 +59,27 @@ context/           Everything the agent needs to know about this team
   knowledge-base/  Durable reference — what stories link to but don't repeat
   company/         Stakeholders, neighbouring teams, RACI
   tooling/         Board and harness reference docs
+  retros/          Retrospective canon + named anti-patterns (`/process-retro` reads)
+guides/            Self-contained HTML guides + index.html — the human-facing tour
 input/             Slidedecks, briefs, exports, design history — agent reads
 transcripts/       Meeting transcripts — ephemeral, gitignored
 proposals/         Agent drafts everything here first; humans review before land
+retro-reports/     Committed history of retrospective reports per team — trajectory data
 meta/              awow's own awow-on-awow workspace (read via --root meta/; adopters may delete)
 mcps/              Approved MCP catalogue + intake template
 setup/             First-time install scripts (prerequisite for /setup-awow)
 tools/             Python scripts used during normal operation (gather, bootstrap, validate)
+tests/             Regression suite for the scaffolding (run via /test-setup-awow)
 REFERENCES.md      Upstream registries (Anthropic Skills, awesome-copilot, MCP catalogues)
 SETUP.md           Long-form walkthrough of /setup-awow
 setup-progress.md  Wizard state — tracks what's been completed (resumable)
 ```
+
+## Guides
+
+Self-contained HTML walkthroughs that an adopter can open in any browser — no agent session needed. Start at **[`guides/index.html`](guides/index.html)**, a visual map of the phases and the commands in each.
+
+They're distributable: share a URL with a teammate who has never opened an agent and they'll get the practice, with citations. For example, **[`guides/guide-agentic-retro-workflow.html`](guides/guide-agentic-retro-workflow.html)** covers the retrospective ceremony — the five-phase model (Derby & Larsen), the Prime Directive (Kerth), format selection (1-2-4-All, silent generation, the conversational-dominance pathology), and how `/process-retro` closes the loop back into the agent's instructions. It cites the canon throughout.
 
 ## One source of truth, two harness surfaces
 
@@ -98,9 +115,9 @@ A team that adopts awow takes a copy of the starter pack and grows their own con
 
 ## Status
 
-v0.1 — skeleton. The structure and the pointer-stub toolchain are in place. The wizard and seed-command implementations are next.
+**v0.1.** The pointer-stub toolchain, the `/setup-awow` wizard, the command-and-skill set, the work-item archetypes, and the `guides/` tour are all in place and working. Expect rough edges — the team-owned surface is meant to grow under you.
 
-The full design proposal lives in `input/PROPOSAL.md`. Linear-research additions in `input/ADDITIONS_FROM_LINEAR.md`. Peer-research synthesis in `input/research/synthesis.md`.
+The design inputs that informed this repo live under `input/`.
 
 ## Prerequisites
 
@@ -108,7 +125,7 @@ The full design proposal lives in `input/PROPOSAL.md`. Linear-research additions
 - An LLM coding agent available locally: Claude Code or GitHub Copilot.
 - One engineer who wants to try this.
 
-If those three are not true, the procurement conversation comes before the adoption conversation. See `input/PROPOSAL.md` §9.
+If those three are not true, the procurement conversation comes before the adoption conversation.
 
 ## License
 

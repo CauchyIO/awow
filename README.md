@@ -28,13 +28,21 @@ After that, every subsequent gather is `uv run python tools/gather.py`. The `set
 
 **No `uv` and no Python?** Install uv first (one line — see the script's error message for the official command). Everything else flows from there.
 
+## Guides
+
+Self-contained HTML walkthroughs that an adopter can open in any browser — no agent session needed.
+
+- **[guide-agentic-retro-workflow.html](guide-agentic-retro-workflow.html)** — running the retrospective ceremony. The five-phase model (Derby & Larsen), the Prime Directive (Kerth), format selection (1-2-4-All, silent generation, conversational-dominance pathology), and how `/process-retro` closes the loop back into the agent's instructions. Cites the canon throughout.
+
+These guides are distributable — you can share the URL with a teammate who has never opened an agent, and they'll get the practice with citations.
+
 ## Day one — five steps
 
 1. **Install:** `git clone … && cd awow && ./install.sh` (see [Install](#install) above).
 2. **Open an agent session** at the repo root. Claude Code (`claude` in the directory) or GitHub Copilot (open the folder in VS Code) — both are wired up at install time. The wizard auto-detects which one you are running in and asks if you also use the other.
 3. **Run `/setup-awow`.** The wizard lays out its full plan up front on every invocation. Step 0 is the installer (requests your confirmation, then runs `./setup/install.sh` or the PowerShell equivalent). Step 1 walks you through the **board MCP** (Linear / Jira / Azure DevOps / GitHub Issues) and harness configuration — these two are the only required steps. The wizard surfaces the harness-specific install command for your board, with a link to the upstream docs. Subsequent steps (mission, conventions, members, knowledge base, neighbours) are *recommended-next* in any order.
 4. **Review the proposals** under `proposals/setup/`, then let the wizard land them into their final paths.
-5. **Pick a real story** and run `/refinement-prep` against it. The first ceremony is what proves the value.
+5. **Pick a real story** and run `/refinement-prep` against it. The first ceremony is what proves the value. (Teams already in steady state often start with `/process-retro` on a recorded retro instead — same point: a single concrete ceremony beats abstract setup.)
 
 The wizard is **incremental and resumable.** It reads `setup-progress.md` on every invocation and offers the next unfilled step.
 
@@ -52,12 +60,15 @@ context/           Everything the agent needs to know about this team
   knowledge-base/  Durable reference — what stories link to but don't repeat
   company/         Stakeholders, neighbouring teams, RACI
   tooling/         Board and harness reference docs
+  retros/          Retrospective canon + named anti-patterns (`/process-retro` reads)
 input/             Slidedecks, briefs, exports, design history — agent reads
 transcripts/       Meeting transcripts — ephemeral, gitignored
 proposals/         Agent drafts everything here first; humans review before land
+retro-reports/     Committed history of retrospective reports per team — trajectory data
 mcps/              Approved MCP catalogue + intake template
 setup/             First-time install scripts (prerequisite for /setup-awow)
 tools/             Python scripts used during normal operation (gather, bootstrap, validate)
+dogfood/           Demonstration of awow used on awow — partial-coverage worked example; adopters can delete
 REFERENCES.md      Upstream registries (Anthropic Skills, awesome-copilot, MCP catalogues)
 SETUP.md           Long-form walkthrough of /setup-awow
 setup-progress.md  Wizard state — tracks what's been completed (resumable)
@@ -96,7 +107,7 @@ A team that adopts awow takes a copy of the starter pack and grows their own con
 
 ## Status
 
-v0.1 — skeleton. The structure and the pointer-stub toolchain are in place. The wizard and seed-command implementations are next.
+Early but landed: the pointer-stub toolchain, `/setup-awow` wizard, and the first wave of seed commands (`/process-transcript`, `/process-retro`, `/process-workitem`, `/refinement-prep`) are in place. The retro pipeline is the most recent addition — it ships with canonical grounding (`context/retros/canon.md`), a named anti-pattern library, and a self-contained adopter guide.
 
 The full design proposal lives in `input/PROPOSAL.md`. Linear-research additions in `input/ADDITIONS_FROM_LINEAR.md`. Peer-research synthesis in `input/research/synthesis.md`.
 

@@ -1,7 +1,7 @@
 ---
 phase: standardise
 prerequisites:
-  - "Step 0 of /setup-awow complete (board MCP wired)"
+  - "Step 0 of /setup-awow complete (the agent can read and write the board)"
   - "Most of the team actively committing"
   - "Team has shipped at least three Seed cycles"
 removes_pain: "the I-have-no-idea-what-the-other-team-shipped-this-week problem"
@@ -53,7 +53,7 @@ Collect all available signals before producing any output.
 
 ### A. Board activity (today)
 
-Pull all issue updates from today via the board MCP (per `context/tooling/board.md`). For each updated issue:
+Pull all issue updates from today via the team's board surface (per `context/tooling/board.md`). For each updated issue:
 
 - Who updated it (assignee / commenter)
 - What changed (state transition, new comments, new issues created)
@@ -65,11 +65,11 @@ Sanity-check empty results. If a team-filtered query returns zero issues on a da
 
 ### B. Code activity (today)
 
-Pull commits, PRs, and review events from today via your code-hosting MCP. For each repo with activity, capture commits, PRs opened / merged, contributors. Map code activity to board issues where possible (linked branches, mentioned issue IDs in commit messages, PR descriptions).
+Pull commits, PRs, and review events from today via the team's code-hosting surface. For each repo with activity, capture commits, PRs opened / merged, contributors. Map code activity to board issues where possible (linked branches, mentioned issue IDs in commit messages, PR descriptions).
 
 ### C. Chat / channel messages (today, optional)
 
-If the team has wired a chat MCP and a channel-to-project mapping (e.g. `config/chat-to-project.yaml`), pull the day's channel messages.
+If the team has wired a chat integration and a channel-to-project mapping (e.g. `config/chat-to-project.yaml`), pull the day's channel messages.
 
 **Always exclude meeting transcripts from automatic ingestion.** Transcripts may contain personal data; they are processed separately by `/process-transcript` with explicit approval. The digest only pulls channel messages.
 

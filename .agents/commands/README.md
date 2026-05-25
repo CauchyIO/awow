@@ -1,17 +1,20 @@
 # .agents/commands/
 
-Slash commands the agent can run, organised by adoption phase.
+Slash commands the agent can run. The files are **flat** — one `<name>.md` per command. Each command declares its adoption phase in frontmatter (`phase:`); the filesystem stays flat so commands are easy to find by name.
 
 ## Layout
 
-| Subfolder | Phase | When the team adopts it |
+| Phase (frontmatter) | When the team adopts it | Commands |
 |---|---|---|
-| `seed/` | Phase 2 (first cycle) | Wired up by `/setup-awow` by default |
-| `spread/` | Phase 3 (after first Seed cycle) | Opt-in via `/awow-add <command>` |
-| `standardise/` | Phase 4 (most of team active, governance in place) | Opt-in via `/awow-add <command>` |
-| `_archetypes/` | Phase-agnostic | Handlers loaded by `process-workitem` |
+| `seed` | Wired up by `/setup-awow` by default (first cycle) | `refinement-prep`, `process-workitem`, `process-transcript` |
+| `spread` | Opt-in via `/awow-add <command>` (after first Seed cycle) | `board-skill`, `coaching-review`, `solution-design-flow`, `design-system`, `artifact` |
+| `standardise` | Opt-in via `/awow-add <command>` (most of team active) | `daily-checkin`, `daily-digest`, `weekly-digest`, `cross-team-view` |
 
-Plus four top-level meta commands:
+`_workitem-archetypes/` is the one remaining subfolder — it holds handlers loaded by `process-workitem`, not directly invocable commands.
+
+Two of these commands are routers that dispatch to sub-prompts: `process-workitem` dispatches to the archetype handlers in `_workitem-archetypes/`, and `process-transcript` routes a transcript to a specialist command (`coaching-review`, `solution-design-flow`). `guides/guide-transcript-router.html` documents the transcript-routing model — it is scoped to transcript-consuming commands, not a catalogue of every prompt.
+
+Plus the top-level meta commands:
 
 - `setup-awow.md` — the incremental, resumable bootstrap wizard
 - `awow-add.md` — promote a Spread/Standardise command into the active set
@@ -26,7 +29,7 @@ Every command declares its phase and prerequisites:
 ---
 phase: seed | spread | standardise
 prerequisites:
-  - "Step 0 of /setup-awow complete (board MCP wired)"
+  - "Step 0 of /setup-awow complete (the agent can read and write the board)"
   - "Team has shipped at least one Seed cycle"
 removes_pain: "the <specific friction this command removes> problem"
 ---

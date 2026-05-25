@@ -1,7 +1,7 @@
 ---
 phase: standardise
 prerequisites:
-  - "Step 0 of /setup-awow complete (board MCP wired)"
+  - "Step 0 of /setup-awow complete (the agent can read and write the board)"
   - "Team has shipped at least three Seed cycles"
   - "Most of the team actively committing"
 removes_pain: "the neighbouring-team-shipped-what problem"

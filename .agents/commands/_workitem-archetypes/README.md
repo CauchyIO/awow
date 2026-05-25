@@ -1,10 +1,10 @@
-# .agents/commands/_archetypes/
+# .agents/commands/_workitem-archetypes/
 
 Archetype handlers loaded by `process-workitem`. One file per archetype.
 
 ## What is an archetype?
 
-A *kind of work item* that has its own validation steps, planning rules, and common pitfalls. The router prompt (`commands/seed/process-workitem.md`) classifies an incoming work item and dispatches to the matching handler here.
+A *kind of work item* that has its own validation steps, planning rules, and common pitfalls. The router prompt (`commands/process-workitem.md`) classifies an incoming work item and dispatches to the matching handler here.
 
 ## Common archetypes
 
@@ -26,7 +26,7 @@ A *kind of work item* that has its own validation steps, planning rules, and com
 When a kind of work shows up often enough to deserve its own rules:
 
 1. Write the handler as `<archetype>.md` in this folder.
-2. Register it in the router (`commands/seed/process-workitem.md` Step 1, classification list).
+2. Register it in the router (`commands/process-workitem.md` Step 1, classification list).
 3. Use the handler in the next session and iterate from real output.
 
 ## Handler shape

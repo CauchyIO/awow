@@ -1,7 +1,7 @@
 ---
 phase: seed
 prerequisites:
-  - "Step 0 of /setup-awow complete (board MCP wired)"
+  - "Step 0 of /setup-awow complete (the agent can read and write the board)"
   - "context/team/mission.md exists"
 removes_pain: "the scramble-the-day-before-refinement problem"
 ---

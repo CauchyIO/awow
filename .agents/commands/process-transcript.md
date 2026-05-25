@@ -1,8 +1,9 @@
 ---
 phase: seed
 prerequisites:
-  - "Step 0 of /setup-awow complete (board MCP wired)"
+  - "Step 0 of /setup-awow complete (the agent can read and write the board)"
 removes_pain: "the meeting-happened-and-the-decisions-are-gone problem"
+routes_to: transcript-family
 ---
 
 # /process-transcript — gated pipeline for meeting transcripts
@@ -15,14 +16,32 @@ This prompt runs as a pipeline with **three gates**. You stop at each gate, pres
 
 ---
 
+## Router behaviour
+
+You are the entry point for the transcript-prompt family. When a transcript contains a session another skill handles better (`/coaching-review`, `/solution-design-flow`, future leaves), recommend dispatch with rationale and let the user confirm before invoking the specialist. When no specialist fits, stay here and run the templated pipeline below.
+
+**The filesystem is the registry.** Glob `.agents/commands/**/*.md` for the source-of-truth set; in repos that only ship the mirror, glob `.claude/commands/*.md`. Filter to entries whose frontmatter declares `consumes: transcript`. Read each match's `when-to-use` and `when-not-to-use` fields and match against the segments you detect in Phase 1. Skip `README.md` and any path under `_workitem-archetypes/`.
+
+**Mode flags** from `$ARGUMENTS`:
+
+- `--as=<skill>` — skip detection. Treat the whole transcript as one segment for `<skill>`. Dispatch immediately to that skill, bypassing Phase 1.4 and 1.5.
+- `--yes` — skip the dispatch-confirmation step at GATE 1. Continue with the recommended specialists without waiting. Cascades to specialists' own gates (they will not stop either).
+
+Both flags are optional. Default behaviour is detect-then-confirm.
+
+---
+
 ## Pipeline overview
 
 ```
 Phase 0 ─ Load team context
-Phase 1 ─ Parse, classify & extract  ──→ GATE 1 (confirm understanding)
-Phase 2 ─ Board discovery & proposals ─→ GATE 2 (approve actions)
-Phase 3 ─ Execute
+Phase 1 ─ Parse, detect segments, match registry  ──→ GATE 1 (confirm dispatch)
+Phase 2 ─ Dispatch specialists + stitch outputs
+Phase 3 ─ Board discovery on fallback segments    ──→ GATE 2 (approve actions)
+Phase 4 ─ Execute
 ```
+
+When every segment dispatches to a specialist, Phases 3 and 4 are skipped — each specialist owns its own board writes. Phases 3 and 4 run only when at least one segment fell through to templated extraction.
 
 ---
 
@@ -54,12 +73,12 @@ Do **not** gate on context — proceed with whatever is available. The context i
 
 - **Phase 1 (disambiguation):** member names and glossary terms resolve garbled transcription. A word that doesn't match a known entity but sounds similar to one → assume the known entity.
 - **Phase 1 (classification):** sprint dates and current commitments inform whether this is planning vs mid-cycle refinement.
-- **Phase 2 (board discovery):** team area, active features, and neighbouring-team info scope the search. Without this, search is keyword-only and much noisier.
-- **Phase 2 (cross-team blockers):** neighbouring teams and their known work items are checked against blockers raised in the meeting.
+- **Phase 3 (board discovery):** team area, active features, and neighbouring-team info scope the search. Without this, search is keyword-only and much noisier.
+- **Phase 3 (cross-team blockers):** neighbouring teams and their known work items are checked against blockers raised in the meeting.
 
 ---
 
-## Phase 1 — Parse, classify & extract
+## Phase 1 — Parse, detect segments, match registry
 
 ### 1.1 Read and parse
 
@@ -70,6 +89,8 @@ Read the file at `$ARGUMENTS`. Support:
 - **SRT** (`.srt`) — parse numbered segments with timestamps.
 
 Reconstruct the conversation as a list of speaker-attributed turns.
+
+You work from the file you are handed. If the team's board or calendar tooling happens to expose meeting transcripts or agendas directly, the user can fetch those themselves and pass you the file — and optionally paste the meeting agenda alongside it. When an agenda is supplied, note at GATE 1 which agenda items the meeting actually covered versus skipped; otherwise work from the transcript alone and do not ask for one. Do not attempt to fetch transcripts or agendas yourself.
 
 ### 1.2 Shared-device detection
 
@@ -92,9 +113,13 @@ Protocol:
 3. When a word doesn't match a known entity but sounds similar to one, assume the known entity.
 4. Collect ALL ambiguous terms — do not guess silently.
 
-### 1.4 Classify meeting type
+### 1.4 Detect session segments
 
-Infer from filename, participants, and content. Real meetings are messy — classify as a **primary** type with optional **secondary** traits.
+A single transcript can contain more than one session type (e.g. 0:00–0:30 retrospective, 0:30–1:00 solution design). Identify segment boundaries from topic shifts, participant changes, agenda transitions, and explicit framing changes ("let's switch gears", "before we wrap, one more thing"). Label each segment with start and end timestamps, primary type, and any secondary trait.
+
+For one-type sessions, produce one segment spanning the full transcript. For mixed sessions, produce two or more.
+
+For each segment, classify the primary type from the list below. Real meetings are messy — attach a confidence label (`clear` / `likely` / `weak`) so the dispatch step can fall back when confidence is low.
 
 **Refinement / Solution Design.** Requirements, architecture options, "how should we build this", estimation, unknowns, spikes.
 
@@ -112,7 +137,21 @@ Infer from filename, participants, and content. Real meetings are messy — clas
 
 **Board / Strategic.** High-level decisions, financials, partnerships, hiring. Flag as sensitive.
 
-### 1.5 Extract content
+### 1.5 Match segments against the specialist registry
+
+Enumerate every transcript-consumer skill: glob `.agents/commands/**/*.md` (or `.claude/commands/*.md` in mirror repos), filter to frontmatter that declares `consumes: transcript`. For each segment, judge it against each specialist's `when-to-use` and `when-not-to-use`. A match is when `when-to-use` describes the segment and `when-not-to-use` does not.
+
+If `--as=<skill>` is set, skip matching. Force the whole transcript to `<skill>` as one segment and proceed.
+
+Produce one disposition per segment:
+
+- **Dispatch** — segment matches exactly one specialist. Record the specialist name, segment range, and a one-sentence rationale grounded in the transcript ("12 participants, peer dynamic, looking-back framing").
+- **Ambiguous** — segment matches two or more specialists. List them and let the user choose at GATE 1.
+- **No match** — segment matches no specialist, or confidence is `weak`. Fall through to templated extraction in 1.6.
+
+A transcript can mix dispositions: some segments dispatch, others fall back. That is normal, not a failure.
+
+### 1.6 Extract content
 
 Use the appropriate template below. Universal rules:
 
@@ -180,34 +219,102 @@ Sensitive. Flag the output as restricted. Cover: decisions made (with rationale)
 
 ---
 
-### >>> GATE 1: Confirm understanding
+### >>> GATE 1: Confirm dispatch & understanding
 
-Stop here. Present a compact summary to the user. Be succinct — the user doesn't need the full extraction repeated in prose. Present the structured extraction itself, preceded by a short header:
+Stop here. Present detection and dispatch first, then any templated extraction for fallback segments. Be succinct — the user does not need the full extraction in prose.
 
 ```
-GATE 1 — MEETING SUMMARY
+GATE 1 — DETECTED & RECOMMENDED
 
-Type: [primary] (secondary: [secondary or "none"])
+Detected [N] segment(s):
+  [hh:mm–hh:mm]  [type]  ([N] participants, confidence: clear / likely / weak)
+  ...
+
+Recommended dispatch:
+  /[skill]            on segment [N]  — [one-sentence rationale grounded in the transcript]
+  (templated fallback) on segment [N]  — [type]
+  ...
+
 Duration: ~[X] min | Participants: [names]
 Disambiguation: [list corrections applied, or "none needed"]
+```
 
-[... structured extraction using the appropriate template above ...]
+If any segments fell through to templated extraction (1.6), append:
+
+```
+Fallback extraction preview (segment [N], [type]):
+
+[... structured extraction using the appropriate template ...]
 
 Uncertain interpretations:
 - [anything you're not confident about, with reasoning]
-
-Anything to correct before I match this to the board?
 ```
 
-Keep the header to the essentials. The extraction itself carries the detail. Do not add preamble or restate the meeting in paragraph form — the extraction already does that.
+**Clarifications — surgical, never a checklist.** Do not run a fixed questionnaire. Raise a question only when **both** hold: your confidence is `weak` or an attribution is genuinely uncertain, **and** getting it wrong would change a board write (wrong owner, wrong team, wrong item). Cap at **two** questions. If nothing clears that bar, ask nothing — present and go straight to the ask line. When you do ask, list them as a short, ignorable block:
 
-**Wait for user response.** Apply corrections, then proceed.
+```
+Worth confirming (optional — reply "go" to skip):
+  1. [question grounded in the transcript]
+  2. ...
+```
+
+Ask: *"Reply `go` to proceed as shown (this also skips any optional questions above), `--as=<skill>` to override a segment, or `fallback` to skip dispatch and run templated extraction across the whole transcript — or answer a question / correct anything else."*
+
+If `--yes` was set, skip this gate and proceed to Phase 2.
+
+**Wait for user response.** Apply corrections, swap dispositions, or accept overrides before continuing.
 
 ---
 
-## Phase 2 — Board discovery & proposals
+## Phase 2 — Dispatch specialists & stitch outputs
 
-### 2.1 Search strategy
+Process segments in start-time order.
+
+For each segment with a **dispatch** disposition:
+
+1. Hand the specialist the segment's parsed turn list (the speaker-attributed reconstruction from 1.1), not the raw VTT. Include start/end timestamps and the segment-type label in the handoff.
+2. Invoke the specialist as a slash-command (`/coaching-review`, `/solution-design-flow`, or whichever matched). The specialist runs its own pipeline including its own gates. If `--yes` is set, cascade it; otherwise the specialist's gates fire normally.
+3. Capture the specialist's final report verbatim.
+
+For each segment with a **no-match** (fallback) disposition, run the matching template from 1.6 now.
+
+Stitch all outputs into one composite report:
+
+```
+# Transcript report — <source filename>
+
+## Index
+
+- [hh:mm–hh:mm]  /[skill]              — [one-line type]
+- [hh:mm–hh:mm]  templated fallback    — [one-line type]
+...
+
+---
+
+## [hh:mm–hh:mm]  /[skill]
+
+[verbatim specialist output]
+
+---
+
+## [hh:mm–hh:mm]  Templated fallback ([type])
+
+[verbatim extraction from the type's template in 1.6]
+```
+
+Single-segment runs skip the index — present the specialist output or templated extraction directly.
+
+If no segments fell through to fallback, you are done after stitching. Phases 3 and 4 are skipped — each specialist owned its own board writes. Report what was produced and stop.
+
+If at least one segment was templated, continue to Phase 3 for board discovery on the fallback action items only.
+
+---
+
+## Phase 3 — Board discovery & proposals
+
+Phase 3 runs over the action items extracted from **fallback segments only**. Specialist segments handle their own board interaction inside their own pipelines — do not re-discover or re-create their items here.
+
+### 3.1 Search strategy
 
 Search the team's board (per `context/tooling/board.md`) for existing work items using:
 
@@ -218,7 +325,7 @@ Search the team's board (per `context/tooling/board.md`) for existing work items
 
 Note match confidence: exact / likely related / weak signal.
 
-### 2.2 Cross-team blocker detection
+### 3.2 Cross-team blocker detection
 
 For every blocker or dependency surfaced:
 
@@ -227,14 +334,14 @@ For every blocker or dependency surfaced:
 3. For cross-team items: capture ID, title, state, owner, which team, current cycle or backlog, last updated.
 4. Blockers NOT found on any board → flag as **untracked dependency**.
 
-### 2.3 Gap detection
+### 3.3 Gap detection
 
 - Work discussed but not on any board
 - Board items related to discussion but not mentioned (stale? forgotten?)
 - Items lacking acceptance criteria, revealed by discussion
 - Missing parent/child links
 
-### 2.4 Propose actions
+### 3.4 Propose actions
 
 Per `context/team/conventions/REQUIRED/output-discipline.md` — every section is labelled by placement (story / comment / knowledge base) before any board write.
 
@@ -314,7 +421,7 @@ Options:
 
 ---
 
-## Phase 3 — Execute
+## Phase 4 — Execute
 
 Execute approved actions one at a time. Confirm each briefly (ID + what changed). If an action fails, report the error and continue. If an item changed unexpectedly since the meeting (updated by someone else, state already moved), pause and ask.
 

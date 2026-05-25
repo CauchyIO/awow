@@ -1,7 +1,7 @@
 ---
 phase: spread
 prerequisites:
-  - "Step 0 of /setup-awow complete (board MCP wired)"
+  - "Step 0 of /setup-awow complete (the agent can read and write the board)"
   - "Team has shipped at least one Seed cycle"
 removes_pain: "the commits-and-issues-never-link problem"
 ---

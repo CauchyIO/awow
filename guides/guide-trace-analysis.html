@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trace analysis &mdash; what you do with the sessions once they exist</title>
+<!--
+  AWOW GUIDE — trace analysis
+  The read side: mlflow-export pulls traces to JSON; prompt-skill-analysis and
+  awow-usage-coach turn that JSON into reports. Companion to guide-session-correlation.html
+  (the write side). Shared dependency: traces must already be recorded.
+  Self-contained: no external fonts/links by design.
+-->
+<style>
+  :root {
+    --bg: #f6f5f3;
+    --surface: #ffffff;
+    --surface-alt: #f0efed;
+    --text-1: #1a1a1a;
+    --text-2: #6b6b6b;
+    --text-3: #9a9a9a;
+    --border: #e0dfdd;
+    --border-subtle: #ebeae8;
+    --accent: #f24b37;
+    --link: #337FF9;
+    --ok: #2e7d4f;
+    --warn: #c97a1b;
+    --risk: #b53a2a;
+  }
+  body { margin:0; padding:0; width:100%; font-family:'Nunito',system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text-1); line-height:1.6; }
+  .wrap { max-width:1040px; margin:0 auto; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .pad { padding:28px 40px; border-bottom:1px solid var(--border-subtle); }
+  .pad-tight { padding:20px 40px; border-bottom:1px solid var(--border-subtle); }
+  h1 { font-size:1.9rem; font-weight:700; margin:0; letter-spacing:-0.02em; }
+  h2 { font-size:1.35rem; font-weight:600; margin:0 0 16px; letter-spacing:-0.01em; }
+  h3 { font-size:1.05rem; font-weight:600; margin:24px 0 10px; letter-spacing:-0.01em; }
+  p  { font-size:0.92rem; color:var(--text-2); margin:0 0 12px; line-height:1.7; }
+  ul, ol { font-size:0.92rem; color:var(--text-2); line-height:1.7; padding-left:22px; margin:0 0 14px; }
+  li { margin:4px 0; }
+  strong { color:var(--text-1); font-weight:600; }
+  em { color:var(--text-1); font-style:italic; }
+  code { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.85em; background:var(--surface-alt); padding:1px 6px; border-radius:3px; border:1px solid var(--border-subtle); }
+  pre { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.82rem; background:var(--surface-alt); padding:14px 18px; border-radius:8px; border:1px solid var(--border-subtle); overflow-x:auto; line-height:1.55; color:var(--text-1); }
+  pre .c { color:var(--text-3); }
+  table.data { border-collapse:collapse; width:100%; font-size:0.85rem; margin:0 0 16px; }
+  table.data th { text-align:left; font-weight:600; padding:8px 10px; border-bottom:2px solid var(--border); background:var(--surface-alt); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; }
+  table.data td { padding:9px 10px; border-bottom:1px solid var(--border-subtle); color:var(--text-2); vertical-align:top; line-height:1.5; }
+  table.data tr:last-child td { border-bottom:none; }
+  table.data td strong { color:var(--text-1); }
+  .kicker { font-size:0.72rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin:0 0 8px; }
+  .badge { display:inline-block; font-size:0.7rem; font-weight:600; padding:3px 10px; border-radius:4px; border:1px solid var(--border); color:var(--text-1); background:var(--surface); }
+  .badge-accent { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .badge-ok { background:rgba(46,125,79,0.08); color:var(--ok); border-color:rgba(46,125,79,0.25); }
+  .badge-warn { background:rgba(201,122,27,0.08); color:var(--warn); border-color:rgba(201,122,27,0.25); }
+  .badge-muted { background:var(--surface-alt); color:var(--text-3); border-color:var(--border-subtle); border-style:dashed; }
+  .badges { display:flex; gap:6px; flex-wrap:wrap; }
+  .callout { background:var(--surface-alt); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 16px; font-size:0.88rem; color:var(--text-2); line-height:1.65; }
+  .callout strong { color:var(--text-1); }
+  .callout-warn { border-left-color:var(--warn); }
+  .callout-ok { border-left-color:var(--ok); }
+  .diagram { background:var(--surface-alt); border:1px solid var(--border-subtle); border-radius:10px; padding:18px 16px 12px; margin:0 0 18px; }
+  .diagram svg { display:block; max-width:100%; height:auto; margin:0 auto; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:0.78rem; color:var(--text-2); padding:8px 8px 0; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .legend i { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid var(--border); }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
+  .card .card-label { font-size:0.7rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; }
+  .card h3 { margin-top:0; }
+  @media (max-width: 760px) {
+    .pad, .pad-tight { padding-left:22px; padding-right:22px; }
+    .grid-3 { grid-template-columns:1fr; }
+  }
+  @media print {
+    body { background:#fff; }
+    .wrap { border:none; border-radius:0; max-width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="pad" style="padding-top:36px;padding-bottom:24px;">
+    <p style="font-size:13px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin:0 0 10px;">Way of Working &middot; Guide</p>
+    <h1>Trace analysis</h1>
+    <p style="font-size:1rem;color:var(--text-2);margin:6px 0 0;font-weight:500;">What you do with the sessions once they exist: export, then assess.</p>
+    <p style="font-size:0.85rem;color:var(--text-3);margin:8px 0 0;">Companion to the <em>session correlation</em> guide. That one is the write side &mdash; how an entry gets linked to a trace. This one is the read side &mdash; turning traces into prompt-quality and adoption reports.</p>
+    <div class="badges" style="margin-top:16px;">
+      <span class="badge">read side</span>
+      <span class="badge">export &rarr; assess</span>
+      <span class="badge badge-accent">three skills, one dependency</span>
+    </div>
+  </div>
+
+  <!-- TL;DR -->
+  <div class="pad-tight">
+    <p class="kicker">TL;DR</p>
+    <p>One skill <strong>pulls</strong> the traces down to local JSON (<code>mlflow-export</code>); two skills <strong>read</strong> that JSON to produce markdown reports &mdash; <code>prompt-skill-analysis</code> (how well someone prompts) and <code>awow-usage-coach</code> (how a team or person works, and what to change). In every case the script only counts and extracts; the qualitative judgment lives in the agent.</p>
+  </div>
+
+  <!-- SHARED DEPENDENCY -->
+  <div class="pad-tight">
+    <div class="callout">
+      <strong>The one shared prerequisite.</strong> All three need the traces to exist. They do not record sessions &mdash; that is the MLflow Stop hook, set up via the <code>claudetracing</code> library. If the footer convention is also on (see the <em>session correlation</em> guide), these reports can tie their findings back to the exact issues and PRs a session produced.
+    </div>
+  </div>
+
+  <!-- PIPELINE DIAGRAM -->
+  <div class="pad">
+    <h2>The pipeline</h2>
+    <div class="diagram">
+      <div class="legend" style="margin-bottom:6px;">
+        <span><i style="background:#1a1a1a;border-color:#1a1a1a;"></i> Source &amp; reports</span>
+        <span><i style="background:rgba(242,75,55,0.10);border-color:rgba(242,75,55,0.55);"></i> Export artefact (JSON)</span>
+        <span><i style="background:rgba(51,127,249,0.10);border-color:rgba(51,127,249,0.55);"></i> Analysis skill</span>
+      </div>
+
+      <svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Trace analysis pipeline">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#6b6b6b"/>
+          </marker>
+          <marker id="arrd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#9a9a9a"/>
+          </marker>
+        </defs>
+
+        <!-- A: experiment -->
+        <rect x="30" y="208" width="190" height="84" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
+        <text x="125" y="240" text-anchor="middle" font-size="13.5" font-weight="700" fill="#fff" font-family="Nunito,sans-serif">MLflow experiment</text>
+        <text x="125" y="260" text-anchor="middle" font-size="10.5" fill="#e0dfdd" font-family="Nunito,sans-serif">traces written by</text>
+        <text x="125" y="276" text-anchor="middle" font-size="10.5" fill="#e0dfdd" font-family="Nunito,sans-serif">the Stop hook</text>
+
+        <!-- A -> B -->
+        <path d="M220,250 L312,250" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+        <text x="266" y="240" text-anchor="middle" font-size="10.5" font-weight="600" fill="#1a1a1a" font-family="JetBrains Mono,monospace">mlflow-export</text>
+
+        <!-- B: export json -->
+        <rect x="314" y="206" width="220" height="88" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
+        <text x="424" y="234" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">mlflow_export/</text>
+        <text x="424" y="253" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="JetBrains Mono,monospace">traces.jsonl</text>
+        <text x="424" y="269" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="JetBrains Mono,monospace">sessions/ &middot; manifest.json</text>
+        <text x="424" y="285" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">local JSON</text>
+
+        <!-- E: raw jsonl optional -->
+        <rect x="314" y="70" width="220" height="60" rx="10" fill="#fff" stroke="#9a9a9a" stroke-dasharray="5 4"/>
+        <text x="424" y="96" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1a1a" font-family="Nunito,sans-serif">raw session JSONL</text>
+        <text x="424" y="114" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">optional direct input</text>
+
+        <!-- B -> C -->
+        <path d="M534,232 C580,210 600,170 632,150" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+        <!-- E -> C (dashed) -->
+        <path d="M534,104 C580,116 600,128 632,134" fill="none" stroke="#9a9a9a" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arrd)"/>
+        <!-- B -> D -->
+        <path d="M534,268 C580,300 600,330 632,348" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <!-- C: prompt-skill-analysis -->
+        <rect x="634" y="92" width="336" height="92" rx="10" fill="rgba(51,127,249,0.08)" stroke="#337FF9"/>
+        <text x="802" y="120" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1a1a" font-family="Nunito,sans-serif">prompt-skill-analysis</text>
+        <text x="802" y="139" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">how well someone prompts</text>
+        <text x="802" y="159" text-anchor="middle" font-size="10.5" fill="#337FF9" font-family="JetBrains Mono,monospace">&rarr; prompt_skill_report.md</text>
+
+        <!-- D: awow-usage-coach -->
+        <rect x="634" y="312" width="336" height="104" rx="10" fill="rgba(51,127,249,0.08)" stroke="#337FF9"/>
+        <text x="802" y="340" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1a1a" font-family="Nunito,sans-serif">awow-usage-coach</text>
+        <text x="802" y="359" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">how a team / person works</text>
+        <text x="802" y="379" text-anchor="middle" font-size="10.5" fill="#337FF9" font-family="JetBrains Mono,monospace">&rarr; team-nudge OR self-coach</text>
+        <text x="802" y="398" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">(the --user flag flips the mode)</text>
+      </svg>
+    </div>
+    <p style="font-size:0.82rem;color:var(--text-3);margin:0;"><code>prompt-skill-analysis</code> also accepts a raw Claude Code session JSONL directly (dashed path), so a one-off review needs no export.</p>
+  </div>
+
+  <!-- THE THREE SKILLS -->
+  <div class="pad">
+    <h2>The three skills</h2>
+    <div class="grid-3">
+
+      <div class="card">
+        <p class="card-label" style="color:var(--accent)">Step 1 &middot; pull</p>
+        <h3>mlflow-export</h3>
+        <p style="margin-bottom:8px;">Paginates the experiment and writes every trace (info, request, response, spans) plus a per-session grouping to local JSON.</p>
+        <p style="font-size:0.78rem;margin-bottom:4px;"><strong>In:</strong> experiment id or URL + Databricks profile.</p>
+        <p style="font-size:0.78rem;margin-bottom:0;"><strong>Out:</strong> <code>traces.jsonl</code>, <code>sessions/&lt;id&gt;.json</code>, <code>manifest.json</code>.</p>
+      </div>
+
+      <div class="card">
+        <p class="card-label" style="color:var(--link)">Step 2a &middot; assess prompting</p>
+        <h3>prompt-skill-analysis</h3>
+        <p style="margin-bottom:8px;">An evidence-backed read on how someone prompts: clarity, specificity, structure, iteration, voice, with concrete suggestions.</p>
+        <p style="font-size:0.78rem;margin-bottom:4px;"><strong>In:</strong> an <code>mlflow_export/</code> dir <em>or</em> a raw session JSONL. Auto-detects single vs. multi-session.</p>
+        <p style="font-size:0.78rem;margin-bottom:0;"><strong>Out:</strong> <code>prompt_skill_report.md</code>.</p>
+      </div>
+
+      <div class="card">
+        <p class="card-label" style="color:var(--link)">Step 2b &middot; assess working</p>
+        <h3>awow-usage-coach</h3>
+        <p style="margin-bottom:8px;">Reads sessions through three lenses &mdash; intent shape, sequence patterns, edit footprint &mdash; and reports in one of two modes.</p>
+        <p style="font-size:0.78rem;margin-bottom:4px;"><strong>In:</strong> an <code>mlflow_export/</code> dir. <code>--user</code> sets the subject.</p>
+        <p style="font-size:0.78rem;margin-bottom:0;"><strong>Out:</strong> a <code>team-nudge</code> or <code>self-coach</code> report.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- AWOW-USAGE-COACH DETAIL -->
+  <div class="pad">
+    <h2>How <code>awow-usage-coach</code> reads a session</h2>
+    <p>It is vocabulary-agnostic on purpose &mdash; it works whether or not a team uses awow's exact slash commands, because it measures behaviour, not labels. Three lenses, in priority order:</p>
+    <table class="data">
+      <thead><tr><th style="width:24%">Lens</th><th>What it measures</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Intent shape</strong></td><td>Every prompt is classified into one of eight labels: <code>investigate</code>, <code>plan</code>, <code>propose</code>, <code>implement</code>, <code>refine</code>, <code>verify</code>, <code>document</code>, <code>inform</code> (else <code>other</code>).</td></tr>
+        <tr><td><strong>Sequence patterns</strong></td><td>Bigrams / trigrams of intent transitions per session reveal the working rhythm (<code>investigate&rarr;implement&rarr;verify</code>, <code>propose&rarr;implement&rarr;refine</code>&hellip;). In self-coach mode, subject vs. team rhythms are compared.</td></tr>
+        <tr><td><strong>Edit patterns</strong></td><td>Each trace's <code>files.modified</code> is bucketed by type (proposal, context, agents-config, code, markdown&hellip;) and crossed with intent &mdash; e.g. <em>&ldquo;when teammates 'propose', 70% of touched files are .md; when you 'propose', 50% are code.&rdquo;</em></td></tr>
+      </tbody>
+    </table>
+    <div class="grid-3" style="grid-template-columns:1fr 1fr;">
+      <div class="card">
+        <p class="card-label">team-nudge mode &middot; no <code>--user</code></p>
+        <p style="margin-bottom:0;">Proposes additions to <code>.agents/CLAUDE.md</code> / copilot-instructions based on recurring patterns across the team.</p>
+      </div>
+      <div class="card">
+        <p class="card-label">self-coach mode &middot; with <code>--user</code></p>
+        <p style="margin-bottom:0;">Imperative, encouraging coaching for one developer, compared against the team baseline.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- RUNNING IT -->
+  <div class="pad">
+    <h2>Running the pipeline</h2>
+    <p>Export once, then point either reader at the result. The scripts are plain Python next to each skill.</p>
+    <pre><span class="c"># 1. pull the traces down to JSON</span>
+.venv/bin/python .agents/skills/mlflow-export/scripts/mlflow_export.py \
+    --experiment-id &lt;ID&gt; --profile &lt;PROFILE&gt; --out ./mlflow_export
+
+<span class="c"># 2a. prompt-quality report (export dir OR a raw session JSONL)</span>
+python3 .agents/skills/prompt-skill-analysis/scripts/extract_prompts.py \
+    --input ./mlflow_export --out ./analysis.json
+<span class="c">#     then the agent reads analysis.json and writes the markdown report</span>
+
+<span class="c"># 2b. usage coaching — omit --user for team-nudge, add it for self-coach</span>
+python3 .agents/skills/awow-usage-coach/scripts/awow_extract.py \
+    --input ./mlflow_export --out /tmp/awow_usage.json [--user &lt;email&gt;]</pre>
+    <div class="callout callout-ok">
+      <strong>Each is just a skill.</strong> In practice you invoke them by name (<code>/mlflow-export</code>, <code>/prompt-skill-analysis</code>, <code>/awow-usage-coach</code>) and the agent runs the extractor, then does the qualitative write-up. The commands above are what runs underneath.
+    </div>
+  </div>
+
+  <!-- HARNESS NOTE -->
+  <div class="pad">
+    <h2>Backend &amp; harness portability</h2>
+    <p>These ship as starters for <strong>Databricks MLflow</strong> + <strong>Claude Code</strong>. The analysis rubrics are harness-agnostic &mdash; only the input parsing is tied to a shape. A team on another backend either emits the same JSON layout that <code>mlflow-export</code> produces, or extends the extractor scripts (<code>extract_prompts.py</code>, <code>awow_extract.py</code>) with a reader for their format. That customisation is exactly what <code>/setup-awow</code> Step 9 (Skills review) is for.</p>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="pad" style="border-bottom:none;">
+    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Sources of truth: the three <code>SKILL.md</code> files under <code>.agents/skills/</code>. Companion guide: <code>guide-session-correlation.html</code> (the write side). This guide is self-contained &mdash; no external resources.</p>
+  </div>
+
+</div>
+
+</body>
+</html>

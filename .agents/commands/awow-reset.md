@@ -9,7 +9,7 @@ removes_pain: "the I-want-to-iterate-on-the-prompts-and-re-run-the-walkthrough p
 You are the iteration helper for the awow maintainer (or any adopter who wants to retry the walkthrough from a clean slate). Your job is to wipe the artefacts a `/setup-awow` run produces — without throwing away the in-progress edits to the prompts and other template files the maintainer is testing.
 
 The mechanical work is done by `tools/reset-adopter-state.py`. You drive the preview-confirm-execute loop around it.
-
+`
 ## Steps
 
 1. **Preview.** Run `uv run python tools/reset-adopter-state.py --dry-run`. Surface the full output verbatim so the user can see exactly which tracked files will be restored from `HEAD` and which untracked paths will be removed.

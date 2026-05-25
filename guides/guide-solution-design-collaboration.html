@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solution-Design Collaboration Flow &mdash; Functional View (C1/C2)</title>
+<!--
+  AWOW GUIDE — solution-design collaboration
+  C1 / C2 only. C3+ intentionally out of scope.
+-->
+<style>
+  :root {
+    --bg: #f6f5f3;
+    --surface: #ffffff;
+    --surface-alt: #f0efed;
+    --text-1: #1a1a1a;
+    --text-2: #6b6b6b;
+    --text-3: #9a9a9a;
+    --border: #e0dfdd;
+    --border-subtle: #ebeae8;
+    --accent: #f24b37;
+    --link: #337FF9;
+    --ok: #2e7d4f;
+    --warn: #c97a1b;
+    --risk: #b53a2a;
+  }
+  body { margin:0; padding:0; width:100%; font-family:'Nunito',system-ui,sans-serif; background:var(--bg); color:var(--text-1); line-height:1.6; }
+  .wrap { max-width:920px; margin:0 auto; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .pad { padding:28px 40px; border-bottom:1px solid var(--border-subtle); }
+  .pad-tight { padding:20px 40px; border-bottom:1px solid var(--border-subtle); }
+  h1 { font-size:1.9rem; font-weight:700; margin:0; letter-spacing:-0.02em; }
+  h2 { font-size:1.35rem; font-weight:600; margin:0 0 16px; letter-spacing:-0.01em; }
+  h3 { font-size:1.05rem; font-weight:600; margin:24px 0 10px; letter-spacing:-0.01em; }
+  h4 { font-size:0.92rem; font-weight:600; margin:18px 0 8px; }
+  p  { font-size:0.92rem; color:var(--text-2); margin:0 0 12px; line-height:1.7; }
+  ul, ol { font-size:0.92rem; color:var(--text-2); line-height:1.7; padding-left:22px; margin:0 0 14px; }
+  li { margin:4px 0; }
+  strong { color:var(--text-1); font-weight:600; }
+  em { color:var(--text-1); font-style:italic; }
+  a { color:var(--link); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  code { font-family:'JetBrains Mono',ui-monospace,monospace; font-size:0.85em; background:var(--surface-alt); padding:1px 6px; border-radius:3px; border:1px solid var(--border-subtle); }
+  table.data { border-collapse:collapse; width:100%; font-size:0.85rem; margin:0 0 16px; }
+  table.data th { text-align:left; font-weight:600; padding:8px 10px; border-bottom:2px solid var(--border); background:var(--surface-alt); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; }
+  table.data td { padding:8px 10px; border-bottom:1px solid var(--border-subtle); color:var(--text-2); vertical-align:top; line-height:1.5; }
+  table.data tr:last-child td { border-bottom:none; }
+  table.data td strong { color:var(--text-1); }
+  .kicker { font-size:0.72rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin:0 0 8px; }
+  .meta-row { display:flex; flex-wrap:wrap; gap:14px 24px; margin:4px 0 0; font-size:0.78rem; color:var(--text-3); }
+  .meta-row span strong { color:var(--text-2); font-weight:600; }
+  .badge { display:inline-block; font-size:0.7rem; font-weight:600; padding:3px 10px; border-radius:4px; border:1px solid var(--border); color:var(--text-1); background:var(--surface); }
+  .badge-accent { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .badge-ok { background:rgba(46,125,79,0.08); color:var(--ok); border-color:rgba(46,125,79,0.25); }
+  .badge-warn { background:rgba(201,122,27,0.08); color:var(--warn); border-color:rgba(201,122,27,0.25); }
+  .badge-risk { background:rgba(181,58,42,0.08); color:var(--risk); border-color:rgba(181,58,42,0.25); }
+  .badges { display:flex; gap:6px; flex-wrap:wrap; }
+  .callout { background:var(--surface-alt); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 16px; font-size:0.88rem; color:var(--text-2); line-height:1.65; }
+  .callout strong { color:var(--text-1); }
+  .callout-warn { border-left-color:var(--warn); }
+  .callout-risk { border-left-color:var(--risk); }
+  .callout-ok { border-left-color:var(--ok); }
+  .part-header { background:var(--text-1); color:#fff; padding:28px 40px; }
+  .part-header .part-num { font-size:0.72rem; font-weight:600; color:var(--accent); text-transform:uppercase; letter-spacing:0.16em; margin:0 0 8px; }
+  .part-header h2 { color:#fff; margin:0; font-size:1.45rem; font-weight:700; letter-spacing:-0.01em; }
+  .part-header p  { color:rgba(255,255,255,0.7); margin:6px 0 0; font-size:0.92rem; }
+  .diagram { background:var(--surface-alt); border:1px solid var(--border-subtle); border-radius:10px; padding:18px 16px 12px; margin:0 0 18px; }
+  .diagram-title { font-size:0.72rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin:0 0 12px; padding:0 8px; display:flex; justify-content:space-between; }
+  .diagram-title .c4 { color:var(--accent); }
+  .diagram svg { display:block; max-width:100%; height:auto; margin:0 auto; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:0.78rem; color:var(--text-2); padding:8px 8px 0; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .legend i { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid var(--border); }
+  .toc { background:var(--surface-alt); border-radius:8px; padding:18px 22px; margin:0; }
+  .toc ol { padding-left:22px; margin:0; columns:2; column-gap:28px; }
+  .toc li { margin:5px 0; font-size:0.85rem; color:var(--text-2); }
+  .toc a { color:var(--text-1); font-weight:500; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
+  .card .card-label { font-size:0.7rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; }
+  .open-q { background:rgba(242,75,55,0.06); border:1px solid rgba(242,75,55,0.25); border-radius:8px; padding:12px 16px; margin:0 0 12px; }
+  .open-q strong { color:var(--accent); }
+  .pill { display:inline-block; font-family:'JetBrains Mono',ui-monospace,monospace; font-size:0.72rem; padding:2px 8px; background:#fff; color:var(--text-1); border:1px solid var(--border); border-radius:10px; }
+  .scope-bar { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:14px 0 18px; }
+  .scope-cell { background:var(--surface-alt); border:1px solid var(--border-subtle); border-radius:8px; padding:10px 12px; font-size:0.78rem; }
+  .scope-cell.in { background:rgba(46,125,79,0.08); border-color:rgba(46,125,79,0.35); }
+  .scope-cell.out { background:#fff; border-style:dashed; color:var(--text-3); }
+  .scope-cell .lbl { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-3); }
+  .scope-cell.in .lbl { color:var(--ok); }
+  .scope-cell .name { font-size:0.92rem; font-weight:600; color:var(--text-1); margin:2px 0 0; }
+  .scope-cell.out .name { color:var(--text-3); text-decoration:line-through; }
+  @media (max-width: 720px) {
+    .pad, .pad-tight, .part-header { padding-left:22px; padding-right:22px; }
+    .toc ol { columns:1; }
+    .grid-2, .grid-3, .scope-bar { grid-template-columns:1fr; }
+  }
+  @media print {
+    body { background:#fff; }
+    .wrap { border:none; border-radius:0; max-width:100%; }
+    a { color:var(--text-1); }
+    .part-header { page-break-before:always; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="pad" style="padding-top:36px;padding-bottom:24px;">
+    <p style="font-size:13px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin:0 0 10px;">Way of Working &middot; Guide</p>
+    <h1>Solution-design collaboration flow</h1>
+    <p style="font-size:1rem;color:var(--text-2);margin:6px 0 0;font-weight:500;">Functional view &mdash; C1 (context) and C2 (containers). No technical implementation.</p>
+    <div class="meta-row" style="margin-top:14px;">
+      <span><strong>Form</strong> functional / conceptual guide</span>
+      <span><strong>Levels</strong> C1, C2</span>
+      <span><strong>Audience</strong> teams adopting the agentic way of working</span>
+    </div>
+    <div class="badges" style="margin-top:16px;">
+      <span class="badge">C4 paradigm</span>
+      <span class="badge">functional only</span>
+      <span class="badge">no tech specifics</span>
+      <span class="badge badge-accent">where / when / how feedback</span>
+    </div>
+  </div>
+
+  <!-- SCOPE BAR -->
+  <div class="pad-tight">
+    <p class="kicker">Scope of this document</p>
+    <div class="scope-bar">
+      <div class="scope-cell in">
+        <div class="lbl">C1 &mdash; In</div>
+        <div class="name">System context</div>
+      </div>
+      <div class="scope-cell in">
+        <div class="lbl">C2 &mdash; In</div>
+        <div class="name">Containers (functional)</div>
+      </div>
+      <div class="scope-cell out">
+        <div class="lbl">C3 &mdash; Out</div>
+        <div class="name">Components</div>
+      </div>
+      <div class="scope-cell out">
+        <div class="lbl">C4 &mdash; Out</div>
+        <div class="name">Code &amp; tech</div>
+      </div>
+    </div>
+    <p style="font-size:0.85rem;margin:0;">Technologies, schemas, endpoints, and infrastructure are intentionally absent. Agree on the shape and the lifecycle before agreeing on the wiring.</p>
+  </div>
+
+  <!-- TL;DR -->
+  <div class="pad-tight">
+    <p class="kicker">TL;DR</p>
+    <p>Solution designs are documents that <strong>turn an open question into a recorded decision</strong>. To work, they need three things this guide addresses: a <strong>place</strong> (where do they live), a <strong>lifecycle</strong> (when do they move from sketch to ratified), and a <strong>feedback channel</strong> (how do other people&rsquo;s objections land back on the artifact). The last one is the part that&rsquo;s usually broken &mdash; commentary in PRs, Google Docs, and chat all drift away from the design itself, so the trace of "who pushed back and what was decided" is lost.</p>
+  </div>
+
+  <!-- TOC -->
+  <div class="pad-tight">
+    <div class="toc">
+      <p class="kicker" style="margin:0 0 8px;">Contents</p>
+      <ol>
+        <li><a href="#actors">Actors &mdash; who interacts with a design</a></li>
+        <li><a href="#c1">C1 &mdash; System context</a></li>
+        <li><a href="#filing">Filing &mdash; where designs live</a></li>
+        <li><a href="#lifecycle">Lifecycle &mdash; sketch &rarr; ratified</a></li>
+        <li><a href="#feedback">Feedback loop &mdash; functional flow</a></li>
+        <li><a href="#fork">Forking &mdash; when to branch a design</a></li>
+        <li><a href="#c2">C2 &mdash; Containers (functional)</a></li>
+        <li><a href="#open">Open questions a team should answer</a></li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- 1. ACTORS -->
+  <div class="pad" id="actors">
+    <h2>1. Actors</h2>
+    <p>Five human roles interact with a design, plus an assistive agent. The same person plays different roles at different times; the roles are stable, the headcount per role isn&rsquo;t.</p>
+    <div class="grid-3">
+      <div class="card">
+        <p class="card-label">Author</p>
+        <p style="font-size:0.85rem;margin:0;">Writes the design. Owns the question. Responsible for resolving feedback before ratification.</p>
+      </div>
+      <div class="card">
+        <p class="card-label">Reviewer</p>
+        <p style="font-size:0.85rem;margin:0;">Reads, challenges, comments, approves. Brings perspective the author didn&rsquo;t have.</p>
+      </div>
+      <div class="card">
+        <p class="card-label">Decider</p>
+        <p style="font-size:0.85rem;margin:0;">Has final say when reviewers disagree. Often the author, sometimes not.</p>
+      </div>
+      <div class="card">
+        <p class="card-label">Implementer</p>
+        <p style="font-size:0.85rem;margin:0;">Reads the ratified design and turns it into code / configuration / process. May post-hoc comment when reality bites.</p>
+      </div>
+      <div class="card">
+        <p class="card-label">Future reader</p>
+        <p style="font-size:0.85rem;margin:0;">Reads it months later trying to understand "why did we do it this way." Trust nobody &mdash; this is the role most teams fail.</p>
+      </div>
+      <div class="card" style="background:var(--surface-alt);">
+        <p class="card-label">Agent (assistive)</p>
+        <p style="font-size:0.85rem;margin:0;">Drafts, summarises feedback, surfaces inconsistencies. Reads designs and their commentary as context for downstream work.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. C1 -->
+  <div class="part-header" id="c1">
+    <p class="part-num">C4 level 1</p>
+    <h2>2. System context</h2>
+    <p>The design at the centre, the people and adjacent systems it touches. No technologies named.</p>
+  </div>
+  <div class="pad">
+    <div class="diagram">
+      <p class="diagram-title"><span>System context &mdash; the design and its world</span><span class="c4">C1</span></p>
+      <svg viewBox="0 0 880 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="C1 system context diagram">
+        <defs>
+          <marker id="arrC1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/>
+          </marker>
+        </defs>
+
+        <!-- Centre: the artifact -->
+        <ellipse cx="440" cy="230" rx="130" ry="80" fill="#f24b37" opacity="0.12" stroke="#f24b37" stroke-width="2"/>
+        <text x="440" y="222" text-anchor="middle" font-family="Nunito,sans-serif" font-size="16" font-weight="700" fill="#1a1a1a">Solution design</text>
+        <text x="440" y="244" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" fill="#6b6b6b">a document with a decision in it</text>
+
+        <!-- Actors around it -->
+        <circle cx="120" cy="100" r="34" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+        <text x="120" y="98" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="600" fill="#1a1a1a">Author</text>
+        <text x="120" y="114" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">writes</text>
+
+        <circle cx="440" cy="60" r="34" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+        <text x="440" y="58" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="600" fill="#1a1a1a">Reviewer</text>
+        <text x="440" y="74" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">reacts</text>
+
+        <circle cx="760" cy="100" r="34" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+        <text x="760" y="98" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="600" fill="#1a1a1a">Decider</text>
+        <text x="760" y="114" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">ratifies</text>
+
+        <circle cx="120" cy="360" r="34" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+        <text x="120" y="358" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="600" fill="#1a1a1a">Implementer</text>
+        <text x="120" y="374" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">enacts</text>
+
+        <circle cx="440" cy="400" r="34" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+        <text x="440" y="397" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="600" fill="#1a1a1a">Future</text>
+        <text x="440" y="412" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="600" fill="#1a1a1a">reader</text>
+
+        <rect x="724" y="326" width="72" height="68" rx="10" fill="#fbf0e0" stroke="#c97a1a" stroke-width="1.5"/>
+        <text x="760" y="358" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="600" fill="#1a1a1a">Agent</text>
+        <text x="760" y="374" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">assistive</text>
+
+        <!-- Adjacent systems -->
+        <rect x="20"  y="200" width="120" height="60" rx="10" fill="#e7f0e7" stroke="#2e7d4f" stroke-width="1.5"/>
+        <text x="80" y="226" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="700" fill="#1a1a1a">Work tracker</text>
+        <text x="80" y="244" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">issues, projects</text>
+
+        <rect x="740" y="200" width="120" height="60" rx="10" fill="#e6eef6" stroke="#2b5f8a" stroke-width="1.5"/>
+        <text x="800" y="226" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="700" fill="#1a1a1a">Internal site</text>
+        <text x="800" y="244" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">reading surface</text>
+
+        <!-- Arrows -->
+        <line x1="146" y1="124" x2="335" y2="195" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrC1)"/>
+        <line x1="440" y1="94"  x2="440" y2="150" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrC1)"/>
+        <line x1="734" y1="124" x2="545" y2="195" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrC1)"/>
+        <line x1="146" y1="336" x2="335" y2="265" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrC1)"/>
+        <line x1="440" y1="366" x2="440" y2="310" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrC1)"/>
+        <line x1="734" y1="336" x2="545" y2="265" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrC1)"/>
+        <line x1="140" y1="230" x2="310" y2="230" stroke="#2e7d4f" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arrC1)"/>
+        <line x1="740" y1="230" x2="570" y2="230" stroke="#2b5f8a" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arrC1)"/>
+
+        <!-- Edge labels -->
+        <text x="240" y="160" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">drafts</text>
+        <text x="450" y="135" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">comments</text>
+        <text x="618" y="160" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">ratifies</text>
+        <text x="240" y="320" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">reads &amp; builds</text>
+        <text x="450" y="345" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">retraces</text>
+        <text x="610" y="320" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">summarises</text>
+        <text x="225" y="220" font-family="Nunito,sans-serif" font-size="10" fill="#2e7d4f">anchors to</text>
+        <text x="640" y="220" font-family="Nunito,sans-serif" font-size="10" fill="#2b5f8a">renders on</text>
+      </svg>
+      <div class="legend">
+        <span><i style="background:#ffffff;"></i> Person role</span>
+        <span><i style="background:#fbf0e0;"></i> Assistive agent</span>
+        <span><i style="background:#e7f0e7;"></i> Adjacent system &mdash; work</span>
+        <span><i style="background:#e6eef6;"></i> Adjacent system &mdash; reading</span>
+      </div>
+    </div>
+
+    <div class="callout"><strong>Read this diagram as:</strong> a design is the thing in the middle. People interact with it directly. The work tracker is where it&rsquo;s anchored to ongoing work; the internal site is where it&rsquo;s read. No technology choices are named here &mdash; deliberately.</div>
+  </div>
+
+  <!-- 3. FILING -->
+  <div class="pad" id="filing">
+    <h2>3. Filing &mdash; where designs live</h2>
+    <p>"Where do I put this document?" is one of the easiest questions to leave ambiguous and one of the most expensive to answer badly. The taxonomy below makes it explicit. Five categories, each with a clear purpose; everything else is a mistake.</p>
+
+    <table class="data">
+      <thead><tr><th style="width:24%">Category</th><th style="width:38%">What goes here</th><th>What does not</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Designs</strong><br><span class="pill">designs/</span></td>
+          <td>Internal solution designs. Working specs. Documents with a decision in them that the team intends to ratify.</td>
+          <td>Client-facing material. Generated reports. Informal notes.</td>
+        </tr>
+        <tr>
+          <td><strong>Decisions</strong><br><span class="pill">architecture_decision_record/</span></td>
+          <td>Ratified architectural decisions. ADRs, immutable history.</td>
+          <td>In-flight design drafts (those belong in <em>Designs</em>).</td>
+        </tr>
+        <tr>
+          <td><strong>Proposals</strong><br><span class="pill">proposals/</span></td>
+          <td>Client-facing material. Engagement briefs, solution proposals delivered as PDFs.</td>
+          <td>Internal-only thinking. Use <em>Designs</em>.</td>
+        </tr>
+        <tr>
+          <td><strong>Notes</strong><br><span class="pill">notes/</span></td>
+          <td>Meeting notes, informal docs, low-ceremony commits.</td>
+          <td>Anything with a decision the team needs to ratify. Promote to <em>Designs</em>.</td>
+        </tr>
+        <tr>
+          <td><strong>Generated</strong><br><span class="pill">daily_digest/, monthly_digest/, &hellip;</span></td>
+          <td>Outputs of automated processes. Read-only from the team&rsquo;s perspective.</td>
+          <td>Hand-authored material.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout"><strong>The rule:</strong> one home per category, no ambiguity. If you have to think about where something goes, the taxonomy needs amending, not the document. Adapt the folder names to whatever convention your repo already uses &mdash; the categories are what matters.</div>
+  </div>
+
+  <!-- 4. LIFECYCLE -->
+  <div class="pad" id="lifecycle">
+    <h2>4. Lifecycle &mdash; sketch &rarr; ratified</h2>
+    <p>A design moves through five named states. Each transition has a clear trigger; the trigger answers "when should I commit / push / share / decide."</p>
+
+    <div class="diagram">
+      <p class="diagram-title"><span>States of a design</span><span class="c4">behaviour</span></p>
+      <svg viewBox="0 0 880 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lifecycle states diagram">
+        <defs>
+          <marker id="arrL2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/>
+          </marker>
+        </defs>
+        <rect x="20"  y="70" width="140" height="60" rx="30" fill="#ffffff" stroke="#9a9a9a"/>
+        <text x="90"  y="98"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a">Sketch</text>
+        <text x="90"  y="116" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">private, local</text>
+
+        <rect x="200" y="70" width="140" height="60" rx="30" fill="#fbf0e0" stroke="#c97a1a"/>
+        <text x="270" y="98"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a">Draft</text>
+        <text x="270" y="116" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">committed, not advertised</text>
+
+        <rect x="380" y="70" width="160" height="60" rx="30" fill="#f7e3df" stroke="#b53a2a"/>
+        <text x="460" y="98"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a">In review</text>
+        <text x="460" y="116" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">shared, comments open</text>
+
+        <rect x="580" y="70" width="140" height="60" rx="30" fill="#e7f0e7" stroke="#2e7d4f"/>
+        <text x="650" y="98"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a">Ratified</text>
+        <text x="650" y="116" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">decision recorded</text>
+
+        <rect x="760" y="70" width="100" height="60" rx="30" fill="#f0efed" stroke="#9a9a9a"/>
+        <text x="810" y="98"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a">Superseded</text>
+        <text x="810" y="116" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">replaced</text>
+
+        <line x1="160" y1="100" x2="196" y2="100" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrL2)"/>
+        <line x1="340" y1="100" x2="376" y2="100" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrL2)"/>
+        <line x1="540" y1="100" x2="576" y2="100" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrL2)"/>
+        <line x1="720" y1="100" x2="756" y2="100" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrL2)"/>
+
+        <text x="178" y="92"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">commit</text>
+        <text x="358" y="92"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">share</text>
+        <text x="558" y="92"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">decide</text>
+        <text x="738" y="92"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">supersede</text>
+
+        <text x="178" y="160" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">coherent enough to share</text>
+        <text x="358" y="160" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">post link, request review</text>
+        <text x="558" y="160" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">all blockers resolved</text>
+        <text x="738" y="160" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">new design lands</text>
+      </svg>
+    </div>
+
+    <table class="data">
+      <thead><tr><th style="width:14%">State</th><th>What it means in practice</th><th style="width:24%">Visibility</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Sketch</strong></td><td>Author&rsquo;s thinking, not yet committed. May live on a branch or uncommitted. No expectation anyone else looks.</td><td>Local only</td></tr>
+        <tr><td><strong>Draft</strong></td><td>Pushed to the repo so the author won&rsquo;t lose it, but not broadcast. Anyone browsing the repo can find it; no one is asked to react.</td><td>Internal repo, not announced</td></tr>
+        <tr><td><strong>In review</strong></td><td>Author has explicitly invited reviewers. Comments are open. Author actively shepherds the conversation.</td><td>Announced; rendered on internal site</td></tr>
+        <tr><td><strong>Ratified</strong></td><td>Decider has approved; outstanding feedback either resolved or explicitly accepted as not-blocking. The decision is now binding for downstream work.</td><td>Internal site, prominent</td></tr>
+        <tr><td><strong>Superseded</strong></td><td>A newer design has taken over. Old one is kept for historical context, marked with a pointer forward.</td><td>Internal site, marked stale</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-ok"><strong>When do I commit?</strong> The moment the sketch becomes coherent enough that <em>you yourself</em> would want to refer back to it. Don&rsquo;t wait for polish &mdash; the safety net of commits is the point. Push at the same time. The world doesn&rsquo;t see it until you advertise it.</div>
+    <div class="callout"><strong>When do I share?</strong> When you&rsquo;ve done what you can alone and need other perspectives. State changes from Draft to In review. Posting the link is the moment.</div>
+    <div class="callout callout-warn"><strong>When do I declare it ratified?</strong> When the decider says so, in writing, on the design itself (a comment, or a "ratified" marker the author flips). Until then, the design is still being argued with.</div>
+  </div>
+
+  <!-- 5. FEEDBACK -->
+  <div class="pad" id="feedback">
+    <h2>5. Feedback loop</h2>
+    <p>Functional view of how a reviewer&rsquo;s objection lands on the design, gets addressed, and leaves a trace. No technology named &mdash; the same flow could be implemented several ways.</p>
+
+    <div class="diagram">
+      <p class="diagram-title"><span>Feedback loop &mdash; objection to resolution</span><span class="c4">behaviour</span></p>
+      <svg viewBox="0 0 880 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Feedback loop diagram">
+        <defs>
+          <marker id="arrF" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/>
+          </marker>
+        </defs>
+        <rect x="20"  y="40" width="160" height="70" rx="10" fill="#ffffff" stroke="#1a1a1a"/>
+        <text x="100" y="68"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a">1. Reviewer reads</text>
+        <text x="100" y="86"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">spots a concern</text>
+
+        <rect x="220" y="40" width="160" height="70" rx="10" fill="#fbf0e0" stroke="#c97a1a"/>
+        <text x="300" y="68"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a">2. Marks the spot</text>
+        <text x="300" y="86"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">on the section</text>
+
+        <rect x="420" y="40" width="160" height="70" rx="10" fill="#f7e3df" stroke="#b53a2a"/>
+        <text x="500" y="68"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a">3. Comment recorded</text>
+        <text x="500" y="86"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">attached to the spot</text>
+
+        <rect x="620" y="40" width="160" height="70" rx="10" fill="#ffffff" stroke="#1a1a1a"/>
+        <text x="700" y="68"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a">4. Author sees it</text>
+        <text x="700" y="86"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">on next visit / notification</text>
+
+        <rect x="620" y="160" width="160" height="70" rx="10" fill="#ffffff" stroke="#1a1a1a"/>
+        <text x="700" y="188" text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a">5. Reply / amend</text>
+        <text x="700" y="206" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">design or comment changes</text>
+
+        <rect x="420" y="160" width="160" height="70" rx="10" fill="#e7f0e7" stroke="#2e7d4f"/>
+        <text x="500" y="188" text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a">6. Resolved</text>
+        <text x="500" y="206" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">marked, trace kept</text>
+
+        <rect x="220" y="160" width="160" height="70" rx="10" fill="#f0efed" stroke="#9a9a9a"/>
+        <text x="300" y="188" text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a">7. Trace persists</text>
+        <text x="300" y="206" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">readable by future reader</text>
+
+        <line x1="180" y1="75" x2="216" y2="75" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrF)"/>
+        <line x1="380" y1="75" x2="416" y2="75" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrF)"/>
+        <line x1="580" y1="75" x2="616" y2="75" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrF)"/>
+        <line x1="700" y1="110" x2="700" y2="156" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrF)"/>
+        <line x1="620" y1="195" x2="584" y2="195" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrF)"/>
+        <line x1="420" y1="195" x2="384" y2="195" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrF)"/>
+      </svg>
+    </div>
+
+    <p>The two properties this loop must have to beat what most teams do today:</p>
+    <ul>
+      <li><strong>The mark stays on the spot.</strong> A comment about &sect;5.2 must be readable next to &sect;5.2 forever, not in a chat thread or a closed PR.</li>
+      <li><strong>Resolution preserves the trace.</strong> Marking a comment "resolved" hides it but doesn&rsquo;t delete it. The future reader can expand resolved threads and see the argument.</li>
+    </ul>
+  </div>
+
+  <!-- 6. FORK -->
+  <div class="pad" id="fork">
+    <h2>6. Forking</h2>
+    <p>Two distinct things people call "fork." Treat them differently.</p>
+    <div class="grid-2">
+      <div class="card">
+        <p class="card-label">Counter-proposal</p>
+        <p style="font-size:0.88rem;margin:0;">Reviewer wants to present a fundamentally different design at the same level of detail. Pattern: a new design document, linked to the original on the work tracker. Both compete for ratification. Discussion happens on each separately, plus a meta-thread comparing them.</p>
+      </div>
+      <div class="card">
+        <p class="card-label">Suggested edit</p>
+        <p style="font-size:0.88rem;margin:0;">Reviewer wants a sentence to say X instead of Y. Pattern: stays as a comment on the section. Not a fork. The existing feedback loop handles this; spinning up a parallel design for a sentence is overkill.</p>
+      </div>
+    </div>
+
+    <h3>6.1 When a counter-proposal exists</h3>
+    <p>The original design&rsquo;s threads are visible on the counter-proposal as read-only context &mdash; so the counter-author can see what was already debated. New commentary lands on whichever document the reviewer is reading. The work tracker carries the relationship so neither document feels orphaned.</p>
+  </div>
+
+  <!-- 7. C2 -->
+  <div class="part-header" id="c2">
+    <p class="part-num">C4 level 2</p>
+    <h2>7. Containers (functional)</h2>
+    <p>One layer below C1 &mdash; the &ldquo;containers&rdquo; the design lives in, still without naming technologies. Name <em>what each does</em>, not <em>what it&rsquo;s built with</em>.</p>
+  </div>
+  <div class="pad">
+    <div class="diagram">
+      <p class="diagram-title"><span>Containers &mdash; functional roles</span><span class="c4">C2</span></p>
+      <svg viewBox="0 0 880 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="C2 functional container diagram">
+        <defs>
+          <marker id="arrC2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/>
+          </marker>
+        </defs>
+
+        <rect x="40" y="60" width="200" height="90" rx="10" fill="#ffffff" stroke="#1a1a1a"/>
+        <text x="140" y="88"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a">Design source</text>
+        <text x="140" y="108" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">where the document lives</text>
+        <text x="140" y="125" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">in its written form</text>
+        <text x="140" y="143" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#9a9a9a">edits arrive here</text>
+
+        <rect x="340" y="60" width="200" height="90" rx="10" fill="#e6eef6" stroke="#2b5f8a"/>
+        <text x="440" y="88"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a">Publication surface</text>
+        <text x="440" y="108" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">renders the document</text>
+        <text x="440" y="125" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">for reading</text>
+        <text x="440" y="143" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#9a9a9a">access-gated</text>
+
+        <rect x="640" y="60" width="200" height="90" rx="10" fill="#f7e3df" stroke="#b53a2a"/>
+        <text x="740" y="88"  text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a">Commentary surface</text>
+        <text x="740" y="108" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">captures &amp; retains</text>
+        <text x="740" y="125" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">reactions per section</text>
+        <text x="740" y="143" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#9a9a9a">trace lives here</text>
+
+        <rect x="40" y="230" width="200" height="90" rx="10" fill="#e7f0e7" stroke="#2e7d4f"/>
+        <text x="140" y="258" text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a">Work anchor</text>
+        <text x="140" y="278" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">ties design to project</text>
+        <text x="140" y="295" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">/ issue context</text>
+        <text x="140" y="313" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#9a9a9a">work tracker side</text>
+
+        <rect x="340" y="230" width="200" height="90" rx="10" fill="#fbf0e0" stroke="#c97a1a"/>
+        <text x="440" y="258" text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a">Lifecycle marker</text>
+        <text x="440" y="278" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">draft / in review</text>
+        <text x="440" y="295" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">/ ratified / superseded</text>
+        <text x="440" y="313" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#9a9a9a">on the design itself</text>
+
+        <rect x="640" y="230" width="200" height="90" rx="10" fill="#ffffff" stroke="#1a1a1a" stroke-dasharray="4 3"/>
+        <text x="740" y="258" text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a">Readback channel</text>
+        <text x="740" y="278" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">makes the commentary</text>
+        <text x="740" y="295" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">accessible to the agent</text>
+        <text x="740" y="313" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#9a9a9a">future capability</text>
+
+        <line x1="240" y1="105" x2="336" y2="105" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrC2)"/>
+        <line x1="540" y1="105" x2="636" y2="105" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrC2)"/>
+        <line x1="140" y1="150" x2="140" y2="226" stroke="#2e7d4f" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arrC2)"/>
+        <line x1="440" y1="150" x2="440" y2="226" stroke="#c97a1a" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arrC2)"/>
+        <line x1="740" y1="150" x2="740" y2="226" stroke="#1a1a1a" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arrC2)"/>
+
+        <text x="288" y="100" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">publishes</text>
+        <text x="588" y="100" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">attaches</text>
+
+        <text x="440" y="360" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">
+          <tspan font-weight="600" fill="#1a1a1a">Six functional containers.</tspan> Each says what it does, not how it&rsquo;s built. Mapping to specific tools is a C3 conversation.
+        </text>
+      </svg>
+    </div>
+
+    <h3>7.1 Why this level matters before the next one</h3>
+    <p>If a team picks a technology before agreeing on which functional container does what, the technology drives the shape rather than serving it. The C2 view forces a team to articulate what each container is <em>for</em>; only then does it make sense to ask "which tool plays the commentary-surface role."</p>
+  </div>
+
+  <!-- 8. OPEN -->
+  <div class="part-header" id="open">
+    <p class="part-num">For each team to answer</p>
+    <h2>8. Open questions a team should answer</h2>
+    <p>These are the calls each adopting team needs to make. They&rsquo;re intentionally not decided in this guide &mdash; the answers shape how the C2 containers get implemented later.</p>
+  </div>
+  <div class="pad" style="border-bottom:none;">
+
+    <div class="open-q"><strong>Q1.</strong> Filing taxonomy. Five categories proposed in &sect;3. Are these the right five for your team, or do you need fewer / more? Specifically: is "Designs" worth splitting from "Decisions," or are they the same thing in different lifecycle states?</div>
+
+    <div class="open-q"><strong>Q2.</strong> Ratification authority. Who decides a design is ratified? Always the author? Always the Decider role? Or does it depend on the kind of design (security vs. product vs. process)?</div>
+
+    <div class="open-q"><strong>Q3.</strong> Resolved-state semantics. When a comment is resolved, is the resolution itself recorded (who, when, why)? Or is "resolved" a binary flag with no narrative?</div>
+
+    <div class="open-q"><strong>Q4.</strong> Lifecycle transitions and the work tracker. Should the work tracker reflect the design&rsquo;s lifecycle state automatically, or is that a separate manual update? The latter is simpler but drifts.</div>
+
+    <div class="open-q"><strong>Q5.</strong> Scope of commentary &mdash; designs only, or every published HTML? Daily digests, proposals to clients, ADRs &mdash; which of these get a commentary surface? Decide per category, not per document.</div>
+
+    <div class="open-q"><strong>Q6.</strong> Future-reader trace bar. The standard suggested here is "three years from now, the future reader can see who pushed back and why." Is that the right horizon for your team? Tighter (one year) might be enough; longer adds storage and search costs.</div>
+
+    <div class="open-q"><strong>Q7.</strong> Bootstrap pattern. How does a team transition from "ad-hoc PRs and Google Docs" to this model on existing in-flight designs? Lowest-friction interim: keep using PR comments, but copy the conclusions back onto the design&rsquo;s in-repo comment thread when it&rsquo;s ratified.</div>
+
+  </div>
+
+</div>
+
+</body>
+</html>

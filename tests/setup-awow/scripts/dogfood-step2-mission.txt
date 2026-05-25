@@ -1,6 +1,0 @@
-# Step 2 — Mission. Wizard asks "What is your team's mission, in one sentence?"
-# Reply: dogfood's actual mission. Wizard refuses anything trivial; this one
-# names audience, change, and constraint, so it should land on first try.
-# Second reply approves the proposals/setup/step-2/mission.md → context/team/mission.md move.
-Cauchy helps engineering teams make their plan as trustworthy as their code, by maintaining the agentic way of working as a living starter pack that adopters can actually read, run, and customise.
-approve

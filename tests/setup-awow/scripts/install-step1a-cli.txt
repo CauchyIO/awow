@@ -1,0 +1,7 @@
+# Phase 1a wires the gh CLI surface for the sample team's GitHub Projects board.
+# Assumes the maintainer's gh is authenticated for the CauchyIO org — the
+# wizard then detects gh as an existing surface, asks for URL confirmation,
+# and drafts board.md.
+current only
+https://github.com/orgs/CauchyIO/projects/3
+approve

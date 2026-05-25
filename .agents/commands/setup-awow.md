@@ -10,7 +10,7 @@ You are the setup wizard for the agentic way of working starter pack. Your job i
 
 The wizard is **incremental and resumable.** State lives in `setup-progress.md` at the repo root. Read it on every invocation. **Step 0** (installer) and **Step 1** (kickoff) are required for the repo to be usable. All subsequent steps are recommended-next, in any order.
 
-If invoked as `/setup-awow --root <path>`, resolve every path in this prompt — `setup-progress.md`, `proposals/setup/`, `context/` — relative to `<path>/` instead of the repo root. Default: repo root. Use `--root` for multi-workspace runs; for example, the maintainer running the wizard against `dogfood/` from a repo that already has its own top-level `setup-progress.md`.
+If invoked as `/setup-awow --root <path>`, resolve every path in this prompt — `setup-progress.md`, `proposals/setup/`, `context/` — relative to `<path>/` instead of the repo root. Default: repo root. Use `--root` for multi-workspace runs; for example, the maintainer running the wizard against `meta/` from a repo that already has its own top-level `setup-progress.md`.
 
 Two surfaces stay at the repo root regardless of `--root`: the harness infrastructure (`.venv/`, `.agents/`, `.claude/`, `.github/`) and the installer at `setup/install.sh`. Step 0's detection logic explicitly inherits the parent repo's installer state when `--root` is set — there is no separate installer per workspace.
 
@@ -126,6 +126,7 @@ The reference for this team's board lives at `context/tooling/boards/<tool>/refe
    ## Hierarchy
    ## Label taxonomy
    ## Required fields
+   ## Avoiding duplicates    # the tool's dedup limits + the team's search-before-create recipe (from reference/duplicates.md)
    ## Team page conventions
    ## Cycles / iterations    # if applicable for this tool
    ## Divergence from reference   # populated by Mode B; empty for Mode A
@@ -173,6 +174,8 @@ For each of the four REQUIRED conventions (`issue-titles.md`, `labels.md`, `bran
 
 Land each under `proposals/setup/step-3/<convention>.md`, get approval, move to `context/team/conventions/REQUIRED/<convention>.md`. Update `setup-progress.md`.
 
+**Session-board correlation (opt-in).** Ask whether the team wants agent-authored board entries linked back to their session traces. If **yes**, first run the `session-correlation` skill's prerequisite check: tracing must already be wired (`MLFLOW_CLAUDE_TRACING_ENABLED=true` plus the MLflow `Stop` hook in `.claude/settings.local.json`). This skill does **not** set tracing up — if it is missing, stop and point the user at the team's `claudetracing` library (`../claudetracing`) to configure tracing first, then resume. Once tracing is confirmed: install the footer rule from the skill — append its Rule 4 to `output-discipline.md` here, add its shape note to `board-output.md` in Step 4, and wire the SessionStart accessor hook per the skill's "Enabling it" steps. The rule then flows into the generated `CLAUDE.md` at Step 5 and is enforced from then on. If **no**: leave all three untouched; the skill stays available to enable later via `/awow-add`. Record the choice in `setup-progress.md`.
+
 ## Step 4 — Members and style
 
 Ask for the team member list (role, responsibilities, focus areas). If members are listed in the board's team page, offer to pull from there.
@@ -195,9 +198,16 @@ Ask for the 1° teams (teams whose work the user's team depends on or supplies i
 
 ## Step 8 — Surface the extras
 
-Read `.agents/commands/spread/` and `.agents/commands/standardise/`. List each command, its phase, its prerequisites, and the pain it removes. Tell the user:
+Read the commands in `.agents/commands/` whose frontmatter declares `phase: spread` or `phase: standardise`. List each command, its phase, its prerequisites, and the pain it removes. Tell the user:
 
 > These are not installed. When you are ready for one, run `/awow-add <command>`.
+
+**Design system (detect, then suggest).** Read `context/tooling/design-system.md`.
+
+- If `mode:` is not `absent`, a design system is already configured — name its `path:` and move on; do not re-offer.
+- If `mode: absent`, ask one question: *"Does your team produce styled HTML artifacts — decks, blogs, solution designs, one-pagers?"* If **yes**, recommend the add-on flow: *"Run `/awow-add design-system` (or `/design-system` directly) to stand one up or point at an existing one. Until then, HTML artifacts use plain defaults."* Do not run it now — it is opt-in. If **no**, leave the pointer at `absent`.
+
+Record the answer (and any configured `path:`) in `setup-progress.md`.
 
 Update `setup-progress.md` to mark all steps surfaced.
 

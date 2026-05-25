@@ -18,6 +18,7 @@ The reference is split per concern, so the wizard can surface one section at a t
 | [`reference/hierarchy.md`](reference/hierarchy.md) | Initiative / Project / Issue / Sub-issue and what belongs at each level. |
 | [`reference/labels.md`](reference/labels.md) | `type:*` / `area:*` / `status:*` prefix scheme; workspace vs. team scope. |
 | [`reference/fields.md`](reference/fields.md) | Priority, Estimate, Cycle, Due date, Assignee, Project. |
+| [`reference/duplicates.md`](reference/duplicates.md) | Similar-issue surfacing, search, and the native "mark as duplicate" relation. |
 | [`reference/team-page.md`](reference/team-page.md) | What a Linear team page and Project description should contain. |
 | [`reference/cycles.md`](reference/cycles.md) | Cycles convention; cycle-time as SLE. |
 | [`reference/mcp.md`](reference/mcp.md) | MCP install for Claude Code and Copilot; verify checklist; branch naming. |

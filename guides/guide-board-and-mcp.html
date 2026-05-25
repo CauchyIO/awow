@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Board &amp; MCP integration &mdash; one source of truth the runtime agent reads</title>
+<!--
+  AWOW GUIDE — board & MCP integration
+  How a board becomes a configured surface the agent can read and write: the wizard reads
+  per-tool reference/ files at setup time; the team's choices land in context/tooling/board.md,
+  the single file the runtime agent consults. Plus the MCP catalogue/intake and how an approved
+  server is wired into both harnesses. Self-contained: no external fonts/links by design.
+-->
+<style>
+  :root {
+    --bg: #f6f5f3;
+    --surface: #ffffff;
+    --surface-alt: #f0efed;
+    --text-1: #1a1a1a;
+    --text-2: #6b6b6b;
+    --text-3: #9a9a9a;
+    --border: #e0dfdd;
+    --border-subtle: #ebeae8;
+    --accent: #f24b37;
+    --link: #337FF9;
+    --ok: #2e7d4f;
+    --warn: #c97a1b;
+    --risk: #b53a2a;
+  }
+  body { margin:0; padding:0; width:100%; font-family:'Nunito',system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text-1); line-height:1.6; }
+  .wrap { max-width:1040px; margin:0 auto; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .pad { padding:28px 40px; border-bottom:1px solid var(--border-subtle); }
+  .pad-tight { padding:20px 40px; border-bottom:1px solid var(--border-subtle); }
+  h1 { font-size:1.9rem; font-weight:700; margin:0; letter-spacing:-0.02em; }
+  h2 { font-size:1.35rem; font-weight:600; margin:0 0 16px; letter-spacing:-0.01em; }
+  h3 { font-size:1.05rem; font-weight:600; margin:24px 0 10px; letter-spacing:-0.01em; }
+  p  { font-size:0.92rem; color:var(--text-2); margin:0 0 12px; line-height:1.7; }
+  ul, ol { font-size:0.92rem; color:var(--text-2); line-height:1.7; padding-left:22px; margin:0 0 14px; }
+  li { margin:4px 0; }
+  strong { color:var(--text-1); font-weight:600; }
+  em { color:var(--text-1); font-style:italic; }
+  code { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.85em; background:var(--surface-alt); padding:1px 6px; border-radius:3px; border:1px solid var(--border-subtle); }
+  pre { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.82rem; background:var(--surface-alt); padding:14px 18px; border-radius:8px; border:1px solid var(--border-subtle); overflow-x:auto; line-height:1.55; color:var(--text-1); }
+  pre .c { color:var(--text-3); }
+  table.data { border-collapse:collapse; width:100%; font-size:0.85rem; margin:0 0 16px; }
+  table.data th { text-align:left; font-weight:600; padding:8px 10px; border-bottom:2px solid var(--border); background:var(--surface-alt); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; }
+  table.data td { padding:9px 10px; border-bottom:1px solid var(--border-subtle); color:var(--text-2); vertical-align:top; line-height:1.5; }
+  table.data tr:last-child td { border-bottom:none; }
+  table.data td strong { color:var(--text-1); }
+  .kicker { font-size:0.72rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin:0 0 8px; }
+  .badge { display:inline-block; font-size:0.7rem; font-weight:600; padding:3px 10px; border-radius:4px; border:1px solid var(--border); color:var(--text-1); background:var(--surface); }
+  .badge-accent { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .badge-ok { background:rgba(46,125,79,0.08); color:var(--ok); border-color:rgba(46,125,79,0.25); }
+  .badge-warn { background:rgba(201,122,27,0.08); color:var(--warn); border-color:rgba(201,122,27,0.25); }
+  .badge-muted { background:var(--surface-alt); color:var(--text-3); border-color:var(--border-subtle); border-style:dashed; }
+  .badges { display:flex; gap:6px; flex-wrap:wrap; }
+  .callout { background:var(--surface-alt); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 16px; font-size:0.88rem; color:var(--text-2); line-height:1.65; }
+  .callout strong { color:var(--text-1); }
+  .callout-warn { border-left-color:var(--warn); }
+  .callout-ok { border-left-color:var(--ok); }
+  .diagram { background:var(--surface-alt); border:1px solid var(--border-subtle); border-radius:10px; padding:18px 16px 12px; margin:0 0 18px; }
+  .diagram svg { display:block; max-width:100%; height:auto; margin:0 auto; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:0.78rem; color:var(--text-2); padding:8px 8px 0; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .legend i { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid var(--border); }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
+  .card .card-label { font-size:0.7rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; }
+  .card h3 { margin-top:0; }
+  @media (max-width: 760px) {
+    .pad, .pad-tight { padding-left:22px; padding-right:22px; }
+    .grid-3 { grid-template-columns:1fr; }
+    .grid-2 { grid-template-columns:1fr; }
+  }
+  @media print {
+    body { background:#fff; }
+    .wrap { border:none; border-radius:0; max-width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="pad" style="padding-top:36px;padding-bottom:24px;">
+    <p style="font-size:13px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin:0 0 10px;">Way of Working &middot; Guide</p>
+    <h1>Board &amp; MCP integration</h1>
+    <p style="font-size:1rem;color:var(--text-2);margin:6px 0 0;font-weight:500;">How a board URL becomes one configured file the agent reads &mdash; and how an approved MCP gets wired into both harnesses.</p>
+    <p style="font-size:0.85rem;color:var(--text-3);margin:8px 0 0;">The wizard reads the per-tool <code>reference/</code> files <em>once</em>, at setup. The runtime agent reads <code>context/tooling/board.md</code> &mdash; and only that &mdash; thereafter.</p>
+    <div class="badges" style="margin-top:16px;">
+      <span class="badge">one source of truth</span>
+      <span class="badge">setup-time vs. runtime</span>
+      <span class="badge badge-accent">board.md</span>
+    </div>
+  </div>
+
+  <!-- TL;DR -->
+  <div class="pad-tight">
+    <p class="kicker">TL;DR</p>
+    <p>Give <code>/setup-awow</code> Step 1 a board URL. It wires a read/write surface (an MCP, or the <code>gh</code> CLI for GitHub), then walks the per-tool <code>reference/</code> files one section at a time and writes the team&rsquo;s real spec into <strong><code>context/tooling/board.md</code></strong>. From then on, every time the agent needs to know what a label means, which states are terminal, where a new issue belongs, or whether a duplicate already exists, it reads <code>board.md</code> &mdash; never the reference. MCP servers are governed separately: a server clears an intake, joins <code>mcps/catalogue.md</code>, and then gets wired into <code>.mcp.json</code> (Claude Code) and <code>.vscode/mcp.json</code> (Copilot).</p>
+  </div>
+
+  <!-- THE CORE IDEA -->
+  <div class="pad">
+    <h2>The single source of truth</h2>
+    <p>There are two kinds of board knowledge in this repo, and they are read at two different times by two different actors. Confusing them is the most common mistake, so the design keeps them strictly apart.</p>
+    <div class="grid-2">
+      <div class="card">
+        <p class="card-label" style="color:var(--link)">Setup time &middot; read by the wizard only</p>
+        <h3 style="margin-top:0;"><code>&lt;tool&gt;/reference/</code></h3>
+        <p style="margin-bottom:0;">Best-practice templates per board tool under <code>context/tooling/boards/</code>. <code>/setup-awow</code> Step 1 reads them section by section to drive the configuration conversation. <strong>Never consulted at runtime.</strong></p>
+      </div>
+      <div class="card">
+        <p class="card-label" style="color:var(--accent)">Runtime &middot; read by the agent</p>
+        <h3 style="margin-top:0;"><code>context/tooling/board.md</code></h3>
+        <p style="margin-bottom:0;">The team&rsquo;s actual board spec, composed from the reference plus the team&rsquo;s choices. The <strong>one file</strong> the runtime agent reads when it needs to act on the board.</p>
+      </div>
+    </div>
+    <div class="callout">
+      <strong>Why split them.</strong> Keeping the read path to one file means the agent never has to reconcile a template against a team&rsquo;s overrides at runtime &mdash; that reconciliation happened once, at setup, and was baked into <code>board.md</code>. The references can grow in depth over releases without changing anything the agent reads day to day.
+    </div>
+  </div>
+
+  <!-- FLOW DIAGRAM -->
+  <div class="pad">
+    <h2>From URL to the file the agent reads</h2>
+    <div class="diagram">
+      <div class="legend" style="margin-bottom:6px;">
+        <span><i style="background:#1a1a1a;border-color:#1a1a1a;"></i> Input &amp; the runtime read</span>
+        <span><i style="background:rgba(51,127,249,0.10);border-color:rgba(51,127,249,0.55);"></i> Setup-time references (wizard only)</span>
+        <span><i style="background:rgba(242,75,55,0.10);border-color:rgba(242,75,55,0.55);"></i> The single source of truth</span>
+      </div>
+
+      <svg viewBox="0 0 1000 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Board configuration flow from URL to board.md">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#6b6b6b"/>
+          </marker>
+        </defs>
+
+        <!-- A: board url -->
+        <rect x="28" y="180" width="190" height="92" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
+        <text x="123" y="212" text-anchor="middle" font-size="13.5" font-weight="700" fill="#fff" font-family="Nunito,sans-serif">Board URL</text>
+        <text x="123" y="232" text-anchor="middle" font-size="10.5" fill="#e0dfdd" font-family="Nunito,sans-serif">linear.app / dev.azure.com</text>
+        <text x="123" y="248" text-anchor="middle" font-size="10.5" fill="#e0dfdd" font-family="Nunito,sans-serif">atlassian.net / github.com</text>
+
+        <!-- A -> B -->
+        <path d="M218,226 L302,226" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+        <text x="260" y="216" text-anchor="middle" font-size="9.5" font-weight="600" fill="#1a1a1a" font-family="JetBrains Mono,monospace">infers tool</text>
+
+        <!-- B: wizard -->
+        <rect x="304" y="178" width="200" height="96" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
+        <text x="404" y="208" text-anchor="middle" font-size="13.5" font-weight="700" fill="#fff" font-family="Nunito,sans-serif">/setup-awow</text>
+        <text x="404" y="226" text-anchor="middle" font-size="11" fill="#e0dfdd" font-family="Nunito,sans-serif">Step 1 &mdash; the wizard</text>
+        <text x="404" y="246" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="Nunito,sans-serif">1a wire surface</text>
+        <text x="404" y="261" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="Nunito,sans-serif">1b configure</text>
+
+        <!-- B -> references (reads) -->
+        <path d="M460,178 C500,120 540,96 600,90" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+        <text x="556" y="116" text-anchor="middle" font-size="9.5" font-weight="600" fill="#337FF9" font-family="JetBrains Mono,monospace">reads, section by section</text>
+
+        <!-- C: references -->
+        <rect x="602" y="36" width="372" height="118" rx="10" fill="rgba(51,127,249,0.08)" stroke="#337FF9"/>
+        <text x="788" y="62" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">&lt;tool&gt;/reference/</text>
+        <text x="788" y="82" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="JetBrains Mono,monospace">states &middot; hierarchy &middot; labels &middot; fields</text>
+        <text x="788" y="98" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="JetBrains Mono,monospace">duplicates &middot; team-page &middot; mcp</text>
+        <text x="788" y="114" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="JetBrains Mono,monospace">cycles / iterations</text>
+        <text x="788" y="136" text-anchor="middle" font-size="10" fill="#337FF9" font-family="Nunito,sans-serif">setup-time only &mdash; never read at runtime</text>
+
+        <!-- B -> D (writes) -->
+        <path d="M460,274 C500,330 540,356 600,362" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+        <text x="552" y="340" text-anchor="middle" font-size="9.5" font-weight="600" fill="#f24b37" font-family="JetBrains Mono,monospace">writes the team's spec</text>
+
+        <!-- D: board.md -->
+        <rect x="602" y="316" width="372" height="118" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
+        <text x="788" y="344" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">context/tooling/board.md</text>
+        <text x="788" y="364" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">same headings whether Mode A or Mode B</text>
+        <text x="788" y="382" text-anchor="middle" font-size="10.5" fill="#f24b37" font-family="Nunito,sans-serif">THE single source of truth</text>
+        <text x="788" y="402" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">label meanings &middot; terminal states</text>
+        <text x="788" y="418" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">hierarchy placement &middot; dedup recipe</text>
+
+        <!-- runtime agent reads board.md -->
+        <rect x="28" y="316" width="190" height="92" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
+        <text x="123" y="348" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff" font-family="Nunito,sans-serif">Runtime agent</text>
+        <text x="123" y="368" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="Nunito,sans-serif">/process-workitem,</text>
+        <text x="123" y="383" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="Nunito,sans-serif">digests, daily-checkin&hellip;</text>
+        <path d="M602,378 C420,440 300,420 220,378" fill="none" stroke="#f24b37" stroke-width="1.6" marker-end="url(#arr)"/>
+        <text x="410" y="438" text-anchor="middle" font-size="9.5" font-weight="600" fill="#f24b37" font-family="JetBrains Mono,monospace">reads only board.md</text>
+      </svg>
+    </div>
+    <p style="font-size:0.82rem;color:var(--text-3);margin:0;">The wizard composes the references with the team&rsquo;s accept / override / skip choices and writes the result once. At runtime the read path is a single hop: agent &rarr; <code>board.md</code>.</p>
+  </div>
+
+  <!-- SUPPORTED BOARDS -->
+  <div class="pad">
+    <h2>Supported boards (v0.1)</h2>
+    <p>One subfolder per tool under <code>context/tooling/boards/</code>. Depth varies; all share the same <code>reference/</code> layout so the wizard treats them uniformly.</p>
+    <table class="data">
+      <thead><tr><th style="width:20%">Folder</th><th style="width:26%">Board tool</th><th>Depth</th></tr></thead>
+      <tbody>
+        <tr><td><code>linear/</code></td><td><strong>Linear</strong></td><td>Full reference. Takes a team greenfield-to-running without leaving the wizard. The worked example other tools match.</td></tr>
+        <tr><td><code>azure-devops/</code></td><td><strong>Azure DevOps</strong></td><td>Full reference; some sections marked TODO for v0.2.</td></tr>
+        <tr><td><code>jira/</code></td><td><strong>Jira</strong></td><td>Skeleton. Mode B (assess current) is the expected path; v0.2 fills in Mode A.</td></tr>
+        <tr><td><code>github-issues/</code></td><td><strong>GitHub Issues + Projects v2</strong></td><td>Skeleton, plus a <code>gh</code> CLI alternative to the MCP (see below).</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.82rem;color:var(--text-3);margin:0;"><code>/setup-awow</code> Step 1 infers the tool family from the board URL hostname &mdash; <code>linear.app</code>, <code>dev.azure.com</code>/<code>*.visualstudio.com</code>, <code>*.atlassian.net</code>, <code>github.com/.../issues</code>. Anything else is unsupported and the wizard stops.</p>
+  </div>
+
+  <!-- REFERENCE LAYOUT + BOARD.MD SHAPE -->
+  <div class="pad">
+    <h2>What the wizard reads, and what it writes</h2>
+    <div class="grid-2">
+      <div class="card">
+        <p class="card-label" style="color:var(--link)">Read &mdash; per-tool <code>reference/</code></p>
+        <p style="margin-bottom:8px;">Same shape for every tool. The wizard reads one file (one concern) at a time so the team can accept / override / skip each independently.</p>
+        <ul style="margin-bottom:0;font-size:0.82rem;">
+          <li><code>states.md</code> &mdash; five-state contract &rarr; the tool&rsquo;s workflow states</li>
+          <li><code>hierarchy.md</code> &mdash; L1&ndash;L4 mapping to the tool&rsquo;s primitives</li>
+          <li><code>labels.md</code> &mdash; <code>type:</code> / <code>area:</code> / <code>status:</code> taxonomy</li>
+          <li><code>fields.md</code> &mdash; priority, estimate, iteration, assignee</li>
+          <li><code>duplicates.md</code> &mdash; dedup features + search-before-create recipe</li>
+          <li><code>team-page.md</code> &mdash; team page / project description conventions</li>
+          <li><code>mcp.md</code> &mdash; surface install for both harnesses + verify checklist</li>
+          <li><code>cycles.md</code> / <code>iterations.md</code> &mdash; only if the tool has the concept</li>
+        </ul>
+      </div>
+      <div class="card">
+        <p class="card-label" style="color:var(--accent)">Write &mdash; <code>board.md</code> headings</p>
+        <p style="margin-bottom:8px;">Both modes produce the same artefact shape, so the agent never needs to know which mode produced it.</p>
+        <ul style="margin-bottom:0;font-size:0.82rem;">
+          <li><strong>Tool &amp; wiring</strong> &mdash; family, URL, MCP/CLI surface, verify status</li>
+          <li><strong>State machine</strong></li>
+          <li><strong>Hierarchy</strong></li>
+          <li><strong>Label taxonomy</strong></li>
+          <li><strong>Required fields</strong></li>
+          <li><strong>Avoiding duplicates</strong> &mdash; dedup limits + the team&rsquo;s recipe</li>
+          <li><strong>Team page conventions</strong></li>
+          <li><strong>Cycles / iterations</strong> &mdash; if applicable</li>
+          <li><strong>Divergence from reference</strong> &mdash; populated by Mode B; empty for Mode A</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODE A VS B -->
+  <div class="pad">
+    <h2>Mode A vs. Mode B</h2>
+    <p>Phase 1b of Step 1 picks a mode automatically by counting closed (or <code>Done</code>) issues on the board. The threshold is <strong>10</strong>. Either way, the output file has identical headings.</p>
+    <div class="grid-2">
+      <div class="card">
+        <p class="card-label" style="color:var(--ok)">Mode A &middot; &lt;10 closed issues</p>
+        <h3 style="margin-top:0;">Set up from reference</h3>
+        <p style="margin-bottom:0;">Greenfield or under-configured. The wizard walks the reference, asks <em>accept / override / skip</em> per section, and applies choices via the surface where it can mutate config. Where it cannot (Linear Free workflow states, ADO process templates, Jira workflows) it emits a manual checklist and re-verifies after the user confirms. <code>Divergence from reference</code> stays empty.</p>
+      </div>
+      <div class="card">
+        <p class="card-label" style="color:var(--warn)">Mode B &middot; &ge;10 closed issues</p>
+        <h3 style="margin-top:0;">Assess &amp; capture current</h3>
+        <p style="margin-bottom:0;">Established board. The wizard pulls the actual state machine, hierarchy, labels, and fields from the surface and captures them into <code>board.md</code>. It then diffs the capture against the reference and surfaces gaps &mdash; not to force adoption, but so the team can decide to close, override, or accept each. Resolutions land in <code>Divergence from reference</code>.</p>
+      </div>
+    </div>
+    <div class="callout callout-ok">
+      <strong>Same shape, either way.</strong> Because both modes write the same headings, the runtime agent reads <code>board.md</code> without ever caring whether it was set up greenfield or captured from a live board.
+    </div>
+  </div>
+
+  <!-- OVERRIDE MODEL -->
+  <div class="pad">
+    <h2>The override model &mdash; two layers</h2>
+    <p>The reference is a starting point, not a mandate. It can be overridden at two layers, applied in precedence order. The wizard always tells the user which layer it read from for each section.</p>
+    <table class="data">
+      <thead><tr><th style="width:22%">Layer</th><th style="width:34%">Lives in</th><th>Behaviour</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>1. Enterprise override</strong> <span class="badge badge-muted" style="font-size:0.62rem">per file</span></td>
+          <td><code>.agents-overrides/tooling/boards/&lt;tool&gt;/reference/</code></td>
+          <td>A parent org ships its own board standards next to the adopter&rsquo;s <code>.agents/</code>. Files here <strong>supersede</strong> the starter pack&rsquo;s reference of the same name. The wizard announces it, e.g. <em>&ldquo;using <code>&hellip;/linear/reference/labels.md</code> (enterprise override) as the starting point.&rdquo;</em></td>
+        </tr>
+        <tr>
+          <td><strong>2. Team override</strong> <span class="badge badge-accent" style="font-size:0.62rem">in board.md</span></td>
+          <td><code>context/tooling/board.md</code> itself</td>
+          <td>The team&rsquo;s accept / override / skip decisions land inline (Mode A) or in <code>Divergence from reference</code> (Mode B). <strong>There is no separate team-level override file</strong> &mdash; the team&rsquo;s overrides live in the single source of truth.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>This keeps the read path simple: at setup time the wizard composes the references with the team&rsquo;s choices; at runtime the agent reads exactly one file. Once <code>board.md</code> is written, the references are not consulted again until the next wizard run.</p>
+  </div>
+
+  <!-- GH CLI ALTERNATIVE -->
+  <div class="pad">
+    <h2>The <code>gh</code> CLI alternative (GitHub only)</h2>
+    <p>For GitHub-hosted boards the surface need not be an MCP. If <code>gh</code> is already installed and authenticated for the org, the agent can shell out to it through the harness&rsquo;s Bash tool &mdash; lighter, with no extra PAT to manage. The wizard offers it whenever a user expresses friction at the MCP install step.</p>
+    <pre><span class="c"># reuse existing gh auth; grant the scopes the operating model needs</span>
+gh auth status
+gh auth refresh -s repo,project,read:org</pre>
+    <p style="margin-bottom:0;"><code>repo</code> covers Issues + PRs, <code>project</code> covers Projects v2, <code>read:org</code> covers team membership. The choice is recorded as <code>surface: gh-cli</code> in <code>board.md</code>; downstream commands check that field and use <code>gh</code> calls instead of MCP tool invocations. Trade-off: each call is a subprocess (slower), and there is no streaming or push &mdash; strictly request/response.</p>
+  </div>
+
+  <!-- MCP CATALOGUE & INTAKE -->
+  <div class="pad">
+    <h2>The MCP catalogue &amp; intake</h2>
+    <p>Boards are one kind of MCP, but any server an agent talks to is governed the same way. The repo keeps an approved-server list in <code>mcps/catalogue.md</code>; a server only joins it after clearing an intake assessment.</p>
+    <h3>What the intake assesses</h3>
+    <p>When a team wants a new MCP, they answer the intake questions (answers go in <code>mcps/intake/&lt;MCP-name&gt;.md</code>):</p>
+    <ul>
+      <li><strong>Author and publisher</strong> &mdash; who built it?</li>
+      <li><strong>Exposed tools</strong> &mdash; what does it expose to the agent?</li>
+      <li><strong>Tool behaviour</strong> &mdash; read or write? Side effects?</li>
+      <li><strong>Blast radius</strong> &mdash; worst case if the agent called every tool with adversarial inputs?</li>
+      <li><strong>Data flow</strong> &mdash; personal data? Credentials? Does anything leave the org boundary?</li>
+      <li><strong>Security precautions</strong> &mdash; auth, access control, rate limiting, logging?</li>
+    </ul>
+    <p style="margin-bottom:0;">A reviewer (security lead + architect) approves or rejects. Only approved servers are added to <code>catalogue.md</code>; only then does an adopter wire one in.</p>
+  </div>
+
+  <!-- WIRING INTO BOTH HARNESSES -->
+  <div class="pad">
+    <h2>Wiring an approved MCP into both harnesses</h2>
+    <p>Same logical server, two config files with slightly different shapes. Each catalogue entry should record the rendered snippet for both so adopters copy without guessing.</p>
+    <table class="data">
+      <thead><tr><th style="width:24%">Harness</th><th style="width:26%">File</th><th style="width:18%">Key</th><th>Secrets</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Claude Code</strong></td>
+          <td><code>.mcp.json</code> (repo root)</td>
+          <td><code>mcpServers</code></td>
+          <td><code>${VAR}</code> / <code>${VAR:-default}</code> from shell env</td>
+        </tr>
+        <tr>
+          <td><strong>GitHub Copilot</strong> (VS Code)</td>
+          <td><code>.vscode/mcp.json</code></td>
+          <td><code>servers</code> + <code>inputs</code></td>
+          <td><code>${input:id}</code> &mdash; VS Code prompts once, stores in the OS keychain</td>
+        </tr>
+      </tbody>
+    </table>
+    <h3>Claude Code &mdash; the Linear server block</h3>
+    <pre><span class="c">// .mcp.json — Claude Code (repo root)</span>
+{
+  "mcpServers": {
+    "linear": {
+      "type": "http",
+      "url": "https://mcp.linear.app/sse",
+      "headers": { "Authorization": "Bearer ${LINEAR_TOKEN}" }
+    }
+  }
+}</pre>
+    <div class="callout callout-warn">
+      <strong>Gotchas adopters hit.</strong> Unset env vars are fatal &mdash; Claude Code refuses to parse <code>.mcp.json</code> if a <code>${VAR}</code> has no value and no <code>:-default</code>. The approval prompt is per-user (re-prompt with <code>claude mcp reset-project-choices</code>, or VS Code&rsquo;s &ldquo;MCP: Reset Trusted Servers&rdquo;). <code>${CLAUDE_PROJECT_DIR}</code> is server-side only &mdash; use <code>${CLAUDE_PROJECT_DIR:-.}</code> in <code>command</code>/<code>args</code>. And Copilot fires MCP tools only in Agent mode, not inline or Ask.
+    </div>
+  </div>
+
+  <!-- INSTALL/VERIFY SHAPE -->
+  <div class="pad">
+    <h2>Install &amp; verify shape</h2>
+    <p>Every <code>reference/mcp.md</code> follows the same structure, so the wizard always knows where to look: a <strong>Source docs</strong> reference (authoritative &mdash; the in-repo snippet is a summary and may have drifted), an <strong>Install &mdash; Claude Code</strong> snippet, an <strong>Install &mdash; Copilot</strong> snippet, and a <strong>Verify</strong> checklist. The verify step is non-negotiable:</p>
+    <ol>
+      <li><strong>Read access</strong> &mdash; one call (e.g. <code>list_issues</code>, or <code>gh repo view</code>).</li>
+      <li><strong>Write access</strong> &mdash; a <em>no-op</em> write on a scratch issue (re-set an existing label or its current description). Read-only is a blocker: the agent cannot do its job without write.</li>
+      <li><strong>Record the verification status</strong> in <code>context/tooling/board.md</code> (<code>Tool &amp; wiring</code>).</li>
+    </ol>
+    <p style="margin-bottom:0;">If the install cannot be completed in-session (token in another browser, IT ticket), the surface is recorded as <code>pending</code> and the wizard continues with Phase 1b so the repo is at least partially usable; write-dependent items are marked <code>pending-write</code>.</p>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="pad" style="border-bottom:none;">
+    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Sources of truth: <code>context/tooling/boards/README.md</code> (board references &amp; modes), <code>mcps/README.md</code> (catalogue, intake, harness wiring), and <code>.agents/commands/setup-awow.md</code> Step 1 (the kickoff flow). The runtime read path is <code>context/tooling/board.md</code> alone. Board-vendor docs are noted by name only; cross-reference, don&rsquo;t vendor. This guide is self-contained &mdash; no external resources.</p>
+  </div>
+
+</div>
+
+</body>
+</html>

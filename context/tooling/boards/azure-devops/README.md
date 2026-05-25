@@ -16,6 +16,7 @@ Board URL hostname matches:
 | [`reference/hierarchy.md`](reference/hierarchy.md) | Epic / Feature / User Story / Task. |
 | [`reference/labels.md`](reference/labels.md) | ADO tags with the `type:*` / `area:*` / `status:*` scheme. |
 | [`reference/fields.md`](reference/fields.md) | Priority, Effort, Iteration, Area Path, Assigned To. |
+| [`reference/duplicates.md`](reference/duplicates.md) | WIQL/search recipe and the "Duplicate Of" work-item link; no native auto-detection. |
 | [`reference/team-page.md`](reference/team-page.md) | Team description and Iteration Path conventions. |
 | [`reference/iterations.md`](reference/iterations.md) | Iterations / sprints; cycle-time as SLE. |
 | [`reference/mcp.md`](reference/mcp.md) | MCP install; verify checklist; branch naming; rate-limit notes. |

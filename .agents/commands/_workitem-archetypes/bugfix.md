@@ -1,8 +1,17 @@
+---
+archetype: bugfix
+board_type: bug
+triggers: [fix, bug, broken, regression, incorrect, fails, crashes, wrong, missing, swallowed, flaky]
+when-not: "Missing capability rather than broken behaviour → feature. 'Improve' or 'rework' with no named defect → refactor."
+---
+
 # bugfix — archetype handler
 
 A defect with a known symptom. The fix is narrow; the test that catches the regression is the durable artefact.
 
 This is a **starter archetype** shipped with awow v0.1. Edit it to match how your team actually triages and fixes bugs.
+
+The frontmatter above is the matching contract `/process-workitem` and `/refinement-prep` read: `board_type` joins this handler to the team's board work-type (mapped in `context/tooling/board.md`), and `triggers` / `when-not` are the prose-inference fallback when no board type signal is present.
 
 ---
 
@@ -13,6 +22,12 @@ The story names a current, reproducible-or-reportable misbehaviour: wrong output
 Trigger words in the title or body: *fix*, *bug*, *broken*, *regression*, *incorrect*, *fails*, *crashes*, *wrong*, *missing*, *swallowed*, *flaky*.
 
 If the story says "improve" or "rework" without naming an incorrect behaviour, it is probably a `refactor`, not a `bugfix`.
+
+---
+
+## Creation completeness (used by /refinement-prep)
+
+The three inputs under **Validation requirements** below are also the bar for a *complete bug story*. When `/refinement-prep` drafts a bug, check the draft carries all three — reproduction, expected-vs-actual, blast radius — and surface any gap as an open question rather than drafting around it. Capturing them at creation is what lets `/process-workitem` route and plan without bouncing the story back to refinement.
 
 ---
 

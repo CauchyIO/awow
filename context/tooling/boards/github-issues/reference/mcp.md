@@ -43,7 +43,7 @@ Confirm against the github-mcp-server repo README.
 
 ## Option 2 — `gh` CLI (lighter; reuse existing GitHub auth)
 
-If the user already has `gh` installed and authenticated for the org/repo, the agent can shell out to it via the harness's Bash tool. This is what awow's own dogfood uses — see `dogfood/context/tooling/board.md` for a worked example.
+If the user already has `gh` installed and authenticated for the org/repo, the agent can shell out to it via the harness's Bash tool. This is what awow's own `meta/` workspace uses — see `meta/context/tooling/board.md` for a worked example.
 
 Trade-offs:
 

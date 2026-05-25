@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The core delivery loop &mdash; refine, ship, reflect, day to day</title>
+<!--
+  AWOW GUIDE — core delivery loop
+  The everyday loop one person runs: /refinement-prep (seed) drafts a feature before
+  the session, /process-workitem (seed) takes a work item from refinement to PR, and
+  /daily-checkin (standardise) reflects the day back onto the board. The through-line is
+  proposal-first + board look-first / never-duplicate: iterate on the cheap markdown draft,
+  never on the board or production code. Self-contained: no external fonts/links by design.
+-->
+<style>
+  :root {
+    --bg: #f6f5f3;
+    --surface: #ffffff;
+    --surface-alt: #f0efed;
+    --text-1: #1a1a1a;
+    --text-2: #6b6b6b;
+    --text-3: #9a9a9a;
+    --border: #e0dfdd;
+    --border-subtle: #ebeae8;
+    --accent: #f24b37;
+    --link: #337FF9;
+    --ok: #2e7d4f;
+    --warn: #c97a1b;
+    --risk: #b53a2a;
+  }
+  body { margin:0; padding:0; width:100%; font-family:'Nunito',system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text-1); line-height:1.6; }
+  .wrap { max-width:1040px; margin:0 auto; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .pad { padding:28px 40px; border-bottom:1px solid var(--border-subtle); }
+  .pad-tight { padding:20px 40px; border-bottom:1px solid var(--border-subtle); }
+  h1 { font-size:1.9rem; font-weight:700; margin:0; letter-spacing:-0.02em; }
+  h2 { font-size:1.35rem; font-weight:600; margin:0 0 16px; letter-spacing:-0.01em; }
+  h3 { font-size:1.05rem; font-weight:600; margin:24px 0 10px; letter-spacing:-0.01em; }
+  p  { font-size:0.92rem; color:var(--text-2); margin:0 0 12px; line-height:1.7; }
+  ul, ol { font-size:0.92rem; color:var(--text-2); line-height:1.7; padding-left:22px; margin:0 0 14px; }
+  li { margin:4px 0; }
+  strong { color:var(--text-1); font-weight:600; }
+  em { color:var(--text-1); font-style:italic; }
+  code { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.85em; background:var(--surface-alt); padding:1px 6px; border-radius:3px; border:1px solid var(--border-subtle); }
+  pre { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.82rem; background:var(--surface-alt); padding:14px 18px; border-radius:8px; border:1px solid var(--border-subtle); overflow-x:auto; line-height:1.55; color:var(--text-1); }
+  pre .c { color:var(--text-3); }
+  table.data { border-collapse:collapse; width:100%; font-size:0.85rem; margin:0 0 16px; }
+  table.data th { text-align:left; font-weight:600; padding:8px 10px; border-bottom:2px solid var(--border); background:var(--surface-alt); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; }
+  table.data td { padding:9px 10px; border-bottom:1px solid var(--border-subtle); color:var(--text-2); vertical-align:top; line-height:1.5; }
+  table.data tr:last-child td { border-bottom:none; }
+  table.data td strong { color:var(--text-1); }
+  .kicker { font-size:0.72rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin:0 0 8px; }
+  .badge { display:inline-block; font-size:0.7rem; font-weight:600; padding:3px 10px; border-radius:4px; border:1px solid var(--border); color:var(--text-1); background:var(--surface); }
+  .badge-accent { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .badge-ok { background:rgba(46,125,79,0.08); color:var(--ok); border-color:rgba(46,125,79,0.25); }
+  .badge-warn { background:rgba(201,122,27,0.08); color:var(--warn); border-color:rgba(201,122,27,0.25); }
+  .badge-muted { background:var(--surface-alt); color:var(--text-3); border-color:var(--border-subtle); border-style:dashed; }
+  .badges { display:flex; gap:6px; flex-wrap:wrap; }
+  .callout { background:var(--surface-alt); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 16px; font-size:0.88rem; color:var(--text-2); line-height:1.65; }
+  .callout strong { color:var(--text-1); }
+  .callout-warn { border-left-color:var(--warn); }
+  .callout-ok { border-left-color:var(--ok); }
+  .diagram { background:var(--surface-alt); border:1px solid var(--border-subtle); border-radius:10px; padding:18px 16px 12px; margin:0 0 18px; }
+  .diagram svg { display:block; max-width:100%; height:auto; margin:0 auto; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:0.78rem; color:var(--text-2); padding:8px 8px 0; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .legend i { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid var(--border); }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
+  .card .card-label { font-size:0.7rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; }
+  .card h3 { margin-top:0; }
+  @media (max-width: 760px) {
+    .pad, .pad-tight { padding-left:22px; padding-right:22px; }
+    .grid-3 { grid-template-columns:1fr; }
+  }
+  @media print {
+    body { background:#fff; }
+    .wrap { border:none; border-radius:0; max-width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="pad" style="padding-top:36px;padding-bottom:24px;">
+    <p style="font-size:13px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin:0 0 10px;">Way of Working &middot; Guide</p>
+    <h1>The core delivery loop</h1>
+    <p style="font-size:1rem;color:var(--text-2);margin:6px 0 0;font-weight:500;">The loop one person runs, day to day, that proves awow earns its place.</p>
+    <p style="font-size:0.85rem;color:var(--text-3);margin:8px 0 0;">Three commands: <code>/refinement-prep</code> drafts a feature before the session, <code>/process-workitem</code> takes a work item from refinement to PR, and <code>/daily-checkin</code> reflects the day back onto the board. The first two are the <strong>Seed</strong> loop; the third is a <strong>Standardise</strong> companion layered on top.</p>
+    <div class="badges" style="margin-top:16px;">
+      <span class="badge badge-accent">seed loop</span>
+      <span class="badge">+ a standardise companion</span>
+      <span class="badge">proposal-first throughout</span>
+    </div>
+  </div>
+
+  <!-- TL;DR -->
+  <div class="pad-tight">
+    <p class="kicker">TL;DR</p>
+    <p>Before refinement, <code>/refinement-prep</code> turns a brief into a right-sized draft the team reviews ahead of the meeting &mdash; so the session is design discussion, not discovery. After refinement, <code>/process-workitem</code> walks a single story from board to PR through a seven-step frame that iterates on a <em>plan</em>, never on production code. And every day, <code>/daily-checkin</code> reconciles what actually happened against the board, biasing hard against noise. Through all three runs the same spine: <strong>look at the board first, never duplicate, draft to cheap markdown, land only after a human approves.</strong></p>
+  </div>
+
+  <!-- THROUGH-LINE -->
+  <div class="pad-tight">
+    <div class="callout">
+      <strong>One discipline, three commands.</strong> The cheap-to-change artefact &mdash; a markdown file under <code>proposals/</code> &mdash; is where iteration happens. The board and production code are expensive to change well, so they are touched only at an approval gate. Each command also looks at the board <em>before</em> acting and refuses to create a duplicate. That is the whole way of working in one sentence.
+    </div>
+  </div>
+
+  <!-- LOOP DIAGRAM -->
+  <div class="pad">
+    <h2>The loop</h2>
+    <p>Read left to right: a brief becomes a reviewed draft, the team refines it, a single story is taken to a PR, and the day's reality is reflected back onto the board. The daily check-in is the reflective arc &mdash; it feeds the board, not the code.</p>
+    <div class="diagram">
+      <div class="legend" style="margin-bottom:6px;">
+        <span><i style="background:#1a1a1a;border-color:#1a1a1a;"></i> Board / PR &mdash; the durable surface</span>
+        <span><i style="background:rgba(242,75,55,0.10);border-color:rgba(242,75,55,0.55);"></i> Seed command</span>
+        <span><i style="background:rgba(51,127,249,0.10);border-color:rgba(51,127,249,0.55);"></i> Standardise companion</span>
+      </div>
+
+      <svg viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The core delivery loop">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#6b6b6b"/>
+          </marker>
+          <marker id="arrb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#337FF9"/>
+          </marker>
+        </defs>
+
+        <!-- A: brief -->
+        <rect x="24" y="96" width="150" height="64" rx="10" fill="#fff" stroke="#9a9a9a" stroke-dasharray="5 4"/>
+        <text x="99" y="124" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1a1a" font-family="Nunito,sans-serif">Brief / deck</text>
+        <text x="99" y="143" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">issue URL / transcript</text>
+
+        <!-- A -> B -->
+        <path d="M174,128 L208,128" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <!-- B: refinement-prep -->
+        <rect x="210" y="86" width="220" height="84" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
+        <text x="320" y="114" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">/refinement-prep</text>
+        <text x="320" y="133" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">draft, right-sized stories</text>
+        <text x="320" y="150" text-anchor="middle" font-size="10" fill="#f24b37" font-family="JetBrains Mono,monospace">proposals/refinement/&lt;slug&gt;.md</text>
+
+        <!-- B -> C: refinement session -->
+        <path d="M430,128 L470,128" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <!-- C: refinement (human) -->
+        <rect x="472" y="92" width="142" height="72" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
+        <text x="543" y="120" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff" font-family="Nunito,sans-serif">Refinement</text>
+        <text x="543" y="139" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="Nunito,sans-serif">team reviews draft</text>
+        <text x="543" y="154" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="Nunito,sans-serif">&rarr; stories on board</text>
+
+        <!-- C -> D -->
+        <path d="M614,128 L654,128" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <!-- D: process-workitem -->
+        <rect x="656" y="86" width="220" height="84" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
+        <text x="766" y="114" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">/process-workitem</text>
+        <text x="766" y="133" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">load &rarr; plan &rarr; apply &rarr; verify</text>
+        <text x="766" y="150" text-anchor="middle" font-size="10" fill="#f24b37" font-family="JetBrains Mono,monospace">proposals/&lt;id&gt;.md</text>
+
+        <!-- D -> E: PR -->
+        <path d="M876,128 L916,128" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <!-- E: PR -->
+        <rect x="824" y="220" width="152" height="64" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
+        <text x="900" y="248" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="Nunito,sans-serif">PR + board</text>
+        <text x="900" y="267" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="Nunito,sans-serif">state advanced</text>
+
+        <!-- D corner down to PR -->
+        <path d="M916,128 C950,128 962,170 962,210" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <!-- F: daily-checkin (standardise) -->
+        <rect x="290" y="372" width="420" height="92" rx="10" fill="rgba(51,127,249,0.08)" stroke="#337FF9"/>
+        <text x="500" y="402" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">/daily-checkin</text>
+        <text x="500" y="422" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">capture the day from account + code + board activity</text>
+        <text x="500" y="440" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">advance tracked work; a new issue is the exception</text>
+        <text x="500" y="457" text-anchor="middle" font-size="10" fill="#337FF9" font-family="Nunito,sans-serif">read-only until an explicit approval gate</text>
+
+        <!-- code/PR feeds checkin -->
+        <path d="M900,284 C900,400 760,418 712,418" fill="none" stroke="#337FF9" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrb)"/>
+        <!-- checkin feeds back to board -->
+        <path d="M345,372 C300,300 380,200 470,150" fill="none" stroke="#337FF9" stroke-width="1.5" marker-end="url(#arrb)"/>
+        <text x="300" y="270" text-anchor="middle" font-size="9.5" font-weight="600" fill="#337FF9" font-family="Nunito,sans-serif">proposes board updates</text>
+      </svg>
+    </div>
+    <p style="font-size:0.82rem;color:var(--text-3);margin:0;">Dashed inputs are optional: the brief can be a paragraph, a deck, an issue URL, or <code>/process-transcript</code> output; the daily check-in works from board and code activity alone when there is no written account.</p>
+  </div>
+
+  <!-- AT A GLANCE TABLE -->
+  <div class="pad">
+    <h2>The three commands at a glance</h2>
+    <table class="data">
+      <thead><tr><th style="width:22%">Command</th><th style="width:16%">Phase</th><th>What it produces</th><th style="width:26%">The gate</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>/refinement-prep</strong></td>
+          <td><span class="badge badge-accent" style="font-size:0.62rem">seed</span></td>
+          <td>A reviewed feature draft &mdash; right-sized stories &mdash; at <code>proposals/refinement/&lt;slug&gt;.md</code>, ready for the live session.</td>
+          <td>Duplicate check <em>before</em> drafting; co-author until the owner would put their name on it.</td>
+        </tr>
+        <tr>
+          <td><strong>/process-workitem</strong></td>
+          <td><span class="badge badge-accent" style="font-size:0.62rem">seed</span></td>
+          <td>An approved plan at <code>proposals/&lt;id&gt;.md</code>, then the change applied, verified, and opened as a PR linked to the story.</td>
+          <td>Plan approved before any code is touched; check-in before each irreversible step.</td>
+        </tr>
+        <tr>
+          <td><strong>/daily-checkin</strong></td>
+          <td><span class="badge" style="font-size:0.62rem">standardise</span></td>
+          <td>A short daily summary and a list of proposed board updates &mdash; mostly comments and moves, rarely a new issue.</td>
+          <td>Read-only synthesis until an explicit &ldquo;execute these updates?&rdquo; approval.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout callout-ok">
+      <strong>Why this is the loop that proves the value.</strong> No coordination, no ceremony, no second adopter required. One person runs <code>/refinement-prep</code> the day before a session, ships a story with <code>/process-workitem</code>, and closes the day with <code>/daily-checkin</code> &mdash; and the team sees the output at the next refinement. The Standardise and Spread commands build on this; they don&rsquo;t replace it.
+    </div>
+  </div>
+
+  <!-- 1. REFINEMENT-PREP -->
+  <div class="pad">
+    <h2><code>/refinement-prep</code> &mdash; draft a feature before refinement</h2>
+    <p>The aim is simple: arrive at the refinement session with a draft already in hand, so the meeting becomes <em>design discussion</em> rather than <em>discovery</em>. One person can run it alone; the value shows up in their own work first, and is visible to the whole team at the next session. It is typically the first prompt a team adopts.</p>
+
+    <h3>What goes in</h3>
+    <p>Any one of: a one-paragraph brief (typed or dropped in <code>input/</code>), a slidedeck or document in <code>input/quarterly/</code>, a board issue URL to expand into stories, or the structured output of <code>/process-transcript</code>.</p>
+
+    <h3>What it does, in order</h3>
+    <ol>
+      <li><strong>Load context.</strong> Reads the mission (the feature must serve it &mdash; if it can&rsquo;t see how, it asks before drafting), the REQUIRED conventions (titles, labels, output discipline), the board-output style, the glossary, existing patterns, and the board&rsquo;s sizing rules.</li>
+      <li><strong>Check for duplicates &mdash; before drafting.</strong> It searches the board on keywords from the brief, looking for stories that overlap, a parent feature to attach to, and related work that should shape scope. If anything looks like a duplicate, it stops and reports IDs and titles, then asks whether to proceed, link/extend, or cancel. It will not draft over an unconfirmed duplicate.</li>
+      <li><strong>Draft to markdown.</strong> Output lands at <code>proposals/refinement/&lt;feature-slug&gt;.md</code> &mdash; a feature wrapper plus three to seven stories, dependencies, open questions, and risks.</li>
+    </ol>
+
+    <div class="callout">
+      <strong>The right-sizing rule.</strong> Every story must be shippable by a single session as a working PR. Each one: <strong>touches 1&ndash;5 files</strong>, is <strong>describable in 2&ndash;3 sentences</strong> without hand-waving, <strong>leaves no architectural decisions to the agent</strong> (the story says <em>what</em>; the codebase says <em>how</em>), and carries <strong>5 or fewer acceptance criteria</strong>. Anything that fails these gets split.
+    </div>
+
+    <p>Two boundaries worth stating plainly: design decisions the team hasn&rsquo;t made become <em>open questions</em>, not story bodies; and the command <strong>co-authors, it never ghost-writes</strong> &mdash; it iterates until the feature owner would put their name on the draft in the session. A &ldquo;kitchen-sink&rdquo; story (&ldquo;implement X, add tests, update docs, refactor Y&rdquo;) is always split.</p>
+  </div>
+
+  <!-- 2. PROCESS-WORKITEM -->
+  <div class="pad">
+    <h2><code>/process-workitem</code> &mdash; take a work item from refinement to PR</h2>
+    <p>Once a story exists on the board, this command carries it to a PR through a generic seven-step frame. The frame is the same for every kind of work; the work-specific rules live in <strong>archetype handlers</strong> under <code>.agents/commands/_workitem-archetypes/</code> &mdash; <code>feature</code>, <code>bugfix</code>, <code>refactor</code>, <code>doc</code>, and any others a team registers as their work demands.</p>
+
+    <div class="diagram" style="padding-top:14px;">
+      <table class="data" style="margin:0;">
+        <thead><tr><th style="width:14%">Step</th><th>What happens</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1 &middot; Load</strong></td><td>Resolve the story from the board (or the local cache) and read it through the user-story template &mdash; title, body, tags, acceptance criteria, scope boundary. If the story doesn&rsquo;t fit the template, <em>stop</em> and repair the story; don&rsquo;t infer scope.</td></tr>
+          <tr><td><strong>2 &middot; Classify / route</strong></td><td>Match the story to an archetype handler. If the directory is empty, run generically and suggest scaffolding a handler (captured as a stub under <code>proposals/archetypes/</code>) &mdash; don&rsquo;t block. If handlers exist but none match, the story is too broad (split it) or needs a new handler (ask).</td></tr>
+          <tr><td><strong>3 &middot; Validate inputs</strong></td><td>Run the archetype&rsquo;s checks <em>before</em> any planning. Working from assumed state is the most common cause of agent-driven bugs. If anything blocks, stop.</td></tr>
+          <tr><td><strong>4 &middot; Plan</strong></td><td>Draft a plan in <code>proposals/&lt;work-item-id&gt;.md</code> &mdash; story anchor, file-by-file changes, risks, verification. <strong>Get approval before touching code.</strong> Iterate here, in the cheap artefact.</td></tr>
+          <tr><td><strong>5 &middot; Apply</strong></td><td>Execute the approved plan without drifting. If scope needs to grow, raise it and amend the plan first. Respect output-placement rules &mdash; a story can&rsquo;t absorb knowledge-base content.</td></tr>
+          <tr><td><strong>6 &middot; Verify</strong></td><td>Run the archetype&rsquo;s checks: tests / build / lint pass, each acceptance criterion has evidence, behaviour changes get a smoke check. If anything is red, stop and report.</td></tr>
+          <tr><td><strong>7 &middot; Report</strong></td><td>Open the PR linked to the work item, summarise the changes and verification, advance the board state, and surface any manual follow-ups.</td></tr>
+        </tbody>
+      </table>
+      <div class="legend" style="padding-top:10px;"><span style="color:var(--text-3)">Load &rarr; Classify/route &rarr; Validate &rarr; Plan &rarr; Apply &rarr; Verify &rarr; Report</span></div>
+    </div>
+
+    <h3>The principles that hold it together</h3>
+    <div class="grid-3">
+      <div class="card">
+        <p class="card-label" style="color:var(--accent)">Iterate on the plan</p>
+        <p style="margin-bottom:0;">The plan is cheap to change; the codebase is not. All the back-and-forth happens in <code>proposals/&lt;id&gt;.md</code> before a line of production code is written.</p>
+      </div>
+      <div class="card">
+        <p class="card-label" style="color:var(--accent)">Validate before acting</p>
+        <p style="margin-bottom:0;">Never act on un-validated assumptions about state. Check inputs first; check in with the user before each irreversible step.</p>
+      </div>
+      <div class="card">
+        <p class="card-label" style="color:var(--accent)">Stay in scope</p>
+        <p style="margin-bottom:0;">The story defines the boundary. Related work becomes separate proposals. Don&rsquo;t gold-plate &mdash; observability, refactors, and docs are follow-up stories.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. DAILY-CHECKIN -->
+  <div class="pad">
+    <h2><code>/daily-checkin</code> &mdash; the daily companion</h2>
+    <p style="margin-bottom:10px;"><span class="badge" style="font-size:0.62rem;margin-right:6px;">phase: standardise</span> Unlike the two Seed commands, this one belongs to the <strong>Standardise</strong> phase &mdash; a daily companion layered on top of the Seed loop, not part of it. It captures an individual&rsquo;s working day, maps it onto the board, cross-references it against code activity, and proposes updates.</p>
+
+    <p>It is <strong>optional and elastic</strong>. A detailed account yields a rich summary; a couple of lines yields a lighter one; <em>nothing at all still works</em>, because the board and code activity carry most of the signal. It is not performance evaluation and not forecasting &mdash; it enforces structural clarity, making sure the work that happened is reflected on the board and not silently missing a ticket.</p>
+
+    <div class="callout callout-warn">
+      <strong>Its whole point is biasing against noise.</strong> Run every day, a check-in is a noise machine if you let it be &mdash; duplicate tickets, verbose recaps, a new issue for every passing thought. The default is the opposite: <strong>advance work that is already tracked</strong> (comment on or move an existing issue), and treat <strong>creating a new issue as the exception that must justify itself</strong>. If the proposed list has more new issues than updates, it&rsquo;s almost certainly generating noise &mdash; re-map.
+    </div>
+
+    <h3>How it reads the day</h3>
+    <ul>
+      <li><strong>Up to three input sources, none mandatory:</strong> the user&rsquo;s own account (written note, voice memo, or none), code activity (automatic &mdash; commits, PRs, reviews from today), and meeting transcripts (routed through <code>/process-transcript</code>, never parsed inline). When sources conflict, processed transcript beats verifiable code activity beats the user&rsquo;s account.</li>
+      <li><strong>Written input is taken at face value.</strong> Voice-to-text input is treated as unreliable and runs a disambiguation protocol &mdash; cross-referencing every proper noun against known people, projects, and repos, and presenting all ambiguous terms for confirmation <em>before</em> producing the summary. No silent guessing.</li>
+      <li><strong>Read-only until the gate.</strong> Everything up to board execution is synthesis. No issue is created, moved, or commented on until the user explicitly answers &ldquo;execute these updates?&rdquo; &mdash; then each match is re-verified before it&rsquo;s touched.</li>
+    </ul>
+
+    <p>The output is deliberately short: a 2&ndash;4 sentence summary, one line per concrete thing that moved (tied to its board issue and commit/PR on the <em>same</em> line), a clearly-marked <em>not yet executed</em> list of proposed updates, and genuine gaps only &mdash; &ldquo;no gaps today&rdquo; is a fine and common outcome.</p>
+  </div>
+
+  <!-- THE SPINE -->
+  <div class="pad">
+    <h2>The spine that runs through all three</h2>
+    <p>These commands share a small set of rules that live in <code>.agents/CLAUDE.md</code> and the team&rsquo;s conventions. They are not optional flavour &mdash; they are why the loop stays trustworthy as it repeats.</p>
+    <table class="data">
+      <thead><tr><th style="width:26%">Rule</th><th>What it means in the loop</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Board look-first</strong></td><td>Before starting anything with a discernible outcome, search the board for an existing ticket. <code>/refinement-prep</code> does it before drafting; <code>/daily-checkin</code> does it before proposing; <code>/process-workitem</code> starts from a ticket that already exists.</td></tr>
+        <tr><td><strong>Never duplicate</strong></td><td>If a ticket already covers the scope, use it &mdash; don&rsquo;t create a second. Duplicate detection is an explicit, blocking step in <code>/refinement-prep</code>, and the anti-reflex at the heart of <code>/daily-checkin</code>.</td></tr>
+        <tr><td><strong>Proposal-first</strong></td><td>Always draft to a markdown file under <code>proposals/</code> first; the board, the knowledge base, and production code are landed only after a human approves. Iterate on the cheap artefact, never on the expensive one.</td></tr>
+        <tr><td><strong>Output discipline</strong></td><td>Minimum-useful text; intent &rarr; story body, status &rarr; comment, durable rationale &rarr; knowledge base. A story is never allowed to absorb content that belongs elsewhere.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <strong>The cheap artefact is the iteration surface.</strong> A draft feature, a work-item plan, a daily summary &mdash; all are markdown under <code>proposals/</code>. That is where the conversation happens. The board and the codebase change once, at the end, after approval. Get that habit right and the rest of awow is built on solid ground.
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="pad" style="border-bottom:none;">
+    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Sources of truth: <code>.agents/commands/refinement-prep.md</code>, <code>.agents/commands/process-workitem.md</code>, <code>.agents/commands/daily-checkin.md</code>, with the spine rules in <code>.agents/CLAUDE.md</code> and the archetype handlers under <code>.agents/commands/_workitem-archetypes/</code>. Companion guides: <code>guide-session-correlation.html</code> and <code>guide-trace-analysis.html</code>. This guide is self-contained &mdash; no external resources.</p>
+  </div>
+
+</div>
+
+</body>
+</html>

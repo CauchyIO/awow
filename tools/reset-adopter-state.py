@@ -13,8 +13,8 @@ What gets reset
 - Untracked artefacts the walkthrough creates (`proposals/setup/`,
   `proposals/awow-add/`, `context/tooling/board.md`) are removed.
 - Open GitHub issues on the repo's `origin` remote that carry the
-  `dogfood` label are bulk-closed via `gh issue close`. This keeps the
-  board interpretable across repeated dogfood iterations. The repo is
+  `awow-test` label are bulk-closed via `gh issue close`. This keeps the
+  board interpretable across repeated test walkthroughs. The repo is
   resolved from `git remote get-url origin`; if the remote is not a
   GitHub URL or `gh` is not installed, this step is skipped.
 
@@ -22,7 +22,7 @@ What is kept by default
 -----------------------
 - All edits under `.agents/`, `tools/`, `setup/`, `README.md`, `SETUP.md`,
   `mcps/`, etc. — these are the template iterations you are testing.
-- `dogfood/` — awow's own lived team context (the "awow applied to itself"
+- `meta/` — awow's own lived team context (the "awow applied to itself"
   worked example). This is *not* adopter state; it is preserved across
   resets.
 - `.venv/`, `.mcp.json`, `.vscode/`, `.claude/settings.local.json` — heavy
@@ -139,16 +139,16 @@ def repo_full_name() -> str | None:
     return f"{match.group(1)}/{match.group(2)}"
 
 
-def close_dogfood_issues(dry_run: bool) -> None:
+def close_test_issues(dry_run: bool) -> None:
     repo = repo_full_name()
     if not repo:
-        print("  - skipping `dogfood`-label cleanup (not a github origin remote or `gh` not installed)")
+        print("  - skipping `awow-test`-label cleanup (not a github origin remote or `gh` not installed)")
         return
     list_result = subprocess.run(
         [
             "gh", "issue", "list",
             "-R", repo,
-            "-l", "dogfood",
+            "-l", "awow-test",
             "--state", "open",
             "--json", "number",
             "-q", ".[].number",
@@ -159,9 +159,9 @@ def close_dogfood_issues(dry_run: bool) -> None:
     )
     numbers = list_result.stdout.split()
     if not numbers:
-        print(f"  - no open `dogfood`-labelled issues on {repo}")
+        print(f"  - no open `awow-test`-labelled issues on {repo}")
         return
-    print(f"  close {len(numbers)} `dogfood`-labelled issue(s) on {repo}:")
+    print(f"  close {len(numbers)} `awow-test`-labelled issue(s) on {repo}:")
     for num in numbers:
         print(f"  x #{num}")
         if dry_run:
@@ -211,8 +211,8 @@ def main() -> int:
         remove_path(rel, args.dry_run)
     print()
 
-    print("Close `dogfood`-labelled open issues (board inflation control):")
-    close_dogfood_issues(args.dry_run)
+    print("Close `awow-test`-labelled open issues (board inflation control):")
+    close_test_issues(args.dry_run)
     print()
 
     if args.full:

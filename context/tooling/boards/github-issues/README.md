@@ -19,6 +19,7 @@ Board URL is:
 | [`reference/hierarchy.md`](reference/hierarchy.md) | Milestone / tracking-issue / Issue / task-list. |
 | [`reference/labels.md`](reference/labels.md) | GitHub labels with the `type:*` / `area:*` / `status:*` scheme. |
 | [`reference/fields.md`](reference/fields.md) | Status, Priority, Iteration, Estimate (Projects v2 custom fields). |
+| [`reference/duplicates.md`](reference/duplicates.md) | No native dedup; `gh`/web search recipe and how to mark duplicates. |
 | [`reference/team-page.md`](reference/team-page.md) | Repo README, Org profile, Project description. |
 | [`reference/mcp.md`](reference/mcp.md) | GitHub MCP install **and** the `gh` CLI alternative for adopters who want to skip PAT-managed MCPs. |
 

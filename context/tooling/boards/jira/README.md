@@ -16,5 +16,6 @@ Board URL hostname matches `*.atlassian.net`.
 | [`reference/hierarchy.md`](reference/hierarchy.md) | Initiative / Epic / Story / Sub-task. |
 | [`reference/labels.md`](reference/labels.md) | Labels + Components; the prefix scheme. |
 | [`reference/fields.md`](reference/fields.md) | Priority, Story Points, Sprint, Assignee. |
+| [`reference/duplicates.md`](reference/duplicates.md) | JQL search recipe and the "duplicates" issue link; no native auto-detection. |
 | [`reference/team-page.md`](reference/team-page.md) | Jira's project description and team Confluence space. |
 | [`reference/mcp.md`](reference/mcp.md) | Atlassian MCP install; verify checklist. |

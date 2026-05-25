@@ -14,7 +14,7 @@ Labels use a prefix to declare their category. Each issue gets at most one or tw
 
 | Label | Purpose | Lifecycle |
 |---|---|---|
-| `dogfood` | Marks an issue generated during a dogfood iteration of awow against itself. | Bulk-closed by `tools/reset-adopter-state.py` (and therefore by `/awow-reset`). Every dogfood-generated issue MUST carry it. |
+| `awow-test` | Marks an issue generated during a test walkthrough (dogfooding awow against itself for prompt iteration). | Bulk-closed by `tools/reset-adopter-state.py` (and therefore by `/awow-reset`). Every test-walkthrough issue MUST carry it. |
 | `good-first-issue` | Standard GitHub label; signals a low-context entry point for new contributors. | Survives resets. |
 
 ## Three rules
@@ -25,4 +25,4 @@ Labels use a prefix to declare their category. Each issue gets at most one or tw
 
 ## Mapping to wizard outputs
 
-`/refinement-prep`, `/process-workitem`, and any command that creates an issue MUST apply: exactly one `type:`, exactly one `area:`, zero or more `status:`, and `dogfood` if invoked during a dogfood walkthrough.
+`/refinement-prep`, `/process-workitem`, and any command that creates an issue MUST apply: exactly one `type:`, exactly one `area:`, zero or more `status:`, and `awow-test` if invoked during a test walkthrough.

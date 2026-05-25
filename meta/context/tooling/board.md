@@ -10,13 +10,13 @@ GitHub Issues + Projects v2.
 
 <https://github.com/orgs/CauchyIO/projects/3>
 
-The repo-level project listing (<https://github.com/CauchyIO/awow/projects?query=is%3Aopen>) is the entry point for browsing; the canonical project is *Dogfood* (#3 on CauchyIO).
+The repo-level project listing (<https://github.com/CauchyIO/awow/projects?query=is%3Aopen>) is the entry point for browsing; the canonical project is *awow* (#3 on CauchyIO).
 
 ## Workspace / team identifier
 
 - **Org:** `CauchyIO`
 - **Repo:** `CauchyIO/awow` (public, Issues + Projects enabled)
-- **Project:** `Dogfood` — project number `3`, id `PVT_kwDODcJdXM4BXrBg`, open, private. Short description: *"Scratch project for awow's own dogfood iterations. Issues here can be bulk-closed via /awow-reset. See dogfood/README.md."*
+- **Project:** `awow` — project number `3`, id `PVT_kwDODcJdXM4BXrBg`, open, private. Short description: *"Scratch project for awow's own dogfood iterations. Issues here can be bulk-closed via /awow-reset. See meta/README.md."*
 
 ## Read/write surface — `gh` CLI (no MCP for now)
 
@@ -32,22 +32,30 @@ If a future iteration needs MCP-only capabilities (richer queries, push notifica
 
 - **MCP installation:** `not-installed` — by design, see above.
 - **Read (via `gh` CLI):** `ok` — `gh auth status` shows scopes `gist, project, read:org, repo, workflow`; `gh repo view CauchyIO/awow`, `gh project list --owner CauchyIO --format json`, and `gh project view 3 --owner CauchyIO` all work.
-- **Write:** `ok` — `gh project edit 3 --owner CauchyIO --description …` successfully set the Dogfood project's short description on 2026-05-14.
+- **Write:** `ok` — `gh project edit 3 --owner CauchyIO --description …` successfully set the awow project's short description on 2026-05-14.
 
 ## Open items (housekeeping; do not block Step 1)
 
 1. *(Optional housekeeping)* Close or delete the two abandoned `@hetspookjee's untitled project` entries (CauchyIO projects #1 and #2). They are already `closed: true` but remain visible in the org's projects listing. Deletion (`gh project delete`) requires explicit user authorisation.
-2. *(Done as part of CAU-908)* The new `context/tooling/boards/github-issues/reference/mcp.md` documents `gh` CLI as Option 2 alongside the MCP. The `dogfood`-label inflation-control pattern still wants documenting alongside it; follow-up.
+2. *(Done as part of CAU-908)* The new `context/tooling/boards/github-issues/reference/mcp.md` documents `gh` CLI as Option 2 alongside the MCP. The `awow-test`-label inflation-control pattern still wants documenting alongside it; follow-up.
 
-## Inflation control — `dogfood` label discipline
+## Inflation control — `awow-test` label discipline
 
-Repeated dogfood walkthroughs (running `/refinement-prep`, `/process-workitem`, etc. against this repo) will create issues. To keep the board interpretable across iterations:
+Repeated test walkthroughs (running `/refinement-prep`, `/process-workitem`, etc. against this repo) will create issues. To keep the board interpretable across iterations:
 
-- Every issue created during a dogfood iteration carries a `dogfood` label.
-- Bulk-close at the start of a new iteration: `gh issue list -R CauchyIO/awow -l dogfood --state open --json number -q '.[].number' | xargs -I{} gh issue close -R CauchyIO/awow {}`.
-- The `dogfood` label is added to `context/team/conventions/REQUIRED/labels.md` when Step 3 runs against this dogfood workspace.
+- Every issue created during a test walkthrough carries an `awow-test` label.
+- Bulk-close at the start of a new iteration: `gh issue list -R CauchyIO/awow -l awow-test --state open --json number -q '.[].number' | xargs -I{} gh issue close -R CauchyIO/awow {}`.
+- The `awow-test` label is added to `context/team/conventions/REQUIRED/labels.md` when Step 3 runs against this workspace.
 
-If iteration volume grows, escalate to dated scratch projects (`Dogfood — 2026-05`, `Dogfood — 2026-06`) and archive old ones — but the label-based approach is the day-one default.
+If iteration volume grows, escalate to dated scratch projects (`awow — 2026-05`, `awow — 2026-06`) and archive old ones — but the label-based approach is the day-one default.
+
+## Avoiding duplicates
+
+GitHub Issues has **no automatic duplicate detection** — search before creating, every time. This board is especially exposed because repeated test runs re-tread the same ground.
+
+- **Search first:** `gh issue list -R CauchyIO/awow --search "<terms>"` (keyword-only; try several term sets, including the area and the `awow-test` label). Found an existing issue? Comment on it or move it forward — do not open a second.
+- **Genuine duplicate slipped through:** close the newer as not planned (`gh issue close <n> -R CauchyIO/awow --reason "not planned"`) and comment `Duplicate of #<N>`.
+- This is the tooling-level half of noise control; the discipline half (minimum-useful bodies, status-in-comments) lives in `context/team/style/board-output.md`, and the look-first rule in `.agents/CLAUDE.md`.
 
 ## Harness scope
 

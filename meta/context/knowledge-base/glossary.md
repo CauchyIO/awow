@@ -1,6 +1,6 @@
 # Glossary
 
-Domain terms specific to awow and the dogfood workspace. Referenced from stories and prompts; not redefined per ticket.
+Domain terms specific to awow and the `meta/` workspace. Referenced from stories and prompts; not redefined per ticket.
 
 ## `agent`
 
@@ -14,13 +14,13 @@ This repo. The agentic way of working *starter pack* — a clone-and-go template
 
 The team that maintains awow. One member today (Casper, `@hetspookjee`).
 
-## `dogfood (folder)`
+## `meta (workspace)`
 
-The `dogfood/` directory at the repo root. The workspace where awow is applied to itself. Carries its own team context, board, conventions, and KB — not inherited by adopters who use "Use this template".
+The `meta/` directory at the repo root (formerly `dogfood/`). The workspace where awow is applied to itself. Carries its own team context, board, conventions, and KB — not inherited by adopters who use "Use this template".
 
-## `dogfood (label)`
+## `awow-test (label)`
 
-The GitHub label `dogfood` applied to every issue generated during a dogfood walkthrough on `CauchyIO/awow`. Bulk-closed by `/awow-reset`. See `dogfood/context/knowledge-base/patterns/dogfood-label-inflation-control.md`.
+The GitHub label `awow-test` applied to every issue generated during a test walkthrough (dogfooding awow against itself) on `CauchyIO/awow`. Bulk-closed by `/awow-reset`. See `meta/context/knowledge-base/patterns/awow-test-label-inflation-control.md`.
 
 ## `gather`
 
@@ -32,7 +32,7 @@ The runtime environment the agent runs inside. Today: Claude Code or GitHub Copi
 
 ## `MCP`
 
-Model Context Protocol. The protocol Claude Code and Copilot use to talk to external systems (boards, file stores, etc.) via local or remote MCP servers. For awow's own backlog, the MCP is deliberately skipped in favour of `gh` CLI; see `dogfood/context/knowledge-base/decisions/0001-gh-cli-vs-mcp.md`.
+Model Context Protocol. The protocol Claude Code and Copilot use to talk to external systems (boards, file stores, etc.) via local or remote MCP servers. For awow's own backlog, the MCP is deliberately skipped in favour of `gh` CLI; see `meta/context/knowledge-base/decisions/0001-gh-cli-vs-mcp.md`.
 
 ## `mirror`
 
@@ -48,7 +48,7 @@ awow's deliverable form: a GitHub template repo. Adopters use the "Use this temp
 
 ## `worked example`
 
-The `dogfood/` folder. Awow applied to itself — both as a real working substrate for the maintainer and as a reference an adopter can read to see "what does a fully-set-up awow team's context look like".
+The `meta/` folder. Awow applied to itself — both as a real working substrate for the maintainer and as a reference an adopter can read to see "what does a fully-set-up awow team's context look like".
 
 ## `wizard`
 

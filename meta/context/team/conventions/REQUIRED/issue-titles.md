@@ -11,8 +11,8 @@ Verb-first. The title alone tells you what the issue delivers; the body adds acc
 | `Fix {symptom} in {area}` | Fix `gh project list` returning empty when all org projects are closed | Bug with a known symptom |
 | `Update {thing}` | Update `/setup-awow` Step 1 to surface `gh` CLI as an MCP alternative | Modifying existing behaviour |
 | `Remove {thing}` | Remove `voice-memo-capture` references from refinement-prep | Decommission / cleanup |
-| `Draft {thing}` | Draft `dogfood/context/knowledge-base/decisions/0001-gh-cli-vs-mcp.md` | Content or documentation |
-| `Define {thing}` | Define `dogfood`-label inflation-control pattern in github-issues reference | Convention, policy, or standard |
+| `Draft {thing}` | Draft `meta/context/knowledge-base/decisions/0001-gh-cli-vs-mcp.md` | Content or documentation |
+| `Define {thing}` | Define `awow-test`-label inflation-control pattern in github-issues reference | Convention, policy, or standard |
 
 ## Scope discipline
 

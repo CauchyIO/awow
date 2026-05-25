@@ -8,7 +8,7 @@ The rest of Cauchy. First real internal adopters of awow.
 
 - **Mission:** run client engagements; use the agentic way of working where it fits.
 - **Members we work with:** the consulting engineers active on the current engagement.
-- **Shared dependencies:** awow's prompts, skills, commands. Cauchy's internal Linear workspace for client work, separate from awow's own `Dogfood` project on GitHub. See `dogfood/context/tooling/board.md` for the rationale.
+- **Shared dependencies:** awow's prompts, skills, commands. Cauchy's internal Linear workspace for client work, separate from awow's own `awow` project on GitHub. See `meta/context/tooling/board.md` for the rationale.
 - **Cadence:** unknown until the consulting team confirms.
 - **Owner of this summary:** placeholder. Hand to the consulting team to own.
 

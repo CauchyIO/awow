@@ -5,7 +5,7 @@
 
 ## Context
 
-Setting up the agent's read/write surface for awow's own backlog on `CauchyIO/awow` (GitHub Projects, project `Dogfood` #3). Three candidates:
+Setting up the agent's read/write surface for awow's own backlog on `CauchyIO/awow` (GitHub Projects, project `awow` #3). Three candidates:
 
 1. Install `github/github-mcp-server` locally — requires a Personal Access Token managed by every contributor.
 2. Use the remote `https://api.githubcopilot.com/mcp/` endpoint — gated behind a GitHub Copilot subscription.
@@ -15,7 +15,7 @@ The wizard's Step 1 contract phrases the requirement as "a wired-up board MCP" b
 
 ## Decision
 
-Skip the GitHub MCP. Use `gh` CLI in `Bash` as the read/write surface for awow's own backlog. Capture this in `dogfood/context/tooling/board.md` so the choice is legible to future agents.
+Skip the GitHub MCP. Use `gh` CLI in `Bash` as the read/write surface for awow's own backlog. Capture this in `meta/context/tooling/board.md` so the choice is legible to future agents.
 
 ## Consequences
 

@@ -44,11 +44,21 @@ The agent applies this tree explicitly. When `/process-workitem` produces a draf
 
 The agent does not rewrite the body to "reflect the latest thinking." That is how drift gets locked in. If the body becomes wrong, the fix is to narrow the scope, not expand the body.
 
+## Rule 4 — Session footer
+
+Every board entry you author — issue create, issue comment, PR create, PR comment — ends with a session footer linking it to the session that produced it:
+
+    _session: <session-id>_
+
+Read the id from `$CLAUDE_SESSION_ID` (populated by the session-correlation SessionStart hook) or your harness's equivalent. The id matches the trace's `mlflow.trace.session` tag, so `awow-usage-coach`, `daily-digest`, and `weekly-digest` can join board content to session traces.
+
+**Exempt:** trivial metadata-only changes (label, state, project-add) and one-line status comments. The footer is required when the entry records a decision or finding, or runs two or more sentences.
+
 ## awow-specific notes
 
 - Pull request descriptions on `CauchyIO/awow` follow the same skeleton. The PR body is *not* a place to recap the implementation; the diff is the implementation.
 - Commit messages on this repo run two sentences maximum (per the user's global commit guideline). The "why" goes in the issue / PR; the commit captures what changed.
-- The `dogfood` label is the *only* thing that distinguishes a real awow backlog issue from a walkthrough byproduct. Without it, durability is ambiguous — issues with `dogfood` are ephemeral; issues without it are real work.
+- The `awow-test` label is the *only* thing that distinguishes a real awow backlog issue from a walkthrough byproduct. Without it, durability is ambiguous — issues with `awow-test` are ephemeral; issues without it are real work.
 
 ## How this is enforced
 

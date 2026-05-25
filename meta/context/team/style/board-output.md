@@ -16,8 +16,9 @@ This file covers the *voice* and *shape* of board output beyond the brevity rule
 - Story title: verb-first, per `conventions/REQUIRED/issue-titles.md`.
 - Story body: one-sentence intent + acceptance criteria checklist + link to knowledge base (if applicable). Nothing else.
 - Comments: status, blocker, intermediate finding. One paragraph max.
+- Session footer: entries that record a decision/finding (or run two or more sentences) end with `_session: <id>_` on its own line. See `conventions/REQUIRED/output-discipline.md` Rule 4.
 
 ## awow-specific
 
-- The `dogfood` label appears on every walkthrough-generated issue (see `conventions/REQUIRED/labels.md`). Without it, the issue is treated as durable backlog.
+- The `awow-test` label appears on every walkthrough-generated issue (see `conventions/REQUIRED/labels.md`). Without it, the issue is treated as durable backlog.
 - Pull request titles follow the same pattern as story titles. No "WIP" prefix — use draft PRs instead.

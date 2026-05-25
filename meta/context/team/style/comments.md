@@ -20,4 +20,4 @@ One paragraph. Two at most. A long comment is almost always a knowledge-base ent
 
 ## awow-specific
 
-- For dogfood-labelled issues, comments may be skipped entirely — the issue is ephemeral by design. A comment on a `dogfood` issue is only worth writing if it surfaces a finding that should later be promoted to a real (non-`dogfood`) issue or a knowledge-base entry.
+- For `awow-test`-labelled issues, comments may be skipped entirely — the issue is ephemeral by design. A comment on an `awow-test` issue is only worth writing if it surfaces a finding that should later be promoted to a real (non-`awow-test`) issue or a knowledge-base entry.

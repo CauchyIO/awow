@@ -1,6 +1,6 @@
-# Dogfood backlog
+# Meta workspace backlog
 
-Findings from running `/setup-awow` against `dogfood/` that should feed back into the awow template. Captured here, not on the public board, until they're ready to be worked.
+Findings from running `/setup-awow` against `meta/` that should feed back into the awow template. Captured here, not on the public board, until they're ready to be worked.
 
 Each entry: what to do, why (what surfaced it), where the change lives.
 

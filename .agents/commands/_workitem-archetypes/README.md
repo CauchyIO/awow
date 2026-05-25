@@ -1,10 +1,16 @@
 # .agents/commands/_workitem-archetypes/
 
-Archetype handlers loaded by `process-workitem`. One file per archetype.
+Archetype handlers loaded by `process-workitem`, and read by `refinement-prep` at creation time. One file per archetype.
+
+**This folder is where the team extends the base.** `/process-workitem` ships as a thin shell — one entry point, a generic validate → plan → verify frame, and a single starter archetype (`bugfix`). The standing investment for whoever processes work items is *here*: capturing the discipline of each work type as it recurs, and wiring an archetype to invoke other commands/skills where that type warrants it. The shipped set is a starting point, not a closed list.
+
+## Optional by design
+
+Archetypes are an **enrichment layer, not a requirement**. If this folder holds only this README, `/process-workitem` runs generically — the generic frame is the day-one fallback. Archetypes store **per-type method, not per-item content**: they keep stories lean by holding reusable discipline once, instead of re-typing it into every story. An elaborately written story reduces, but never removes, their value — the method (reproduce-first, state-file safety, equivalence proof) is reusable across every story of that type.
 
 ## What is an archetype?
 
-A *kind of work item* that has its own validation steps, planning rules, and common pitfalls. The router prompt (`commands/process-workitem.md`) classifies an incoming work item and dispatches to the matching handler here.
+A *kind of work item* that has its own validation steps, planning rules, and common pitfalls. The router prompt (`commands/process-workitem.md`) classifies an incoming work item and dispatches to the matching handler here. An archetype is **two-sided**: `refinement-prep` reads its creation-completeness rules when a story is drafted, and `process-workitem` reads its execution rules when the story is picked up.
 
 ## Common archetypes
 
@@ -25,10 +31,25 @@ A *kind of work item* that has its own validation steps, planning rules, and com
 
 When a kind of work shows up often enough to deserve its own rules:
 
-1. Write the handler as `<archetype>.md` in this folder.
-2. Register it in the router (`commands/process-workitem.md` Step 1, classification list).
+1. Write the handler as `<archetype>.md` in this folder, with the frontmatter contract below.
+2. Map its `board_type` to the team's concrete board signal in `context/tooling/board.md` (`## Archetype mapping`), if the team tags work-type on the board.
 3. Use the handler in the next session and iterate from real output.
+
+No router edit is needed — `process-workitem` globs this folder and builds the registry from frontmatter at runtime. The filesystem is the registry, the same way `process-transcript` discovers its specialists.
+
+## Frontmatter contract
+
+```yaml
+---
+archetype: <name>          # the handler's identity
+board_type: <work-type>    # abstract work-type; concrete board signal is mapped per team in board.md
+triggers: [<word>, ...]    # title/body words used for prose inference when no board type signal is present
+when-not: "<one line: which neighbouring archetypes this work is NOT, and where to route instead>"
+---
+```
+
+`process-workitem` resolves the archetype by reading the board's work-type signal first (via the `board.md` mapping), and falls back to `triggers` / `when-not` inference only when no signal is present.
 
 ## Handler shape
 
-Each handler is a markdown file with sections for: when this archetype applies, validation requirements specific to this kind of work, planning rules, common pitfalls, and validation checklist additions.
+Each handler is a markdown file with sections for: when this archetype applies, **creation completeness** (what makes a story of this type complete — read by `refinement-prep`), validation requirements specific to this kind of work, planning rules, common pitfalls, and validation checklist additions.

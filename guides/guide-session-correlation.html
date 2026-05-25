@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session correlation &mdash; linking board entries to the session that made them</title>
+<!--
+  AWOW GUIDE — session correlation
+  How an agent-authored issue/PR is linked back to the session trace that produced it:
+  the _session: <id>_ footer, the SessionStart accessor, and how the id joins the board
+  to MLflow traces. Self-contained: no external fonts/links by design.
+  Scope: the session-correlation capability only. Tracing setup itself is owned elsewhere
+  (the claudetracing library) and is deliberately out of scope here.
+-->
+<style>
+  :root {
+    --bg: #f6f5f3;
+    --surface: #ffffff;
+    --surface-alt: #f0efed;
+    --text-1: #1a1a1a;
+    --text-2: #6b6b6b;
+    --text-3: #9a9a9a;
+    --border: #e0dfdd;
+    --border-subtle: #ebeae8;
+    --accent: #f24b37;
+    --link: #337FF9;
+    --ok: #2e7d4f;
+    --warn: #c97a1b;
+    --risk: #b53a2a;
+  }
+  body { margin:0; padding:0; width:100%; font-family:'Nunito',system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text-1); line-height:1.6; }
+  .wrap { max-width:1040px; margin:0 auto; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .pad { padding:28px 40px; border-bottom:1px solid var(--border-subtle); }
+  .pad-tight { padding:20px 40px; border-bottom:1px solid var(--border-subtle); }
+  h1 { font-size:1.9rem; font-weight:700; margin:0; letter-spacing:-0.02em; }
+  h2 { font-size:1.35rem; font-weight:600; margin:0 0 16px; letter-spacing:-0.01em; }
+  h3 { font-size:1.05rem; font-weight:600; margin:24px 0 10px; letter-spacing:-0.01em; }
+  p  { font-size:0.92rem; color:var(--text-2); margin:0 0 12px; line-height:1.7; }
+  ul, ol { font-size:0.92rem; color:var(--text-2); line-height:1.7; padding-left:22px; margin:0 0 14px; }
+  li { margin:4px 0; }
+  strong { color:var(--text-1); font-weight:600; }
+  em { color:var(--text-1); font-style:italic; }
+  code { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.85em; background:var(--surface-alt); padding:1px 6px; border-radius:3px; border:1px solid var(--border-subtle); }
+  pre { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.82rem; background:var(--surface-alt); padding:14px 18px; border-radius:8px; border:1px solid var(--border-subtle); overflow-x:auto; line-height:1.55; color:var(--text-1); }
+  pre .c { color:var(--text-3); }
+  table.data { border-collapse:collapse; width:100%; font-size:0.85rem; margin:0 0 16px; }
+  table.data th { text-align:left; font-weight:600; padding:8px 10px; border-bottom:2px solid var(--border); background:var(--surface-alt); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; }
+  table.data td { padding:9px 10px; border-bottom:1px solid var(--border-subtle); color:var(--text-2); vertical-align:top; line-height:1.5; }
+  table.data tr:last-child td { border-bottom:none; }
+  table.data td strong { color:var(--text-1); }
+  .kicker { font-size:0.72rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin:0 0 8px; }
+  .badge { display:inline-block; font-size:0.7rem; font-weight:600; padding:3px 10px; border-radius:4px; border:1px solid var(--border); color:var(--text-1); background:var(--surface); }
+  .badge-accent { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .badge-ok { background:rgba(46,125,79,0.08); color:var(--ok); border-color:rgba(46,125,79,0.25); }
+  .badge-warn { background:rgba(201,122,27,0.08); color:var(--warn); border-color:rgba(201,122,27,0.25); }
+  .badge-muted { background:var(--surface-alt); color:var(--text-3); border-color:var(--border-subtle); border-style:dashed; }
+  .badges { display:flex; gap:6px; flex-wrap:wrap; }
+  .callout { background:var(--surface-alt); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 16px; font-size:0.88rem; color:var(--text-2); line-height:1.65; }
+  .callout strong { color:var(--text-1); }
+  .callout-warn { border-left-color:var(--warn); }
+  .callout-ok { border-left-color:var(--ok); }
+  .diagram { background:var(--surface-alt); border:1px solid var(--border-subtle); border-radius:10px; padding:18px 16px 12px; margin:0 0 18px; }
+  .diagram svg { display:block; max-width:100%; height:auto; margin:0 auto; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:0.78rem; color:var(--text-2); padding:8px 8px 0; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .legend i { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid var(--border); }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
+  .card .card-label { font-size:0.7rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; }
+  .step { display:flex; gap:14px; margin:0 0 14px; align-items:flex-start; }
+  .step .n { flex:0 0 28px; width:28px; height:28px; border-radius:50%; background:var(--text-1); color:#fff; font-size:0.8rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .step .b { font-size:0.9rem; color:var(--text-2); line-height:1.6; }
+  .step .b strong { color:var(--text-1); }
+  @media (max-width: 720px) {
+    .pad, .pad-tight { padding-left:22px; padding-right:22px; }
+    .grid-2 { grid-template-columns:1fr; }
+  }
+  @media print {
+    body { background:#fff; }
+    .wrap { border:none; border-radius:0; max-width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="pad" style="padding-top:36px;padding-bottom:24px;">
+    <p style="font-size:13px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin:0 0 10px;">Way of Working &middot; Guide</p>
+    <h1>Session correlation</h1>
+    <p style="font-size:1rem;color:var(--text-2);margin:6px 0 0;font-weight:500;">Every board entry the agent writes carries a back-link to the session that produced it.</p>
+    <p style="font-size:0.85rem;color:var(--text-3);margin:8px 0 0;">Scope: the <code>session-correlation</code> capability &mdash; the footer, the accessor, and the join to traces. Setting tracing <em>up</em> is a separate concern (owned by <code>claudetracing</code>) and is deliberately out of scope here.</p>
+    <div class="badges" style="margin-top:16px;">
+      <span class="badge">opt-in capability</span>
+      <span class="badge">board &harr; trace join</span>
+      <span class="badge badge-ok">Claude Code + Copilot</span>
+      <span class="badge badge-accent">_session: &lt;id&gt;_</span>
+    </div>
+  </div>
+
+  <!-- TL;DR -->
+  <div class="pad-tight">
+    <p class="kicker">TL;DR</p>
+    <p>When the agent opens or comments on an issue, it appends one line &mdash; <code>_session: &lt;id&gt;_</code>. That <code>&lt;id&gt;</code> is the harness session id, and it is <strong>exactly</strong> the id the MLflow Stop hook tags the session&rsquo;s trace with. So from any board entry you can jump straight to the prompts and tool calls that produced it. The agent learns its own id from <code>$CLAUDE_SESSION_ID</code>, populated once per session by a small <code>SessionStart</code> hook. None of this creates traces &mdash; it only links to traces you are already recording.</p>
+  </div>
+
+  <!-- WHY -->
+  <div class="pad">
+    <h2>Why it&rsquo;s worth doing</h2>
+    <p>Agent-authored issues and PRs normally have <strong>no provenance</strong>. You can read <em>what</em> was decided, but not <em>how</em> &mdash; which prompts, which exploration, which tool calls led there. That gap costs you in three places:</p>
+    <ul>
+      <li><strong>Auditability &amp; trust.</strong> &ldquo;An agent wrote this&rdquo; is only credible if you can open the actual session behind it. The footer turns a board entry into a click-through to the real interaction.</li>
+      <li><strong>Coaching &amp; improvement.</strong> The downstream skills &mdash; <code>awow-usage-coach</code>, <code>prompt-skill-analysis</code> &mdash; assess <em>how</em> people prompt. They can only tie feedback to outcomes if board entries name their session.</li>
+      <li><strong>Digests &amp; reporting.</strong> <code>daily-digest</code> and <code>weekly-digest</code> join board activity to session data. Without the id, the two surfaces stay disconnected.</li>
+    </ul>
+    <div class="callout">
+      <strong>The example you asked for.</strong> Because the footer resolves to a full trace, a single issue becomes a worked demonstration of how the prompts and interaction actually unfolded &mdash; not a paraphrase, the real thing.
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS — DIAGRAM -->
+  <div class="pad">
+    <h2>How it works</h2>
+    <p>Two independent tracks run during a session and meet at a shared id. The <strong style="color:var(--accent);">correlation</strong> track (this skill) makes the id available and stamps it on the board. The <strong style="color:var(--ok);">tracing</strong> track (owned elsewhere) writes the trace and tags it with the same id.</p>
+
+    <div class="diagram">
+      <div class="legend" style="margin-bottom:6px;">
+        <span><i style="background:#1a1a1a;border-color:#1a1a1a;"></i> Claude Code session</span>
+        <span><i style="background:rgba(242,75,55,0.10);border-color:rgba(242,75,55,0.55);"></i> Correlation &mdash; this skill</span>
+        <span><i style="background:rgba(46,125,79,0.10);border-color:rgba(46,125,79,0.55);"></i> Tracing &mdash; owned elsewhere</span>
+      </div>
+
+      <svg viewBox="0 0 1000 660" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Session correlation data flow">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#6b6b6b"/>
+          </marker>
+        </defs>
+
+        <!-- column headers -->
+        <text x="250" y="120" text-anchor="middle" font-size="12" font-weight="700" fill="#f24b37" font-family="Nunito,sans-serif" letter-spacing="1">CORRELATION &middot; this skill</text>
+        <text x="750" y="120" text-anchor="middle" font-size="12" font-weight="700" fill="#2e7d4f" font-family="Nunito,sans-serif" letter-spacing="1">TRACING &middot; claudetracing + Stop hook</text>
+
+        <!-- session -->
+        <rect x="370" y="20" width="260" height="58" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
+        <text x="500" y="46" text-anchor="middle" font-size="15" font-weight="700" fill="#fff" font-family="Nunito,sans-serif">Claude Code session</text>
+        <text x="500" y="66" text-anchor="middle" font-size="11" fill="#e0dfdd" font-family="Nunito,sans-serif">has a unique session_id</text>
+
+        <!-- branch arrows -->
+        <path d="M430,78 C360,100 290,110 250,138" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+        <path d="M570,78 C640,100 710,110 750,138" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <!-- LEFT track -->
+        <rect x="60" y="140" width="380" height="74" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
+        <text x="250" y="168" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1a1a" font-family="Nunito,sans-serif">SessionStart hook</text>
+        <text x="250" y="187" text-anchor="middle" font-size="11" fill="#6b6b6b" font-family="JetBrains Mono,monospace">session_env_hook.py</text>
+        <text x="250" y="204" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">runs once; reads session_id from stdin</text>
+
+        <path d="M250,214 L250,250" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <rect x="60" y="252" width="380" height="74" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
+        <text x="250" y="280" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">$CLAUDE_SESSION_ID</text>
+        <text x="250" y="299" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">appended to $CLAUDE_ENV_FILE &rarr; sourced</text>
+        <text x="250" y="315" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">into every Bash call (survives compaction)</text>
+
+        <path d="M250,326 L250,362" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <rect x="60" y="364" width="380" height="80" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
+        <text x="250" y="392" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a" font-family="Nunito,sans-serif">Agent stamps the board entry</text>
+        <text x="250" y="411" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">per the footer rule (output-discipline Rule 4)</text>
+        <text x="250" y="430" text-anchor="middle" font-size="11.5" fill="#f24b37" font-family="JetBrains Mono,monospace">_session: &lt;id&gt;_</text>
+
+        <!-- RIGHT track -->
+        <rect x="560" y="140" width="380" height="74" rx="10" fill="rgba(46,125,79,0.08)" stroke="#2e7d4f"/>
+        <text x="750" y="168" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1a1a" font-family="Nunito,sans-serif">MLflow Stop hook</text>
+        <text x="750" y="187" text-anchor="middle" font-size="11" fill="#6b6b6b" font-family="JetBrains Mono,monospace">mlflow.claude_code.hooks</text>
+        <text x="750" y="204" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">runs at session end; reads the transcript</text>
+
+        <path d="M750,214 L750,250" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <rect x="560" y="252" width="380" height="92" rx="10" fill="rgba(46,125,79,0.08)" stroke="#2e7d4f"/>
+        <text x="750" y="280" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a" font-family="Nunito,sans-serif">Trace written to the experiment</text>
+        <text x="750" y="299" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">prompts, tool calls, tokens &mdash; tagged:</text>
+        <text x="750" y="318" text-anchor="middle" font-size="11" fill="#2e7d4f" font-family="JetBrains Mono,monospace">mlflow.trace.session = &lt;id&gt;</text>
+        <text x="750" y="335" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">same id as the session above</text>
+
+        <!-- converge -->
+        <path d="M250,444 C250,492 380,500 470,512" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+        <path d="M750,344 C750,470 620,500 530,512" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <rect x="210" y="514" width="580" height="92" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
+        <text x="500" y="544" text-anchor="middle" font-size="14" font-weight="700" fill="#fff" font-family="Nunito,sans-serif">The two ids are identical</text>
+        <text x="500" y="566" text-anchor="middle" font-size="11.5" fill="#e0dfdd" font-family="Nunito,sans-serif">so the footer on the issue resolves to the trace of the session</text>
+        <text x="500" y="586" text-anchor="middle" font-size="11.5" fill="#f24b37" font-family="Nunito,sans-serif">board entry &nbsp;&#8594;&nbsp; the actual prompts &amp; tool calls</text>
+      </svg>
+    </div>
+
+    <h3>The same flow in words</h3>
+    <div class="step"><div class="n">1</div><div class="b"><strong>Session starts.</strong> The <code>SessionStart</code> hook fires once and runs <code>session_env_hook.py</code>, which reads the <code>session_id</code> from its stdin payload and appends <code>export CLAUDE_SESSION_ID=&lt;id&gt;</code> to <code>$CLAUDE_ENV_FILE</code>.</div></div>
+    <div class="step"><div class="n">2</div><div class="b"><strong>The id is now ambient.</strong> Claude Code sources that file into every <code>Bash</code> tool call for the rest of the session. It is shell-side, not context-side &mdash; zero per-turn cost, and it survives compaction and <code>/clear</code>. The hook re-runs on resume/clear/compact, so it stays populated.</div></div>
+    <div class="step"><div class="n">3</div><div class="b"><strong>The agent writes to the board.</strong> When it creates or comments on an issue/PR, the footer rule tells it to read <code>$CLAUDE_SESSION_ID</code> and end the body with <code>_session: &lt;id&gt;_</code>.</div></div>
+    <div class="step"><div class="n">4</div><div class="b"><strong>The trace is recorded in parallel.</strong> Independently, the MLflow Stop hook writes the session&rsquo;s trace and tags it <code>mlflow.trace.session = &lt;id&gt;</code> &mdash; the very same id.</div></div>
+    <div class="step"><div class="n">5</div><div class="b"><strong>The join exists.</strong> Footer id == trace tag. From the board you reach the trace; downstream skills filter traces by that id to reunite outcome with process.</div></div>
+  </div>
+
+  <!-- WHAT OWNS WHAT -->
+  <div class="pad">
+    <h2>What is responsible for what</h2>
+    <p>The capability is deliberately small. It does not write traces and it does not configure tracing &mdash; it sits on top of a tracing stack that is already running.</p>
+    <table class="data">
+      <thead><tr><th style="width:30%">Component</th><th style="width:34%">Lives in</th><th>Responsible for</th></tr></thead>
+      <tbody>
+        <tr><td><strong>claudetracing</strong> <span class="badge badge-ok" style="font-size:0.62rem">tracing</span></td><td><code>../claudetracing</code> (sibling repo)</td><td>Provisioning the Databricks MLflow side. <em>Not</em> part of this skill; pointed to, never duplicated.</td></tr>
+        <tr><td><strong>MLflow Stop hook</strong> <span class="badge badge-ok" style="font-size:0.62rem">tracing</span></td><td><code>.claude/settings.local.json</code> (per-machine)</td><td>Writing each session&rsquo;s trace and tagging it <code>mlflow.trace.session = &lt;id&gt;</code>.</td></tr>
+        <tr><td><strong>session_env_hook.py</strong> <span class="badge badge-accent" style="font-size:0.62rem">correlation</span></td><td><code>.agents/skills/session-correlation/scripts/</code></td><td>The accessor: exposing the session id as <code>$CLAUDE_SESSION_ID</code> via a <code>SessionStart</code> hook.</td></tr>
+        <tr><td><strong>Footer rule (Rule 4)</strong> <span class="badge badge-accent" style="font-size:0.62rem">correlation</span></td><td><code>context/team/conventions/REQUIRED/output-discipline.md</code></td><td>Instructing the agent to append <code>_session: &lt;id&gt;_</code> to board entries it authors.</td></tr>
+        <tr><td><strong>gather.py</strong></td><td><code>tools/</code></td><td>Mirroring the rule + skill into the harness surfaces (<code>.claude/</code>, <code>.github/</code>) so both Claude Code and Copilot see them.</td></tr>
+        <tr><td><strong>/setup-awow Step 3</strong> &middot; <strong>/awow-add</strong></td><td><code>.agents/commands/</code></td><td>The opt-in moment &mdash; runs the tracing prerequisite check, then installs the accessor + footer rule for that team.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- CONFIGURATION -->
+  <div class="pad">
+    <h2>How the configuration happens</h2>
+    <p>It is opt-in. On its own the skill changes nothing; a team turns it on during <code>/setup-awow</code> (Step 3) or later via <code>/awow-add</code>. Opting in is gated on tracing already being wired.</p>
+
+    <h3>0 &middot; Prerequisite check (tracing must already be on)</h3>
+    <p>The skill refuses to proceed if tracing is not wired &mdash; otherwise it would stamp footers whose id points at traces that were never written (dead links). It looks in <code>.claude/settings.local.json</code> for both markers:</p>
+    <pre><span class="c">// .claude/settings.local.json &mdash; the tracing markers the check looks for</span>
+{
+  "env": {
+    "MLFLOW_CLAUDE_TRACING_ENABLED": "true",
+    "MLFLOW_TRACKING_URI": "databricks://&lt;profile&gt;",
+    "MLFLOW_EXPERIMENT_NAME": "/Workspace/Shared/&lt;team&gt;",
+    "DATABRICKS_CONFIG_PROFILE": "&lt;profile&gt;"
+  },
+  "hooks": {
+    "Stop": [ { "hooks": [ { "type": "command",
+      "command": "uv run python -c \"from mlflow.claude_code.hooks import stop_hook_handler; stop_hook_handler()\"" } ] } ]
+  }
+}</pre>
+    <div class="callout callout-warn">
+      <strong>If the check fails,</strong> the skill stops and points you at <code>../claudetracing</code> to set tracing up first. It will help wire the local <code>settings.local.json</code> against it, but it never owns tracing setup &mdash; that stays a separate step.
+    </div>
+
+    <h3>1 &middot; Wire the accessor hook</h3>
+    <p>Added to the same per-machine <code>settings.local.json</code>, alongside the Stop hook. Takes effect on the next session (or on resume/clear/compact).</p>
+    <pre><span class="c">// .claude/settings.local.json &mdash; "hooks" block, added by opt-in</span>
+"SessionStart": [ { "hooks": [ { "type": "command",
+  "command": "python3 \"$CLAUDE_PROJECT_DIR/.agents/skills/session-correlation/scripts/session_env_hook.py\"" } ] } ]</pre>
+
+    <h3>2 &middot; Install the footer rule into the team&rsquo;s conventions</h3>
+    <p>The skill appends Rule 4 to <code>output-discipline.md</code> and a shape note to <code>board-output.md</code>, then re-runs <code>gather.py</code>. The base templates stay clean &mdash; the rule lands only for teams that opted in.</p>
+    <pre><span class="c">## Rule 4 — Session footer</span>
+Every board entry you author ends with:
+
+    _session: &lt;session-id&gt;_
+
+Read the id from $CLAUDE_SESSION_ID. It matches the trace's
+mlflow.trace.session tag, joining board content to traces.
+Exempt: metadata-only changes and one-line status comments.</pre>
+
+    <h3>3 &middot; Verify</h3>
+    <ul>
+      <li>Start a fresh session, run <code>echo "$CLAUDE_SESSION_ID"</code> &mdash; it prints the current id (the same id as the transcript filename under <code>~/.claude/projects/&lt;project&gt;/</code>).</li>
+      <li>Have the agent post a test comment; confirm the <code>_session: &lt;id&gt;_</code> line is present and the id resolves to a trace in the team&rsquo;s experiment.</li>
+    </ul>
+  </div>
+
+  <!-- BOUNDARIES -->
+  <div class="pad">
+    <h2>What it deliberately does <em>not</em> do</h2>
+    <div class="grid-2">
+      <div class="card">
+        <p class="card-label" style="color:var(--ok)">Out of scope</p>
+        <ul style="margin-bottom:0">
+          <li>Setting up MLflow / Databricks tracing &mdash; that is <code>claudetracing</code>.</li>
+          <li>Writing traces &mdash; that is the Stop hook.</li>
+          <li>Forcing anything into the always-read core instructions.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <p class="card-label" style="color:var(--accent)">In scope</p>
+        <ul style="margin-bottom:0">
+          <li>Exposing the session id to the agent (<code>$CLAUDE_SESSION_ID</code>).</li>
+          <li>The footer convention and where it&rsquo;s required vs. exempt.</li>
+          <li>The opt-in flow + the tracing prerequisite check.</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:14px;">The footer rule is written harness-neutrally (&ldquo;your harness&rsquo;s session id&rdquo;). The accessor shown here is Claude-Code-specific (<code>SessionStart</code> + <code>CLAUDE_ENV_FILE</code>); other harnesses keep the same footer and supply their own accessor for exposing the session id to the agent.</p>
+    <div class="callout callout-ok" style="margin-top:14px;">
+      <strong>GitHub Copilot is proven to work.</strong> The same footer convention runs under Copilot with its equivalent accessor &mdash; we have verified it end to end. That support is landing via a pull request that is still pending, so for now it lives outside the merged template; once merged, Copilot is a first-class harness for this capability alongside Claude Code.
+    </div>
+  </div>
+
+  <!-- DOWNSTREAM SIGNPOST -->
+  <div class="pad">
+    <h2>Downstream: what you do with the traces</h2>
+    <p>Correlation is the join. Acting on it is a separate pipeline of analysis skills &mdash; the <em>read</em> side. They share only one thing with this guide: they need the traces to exist. Each is covered in its own guide; in brief:</p>
+    <ul>
+      <li><code>mlflow-export</code> &mdash; pulls every trace (and the per-session grouping) down to local JSON.</li>
+      <li><code>prompt-skill-analysis</code> &mdash; turns a session (or an export) into a prompt-quality report.</li>
+      <li><code>awow-usage-coach</code> &mdash; reads an export to produce team nudges or individual coaching.</li>
+    </ul>
+    <div class="callout callout-ok">
+      <strong>Where the footer pays off.</strong> Because each board entry names its session id, these skills can tie their findings back to specific issues and PRs &mdash; outcome reunited with process. That is the analysis guide&rsquo;s subject, not this one&rsquo;s.
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="pad" style="border-bottom:none;">
+    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Source of truth: <code>.agents/skills/session-correlation/SKILL.md</code>. Opt-in: <code>/setup-awow</code> Step 3 or <code>/awow-add</code>. This guide is self-contained &mdash; no external resources.</p>
+  </div>
+
+</div>
+
+</body>
+</html>

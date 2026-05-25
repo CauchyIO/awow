@@ -5,6 +5,7 @@ The team's actual tooling choices live in `board.md` (produced by `/setup-awow` 
 ## Files
 
 - `board.md` — the team's actual board spec (single source of truth). Filled by `/setup-awow` Step 1.
+- `design-system.md` — pointer to the team's design system (presence + location). Ships as `mode: absent`; filled by `/design-system`. Read by every command that produces an HTML artifact.
 - `boards/linear/` — Linear reference (full)
 - `boards/azure-devops/` — Azure DevOps reference (full; some v0.2 TODOs)
 - `boards/jira/` — Jira reference (skeleton; v0.2 full)

@@ -87,7 +87,7 @@
     <p style="font-size:13px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin:0 0 10px;">Way of Working &middot; Guide</p>
     <h1>The core delivery loop</h1>
     <p style="font-size:1rem;color:var(--text-2);margin:6px 0 0;font-weight:500;">The loop one person runs, day to day, that proves awow earns its place.</p>
-    <p style="font-size:0.85rem;color:var(--text-3);margin:8px 0 0;">Three commands: <code>/refinement-prep</code> drafts a feature before the session, <code>/process-workitem</code> takes a work item from refinement to PR, and <code>/daily-checkin</code> reflects the day back onto the board. The first two are the <strong>Seed</strong> loop; the third is a <strong>Standardise</strong> companion layered on top.</p>
+    <p style="font-size:0.85rem;color:var(--text-3);margin:8px 0 0;">Three commands in two rhythms: through the day you run <code>/refinement-prep</code> and <code>/process-workitem</code> repeatedly &mdash; drafting stories and taking work items to PR &mdash; and at the end of the day <code>/daily-checkin</code> reconciles what happened onto the board. The first two are the <strong>Seed</strong> loop; the third is a <strong>Standardise</strong> companion layered on top.</p>
     <div class="badges" style="margin-top:16px;">
       <span class="badge badge-accent">seed loop</span>
       <span class="badge">+ a standardise companion</span>
@@ -98,7 +98,7 @@
   <!-- TL;DR -->
   <div class="pad-tight">
     <p class="kicker">TL;DR</p>
-    <p>Before refinement, <code>/refinement-prep</code> turns a brief into a right-sized draft the team reviews ahead of the meeting &mdash; so the session is design discussion, not discovery. After refinement, <code>/process-workitem</code> walks a single story from board to PR through a seven-step frame that iterates on a <em>plan</em>, never on production code. And every day, <code>/daily-checkin</code> reconciles what actually happened against the board, biasing hard against noise. Through all three runs the same spine: <strong>look at the board first, never duplicate, draft to cheap markdown, land only after a human approves.</strong></p>
+    <p>Through the day, two Seed commands run again and again &mdash; not once. <code>/refinement-prep</code> turns a brief into a right-sized draft the team reviews ahead of a session; <code>/process-workitem</code> walks a single story from board to PR through a seven-step frame that iterates on a <em>plan</em>, never on production code. Then, at the end of the day, <code>/daily-checkin</code> reconciles what actually happened against the board, biasing hard against noise. Through all three runs the same spine: <strong>look at the board first, never duplicate, draft to cheap markdown, land only after a human approves.</strong></p>
   </div>
 
   <!-- THROUGH-LINE -->
@@ -111,7 +111,7 @@
   <!-- LOOP DIAGRAM -->
   <div class="pad">
     <h2>The loop</h2>
-    <p>Read left to right: a brief becomes a reviewed draft, the team refines it, a single story is taken to a PR, and the day's reality is reflected back onto the board. The daily check-in is the reflective arc &mdash; it feeds the board, not the code.</p>
+    <p>Two rhythms, not one line. Through the day the Seed commands repeat &mdash; <code>/refinement-prep</code> drafts stories and <code>/process-workitem</code> takes them to PR, each running as often as the work demands. At the end of the day <code>/daily-checkin</code> reads that activity and proposes board updates. The check-in caps the day; it feeds the board, not the code.</p>
     <div class="diagram">
       <div class="legend" style="margin-bottom:6px;">
         <span><i style="background:#1a1a1a;border-color:#1a1a1a;"></i> Board / PR &mdash; the durable surface</span>
@@ -128,6 +128,10 @@
             <path d="M0,0 L10,5 L0,10 z" fill="#337FF9"/>
           </marker>
         </defs>
+
+        <!-- repeat loop: the intraday commands run again and again, not once -->
+        <path d="M766,86 C766,42 320,42 320,86" fill="none" stroke="#f24b37" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#arr)"/>
+        <text x="543" y="34" text-anchor="middle" font-size="11" font-weight="700" fill="#f24b37" font-family="Nunito,sans-serif">repeats through the day &mdash; not a one-off sequence</text>
 
         <!-- A: brief -->
         <rect x="24" y="96" width="150" height="64" rx="10" fill="#fff" stroke="#9a9a9a" stroke-dasharray="5 4"/>
@@ -171,6 +175,11 @@
 
         <!-- D corner down to PR -->
         <path d="M916,128 C950,128 962,170 962,210" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <!-- end-of-day divider: separates the intraday loop from the once-a-day cap -->
+        <line x1="40" y1="352" x2="960" y2="352" stroke="#c9c8c6" stroke-width="1" stroke-dasharray="4 5"/>
+        <text x="50" y="345" font-size="10.5" font-weight="700" fill="#9a9a9a" font-family="Nunito,sans-serif" letter-spacing="1">&uarr; THROUGH THE DAY &middot; repeats</text>
+        <text x="960" y="345" text-anchor="end" font-size="10.5" font-weight="700" fill="#337FF9" font-family="Nunito,sans-serif" letter-spacing="1">END OF DAY &middot; once &darr;</text>
 
         <!-- F: daily-checkin (standardise) -->
         <rect x="290" y="372" width="420" height="92" rx="10" fill="rgba(51,127,249,0.08)" stroke="#337FF9"/>
@@ -216,7 +225,7 @@
       </tbody>
     </table>
     <div class="callout callout-ok">
-      <strong>Why this is the loop that proves the value.</strong> No coordination, no ceremony, no second adopter required. One person runs <code>/refinement-prep</code> the day before a session, ships a story with <code>/process-workitem</code>, and closes the day with <code>/daily-checkin</code> &mdash; and the team sees the output at the next refinement. The Standardise and Spread commands build on this; they don&rsquo;t replace it.
+      <strong>Why this is the loop that proves the value.</strong> No coordination, no ceremony, no second adopter required. One person runs <code>/refinement-prep</code> ahead of sessions and <code>/process-workitem</code> on each story through the day, then closes the day with <code>/daily-checkin</code> &mdash; and the team sees the output at the next refinement. The Standardise and Spread commands build on this; they don&rsquo;t replace it.
     </div>
   </div>
 

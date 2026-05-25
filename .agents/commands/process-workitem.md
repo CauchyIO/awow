@@ -35,11 +35,17 @@ Confirm to the user: title, state, number of children, the archetype you plan to
 
 ### 2. Classify and route
 
-Match the story to an archetype registered in `.agents/commands/_workitem-archetypes/` (common ones: `feature`, `bugfix`, `refactor`, `doc`; teams register others as their work demands). The archetype handler carries the work-specific rules.
+Build the registry at runtime: glob `.agents/commands/_workitem-archetypes/*.md` and read each handler's frontmatter (`archetype`, `board_type`, `triggers`, `when-not`). The filesystem is the registry — adding a handler needs no edit here.
+
+Resolve the archetype in this order:
+
+1. **Board type signal first.** Read the work item's work-type as the team records it — resolved through the `## Archetype mapping` in `context/tooling/board.md` (the team sets this during `/setup-awow`; the concrete signal may be a `type:*` tag, a native work-item-type, or a label). If that signal maps to a registered `board_type`, route to that archetype and tell the user: *"Routed to `<archetype>` from board type `<signal>`."*
+2. **Prose inference fallback.** If the item carries no type signal, or the signal maps to no registered archetype, infer from the title and body using each handler's `triggers` and `when-not`. Say that you inferred, and which archetype you picked.
+3. **Stamp back (with approval).** When you classified by inference, offer to write the resolved work-type onto the board so next time it is a field read, not a guess. Never write to the board without approval.
 
 **If the `_workitem-archetypes/` directory is empty** (apart from `README.md`), proceed generically: use the validation, planning, and verification rules from this file as-is, but tell the user no archetype was matched and suggest scaffolding one based on the work just classified. Capture the suggestion as a stub proposal at `proposals/archetypes/<name>.md` so the next cycle starts richer. Do not block on this — generic execution is the day-one fallback.
 
-**If archetypes exist but none match**, the story is either too broad — split it — or a new handler is needed. Ask the user.
+**If archetypes exist but none match**, the story is either too broad — split it — or it needs a new handler. Authoring one in `_workitem-archetypes/` is the team's extension point; offer that, or ask the user.
 
 ### 3. Validate inputs
 

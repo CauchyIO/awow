@@ -65,6 +65,15 @@ Right-size every story so a single session can ship a working PR. Each story mus
 
 Split anything that fails these.
 
+### 4. Type each story against the archetypes
+
+For each story you drafted, classify its work-type against the archetype registry — glob `.agents/commands/_workitem-archetypes/*.md` and match on each handler's `triggers` / `when-not` frontmatter. When a story matches an archetype:
+
+- Read that archetype's **Creation completeness** section and check the draft against it. A bug story with no reproduction, a schema-change with no source validation named — these are *incomplete*. Fill the gap from context, or surface it under *Open questions*; do not draft around it.
+- Stamp the resolved work-type on the story using the team's convention (the `type:*` tag / field per `context/tooling/board.md`), so `/process-workitem` later routes by a field read rather than inference.
+
+If no archetype matches, draft generically — the type layer is enrichment, not a gate. Never invent an archetype mid-draft; if a recurring work type has no handler, note it for the team to author in `_workitem-archetypes/`.
+
 ## Output template
 
 The feature wrapper:

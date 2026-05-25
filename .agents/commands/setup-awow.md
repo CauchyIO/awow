@@ -114,6 +114,8 @@ The reference for this team's board lives at `context/tooling/boards/<tool>/refe
 
 8. **Update labels.md to match reality.** If Mode B surfaces label names that diverge from the reference (e.g. team uses `bug` instead of `type:bug`), update `context/team/conventions/REQUIRED/labels.md` to reflect what is actually on the board, so future agent proposals match the team's reality. Draft the update under `proposals/setup/step-1/labels.md` and ask the user to approve before landing.
 
+8b. **Capture the archetype mapping.** `/process-workitem` and `/refinement-prep` route by work-type, and each archetype under `.agents/commands/_workitem-archetypes/` declares an abstract `board_type`. Ask the team how they signal work-type on *this* board — a `type:*` tag, a native work-item-type (e.g. ADO's Bug), or a plain label — and record the mapping in `board.md`'s `## Archetype mapping`, one line per registered archetype (e.g. `bug → bugfix (signal: type:bug tag)`). This is a team naming-convention decision; do not assume the tag form. If the team tags no work-type, note that — `/process-workitem` falls back to prose inference.
+
 ### Record and complete
 
 9. **Final board.md.** When all sections are drafted, the file shape under `proposals/setup/step-1/board.md` is:
@@ -125,6 +127,7 @@ The reference for this team's board lives at `context/tooling/boards/<tool>/refe
    ## State machine
    ## Hierarchy
    ## Label taxonomy
+   ## Archetype mapping     # work-type → archetype; the team's concrete type signal (tag / work-item-type / label) per registered archetype
    ## Required fields
    ## Avoiding duplicates    # the tool's dedup limits + the team's search-before-create recipe (from reference/duplicates.md)
    ## Team page conventions

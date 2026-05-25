@@ -25,6 +25,7 @@ Each `<tool>/` folder follows the same shape:
     hierarchy.md         # L1–L4 mapping to the tool's primitives
     labels.md            # label/tag taxonomy with type: / area: / status:
     fields.md            # priority, estimate, iteration, assignee
+    duplicates.md        # the tool's dedup features + limits; search-before-create recipe
     team-page.md         # team page / project description conventions
     mcp.md               # MCP install for Claude Code + Copilot, verify checklist
     cycles.md or         # only if the tool has a cycle/iteration concept worth
@@ -45,12 +46,13 @@ Both modes (A — from reference, B — assess current) produce the same artefac
 ## Hierarchy
 ## Label taxonomy
 ## Required fields
+## Avoiding duplicates    # the tool's dedup limits + the team's search-before-create recipe
 ## Team page conventions
 ## Cycles / iterations    # if applicable
 ## Divergence from reference   # populated by Mode B; empty for Mode A
 ```
 
-The agent reads this file whenever it needs to know what a label means, which states are terminal, or where in the hierarchy a new issue belongs. **`context/tooling/board.md` is the single source of truth for the team's board.** The references under `<tool>/reference/` are not consulted at runtime — only the wizard reads them at setup time.
+The agent reads this file whenever it needs to know what a label means, which states are terminal, where in the hierarchy a new issue belongs, or how to check the board for an existing issue before creating one. **`context/tooling/board.md` is the single source of truth for the team's board.** The references under `<tool>/reference/` are not consulted at runtime — only the wizard reads them at setup time.
 
 ## Mode A vs. Mode B
 

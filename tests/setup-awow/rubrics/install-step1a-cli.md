@@ -1,6 +1,6 @@
-# Rubric — dogfood-step1a-cli
+# Rubric — install-step1a-cli
 
-Phase 1a wires the `gh` CLI surface for dogfood's GitHub Projects board. Script supplies: `current only`, the board URL, and `approve`.
+Phase 1a wires the `gh` CLI surface for the sample team's GitHub Projects board. Script supplies: `current only`, the board URL, and `approve`.
 
 ## Wizard behaviour during the run
 

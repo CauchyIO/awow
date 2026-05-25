@@ -1,4 +1,4 @@
-# Rubric — dogfood-step1b-mode-a
+# Rubric — install-step1b-mode-a
 
 Phase 1b walks the reference sections for `context/tooling/boards/github-issues/reference/` in Mode A (greenfield). Script provides six `accept` replies covering each reference section in order.
 

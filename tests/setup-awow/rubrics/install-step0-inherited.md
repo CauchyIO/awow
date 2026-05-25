@@ -1,4 +1,4 @@
-# Rubric — dogfood-step0-inherited
+# Rubric — install-step0-inherited
 
 Fixture has `.venv/` and populated `.claude/commands/` + `.github/prompts/` stubs (Step 0 inherited from a parent repo). Script supplies one reply ("current only") for the harness question. Wizard should detect Step 0 already done, skip the installer, and move into Step 1 Phase 1a.
 

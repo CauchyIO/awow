@@ -1,4 +1,4 @@
-# Rubric — dogfood-step3-conventions
+# Rubric — install-step3-conventions
 
 Step 3 drafts the four REQUIRED conventions (issue-titles, labels, branches, output-discipline). Greenfield board → Guide mode. Script supplies `accept`/`approve` per convention.
 

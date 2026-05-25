@@ -1,6 +1,6 @@
 # Phase 1b walks the reference sections in Mode A (greenfield: <10 closed issues).
 # Wizard reads context/tooling/boards/github-issues/reference/ section by section
-# and asks accept/override/skip on each. For dogfood we accept all defaults.
+# and asks accept/override/skip on each. For this fixture we accept all defaults.
 # Reply count tracks the number of reference files the wizard walks — adjust
 # upward if the wizard runs out of script before the section walk completes.
 accept

@@ -1,4 +1,4 @@
-# Rubric — dogfood-walkthrough
+# Rubric — install-walkthrough
 
 End-to-end walkthrough from a clean slate through Step 3. Fixture has `.venv/` and populated pointer stubs (Step 0 inherits) plus the GitHub board reference tree. Script supplies replies for all the wizard's "ask the user" points from Step 1 Phase 1a through Step 3.
 
@@ -28,7 +28,7 @@ End-to-end walkthrough from a clean slate through Step 3. Fixture has `.venv/` a
 ## Step 2 — mission
 
 12. *(invariant 8)* Did you draft `$SCRATCH/proposals/setup/step-2/mission.md` before moving it to `$SCRATCH/context/team/mission.md`?
-13. Did you accept the dogfood mission sentence on the first try (it names audience, change, and constraint)?
+13. Did you accept the sample mission sentence on the first try (it names audience, change, and constraint)?
 
 ## Step 3 — conventions
 

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Standardise-phase reporting &mdash; daily, weekly, and cross-team synthesis</title>
+<!--
+  AWOW GUIDE — standardise-phase reporting
+  The read-only synthesis layer: /daily-digest aggregates a day into a team-wide
+  synthesis; /weekly-digest does the same at a weekly altitude; /cross-team-view
+  (planned, v0.3 — not yet built) is the third altitude. None of these mutate the
+  board or code. Self-contained: no external fonts/links by design.
+-->
+<style>
+  :root {
+    --bg: #f6f5f3;
+    --surface: #ffffff;
+    --surface-alt: #f0efed;
+    --text-1: #1a1a1a;
+    --text-2: #6b6b6b;
+    --text-3: #9a9a9a;
+    --border: #e0dfdd;
+    --border-subtle: #ebeae8;
+    --accent: #f24b37;
+    --link: #337FF9;
+    --ok: #2e7d4f;
+    --warn: #c97a1b;
+    --risk: #b53a2a;
+  }
+  body { margin:0; padding:0; width:100%; font-family:'Nunito',system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text-1); line-height:1.6; }
+  .wrap { max-width:1040px; margin:0 auto; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .pad { padding:28px 40px; border-bottom:1px solid var(--border-subtle); }
+  .pad-tight { padding:20px 40px; border-bottom:1px solid var(--border-subtle); }
+  h1 { font-size:1.9rem; font-weight:700; margin:0; letter-spacing:-0.02em; }
+  h2 { font-size:1.35rem; font-weight:600; margin:0 0 16px; letter-spacing:-0.01em; }
+  h3 { font-size:1.05rem; font-weight:600; margin:24px 0 10px; letter-spacing:-0.01em; }
+  p  { font-size:0.92rem; color:var(--text-2); margin:0 0 12px; line-height:1.7; }
+  ul, ol { font-size:0.92rem; color:var(--text-2); line-height:1.7; padding-left:22px; margin:0 0 14px; }
+  li { margin:4px 0; }
+  strong { color:var(--text-1); font-weight:600; }
+  em { color:var(--text-1); font-style:italic; }
+  code { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.85em; background:var(--surface-alt); padding:1px 6px; border-radius:3px; border:1px solid var(--border-subtle); }
+  pre { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.82rem; background:var(--surface-alt); padding:14px 18px; border-radius:8px; border:1px solid var(--border-subtle); overflow-x:auto; line-height:1.55; color:var(--text-1); }
+  pre .c { color:var(--text-3); }
+  table.data { border-collapse:collapse; width:100%; font-size:0.85rem; margin:0 0 16px; }
+  table.data th { text-align:left; font-weight:600; padding:8px 10px; border-bottom:2px solid var(--border); background:var(--surface-alt); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; }
+  table.data td { padding:9px 10px; border-bottom:1px solid var(--border-subtle); color:var(--text-2); vertical-align:top; line-height:1.5; }
+  table.data tr:last-child td { border-bottom:none; }
+  table.data td strong { color:var(--text-1); }
+  .kicker { font-size:0.72rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin:0 0 8px; }
+  .badge { display:inline-block; font-size:0.7rem; font-weight:600; padding:3px 10px; border-radius:4px; border:1px solid var(--border); color:var(--text-1); background:var(--surface); }
+  .badge-accent { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .badge-ok { background:rgba(46,125,79,0.08); color:var(--ok); border-color:rgba(46,125,79,0.25); }
+  .badge-warn { background:rgba(201,122,27,0.08); color:var(--warn); border-color:rgba(201,122,27,0.25); }
+  .badge-muted { background:var(--surface-alt); color:var(--text-3); border-color:var(--border-subtle); border-style:dashed; }
+  .badges { display:flex; gap:6px; flex-wrap:wrap; }
+  .callout { background:var(--surface-alt); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 16px; font-size:0.88rem; color:var(--text-2); line-height:1.65; }
+  .callout strong { color:var(--text-1); }
+  .callout-warn { border-left-color:var(--warn); }
+  .callout-ok { border-left-color:var(--ok); }
+  .diagram { background:var(--surface-alt); border:1px solid var(--border-subtle); border-radius:10px; padding:18px 16px 12px; margin:0 0 18px; }
+  .diagram svg { display:block; max-width:100%; height:auto; margin:0 auto; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:0.78rem; color:var(--text-2); padding:8px 8px 0; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .legend i { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid var(--border); }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
+  .card .card-label { font-size:0.7rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; }
+  .card h3 { margin-top:0; }
+  @media (max-width: 760px) {
+    .pad, .pad-tight { padding-left:22px; padding-right:22px; }
+    .grid-3 { grid-template-columns:1fr; }
+  }
+  @media print {
+    body { background:#fff; }
+    .wrap { border:none; border-radius:0; max-width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="pad" style="padding-top:36px;padding-bottom:24px;">
+    <p style="font-size:13px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin:0 0 10px;">Way of Working &middot; Guide</p>
+    <h1>Standardise-phase reporting</h1>
+    <p style="font-size:1rem;color:var(--text-2);margin:6px 0 0;font-weight:500;">The read-only synthesis layer: a day, then a week, then the neighbouring teams &mdash; each a different altitude on the same activity.</p>
+    <p style="font-size:0.85rem;color:var(--text-3);margin:8px 0 0;">Three commands in the <em>Standardise</em> phase. <code>/daily-digest</code> and <code>/weekly-digest</code> are live; <code>/cross-team-view</code> is documented but <strong>not yet built</strong> (planned for v0.3). All three only read &mdash; they never touch the board or the code.</p>
+    <div class="badges" style="margin-top:16px;">
+      <span class="badge">phase: standardise</span>
+      <span class="badge">read-only synthesis</span>
+      <span class="badge badge-accent">day &rarr; week &rarr; cross-team</span>
+      <span class="badge badge-muted">cross-team-view: v0.3</span>
+    </div>
+  </div>
+
+  <!-- TL;DR -->
+  <div class="pad-tight">
+    <p class="kicker">TL;DR</p>
+    <p>Once a team is past the Seed phase and most people are committing, the board <em>lists</em> what changed but nobody can see the shape of it. The Standardise reporting layer answers the harder question &mdash; <strong>what actually happened, where is it heading, what connects, and what should someone know that they don&rsquo;t?</strong> <code>/daily-digest</code> does this for one day and writes <code>digests/YYYY-MM-DD.md</code>; <code>/weekly-digest</code> does it for a Mon&ndash;Fri window at a higher altitude and writes <code>digests/weekly/YYYY-Www.md</code>; <code>/cross-team-view</code> is the planned third altitude for neighbouring teams &mdash; a stub today, real in v0.3. None of them mutate anything.</p>
+  </div>
+
+  <!-- PREREQUISITES -->
+  <div class="pad-tight">
+    <div class="callout">
+      <strong>When this layer makes sense.</strong> Reporting is a <em>Standardise</em>-phase concern: it earns its keep only once there is a steady stream of activity to synthesize. The shared prerequisites are that the team has shipped <strong>at least three Seed cycles</strong>, <strong>most of the team is actively committing</strong>, and Step&nbsp;0 of <code>/setup-awow</code> is complete (the agent can read and write the board). <code>/weekly-digest</code> adds one more: <code>/daily-digest</code> must have been running for <strong>at least four working days</strong>, because the dailies are its richest input.
+    </div>
+  </div>
+
+  <!-- ALTITUDE DIAGRAM -->
+  <div class="pad">
+    <h2>The three altitudes</h2>
+    <p>Same underlying activity &mdash; board, code, and (optionally) chat &mdash; observed from three heights. As you climb, the question changes: from <em>&ldquo;what happened today?&rdquo;</em> to <em>&ldquo;what shifted Monday-to-Friday?&rdquo;</em> to <em>&ldquo;what did the team next door ship?&rdquo;</em> The week is not a stack of dailies; it answers different questions, even though it reuses their collection and synthesis machinery.</p>
+
+    <div class="diagram">
+      <div class="legend" style="margin-bottom:6px;">
+        <span><i style="background:#1a1a1a;border-color:#1a1a1a;"></i> Shared inputs &amp; outputs</span>
+        <span><i style="background:rgba(242,75,55,0.10);border-color:rgba(242,75,55,0.55);"></i> Live command</span>
+        <span><i style="background:rgba(51,127,249,0.10);border-color:rgba(51,127,249,0.55);"></i> Planned (v0.3)</span>
+      </div>
+
+      <svg viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Daily to weekly to cross-team altitude progression">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#6b6b6b"/>
+          </marker>
+          <marker id="arrd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#9a9a9a"/>
+          </marker>
+        </defs>
+
+        <!-- SOURCES -->
+        <rect x="30" y="190" width="170" height="140" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
+        <text x="115" y="222" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="Nunito,sans-serif">Activity</text>
+        <text x="115" y="248" text-anchor="middle" font-size="10.5" fill="#e0dfdd" font-family="Nunito,sans-serif">board updates</text>
+        <text x="115" y="266" text-anchor="middle" font-size="10.5" fill="#e0dfdd" font-family="Nunito,sans-serif">commits &amp; PRs</text>
+        <text x="115" y="284" text-anchor="middle" font-size="10.5" fill="#e0dfdd" font-family="Nunito,sans-serif">chat (optional)</text>
+        <text x="115" y="308" text-anchor="middle" font-size="9.5" fill="#9a9a9a" font-family="Nunito,sans-serif">read-only</text>
+
+        <!-- SRC -> DAILY -->
+        <path d="M200,260 L262,260" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <!-- DAILY -->
+        <rect x="264" y="206" width="210" height="108" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
+        <text x="369" y="234" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">/daily-digest</text>
+        <text x="369" y="254" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">altitude: one day</text>
+        <text x="369" y="271" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">&ldquo;what happened today?&rdquo;</text>
+        <text x="369" y="296" text-anchor="middle" font-size="10" fill="#f24b37" font-family="JetBrains Mono,monospace">digests/YYYY-MM-DD.md</text>
+
+        <!-- DAILY -> WEEKLY (the dailies feed the week) -->
+        <path d="M474,260 L536,260" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+        <text x="505" y="248" text-anchor="middle" font-size="9.5" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">5&times; dailies</text>
+
+        <!-- WEEKLY -->
+        <rect x="538" y="206" width="210" height="108" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
+        <text x="643" y="234" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">/weekly-digest</text>
+        <text x="643" y="254" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">altitude: Mon&ndash;Fri</text>
+        <text x="643" y="271" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">&ldquo;what shifted this week?&rdquo;</text>
+        <text x="643" y="296" text-anchor="middle" font-size="10" fill="#f24b37" font-family="JetBrains Mono,monospace">weekly/YYYY-Www.md</text>
+
+        <!-- WEEKLY -> CROSS (planned) -->
+        <path d="M748,260 L810,260" fill="none" stroke="#9a9a9a" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arrd)"/>
+
+        <!-- CROSS (planned, dashed) -->
+        <rect x="812" y="206" width="160" height="108" rx="10" fill="rgba(51,127,249,0.06)" stroke="#337FF9" stroke-dasharray="5 4"/>
+        <text x="892" y="232" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">/cross-</text>
+        <text x="892" y="248" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">team-view</text>
+        <text x="892" y="268" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">altitude: teams</text>
+        <text x="892" y="290" text-anchor="middle" font-size="10" fill="#337FF9" font-family="Nunito,sans-serif">planned &middot; v0.3</text>
+        <text x="892" y="305" text-anchor="middle" font-size="9.5" fill="#9a9a9a" font-family="Nunito,sans-serif">not yet built</text>
+
+        <!-- WEEKLY compares to last week -->
+        <path d="M643,206 C643,150 643,130 643,108" fill="none" stroke="#6b6b6b" stroke-width="1.4" marker-end="url(#arr)"/>
+        <rect x="538" y="50" width="210" height="56" rx="10" fill="#fff" stroke="#9a9a9a" stroke-dasharray="5 4"/>
+        <text x="643" y="74" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a1a1a" font-family="Nunito,sans-serif">last week&rsquo;s digest</text>
+        <text x="643" y="92" text-anchor="middle" font-size="9.5" fill="#6b6b6b" font-family="Nunito,sans-serif">compare &rarr; dropped / trajectory</text>
+
+        <!-- altitude axis hint -->
+        <text x="500" y="440" text-anchor="middle" font-size="11" fill="#9a9a9a" font-family="Nunito,sans-serif">aggregation lists changes &middot; synthesis explains them &mdash; the value is the second, at every altitude</text>
+      </svg>
+    </div>
+    <p style="font-size:0.82rem;color:var(--text-3);margin:0;">The dashed link to <code>/cross-team-view</code> reflects its status: the altitude is designed, the command is not yet implemented. See the table below.</p>
+  </div>
+
+  <!-- THE CORE PRINCIPLE -->
+  <div class="pad">
+    <h2>The one principle that runs through all of it</h2>
+    <p>The board already gives you a list of changes. A digest that just re-lists them adds nothing. The job is <strong>synthesis, not aggregation</strong> &mdash; turning raw activity into the few things a busy teammate actually needs:</p>
+    <ul>
+      <li><strong>What actually happened?</strong> A narrative, not bullets.</li>
+      <li><strong>What&rsquo;s the trajectory?</strong> Which projects are moving, stalling, or blocked.</li>
+      <li><strong>What connects?</strong> Work by one person that relates to another&rsquo;s &mdash; dependencies and overlaps that aren&rsquo;t formally tracked.</li>
+      <li><strong>What should someone know that they don&rsquo;t?</strong> Cross-relevance the board would never surface on its own.</li>
+    </ul>
+    <div class="callout">
+      <strong>Be specific or stay silent.</strong> <em>&ldquo;A&rsquo;s rate-limit work could inform B&rsquo;s gateway redesign&rdquo;</em> is useful. <em>&ldquo;Everyone should stay aligned&rdquo;</em> is noise. Per-person takeaways follow the same rule &mdash; only genuinely relevant signals, and an empty section is fine. Don&rsquo;t force relevance.
+    </div>
+  </div>
+
+  <!-- DAILY DIGEST -->
+  <div class="pad">
+    <h2><code>/daily-digest</code> &mdash; one day, synthesized</h2>
+    <p>Collects the day&rsquo;s board, code, and (optional) chat activity, synthesizes it, and writes <code>digests/YYYY-MM-DD.md</code>. The flow is a short pipeline:</p>
+    <pre><span class="c">Phase 0 ─ Input &amp; mode detection   (markdown-only, or email mode)</span>
+<span class="c">Phase 1 ─ Data collection          (board + code + optional chat)</span>
+<span class="c">Phase 2 ─ Synthesis                (the four questions above)</span>
+<span class="c">Phase 3 ─ Markdown output          → digests/YYYY-MM-DD.md</span>
+<span class="c">Phase 4 ─ (optional) HTML render   → GATE: manual review in browser</span>
+<span class="c">Phase 5 ─ (optional) Email send    (only after explicit approval)</span></pre>
+
+    <h3>What it collects</h3>
+    <ul>
+      <li><strong>Board activity</strong> &mdash; every issue touched today: who, what changed, which project. If the team has a private surface (e.g. a leadership-only board), that data is pulled internally to inform per-person sections but is <strong>excluded from anything shared</strong>.</li>
+      <li><strong>Code activity</strong> &mdash; commits, PRs, reviews, mapped back to board issues where a branch or commit message names one. Repos active without a ticket are a gap signal worth noting.</li>
+      <li><strong>Chat messages</strong> (optional) &mdash; channel messages only, where a channel-to-project mapping exists. <em>Meeting transcripts are always excluded</em> from automatic ingestion &mdash; they carry personal data and are handled separately by <code>/process-transcript</code>.</li>
+    </ul>
+    <p>An empty result on a day you know was busy is treated as a probable query fault (wrong team name, stale credentials), not as truth. <code>&ldquo;skip chat&rdquo;</code> and <code>&ldquo;skip code&rdquo;</code> are honoured; the digest produces from whatever returned.</p>
+
+    <h3>What it produces</h3>
+    <p>A markdown file with a data-sources table, a day-at-a-glance metrics table, a team narrative, per-project status snapshots, cross-team connections, code activity, per-person takeaways, and structural observations (gaps, stale issues, untracked dependencies). Every board identifier it cites must correspond to an issue actually seen during collection &mdash; counts are never fabricated.</p>
+
+    <div class="callout callout-warn">
+      <strong>Email mode has a hard gate.</strong> If &mdash; and only if &mdash; recipient addresses are supplied, the digest renders to HTML from <code>digests/TEMPLATE.html</code>, opens it in the browser, and <strong>waits for explicit approval before sending</strong>. The review gate is mandatory and never skipped; recipients are never hardcoded. No emails, no markdown is ever shared without confirmation.
+    </div>
+  </div>
+
+  <!-- WEEKLY DIGEST -->
+  <div class="pad">
+    <h2><code>/weekly-digest</code> &mdash; the same thing, a week up</h2>
+    <p>This is <code>/daily-digest</code> run over a Monday&ndash;Friday window &mdash; <strong>not a summary of the dailies</strong>. It reuses the daily command&rsquo;s collection, synthesis discipline, and behavioural boundaries <em>unchanged</em>, then asks different questions at a higher altitude. Output is <code>digests/weekly/YYYY-Www.md</code> (e.g. <code>2026-W12</code>; no argument means the current ISO week).</p>
+
+    <h3>What carries over from the daily, untouched</h3>
+    <ul>
+      <li>The same board / code / chat surfaces and the same sync-resilience handling.</li>
+      <li>Synthesis, not aggregation; cross-relevance detection; genuinely-relevant per-person sections only.</li>
+      <li>Read-only, data-grounded, no performance evaluation, no strategic recommendations, private-team data strictly excluded from the shared digest.</li>
+    </ul>
+
+    <h3>What changes at the weekly altitude</h3>
+    <ul>
+      <li><strong>An extra primary input: the week&rsquo;s daily digests.</strong> It reads every <code>digests/YYYY-MM-DD.md</code> in the window &mdash; these are its richest source. A <em>missing</em> daily is a data-coverage gap to flag, not a day to silently skip.</li>
+      <li><strong>A comparison against last week.</strong> If <code>digests/weekly/YYYY-W(ww-1).md</code> exists, it reads it to detect dropped connections and compare trajectories.</li>
+      <li><strong>Weekly shapes instead of single-day snapshots.</strong> Counts (issues created / completed / stale, active projects, PRs merged); collaborations classified as <strong>active</strong> (appeared 3+ days), <strong>emerging</strong> (first this week), or <strong>dropped</strong> (active last week, absent this week); and a <strong>trajectory</strong> &mdash; where each project stood Monday vs. Friday and its direction of travel.</li>
+    </ul>
+    <p>The output adds week-specific sections: a project trajectory report (Monday vs. Friday with a direction), a team activity heatmap (relative effort per person per project), the three-way collaboration breakdown, and a personalized week-in-review. Delivery follows the daily pattern &mdash; including the same render &rarr; review-gate &rarr; send flow if the team uses email mode, never sending without approval.</p>
+
+    <div class="callout callout-ok">
+      <strong>Why not just summarize the dailies?</strong> Because a week answers questions a day cannot: what <em>moved</em> (outcomes, not activity), what <em>shifted</em> Monday to Friday, where the team <em>spent</em> its time, and which patterns are <em>emerging</em>. Altitude, not aggregation.
+    </div>
+  </div>
+
+  <!-- CROSS TEAM VIEW -->
+  <div class="pad">
+    <h2><code>/cross-team-view</code> &mdash; the planned third altitude</h2>
+    <div class="badges" style="margin-bottom:14px;">
+      <span class="badge badge-muted">stub &mdash; documented, not implemented</span>
+      <span class="badge badge-muted">ships in v0.3</span>
+    </div>
+    <div class="callout callout-warn">
+      <strong>Not yet built.</strong> <code>/cross-team-view</code> is a <em>stub</em>. It is documented as the next altitude &mdash; neighbouring-team visibility, the &ldquo;the team next door shipped <em>what?</em>&rdquo; problem &mdash; but the working version ships in <strong>v0.3</strong>. Today it has no behaviour to describe, and this guide deliberately doesn&rsquo;t invent any.
+    </div>
+    <p>What exists today is the opt-in path, not the command. Running <code>/awow-add cross-team-view</code> reports the command&rsquo;s prerequisites (the same Standardise gate: three Seed cycles shipped, most of the team committing, board read/write working). Once those are met <em>and</em> the command is real in v0.3, the stub file becomes the prompt the agent actually runs &mdash; the same pattern the digests already follow. Until then it is a placeholder marking where the third altitude will sit.</p>
+  </div>
+
+  <!-- COMPARISON TABLE -->
+  <div class="pad">
+    <h2>The three at a glance</h2>
+    <table class="data">
+      <thead><tr><th style="width:24%">Command</th><th style="width:20%">Altitude</th><th style="width:33%">Output path</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong><code>/daily-digest</code></strong></td>
+          <td>One day</td>
+          <td><code>digests/YYYY-MM-DD.md</code></td>
+          <td><span class="badge badge-ok">live</span></td>
+        </tr>
+        <tr>
+          <td><strong><code>/weekly-digest</code></strong></td>
+          <td>One Mon&ndash;Fri week</td>
+          <td><code>digests/weekly/YYYY-Www.md</code></td>
+          <td><span class="badge badge-ok">live</span> <span style="font-size:0.78rem;color:var(--text-3);">&mdash; needs <code>/daily-digest</code> running &ge;4 working days</span></td>
+        </tr>
+        <tr>
+          <td><strong><code>/cross-team-view</code></strong></td>
+          <td>Neighbouring teams</td>
+          <td><span style="color:var(--text-3);">not defined yet</span></td>
+          <td><span class="badge badge-muted">planned &mdash; not yet built (v0.3)</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.82rem;color:var(--text-3);margin:0;">All three are <code>phase: standardise</code> and strictly read-only &mdash; they synthesize activity, they never mutate the board, the code, or any external system.</p>
+  </div>
+
+  <!-- BOUNDARIES -->
+  <div class="pad">
+    <h2>The boundaries that hold across all of them</h2>
+    <div class="grid-3">
+      <div class="card">
+        <p class="card-label" style="color:var(--ok)">Read-only, always</p>
+        <p style="margin-bottom:0;">No command here mutates the board, the codebase, or any external system. The only writes are the digest files under <code>digests/</code> &mdash; and, in email mode, an HTML render that is never sent without approval.</p>
+      </div>
+      <div class="card">
+        <p class="card-label" style="color:var(--accent)">Data-grounded, never evaluative</p>
+        <p style="margin-bottom:0;">Synthesize only from real board / code / chat data. Never fabricate or misattribute. Never evaluate individual performance. Surface connections; let humans decide &mdash; no strategic recommendations.</p>
+      </div>
+      <div class="card">
+        <p class="card-label" style="color:var(--warn)">Private data stays private</p>
+        <p style="margin-bottom:0;">Private-team surfaces never appear in shared digests. They&rsquo;re pulled internally only to inform per-person sections for people who already have access.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="pad" style="border-bottom:none;">
+    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Sources of truth: <code>.agents/commands/daily-digest.md</code>, <code>.agents/commands/weekly-digest.md</code>, <code>.agents/commands/cross-team-view.md</code>. Opt into the Standardise commands via <code>/awow-add</code>. Companion guides: <code>guide-session-correlation.html</code> and <code>guide-trace-analysis.html</code>. This guide is self-contained &mdash; no external resources.</p>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Setup &amp; the two harnesses &mdash; what a new adopter hits first</title>
+<!--
+  AWOW GUIDE — setup and the two harnesses
+  Two halves: (1) the /setup-awow wizard — incremental, resumable, proposal-first,
+  Steps 0–9; (2) one source of truth, two harness surfaces — author once under
+  .agents/, gather.py emits pointer stubs into .claude/ and .github/ so nothing drifts.
+  Sources of truth: .agents/commands/setup-awow.md, README.md, .agents/CLAUDE.md.
+  Self-contained: no external fonts/links by design.
+-->
+<style>
+  :root {
+    --bg: #f6f5f3;
+    --surface: #ffffff;
+    --surface-alt: #f0efed;
+    --text-1: #1a1a1a;
+    --text-2: #6b6b6b;
+    --text-3: #9a9a9a;
+    --border: #e0dfdd;
+    --border-subtle: #ebeae8;
+    --accent: #f24b37;
+    --link: #337FF9;
+    --ok: #2e7d4f;
+    --warn: #c97a1b;
+    --risk: #b53a2a;
+  }
+  body { margin:0; padding:0; width:100%; font-family:'Nunito',system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text-1); line-height:1.6; }
+  .wrap { max-width:1040px; margin:0 auto; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .pad { padding:28px 40px; border-bottom:1px solid var(--border-subtle); }
+  .pad-tight { padding:20px 40px; border-bottom:1px solid var(--border-subtle); }
+  h1 { font-size:1.9rem; font-weight:700; margin:0; letter-spacing:-0.02em; }
+  h2 { font-size:1.35rem; font-weight:600; margin:0 0 16px; letter-spacing:-0.01em; }
+  h3 { font-size:1.05rem; font-weight:600; margin:24px 0 10px; letter-spacing:-0.01em; }
+  p  { font-size:0.92rem; color:var(--text-2); margin:0 0 12px; line-height:1.7; }
+  ul, ol { font-size:0.92rem; color:var(--text-2); line-height:1.7; padding-left:22px; margin:0 0 14px; }
+  li { margin:4px 0; }
+  strong { color:var(--text-1); font-weight:600; }
+  em { color:var(--text-1); font-style:italic; }
+  code { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.85em; background:var(--surface-alt); padding:1px 6px; border-radius:3px; border:1px solid var(--border-subtle); }
+  pre { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.82rem; background:var(--surface-alt); padding:14px 18px; border-radius:8px; border:1px solid var(--border-subtle); overflow-x:auto; line-height:1.55; color:var(--text-1); }
+  pre .c { color:var(--text-3); }
+  table.data { border-collapse:collapse; width:100%; font-size:0.85rem; margin:0 0 16px; }
+  table.data th { text-align:left; font-weight:600; padding:8px 10px; border-bottom:2px solid var(--border); background:var(--surface-alt); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; }
+  table.data td { padding:9px 10px; border-bottom:1px solid var(--border-subtle); color:var(--text-2); vertical-align:top; line-height:1.5; }
+  table.data tr:last-child td { border-bottom:none; }
+  table.data td strong { color:var(--text-1); }
+  .kicker { font-size:0.72rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin:0 0 8px; }
+  .badge { display:inline-block; font-size:0.7rem; font-weight:600; padding:3px 10px; border-radius:4px; border:1px solid var(--border); color:var(--text-1); background:var(--surface); }
+  .badge-accent { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .badge-ok { background:rgba(46,125,79,0.08); color:var(--ok); border-color:rgba(46,125,79,0.25); }
+  .badge-warn { background:rgba(201,122,27,0.08); color:var(--warn); border-color:rgba(201,122,27,0.25); }
+  .badge-muted { background:var(--surface-alt); color:var(--text-3); border-color:var(--border-subtle); border-style:dashed; }
+  .badges { display:flex; gap:6px; flex-wrap:wrap; }
+  .callout { background:var(--surface-alt); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 16px; font-size:0.88rem; color:var(--text-2); line-height:1.65; }
+  .callout strong { color:var(--text-1); }
+  .callout-warn { border-left-color:var(--warn); }
+  .callout-ok { border-left-color:var(--ok); }
+  .diagram { background:var(--surface-alt); border:1px solid var(--border-subtle); border-radius:10px; padding:18px 16px 12px; margin:0 0 18px; }
+  .diagram svg { display:block; max-width:100%; height:auto; margin:0 auto; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:0.78rem; color:var(--text-2); padding:8px 8px 0; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .legend i { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid var(--border); }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
+  .card .card-label { font-size:0.7rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; }
+  .card h3 { margin-top:0; }
+  .step { display:flex; gap:14px; margin:0 0 14px; align-items:flex-start; }
+  .step .n { flex:0 0 28px; width:28px; height:28px; border-radius:50%; background:var(--text-1); color:#fff; font-size:0.8rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .step .b { font-size:0.9rem; color:var(--text-2); line-height:1.6; }
+  .step .b strong { color:var(--text-1); }
+  @media (max-width: 760px) {
+    .pad, .pad-tight { padding-left:22px; padding-right:22px; }
+    .grid-2 { grid-template-columns:1fr; }
+    .grid-3 { grid-template-columns:1fr; }
+  }
+  @media print {
+    body { background:#fff; }
+    .wrap { border:none; border-radius:0; max-width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="pad" style="padding-top:36px;padding-bottom:24px;">
+    <p style="font-size:13px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin:0 0 10px;">Way of Working &middot; Guide</p>
+    <h1>Setup &amp; the two harnesses</h1>
+    <p style="font-size:1rem;color:var(--text-2);margin:6px 0 0;font-weight:500;">What a new adopter hits first: the <code>/setup-awow</code> wizard, and why one set of instructions serves two agents.</p>
+    <p style="font-size:0.85rem;color:var(--text-3);margin:8px 0 0;">Two halves. The wizard turns a fresh clone into a configured repo, one approved step at a time. The pointer-stub model lets Claude Code and GitHub Copilot share a single source of truth without drift. Board specifics live in the companion <code>guide-board-and-mcp.html</code>.</p>
+    <div class="badges" style="margin-top:16px;">
+      <span class="badge">day one</span>
+      <span class="badge">incremental &amp; resumable</span>
+      <span class="badge badge-accent">one source, two surfaces</span>
+    </div>
+  </div>
+
+  <!-- TL;DR -->
+  <div class="pad-tight">
+    <p class="kicker">TL;DR</p>
+    <p><code>/setup-awow</code> is the wizard you run inside an agent session. It is <strong>incremental and resumable</strong> &mdash; state lives in <code>setup-progress.md</code>, and on every invocation it reads that file and lays out the whole plan (Steps 0&ndash;9), marking each ✓ done, ⧗ pending, or ☐ untouched. Only <strong>Step 0</strong> (installer) and <strong>Step 1</strong> (board kickoff) are required; the rest are recommended-next in any order. Every artefact lands under <code>proposals/setup/</code> first and only moves to its final path after you approve it. Separately, all agent instructions are authored once under <code>.agents/</code>; <code>tools/gather.py</code> mirrors them into tiny <strong>pointer stubs</strong> in <code>.claude/</code> and <code>.github/</code> so the two harnesses stay in sync and nothing drifts.</p>
+  </div>
+
+  <!-- ======================= HALF 1 ======================= -->
+  <div class="pad-tight" style="background:var(--surface-alt);">
+    <p class="kicker" style="color:var(--accent);">Half 1</p>
+    <p style="margin-bottom:0;"><strong>The <code>/setup-awow</code> wizard</strong> &mdash; from clone-and-go to a configured repo, one approved step at a time.</p>
+  </div>
+
+  <!-- WIZARD SHAPE -->
+  <div class="pad">
+    <h2>How the wizard behaves</h2>
+    <p>The pain it removes is the &ldquo;I cloned the repo &mdash; now what?&rdquo; problem. Rather than a wall of setup docs, it is a conversational wizard that does the configuring with you. Four properties define how it runs:</p>
+    <ul>
+      <li><strong>Incremental &amp; resumable.</strong> State lives in <code>setup-progress.md</code> at the repo root. The wizard reads it on every invocation, so you can stop after any step and pick up later exactly where you left off.</li>
+      <li><strong>Always shows the whole map.</strong> Before doing anything, it lists every step (0 → 9) and marks each ✓ complete, ⧗ deferred/pending, or ☐ untouched, then tells you which step it is resuming. You never see a step in isolation.</li>
+      <li><strong>Proposal-first.</strong> Every artefact is written to <code>proposals/setup/&lt;step&gt;/</code> first. It moves to its final location (e.g. <code>context/team/mission.md</code>) only after you explicitly approve. The cheap-to-change draft is where you iterate.</li>
+      <li><strong>Two required, the rest optional.</strong> Step 0 and Step 1 make the repo usable. Steps 2&ndash;9 are recommended-next in any order &mdash; the wizard offers the next one and lets you choose.</li>
+    </ul>
+    <div class="callout">
+      <strong>Multi-workspace runs.</strong> <code>/setup-awow --root &lt;path&gt;</code> resolves <code>setup-progress.md</code>, <code>proposals/setup/</code> and <code>context/</code> relative to <code>&lt;path&gt;/</code> instead of the repo root &mdash; useful when one repo hosts several workspaces. The harness infrastructure (<code>.venv/</code>, <code>.agents/</code>, <code>.claude/</code>, <code>.github/</code>) and the installer stay at the repo root regardless; Step 0&rsquo;s detection inherits the parent repo&rsquo;s installer state.
+    </div>
+  </div>
+
+  <!-- THE STEP MAP TABLE -->
+  <div class="pad">
+    <h2>The step map (0&ndash;9)</h2>
+    <p>This is the plan the wizard renders on every entry. Required steps gate usability; everything below the line is recommended-next, picked in whatever order suits you.</p>
+    <table class="data">
+      <thead><tr><th style="width:8%">Step</th><th style="width:22%">Name</th><th style="width:14%">Required?</th><th>Outcome</th></tr></thead>
+      <tbody>
+        <tr><td><strong>0</strong></td><td><strong>Installer</strong></td><td><span class="badge badge-accent" style="font-size:0.62rem">required</span></td><td>Python wired via <code>uv</code>, a <code>.venv</code> created, and <code>tools/gather.py</code> run once so the harness can discover this very command.</td></tr>
+        <tr><td><strong>1</strong></td><td><strong>Board kickoff</strong></td><td><span class="badge badge-accent" style="font-size:0.62rem">required</span></td><td>A wired board read/write surface (MCP or <code>gh</code> CLI) plus a fully-populated <code>context/tooling/board.md</code> &mdash; states, hierarchy, labels, fields, team-page conventions.</td></tr>
+        <tr><td><strong>2</strong></td><td>Mission</td><td><span class="badge badge-muted" style="font-size:0.62rem">recommended</span></td><td>A one-sentence mission naming audience, change, and constraint &mdash; landed at <code>context/team/mission.md</code>.</td></tr>
+        <tr><td><strong>3</strong></td><td>Required conventions</td><td><span class="badge badge-muted" style="font-size:0.62rem">recommended</span></td><td>The four REQUIRED conventions (<code>issue-titles</code>, <code>labels</code>, <code>branches</code>, <code>output-discipline</code>), observed from the board or guided from reference. <code>output-discipline.md</code> is non-negotiable.</td></tr>
+        <tr><td><strong>4</strong></td><td>Members &amp; style</td><td><span class="badge badge-muted" style="font-size:0.62rem">recommended</span></td><td>Team member list plus the style files (<code>board-output</code>, <code>comments</code>, <code>placement</code>, <code>prose</code>) drafted from templates.</td></tr>
+        <tr><td><strong>5</strong></td><td>CLAUDE.md / AGENTS.md bootstrap</td><td><span class="badge badge-muted" style="font-size:0.62rem">recommended</span></td><td><code>tools/bootstrap-claude-md.py</code> rewrites the stub into a team-specific <code>CLAUDE.md</code> (including the <code>## Do not propose</code> block), then gather mirrors it out.</td></tr>
+        <tr><td><strong>6</strong></td><td>Knowledge base seed</td><td><span class="badge badge-muted" style="font-size:0.62rem">recommended</span></td><td>A seeded <code>glossary.md</code> and stubbed architecture / patterns / runbooks / decisions subfolders.</td></tr>
+        <tr><td><strong>7</strong></td><td>Neighbouring teams</td><td><span class="badge badge-muted" style="font-size:0.62rem">recommended</span></td><td>Stubs at <code>context/company/neighbouring-teams.md</code> for the 1° teams you depend on or supply.</td></tr>
+        <tr><td><strong>8</strong></td><td>Surface the extras</td><td><span class="badge badge-muted" style="font-size:0.62rem">recommended</span></td><td>Lists the <code>spread</code> / <code>standardise</code> commands (not installed) with their pain removed; each is opted into later via <code>/awow-add</code>.</td></tr>
+        <tr><td><strong>9</strong></td><td>Skills review</td><td><span class="badge badge-muted" style="font-size:0.62rem">recommended</span></td><td>Walks each shipped skill &mdash; <strong>keep</strong>, <strong>customise</strong>, or <strong>drop</strong> &mdash; surfacing the assumption each bakes in (e.g. &ldquo;assumes Databricks MLflow&rdquo;). Re-run whenever the stack changes.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-ok">
+      <strong>The <code>--quickstart</code> path.</strong> <code>/setup-awow --quickstart</code> does Steps 0 → 1 → 2 → 3 → 5 in one turn with sensible defaults, skipping the per-step review loop. Step 0 still asks permission before running the shell installer. It is the one-shot path for adopters who already know what they want; the conversational wizard remains the default.
+    </div>
+  </div>
+
+  <!-- STEP 0 DETAIL -->
+  <div class="pad">
+    <h2>Step 0 &mdash; Installer <span class="badge badge-accent" style="font-size:0.62rem">required</span></h2>
+    <p>The starter pack uses <code>tools/gather.py</code> to mirror <code>.agents/</code> into the harness surfaces. Step 0 wires Python via <code>uv</code>, creates <code>.venv</code>, and runs gather once &mdash; which is what makes <code>/setup-awow</code> itself discoverable. It starts with a deliberately cheap detection probe so the wizard stops scanning the moment the answer is obvious:</p>
+    <div class="grid-3">
+      <div class="card">
+        <p class="card-label" style="color:var(--ok)">Both present</p>
+        <p style="margin-bottom:0;"><code>.claude/commands/setup-awow.md</code> <em>and</em> <code>.venv/</code> both there &mdash; Step 0 is already complete. Skip ahead.</p>
+      </div>
+      <div class="card">
+        <p class="card-label" style="color:var(--warn)">venv missing only</p>
+        <p style="margin-bottom:0;">Stubs present, no <code>.venv/</code>. Gather has run; only the env needs restoring. The wizard offers <code>uv sync --python 3.12</code> &mdash; not the full installer &mdash; after confirmation.</p>
+      </div>
+      <div class="card">
+        <p class="card-label" style="color:var(--accent)">Stubs missing</p>
+        <p style="margin-bottom:0;">Run the full installer: <code>./setup/install.sh</code> (macOS / Linux) or <code>.\setup\install.ps1</code> (Windows).</p>
+      </div>
+    </div>
+    <p style="margin-top:14px;">In every branch it <strong>requests permission before running any shell installer</strong> and surfaces the output verbatim &mdash; it never runs the script silently. The most common failure is <code>uv</code> not being on PATH; the wizard surfaces that error and tells you to install <code>uv</code> first, rather than papering over it by guessing a system Python. It then verifies <code>.venv/</code>, <code>.claude/commands/setup-awow.md</code>, and <code>.github/prompts/setup-awow.prompt.md</code> are all present.</p>
+  </div>
+
+  <!-- STEP 1 DETAIL -->
+  <div class="pad">
+    <h2>Step 1 &mdash; Board kickoff <span class="badge badge-accent" style="font-size:0.62rem">required</span></h2>
+    <p>The outcome of Step 1 is a wired read/write surface <em>plus</em> a fully-populated <code>context/tooling/board.md</code> &mdash; the team&rsquo;s actual board spec, not just MCP wiring. The agent reads that file thereafter whenever it needs to know what a label means, which states are terminal, or where a new issue belongs. It runs in two phases:</p>
+    <div class="grid-2">
+      <div class="card">
+        <p class="card-label" style="color:var(--accent)">Phase 1a &middot; wire the surface</p>
+        <p style="margin-bottom:0;">Detects or installs the read/write surface &mdash; an MCP for Linear / Jira / Azure DevOps / GitHub, or the <code>gh</code> CLI for GitHub-hosted boards. Verifies <strong>read</strong> with one call and <strong>write</strong> with a no-op write against a scratch issue. A surface that cannot finish this session is recorded <code>pending</code> so the repo is still partially usable.</p>
+      </div>
+      <div class="card">
+        <p class="card-label" style="color:var(--link)">Phase 1b &middot; configure</p>
+        <p style="margin-bottom:0;">Mode chosen automatically by counting closed issues. <strong>Mode A</strong> (&lt;10 closed) sets up from the reference &mdash; accept / override / skip per decision. <strong>Mode B</strong> (≥10 closed) assesses and captures what is already on the board, recording divergence from the reference.</p>
+      </div>
+    </div>
+    <div class="callout callout-warn" style="margin-top:14px;">
+      <strong>Review-and-adjust gate.</strong> Once <code>board.md</code> is landed, the wizard does not silently move on. It reads the file back, summarises it, and asks whether to <em>proceed</em>, <em>adjust</em> a section, or <em>evaluate</em> it against the live board &mdash; looping until you say proceed. Full board mechanics (MCP install, label taxonomy, the <code>gh</code> CLI alternative) live in the companion <code>guide-board-and-mcp.html</code>.
+    </div>
+  </div>
+
+  <!-- ======================= HALF 2 ======================= -->
+  <div class="pad-tight" style="background:var(--surface-alt);">
+    <p class="kicker" style="color:var(--accent);">Half 2</p>
+    <p style="margin-bottom:0;"><strong>One source of truth, two harness surfaces</strong> &mdash; author once, let gather.py mirror it so nothing drifts.</p>
+  </div>
+
+  <!-- THE TRAP -->
+  <div class="pad">
+    <h2>The trap, and awow&rsquo;s answer</h2>
+    <p>A team using both Claude Code and GitHub Copilot hits the same problem: every instruction file, prompt, and skill ends up duplicated across <code>.claude/</code> and <code>.github/</code> &mdash; and the two copies drift. Someone fixes a convention in one place, forgets the other, and now the two agents follow different rules.</p>
+    <p>awow&rsquo;s answer is <strong>pointer stubs</strong>. You author everything <em>once</em> under <code>.agents/</code>. Then <code>tools/gather.py</code> generates tiny redirect files in <code>.claude/</code> and <code>.github/</code> that each harness discovers natively. A stub carries only the discovery metadata the harness needs &mdash; frontmatter <code>description</code> / <code>name</code> &mdash; plus a one-line body that says &ldquo;read <code>.agents/&hellip;</code> and follow it.&rdquo; There is no substantive content in a stub, so there is nothing to drift.</p>
+
+    <div class="diagram">
+      <div class="legend" style="margin-bottom:6px;">
+        <span><i style="background:#1a1a1a;border-color:#1a1a1a;"></i> Source of truth</span>
+        <span><i style="background:rgba(242,75,55,0.10);border-color:rgba(242,75,55,0.55);"></i> Generator</span>
+        <span><i style="background:rgba(51,127,249,0.10);border-color:rgba(51,127,249,0.55);"></i> Generated stubs (per harness)</span>
+      </div>
+
+      <svg viewBox="0 0 1000 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="gather.py mirrors .agents into harness pointer stubs">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#6b6b6b"/>
+          </marker>
+        </defs>
+
+        <!-- A: .agents source of truth -->
+        <rect x="40" y="166" width="240" height="138" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
+        <text x="160" y="198" text-anchor="middle" font-size="14.5" font-weight="700" fill="#fff" font-family="JetBrains Mono,monospace">.agents/</text>
+        <text x="160" y="220" text-anchor="middle" font-size="10.5" fill="#e0dfdd" font-family="Nunito,sans-serif">edit here &mdash; the only place</text>
+        <text x="160" y="242" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="JetBrains Mono,monospace">CLAUDE.md</text>
+        <text x="160" y="259" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="JetBrains Mono,monospace">commands/&lt;name&gt;.md</text>
+        <text x="160" y="276" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="JetBrains Mono,monospace">skills/&lt;name&gt;/SKILL.md</text>
+
+        <!-- A -> B -->
+        <path d="M280,235 L362,235" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <!-- B: gather.py -->
+        <rect x="364" y="196" width="226" height="78" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
+        <text x="477" y="226" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">tools/gather.py</text>
+        <text x="477" y="246" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">emits pointer stubs;</text>
+        <text x="477" y="262" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">--check detects drift in CI</text>
+
+        <!-- B -> C (claude) -->
+        <path d="M590,222 C640,200 670,150 700,128" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+        <!-- B -> D (github) -->
+        <path d="M590,248 C640,270 670,320 700,342" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <!-- C: .claude stubs -->
+        <rect x="702" y="62" width="262" height="108" rx="10" fill="rgba(51,127,249,0.08)" stroke="#337FF9"/>
+        <text x="833" y="92" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">.claude/</text>
+        <text x="833" y="112" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">Claude Code discovers natively</text>
+        <text x="833" y="132" text-anchor="middle" font-size="10" fill="#337FF9" font-family="JetBrains Mono,monospace">commands/&lt;name&gt;.md</text>
+        <text x="833" y="150" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">redirect-only &mdash; no content</text>
+
+        <!-- D: .github stubs -->
+        <rect x="702" y="300" width="262" height="108" rx="10" fill="rgba(51,127,249,0.08)" stroke="#337FF9"/>
+        <text x="833" y="330" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">.github/</text>
+        <text x="833" y="350" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">Copilot discovers natively</text>
+        <text x="833" y="370" text-anchor="middle" font-size="10" fill="#337FF9" font-family="JetBrains Mono,monospace">prompts/&lt;name&gt;.prompt.md</text>
+        <text x="833" y="388" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">.prompt.md extension required</text>
+      </svg>
+    </div>
+    <p style="font-size:0.82rem;color:var(--text-3);margin:0;"><code>.claude/</code> and <code>.github/</code> are committed so a fresh clone is immediately recognisable to either harness. Because stubs carry no substantive content, the only thing gather keeps in sync is discovery metadata &mdash; and <code>--check</code> catches that automatically.</p>
+  </div>
+
+  <!-- WHAT A STUB CONTAINS -->
+  <div class="pad">
+    <h2>What a stub actually contains</h2>
+    <p>Everything substantive stays in <code>.agents/</code>. The generated file is just frontmatter the harness uses for discovery plus a one-line redirect &mdash; so even if you read it, it points you straight back to the source:</p>
+    <pre><span class="c">&lt;!-- .claude/commands/refinement-prep.md — GENERATED by tools/gather.py. DO NOT EDIT. --&gt;</span>
+---
+description: draft a feature for the next refinement
+---
+Read <span class="c">.agents/commands/refinement-prep.md</span> and follow it.</pre>
+    <div class="callout callout-warn">
+      <strong>One Copilot gotcha worth knowing.</strong> Prompts under <code>.github/prompts/</code> must end in <code>.prompt.md</code> &mdash; VS Code&rsquo;s Copilot Chat silently ignores a plain <code>.md</code> there. gather.py emits the right extension automatically; you only ever need this fact when debugging &ldquo;my new command isn&rsquo;t showing up in Copilot.&rdquo;
+    </div>
+  </div>
+
+  <!-- REGENERATE -->
+  <div class="pad">
+    <h2>Regenerating &amp; keeping it honest</h2>
+    <p>After you edit anything under <code>.agents/</code>, regenerate the stubs. In CI, the same script with <code>--check</code> fails the build if a stub is out of date &mdash; the drift you were trying to avoid is now caught mechanically.</p>
+    <pre><span class="c"># edit the source of truth</span>
+$EDITOR .agents/commands/refinement-prep.md
+
+<span class="c"># regenerate the .claude/ and .github/ stubs</span>
+uv run python tools/gather.py
+
+<span class="c"># in CI: fail if any stub drifted from .agents/</span>
+uv run python tools/gather.py --check</pre>
+    <p style="margin-bottom:0;">The rule of thumb: <strong>edit under <code>.agents/</code>, never the generated stubs.</strong> Hand-edits to <code>.claude/</code> or <code>.github/</code> are overwritten on the next gather. The same mechanism carries the <code>CLAUDE.md</code> that Step 5 produces out to <code>.claude/CLAUDE.md</code> and <code>.github/AGENTS.md</code>.</p>
+  </div>
+
+  <!-- HARNESS-NEUTRAL NOTE -->
+  <div class="pad">
+    <h2>Why this matters for adopters</h2>
+    <p>The recommended way to adopt awow is GitHub&rsquo;s <em>Use this template</em>, not a fork &mdash; so your repo starts with no upstream relationship to merge through. The starter ships both <code>.claude/</code> and <code>.github/</code> populated, which means a fresh clone is recognisable to either agent out of the box. The wizard&rsquo;s Step 1 detects which harness you are actually running inside and asks whether the team also uses the other, so the source-of-truth promise scales whether you run one harness or both.</p>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="pad" style="border-bottom:none;">
+    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Sources of truth: <code>.agents/commands/setup-awow.md</code> (the wizard spec), <code>README.md</code> (&ldquo;Day one&rdquo;, &ldquo;What&rsquo;s in this repo&rdquo;, &ldquo;One source of truth, two harness surfaces&rdquo;, &ldquo;Adopting &amp; contributing back&rdquo;), and <code>.agents/CLAUDE.md</code> (the bootstrap stub). Companion guide: <code>guide-board-and-mcp.html</code> (board mechanics). This guide is self-contained &mdash; no external resources.</p>
+  </div>
+
+</div>
+
+</body>
+</html>

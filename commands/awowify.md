@@ -23,7 +23,7 @@ If the directory is not under git, say once that committing first makes the vend
 Two choices decide how much lands in the repo. Offer both before previewing, so awow copies only what this user will use rather than everything. Present each as a selectable pick-one list (the harness's multiple-choice prompt) so the user clicks rather than types; fall back to a plain-text question only if no selection prompt is available.
 
 1. **Solo or team?** "Is this just for you, or a whole team?" Solo drops the team-coordination files — neighbouring teams, the member roster, and the digest / cross-team / coaching / transcript commands. Pass `--solo` for solo; omit it for team.
-2. **Which board?** "Which issue tracker does this project use — Linear, Jira, Azure DevOps, or GitHub Issues? Pick 'not sure' to keep all four references for now." Pass `--board <linear|jira|azure-devops|github-issues>`; on "not sure", omit the flag.
+2. **Which board?** Offer exactly four options and no more — Linear, Jira, Azure DevOps, GitHub Issues — because a selection prompt accepts at most four. Pass `--board <linear|jira|azure-devops|github-issues>` for the pick. If the user is unsure, they choose the auto "Other" / skip; then omit `--board` so all four references are kept.
 
 Carry both answers forward — the wizard must not ask them again.
 

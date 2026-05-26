@@ -7,7 +7,7 @@ Slash commands the agent can run. The files are **flat** — one `<name>.md` per
 | Phase (frontmatter) | When the team adopts it | Commands |
 |---|---|---|
 | `seed` | Wired up by `/setup-awow` by default (first cycle) | `refinement-prep`, `process-workitem`, `process-transcript` |
-| `spread` | Opt-in via `/awow-add <command>` (after first Seed cycle) | `board-skill`, `coaching-review`, `solution-design-flow`, `design-system`, `artifact` |
+| `spread` | Opt-in via `/awow-add <command>` (after first Seed cycle) | `board-skill`, `coaching-review`, `solution-design-flow`, `design-system`, `artifact`, `my-work` |
 | `standardise` | Opt-in via `/awow-add <command>` (most of team active) | `daily-checkin`, `daily-digest`, `weekly-digest`, `cross-team-view` |
 
 `_workitem-archetypes/` is the one remaining subfolder — it holds handlers loaded by `process-workitem`, not directly invocable commands.

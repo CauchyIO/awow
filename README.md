@@ -109,7 +109,7 @@ A team that adopts awow takes a copy of the starter pack and grows their own con
 /plugin install awow@awow
 ```
 
-`/awowify` vendors the starter-owned paths above into your repo without overwriting anything — existing files are saved as `<file>.awow` for you to merge, and your `README.md` is never touched — then runs the installer and continues straight into `/setup-awow`. The wizard's existing-board handling (Mode B) and `track: solo` option mean it adapts to a running project and to a single developer, not just a fresh team.
+`/awowify` first asks two questions — solo or team, and which board you use — then copies only the starter-owned paths that combination needs (a solo + single-board repo lands ~90 files instead of the full ~130). It overwrites nothing: existing files are saved as `<file>.awow` for you to merge, and your `README.md` is never touched. Then it runs the installer and continues straight into `/setup-awow`, carrying your two answers forward so the wizard does not re-ask.
 
 **GitHub Copilot users** have no plugin marketplace, so use the engine directly: clone awow, then run `setup/awowify.sh --target /path/to/your/repo` (add `--dry-run` first to preview). Same non-destructive vendoring; finish with `setup/install.sh` and `/setup-awow`.
 

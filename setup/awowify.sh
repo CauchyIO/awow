@@ -8,9 +8,18 @@
 #
 # Two callers:
 #   /awowify plugin command (Claude Code) — passes the plugin clone as source:
-#       awowify.sh --source "$CLAUDE_PLUGIN_ROOT" --target "$PWD"
+#       awowify.sh --source "$CLAUDE_PLUGIN_ROOT" --target "$PWD" --solo --board linear
 #   Copilot / no-plugin users (clone awow first, then point at your repo):
 #       awowify.sh --target /path/to/your/repo        # --source defaults to this clone
+#
+# Tailoring (copy only what the team will use):
+#   --board <linear|jira|azure-devops|github-issues|all>
+#       Copy references for one board tool only. Default: all.
+#   --solo
+#       Skip team-coordination files (neighbouring teams, members roster, the
+#       team-digest / cross-team / coaching / transcript commands).
+#   awow-maintainer tooling (the regression suite, reset/distribute scripts,
+#   awowify.sh itself) is never copied — adopters never run it.
 #
 # Non-destructive contract: an existing target file is never overwritten. The
 # awow version is written next to it as <file>.awow and reported; your file is
@@ -25,16 +34,25 @@ set -euo pipefail
 SOURCE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TARGET="$PWD"
 DRY_RUN=0
+BOARD="all"
+SOLO=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --source) SOURCE="$(cd "$2" && pwd)"; shift 2 ;;
     --target) mkdir -p "$2"; TARGET="$(cd "$2" && pwd)"; shift 2 ;;
+    --board)  BOARD="$2"; shift 2 ;;
+    --solo)   SOLO=1; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
-    -h|--help) sed -n '2,25p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,33p' "$0"; exit 0 ;;
     *) echo "awowify.sh: unknown argument: $1" >&2; exit 2 ;;
   esac
 done
+
+case "$BOARD" in
+  linear|jira|azure-devops|github-issues|all) ;;
+  *) echo "awowify.sh: --board must be one of linear, jira, azure-devops, github-issues, all (got '$BOARD')." >&2; exit 2 ;;
+esac
 
 if [[ "$SOURCE" == "$TARGET" ]]; then
   echo "awowify.sh: --source and --target are the same directory ($TARGET)." >&2
@@ -47,7 +65,43 @@ fi
 # left out: they are either the adopter's own, awow-internal, or generated.
 STARTER_PATHS=(.agents tools setup context mcps pyproject.toml SETUP.md REFERENCES.md)
 
+# Always excluded — awow-maintainer tooling adopters never run.
+EXCLUDES=(
+  setup/awowify.sh
+  tools/distribute.py
+  tools/reset-adopter-state.py
+  .agents/commands/test-setup-awow.md
+  .agents/commands/awow-reset.md
+)
+# Solo mode also drops team-coordination context and commands.
+if [[ "$SOLO" -eq 1 ]]; then
+  EXCLUDES+=(
+    context/company
+    context/team/members.md
+    .agents/commands/daily-digest.md
+    .agents/commands/weekly-digest.md
+    .agents/commands/cross-team-view.md
+    .agents/commands/coaching-review.md
+    .agents/commands/process-transcript.md
+  )
+fi
+# Board mode drops the reference dirs for every tool except the chosen one.
+if [[ "$BOARD" != "all" ]]; then
+  for tool in linear jira azure-devops github-issues; do
+    [[ "$tool" != "$BOARD" ]] && EXCLUDES+=("context/tooling/boards/$tool")
+  done
+fi
+
+is_excluded() {
+  local rel="$1" ex
+  for ex in "${EXCLUDES[@]}"; do
+    [[ "$rel" == "$ex" || "$rel" == "$ex"/* ]] && return 0
+  done
+  return 1
+}
+
 copied=0
+excluded=0
 conflicts=()
 
 vendor_file() {
@@ -72,9 +126,12 @@ for rel in "${STARTER_PATHS[@]}"; do
   [[ -e "$src" ]] || continue
   if [[ -d "$src" ]]; then
     while IFS= read -r -d '' f; do
-      vendor_file "$f" "$TARGET/${f#"$SOURCE"/}"
+      relpath="${f#"$SOURCE"/}"
+      if is_excluded "$relpath"; then excluded=$((excluded + 1)); continue; fi
+      vendor_file "$f" "$TARGET/$relpath"
     done < <(find "$src" -type f -print0)
   else
+    if is_excluded "$rel"; then excluded=$((excluded + 1)); continue; fi
     vendor_file "$src" "$TARGET/$rel"
   fi
 done
@@ -113,7 +170,9 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
 else
   echo "awowify — starter tree vendored into $TARGET"
 fi
+echo "  mode:           board=$BOARD, $([[ "$SOLO" -eq 1 ]] && echo solo || echo team)"
 echo "  files copied:   $copied"
+echo "  files skipped:  $excluded (board/solo/maintainer trims)"
 echo "  .gitignore:     $gitignore_action"
 if [[ ${#conflicts[@]} -gt 0 ]]; then
   echo "  conflicts:      ${#conflicts[@]} (awow version saved as <file>.awow; your file untouched)"

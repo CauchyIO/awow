@@ -14,27 +14,36 @@ Your job: vendor the starter tree into the user's current repo without overwriti
 
 The target is the current working directory; confirm it is the repo the user means. The starter tree to vendor from is at `${CLAUDE_PLUGIN_ROOT}` — the installed plugin clone.
 
-**If awow is already present here** — `${CLAUDE_PLUGIN_ROOT}` is unset or resolves to the current directory, or `.agents/commands/setup-awow.md` already exists — there is nothing to vendor. Skip to Step 4 and continue into the wizard. Never bounce the user to a different command; awowify carries the flow through itself.
+**If awow is already present here** — `${CLAUDE_PLUGIN_ROOT}` is unset or resolves to the current directory, or `.agents/commands/setup-awow.md` already exists — there is nothing to vendor. Skip to Step 5 and continue into the wizard. Never bounce the user to a different command; awowify carries the flow through itself.
 
 If the directory is not under git, say once that committing first makes the vendored tree and any `.awow` files easy to review, then continue. Do not block on it.
 
-## Step 2 — Preview (dry run)
+## Step 2 — Tailor what gets copied
 
-Run the engine in dry-run mode and show the output verbatim:
+Two choices decide how much lands in the repo. Ask both before previewing, so awow copies only what this user will use rather than everything:
+
+1. **Solo or team?** "Is this just for you, or a whole team?" Solo drops the team-coordination files — neighbouring teams, the member roster, and the digest / cross-team / coaching / transcript commands. Pass `--solo` for solo; omit it for team.
+2. **Which board?** "Which issue tracker does this project use — Linear, Jira, Azure DevOps, or GitHub Issues? Pick 'not sure' to keep all four references for now." Pass `--board <linear|jira|azure-devops|github-issues>`; on "not sure", omit the flag.
+
+Carry both answers forward — the wizard must not ask them again.
+
+## Step 3 — Preview (dry run)
+
+Run the engine in dry-run mode with the chosen flags and show the output verbatim (include `--solo` and `--board <tool>` only when the user picked them):
 
 ```
-"${CLAUDE_PLUGIN_ROOT}/setup/awowify.sh" --source "${CLAUDE_PLUGIN_ROOT}" --target "$PWD" --dry-run
+"${CLAUDE_PLUGIN_ROOT}/setup/awowify.sh" --source "${CLAUDE_PLUGIN_ROOT}" --target "$PWD" [--solo] [--board <tool>] --dry-run
 ```
 
-Summarise three things: how many files will be copied, which existing files will be saved as `<file>.awow` (their originals are never touched), and that `README.md` is never vendored. Ask for explicit permission before the real copy. Write nothing until the user approves.
+Summarise: how many files will be copied and how many trimmed by the solo / board choice, which existing files will be saved as `<file>.awow` (originals untouched), and that `README.md` is never vendored. Ask for explicit permission before the real copy. Write nothing until the user approves.
 
-## Step 3 — Vendor
+## Step 4 — Vendor
 
 On approval, run the same command without `--dry-run`. Surface its output. If it reported conflicts, name each `.awow` file: these are awow's versions saved beside the user's own to merge later — they do not block setup. `pyproject.toml.awow` matters only if the user later wants the skills that need extra Python dependencies.
 
-## Step 4 — Hand off to the wizard
+## Step 5 — Hand off to the wizard
 
-Whether you vendored just now or awow was already here, continue in the same session — do not wait for the user to type anything. Read `.agents/commands/setup-awow.md` and execute it from the top. Its Step 0 detection runs `setup/install.sh` (asking permission first, as it always does) only when the stubs or `.venv` are missing — that wires `uv` / `.venv` and runs `tools/gather.py` — and skips straight ahead when they are already in place. Continue through Step 1 and onward, including the solo-or-team question the wizard asks on entry.
+Whether you vendored just now or awow was already here, continue in the same session — do not wait for the user to type anything. Read `.agents/commands/setup-awow.md` and execute it from the top. Its Step 0 detection runs `setup/install.sh` (asking permission first, as it always does) only when the stubs or `.venv` are missing — that wires `uv` / `.venv` and runs `tools/gather.py` — and skips straight ahead when they are already in place. You already know the user's track and board from Step 2: record them per the wizard's Track section and Step 1, and do not re-ask. Continue through Step 1 and onward.
 
 Tell the user once, at the handoff:
 

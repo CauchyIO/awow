@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design systems &amp; HTML artifacts &mdash; awow Guide</title>
+<!--
+  AWOW GUIDE — design systems & HTML artifacts
+  How a team stands up a design system once (/design-system) and produces
+  styled HTML artifacts from it many times (/artifact). Self-demonstrating:
+  this page is built with the same self-contained single-file pattern it
+  describes. Self-contained — no external fonts, links, or scripts.
+-->
+<style>
+  :root {
+    --bg: #f6f5f3;
+    --surface: #ffffff;
+    --surface-alt: #f0efed;
+    --text-1: #1a1a1a;
+    --text-2: #6b6b6b;
+    --text-3: #9a9a9a;
+    --border: #e0dfdd;
+    --border-subtle: #ebeae8;
+    --accent: #f24b37;
+    --link: #337FF9;
+    --ok: #2e7d4f;
+    --warn: #c97a1b;
+    --risk: #b53a2a;
+  }
+  body { margin:0; padding:0; width:100%; font-family:'Nunito',system-ui,sans-serif; background:var(--bg); color:var(--text-1); line-height:1.6; }
+  .wrap { max-width:920px; margin:0 auto; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .pad { padding:28px 40px; border-bottom:1px solid var(--border-subtle); }
+  .pad-tight { padding:20px 40px; border-bottom:1px solid var(--border-subtle); }
+  h1 { font-size:1.9rem; font-weight:700; margin:0; letter-spacing:-0.02em; }
+  h2 { font-size:1.35rem; font-weight:600; margin:0 0 16px; letter-spacing:-0.01em; }
+  h3 { font-size:1.05rem; font-weight:600; margin:24px 0 10px; letter-spacing:-0.01em; }
+  h4 { font-size:0.92rem; font-weight:600; margin:18px 0 8px; }
+  p  { font-size:0.92rem; color:var(--text-2); margin:0 0 12px; line-height:1.7; }
+  ul, ol { font-size:0.92rem; color:var(--text-2); line-height:1.7; padding-left:22px; margin:0 0 14px; }
+  li { margin:4px 0; }
+  strong { color:var(--text-1); font-weight:600; }
+  em { color:var(--text-1); font-style:italic; }
+  a { color:var(--link); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  code { font-family:'JetBrains Mono',ui-monospace,monospace; font-size:0.85em; background:var(--surface-alt); padding:1px 6px; border-radius:3px; border:1px solid var(--border-subtle); }
+  table.data { border-collapse:collapse; width:100%; font-size:0.85rem; margin:0 0 16px; }
+  table.data th { text-align:left; font-weight:600; padding:8px 10px; border-bottom:2px solid var(--border); background:var(--surface-alt); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; }
+  table.data td { padding:8px 10px; border-bottom:1px solid var(--border-subtle); color:var(--text-2); vertical-align:top; line-height:1.5; }
+  table.data tr:last-child td { border-bottom:none; }
+  table.data td strong { color:var(--text-1); }
+  .kicker { font-size:0.72rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin:0 0 8px; }
+  .meta-row { display:flex; flex-wrap:wrap; gap:14px 24px; margin:4px 0 0; font-size:0.78rem; color:var(--text-3); }
+  .meta-row span strong { color:var(--text-2); font-weight:600; }
+  .badge { display:inline-block; font-size:0.7rem; font-weight:600; padding:3px 10px; border-radius:4px; border:1px solid var(--border); color:var(--text-1); background:var(--surface); }
+  .badge-accent { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .badges { display:flex; gap:6px; flex-wrap:wrap; }
+  .callout { background:var(--surface-alt); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 16px; font-size:0.88rem; color:var(--text-2); line-height:1.65; }
+  .callout strong { color:var(--text-1); }
+  .callout-warn { border-left-color:var(--warn); }
+  .callout-risk { border-left-color:var(--risk); }
+  .callout-ok { border-left-color:var(--ok); }
+  .part-header { background:var(--text-1); color:#fff; padding:28px 40px; }
+  .part-header .part-num { font-size:0.72rem; font-weight:600; color:var(--accent); text-transform:uppercase; letter-spacing:0.16em; margin:0 0 8px; }
+  .part-header h2 { color:#fff; margin:0; font-size:1.45rem; font-weight:700; letter-spacing:-0.01em; }
+  .part-header p  { color:rgba(255,255,255,0.7); margin:6px 0 0; font-size:0.92rem; }
+  .diagram { background:var(--surface-alt); border:1px solid var(--border-subtle); border-radius:10px; padding:18px 16px 12px; margin:0 0 18px; }
+  .diagram-title { font-size:0.72rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin:0 0 12px; padding:0 8px; display:flex; justify-content:space-between; }
+  .diagram-title .tag { color:var(--accent); }
+  .diagram svg { display:block; max-width:100%; height:auto; margin:0 auto; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:0.78rem; color:var(--text-2); padding:8px 8px 0; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .legend i { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid var(--border); }
+  .toc { background:var(--surface-alt); border-radius:8px; padding:18px 22px; margin:0; }
+  .toc ol { padding-left:22px; margin:0; columns:2; column-gap:28px; }
+  .toc li { margin:5px 0; font-size:0.85rem; color:var(--text-2); }
+  .toc a { color:var(--text-1); font-weight:500; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
+  .card .card-label { font-size:0.7rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; }
+  .open-q { background:rgba(242,75,55,0.06); border:1px solid rgba(242,75,55,0.25); border-radius:8px; padding:12px 16px; margin:0 0 12px; }
+  .open-q strong { color:var(--accent); }
+  .pill { display:inline-block; font-family:'JetBrains Mono',ui-monospace,monospace; font-size:0.72rem; padding:2px 8px; background:#fff; color:var(--text-1); border:1px solid var(--border); border-radius:10px; }
+  .swatches { display:flex; flex-wrap:wrap; gap:10px; margin:0 0 16px; }
+  .sw { display:flex; flex-direction:column; gap:6px; align-items:center; font-size:0.7rem; color:var(--text-3); }
+  .sw i { width:54px; height:38px; border-radius:7px; border:1px solid var(--border); display:block; }
+  .sw code { font-size:0.68rem; }
+  @media (max-width: 720px) {
+    .pad, .pad-tight, .part-header { padding-left:22px; padding-right:22px; }
+    .toc ol { columns:1; }
+    .grid-2, .grid-3 { grid-template-columns:1fr; }
+  }
+  @media print {
+    body { background:#fff; }
+    .wrap { border:none; border-radius:0; max-width:100%; }
+    a { color:var(--text-1); }
+    .part-header { page-break-before:always; }
+  }
+
+  /* ===== LEFT INDEX (auto-built from section headings) ===== */
+  .guide-toc { position:fixed; top:0; left:0; width:232px; height:100vh; background:var(--surface); border-right:1px solid var(--border); z-index:60; display:flex; flex-direction:column; overflow-y:auto; padding:20px 0; }
+  .guide-toc .toc-brand { display:flex; align-items:center; gap:8px; padding:0 20px 18px; border-bottom:1px solid var(--border-subtle); margin-bottom:10px; flex-shrink:0; }
+  .guide-toc .toc-brand svg { width:18px; height:18px; flex:none; }
+  .guide-toc .toc-brand span { font-size:12px; font-weight:700; letter-spacing:0.06em; color:var(--text-2); text-transform:uppercase; }
+  .guide-toc a.toc-item { display:flex; align-items:flex-start; gap:10px; padding:8px 20px; text-decoration:none; color:var(--text-2); font-size:12px; font-weight:500; line-height:1.45; border-left:3px solid transparent; transition:background 0.12s, color 0.12s; }
+  .guide-toc a.toc-item:hover { background:var(--surface-alt); color:var(--text-1); }
+  .guide-toc a.toc-item.active { background:var(--surface-alt); color:var(--text-1); font-weight:700; border-left-color:var(--accent); }
+  .guide-toc .toc-num { font-size:10px; font-weight:700; color:var(--accent); min-width:16px; opacity:0.5; padding-top:1px; flex:none; }
+  .guide-toc a.toc-item.active .toc-num { opacity:1; }
+  @media (min-width:1024px) { body { padding-left:232px; } }
+  @media (max-width:1023px) { .guide-toc { display:none; } }
+  @media print { .guide-toc { display:none !important; } body { padding-left:0 !important; } }
+</style>
+</head>
+<body>
+
+<nav class="guide-toc" id="guideToc" aria-label="Contents">
+  <a class="toc-brand" href="index.html" style="text-decoration:none;"><svg viewBox="0 0 500 500" fill="none"><path d="M250 50C139.543 50 50 139.543 50 250C50 360.457 139.543 450 250 450C360.457 450 450 360.457 450 250C450 214.612 440.841 181.387 424.664 152.664L353.033 224.295C356.229 232.471 358 241.473 358 250C358 309.647 309.647 358 250 358C190.353 358 142 309.647 142 250C142 190.353 190.353 142 250 142C275.948 142 299.727 151.424 318.295 166.967L389.926 95.336C348.387 66.159 297.388 50 250 50Z" fill="#f24b37"/></svg><span>awow &middot; guides</span></a>
+  <!-- items injected by script below -->
+</nav>
+
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="pad" style="padding-top:36px;padding-bottom:24px;">
+    <p style="font-size:13px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin:0 0 10px;">Way of Working &middot; Guide</p>
+    <h1>Design systems &amp; HTML artifacts</h1>
+    <p style="font-size:1rem;color:var(--text-2);margin:6px 0 0;font-weight:500;">Stand a design system up once; produce decks, blogs, and solution designs from it many times &mdash; without re-deciding the styling each time.</p>
+    <div class="meta-row" style="margin-top:14px;">
+      <span><strong>Phase</strong> Spread</span>
+      <span><strong>Commands</strong> <code>/design-system</code>, <code>/artifact</code></span>
+      <span><strong>Audience</strong> teams that publish styled HTML</span>
+    </div>
+    <div class="badges" style="margin-top:16px;">
+      <span class="badge">opt-in</span>
+      <span class="badge">durable team artifact</span>
+      <span class="badge">self-contained HTML</span>
+      <span class="badge badge-accent">this page is built with the system it describes</span>
+    </div>
+  </div>
+
+  <!-- TL;DR -->
+  <div class="pad-tight">
+    <p class="kicker">TL;DR</p>
+    <p>A design system is a <strong>durable team artifact</strong>. You <strong>build it once</strong> (<code>/design-system</code>); then every deck, blog, and solution design is <strong>rendered from it plus a content file</strong> (<code>/artifact</code>). Opt-in &mdash; board-only teams never touch it.</p>
+  </div>
+
+  <!-- HERO STORY -->
+  <div class="pad">
+    <div class="diagram">
+      <p class="diagram-title"><span>The whole story in one picture</span><span class="tag">system + content &rarr; artifact</span></p>
+      <svg viewBox="0 0 880 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Design system plus content markdown flow into the artifact renderer producing styled outputs">
+        <defs>
+          <marker id="arrH" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/>
+          </marker>
+        </defs>
+
+        <!-- phase labels + divider -->
+        <text x="160" y="34" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="800" fill="#f24b37" letter-spacing="1.5">BUILD ONCE &middot; RARE</text>
+        <text x="600" y="34" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="800" fill="#337FF9" letter-spacing="1.5">USE OFTEN &middot; FREQUENT</text>
+        <line x1="340" y1="48" x2="340" y2="308" stroke="#e0dfdd" stroke-width="1.5" stroke-dasharray="5 5"/>
+
+        <!-- design system stack -->
+        <rect x="30" y="64" width="260" height="158" rx="12" fill="rgba(242,75,55,0.07)" stroke="#f24b37" stroke-width="1.5"/>
+        <text x="160" y="88" text-anchor="middle" font-family="Nunito,sans-serif" font-size="14" font-weight="800" fill="#1a1a1a">Design system</text>
+        <rect x="46" y="102" width="228" height="34" rx="7" fill="#fff" stroke="#e0dfdd"/>
+        <text x="160" y="124" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="12" fill="#1a1a1a">style-guide.html</text>
+        <rect x="46" y="142" width="228" height="34" rx="7" fill="#fff" stroke="#e0dfdd"/>
+        <text x="160" y="164" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" fill="#6b6b6b">tokens &middot; fonts &middot; spacing</text>
+        <rect x="46" y="182" width="228" height="34" rx="7" fill="#fff" stroke="#e0dfdd"/>
+        <text x="160" y="204" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="12" fill="#1a1a1a">templates/</text>
+
+        <!-- content input -->
+        <rect x="30" y="246" width="260" height="58" rx="10" fill="#fff" stroke="#1a1a1a" stroke-width="1.5"/>
+        <text x="160" y="272" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="12" fill="#1a1a1a">slides.md</text>
+        <text x="160" y="290" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">what you're publishing</text>
+
+        <!-- /artifact renderer -->
+        <rect x="384" y="154" width="170" height="92" rx="12" fill="rgba(51,127,249,0.10)" stroke="#337FF9" stroke-width="1.5"/>
+        <text x="469" y="194" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="14" font-weight="700" fill="#1a1a1a">/artifact</text>
+        <text x="469" y="216" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">render &amp; verify</text>
+
+        <!-- outputs -->
+        <rect x="636" y="113" width="216" height="46" rx="9" fill="rgba(46,125,79,0.09)" stroke="#2e7d4f"/>
+        <text x="744" y="141" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="12" fill="#1a1a1a">slides.html</text>
+        <rect x="636" y="177" width="216" height="46" rx="9" fill="rgba(46,125,79,0.09)" stroke="#2e7d4f"/>
+        <text x="744" y="205" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="12" fill="#1a1a1a">blog.html</text>
+        <rect x="636" y="241" width="216" height="46" rx="9" fill="rgba(46,125,79,0.09)" stroke="#2e7d4f"/>
+        <text x="744" y="269" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="12" fill="#1a1a1a">artifact.pdf</text>
+
+        <!-- arrows: design system + content -> /artifact -->
+        <line x1="290" y1="143" x2="382" y2="184" stroke="#f24b37" stroke-width="1.6" marker-end="url(#arrH)"/>
+        <text x="337" y="129" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10.5" font-weight="600" fill="#b53a2a" paint-order="stroke" stroke="#f0efed" stroke-width="4" stroke-linejoin="round">tokens + template</text>
+        <line x1="290" y1="275" x2="382" y2="216" stroke="#1a1a1a" stroke-width="1.6" marker-end="url(#arrH)"/>
+        <text x="337" y="266" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10.5" font-weight="600" fill="#6b6b6b" paint-order="stroke" stroke="#f0efed" stroke-width="4" stroke-linejoin="round">content</text>
+        <!-- arrows: /artifact -> outputs -->
+        <line x1="556" y1="186" x2="634" y2="136" stroke="#2e7d4f" stroke-width="1.6" marker-end="url(#arrH)"/>
+        <line x1="556" y1="200" x2="634" y2="200" stroke="#2e7d4f" stroke-width="1.6" marker-end="url(#arrH)"/>
+        <line x1="556" y1="214" x2="634" y2="264" stroke="#2e7d4f" stroke-width="1.6" marker-end="url(#arrH)"/>
+      </svg>
+      <div class="legend">
+        <span><i style="background:rgba(242,75,55,0.12);border-color:#f24b37;"></i> built once</span>
+        <span><i style="background:#ffffff;border-color:#1a1a1a;"></i> your content</span>
+        <span><i style="background:rgba(51,127,249,0.14);border-color:#337FF9;"></i> the renderer</span>
+        <span><i style="background:rgba(46,125,79,0.12);border-color:#2e7d4f;"></i> styled output</span>
+      </div>
+    </div>
+    <p style="margin:0;">Read left to right: the <strong style="color:var(--accent);">design system</strong> is built once and rarely changes; your <strong>content</strong> changes every time; <code>/artifact</code> combines them into <strong style="color:var(--ok);">styled output</strong>. The rest of this guide is just those two halves, up close.</p>
+  </div>
+
+  <!-- TOC -->
+  <div class="pad-tight">
+    <div class="toc">
+      <p class="kicker" style="margin:0 0 8px;">Contents</p>
+      <ol>
+        <li><a href="#what">What a design system is in awow</a></li>
+        <li><a href="#pointer">The pointer &mdash; one place that knows</a></li>
+        <li><a href="#establish">Establishing it &mdash; <code>/design-system</code></a></li>
+        <li><a href="#apply">Producing an artifact &mdash; <code>/artifact</code></a></li>
+        <li><a href="#plumbing">How it plugs into the rest of awow</a></li>
+        <li><a href="#conventions">Conventions that make it work</a></li>
+        <li><a href="#open">Open questions a team should answer</a></li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- 1. WHAT -->
+  <div class="pad" id="what">
+    <h2>1. What a design system is in awow</h2>
+    <p>Not a token JSON file and not a Sass package. In awow a design system is a small set of cooperating artifacts, all hand-readable and self-contained:</p>
+    <table class="data">
+      <thead><tr><th style="width:30%">Artifact</th><th>What it is</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Style guide</strong><br><span class="pill">style-guide.html</span></td><td>One self-contained HTML page with the tokens as CSS variables and <em>live component demos</em>. This is the source of truth. Versioned; old versions deprecated explicitly.</td></tr>
+        <tr><td><strong>Templates</strong><br><span class="pill">templates/&lt;type&gt;/</span></td><td>One <code>template.html</code> + <code>TEMPLATE.md</code> per artifact type (presentation, blog, one-pager). The HTML carries the full token block; the markdown carries a content&rarr;component map so an artifact can be generated without re-deriving anything.</td></tr>
+        <tr><td><strong>Pointer</strong><br><span class="pill">context/tooling/design-system.md</span></td><td>Says whether a system exists and where. Every artifact-producing command reads it first. Covered in &sect;2.</td></tr>
+        <tr><td><strong>The rule</strong><br><span class="pill">CLAUDE.md</span></td><td>An enforced instruction: when an artifact is produced and a system is present, read the source and adopt it &mdash; never invent styling.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout"><strong>Why one self-contained HTML page?</strong> Open it anywhere, mail it, print it to PDF &mdash; no build step (this page works that way). Cost: tokens duplicate across files; the "re-read the source" rule keeps them from drifting.</div>
+  </div>
+
+  <!-- 2. POINTER -->
+  <div class="pad" id="pointer">
+    <h2>2. The pointer &mdash; one place that knows</h2>
+    <p><code>context/tooling/design-system.md</code> ships as <code>mode: absent</code>. That single field is what lets the rule "follow the design system if present" mean something everywhere &mdash; a command reads the pointer and either enforces or stands down.</p>
+
+    <div class="diagram">
+      <p class="diagram-title"><span>The three modes</span><span class="tag">pointer</span></p>
+      <svg viewBox="0 0 880 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three pointer modes diagram">
+        <rect x="30" y="50" width="250" height="150" rx="10" fill="#ffffff" stroke="#9a9a9a"/>
+        <text x="155" y="84" text-anchor="middle" font-family="Nunito,sans-serif" font-size="15" font-weight="700" fill="#1a1a1a">absent</text>
+        <text x="155" y="110" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">no design system</text>
+        <text x="155" y="134" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">artifacts use plain</text>
+        <text x="155" y="150" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">accessible defaults</text>
+        <text x="155" y="180" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#9a9a9a">the shipped default</text>
+
+        <rect x="315" y="50" width="250" height="150" rx="10" fill="#e7f0e7" stroke="#2e7d4f"/>
+        <text x="440" y="84" text-anchor="middle" font-family="Nunito,sans-serif" font-size="15" font-weight="700" fill="#1a1a1a">in-repo</text>
+        <text x="440" y="110" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">lives under</text>
+        <text x="440" y="128" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#1a1a1a">context/design-system/</text>
+        <text x="440" y="152" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">self-contained, no</text>
+        <text x="440" y="168" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">cross-repo fragility</text>
+
+        <rect x="600" y="50" width="250" height="150" rx="10" fill="#e6eef6" stroke="#2b5f8a"/>
+        <text x="725" y="84" text-anchor="middle" font-family="Nunito,sans-serif" font-size="15" font-weight="700" fill="#1a1a1a">external</text>
+        <text x="725" y="110" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">another repo, by</text>
+        <text x="725" y="126" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">absolute path</text>
+        <text x="725" y="150" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">read from filesystem</text>
+        <text x="725" y="166" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">(private repo? not MCP)</text>
+      </svg>
+      <div class="legend">
+        <span><i style="background:#ffffff;border-color:#9a9a9a;"></i> stand down</span>
+        <span><i style="background:#e7f0e7;"></i> system in this repo</span>
+        <span><i style="background:#e6eef6;"></i> system in a sibling repo</span>
+      </div>
+    </div>
+
+    <p>One rule rides on every mode: <strong>always re-read the source before generating</strong> &mdash; the pointer's token summary is a cache and can drift. For a private external repo, read it by filesystem path (a board MCP will 404).</p>
+  </div>
+
+  <!-- 3. ESTABLISH -->
+  <div class="part-header" id="establish">
+    <p class="part-num">Rare &middot; once per brand</p>
+    <h2>3. Establishing it &mdash; <code style="color:#fff;background:rgba(255,255,255,0.12);border:none;">/design-system</code></h2>
+    <p>A gated pipeline. Stop at each gate, show the work, wait for approval. You build the thing artifacts are generated from &mdash; you do not generate a deck here.</p>
+  </div>
+  <div class="pad">
+    <div class="diagram">
+      <p class="diagram-title"><span>Establish &mdash; three gates</span><span class="tag">/design-system</span></p>
+      <svg viewBox="0 0 880 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Establish pipeline gates">
+        <defs>
+          <marker id="arrE" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/>
+          </marker>
+        </defs>
+        <rect x="20"  y="45" width="250" height="60" rx="10" fill="#f7e3df" stroke="#b53a2a"/>
+        <text x="145" y="70" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="700" fill="#1a1a1a">Gate 1 &mdash; source &amp; method</text>
+        <text x="145" y="88" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">tear down a reference, extract the method</text>
+
+        <rect x="315" y="45" width="250" height="60" rx="10" fill="#fbf0e0" stroke="#c97a1a"/>
+        <text x="440" y="70" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="700" fill="#1a1a1a">Gate 2 &mdash; tokens &amp; rules</text>
+        <text x="440" y="88" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">small token set, fonts, principles</text>
+
+        <rect x="610" y="45" width="250" height="60" rx="10" fill="#e7f0e7" stroke="#2e7d4f"/>
+        <text x="735" y="70" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="700" fill="#1a1a1a">Gate 3 &mdash; write &amp; wire</text>
+        <text x="735" y="88" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">style guide + templates + pointer</text>
+
+        <line x1="270" y1="75" x2="311" y2="75" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrE)"/>
+        <line x1="565" y1="75" x2="606" y2="75" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrE)"/>
+      </svg>
+    </div>
+
+    <h3>3.1 Tear down a reference, empirically</h3>
+    <p>Capture a reference site's <em>computed styles</em> with a headless browser &mdash; colours, fonts, sizes, tracking &mdash; not just screenshots. Extract the <strong>method</strong>, then re-express it in your own tokens. Don't clone a palette and call it a system.</p>
+
+    <h3>3.2 Define a small token set</h3>
+    <p>Resist a sprawling palette &mdash; the load-bearing set is short:</p>
+    <div class="swatches">
+      <div class="sw"><i style="background:#f6f5f3;"></i><code>#f6f5f3</code><span>background</span></div>
+      <div class="sw"><i style="background:#ffffff;"></i><code>#ffffff</code><span>surface</span></div>
+      <div class="sw"><i style="background:#f24b37;"></i><code>#f24b37</code><span>accent &mdash; logo only</span></div>
+      <div class="sw"><i style="background:#1a1a1a;"></i><code>#1a1a1a</code><span>text 1</span></div>
+      <div class="sw"><i style="background:#6b6b6b;"></i><code>#6b6b6b</code><span>text 2</span></div>
+      <div class="sw"><i style="background:#9a9a9a;"></i><code>#9a9a9a</code><span>text 3</span></div>
+    </div>
+    <p>One background, one surface, <strong>one accent (logo or single emphasis &mdash; never a fill)</strong>, a three-step text ramp, named <em>semantic</em> tints, a spacing scale. Pick fonts, cap the weight. The swatches above are awow's own &mdash; yours will differ.</p>
+
+    <h3>3.3 Write the guide, build templates, wire the pointer</h3>
+    <p>Write the self-contained style-guide page with live demos; build <code>template.html</code> + <code>TEMPLATE.md</code> per artifact type; set the pointer. Render it in a browser before the final gate &mdash; never ship a guide you haven't seen.</p>
+  </div>
+
+  <!-- 4. APPLY -->
+  <div class="part-header" id="apply">
+    <p class="part-num">Frequent &middot; every artifact</p>
+    <h2>4. Producing an artifact &mdash; <code style="color:#fff;background:rgba(255,255,255,0.12);border:none;">/artifact</code></h2>
+    <p>Lighter than establishing, but it still gates on content before generating &mdash; regenerating HTML from changed markdown is cheap; rewriting hand-tuned HTML is not.</p>
+  </div>
+  <div class="pad">
+    <div class="diagram">
+      <p class="diagram-title"><span>Apply &mdash; content first, render last</span><span class="tag">/artifact</span></p>
+      <svg viewBox="0 0 880 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apply pipeline">
+        <defs>
+          <marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/>
+          </marker>
+        </defs>
+        <rect x="14"  y="55" width="150" height="58" rx="9" fill="#ffffff" stroke="#1a1a1a"/>
+        <text x="89" y="80" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="700" fill="#1a1a1a">Content</text>
+        <text x="89" y="97" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">markdown, agreed</text>
+
+        <rect x="194" y="55" width="150" height="58" rx="9" fill="#e6eef6" stroke="#2b5f8a"/>
+        <text x="269" y="80" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="700" fill="#1a1a1a">Generate HTML</text>
+        <text x="269" y="97" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">from the template</text>
+
+        <rect x="374" y="55" width="150" height="58" rx="9" fill="#fbf0e0" stroke="#c97a1a"/>
+        <text x="449" y="80" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="700" fill="#1a1a1a">Verify layout</text>
+        <text x="449" y="97" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">headless browser</text>
+
+        <rect x="554" y="55" width="150" height="58" rx="9" fill="#f7e3df" stroke="#b53a2a"/>
+        <text x="629" y="80" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="700" fill="#1a1a1a">Export PDF</text>
+        <text x="629" y="97" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">Chrome headless</text>
+
+        <rect x="734" y="55" width="132" height="58" rx="9" fill="#e7f0e7" stroke="#2e7d4f"/>
+        <text x="800" y="80" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="700" fill="#1a1a1a">Land</text>
+        <text x="800" y="97" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">commit + board</text>
+
+        <line x1="164" y1="84" x2="190" y2="84" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrA)"/>
+        <line x1="344" y1="84" x2="370" y2="84" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrA)"/>
+        <line x1="524" y1="84" x2="550" y2="84" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrA)"/>
+        <line x1="704" y1="84" x2="730" y2="84" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrA)"/>
+
+        <text x="269" y="135" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#9a9a9a">re-read the source first</text>
+        <text x="629" y="135" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#9a9a9a">fix overflow &rarr; regenerate</text>
+      </svg>
+    </div>
+    <div class="grid-2">
+      <div class="card"><p class="card-label">1 &middot; Content first</p><p style="font-size:0.85rem;margin:0;">Draft and agree the markdown. Gate before any HTML exists.</p></div>
+      <div class="card"><p class="card-label">2 &middot; Generate from template</p><p style="font-size:0.85rem;margin:0;">Keep its <code>&lt;style&gt;</code> and nav verbatim. HTML/CSS diagrams over raw SVG or Mermaid.</p></div>
+      <div class="card"><p class="card-label">3 &middot; Verify, then export</p><p style="font-size:0.85rem;margin:0;">Check layout in a headless browser; PDF via Chrome headless (modern CSS survives); fix overflow, regenerate.</p></div>
+      <div class="card"><p class="card-label">4 &middot; Land it</p><p style="font-size:0.85rem;margin:0;">Commit markdown + HTML + PDF; update the board.</p></div>
+    </div>
+    <div class="callout callout-ok" style="margin-top:16px;"><strong>No system yet?</strong> If the pointer is <code>absent</code>, <code>/artifact</code> offers <code>/design-system</code> first, or proceeds with plain defaults on your say-so &mdash; it never fakes a house style.</div>
+  </div>
+
+  <!-- 5. PLUMBING -->
+  <div class="pad" id="plumbing">
+    <h2>5. How it plugs into the rest of awow</h2>
+    <p>The design system is not a silo &mdash; the "adopt it if present" rule reaches every surface that emits HTML.</p>
+    <table class="data">
+      <thead><tr><th style="width:30%">Surface</th><th>What it does with the design system</th></tr></thead>
+      <tbody>
+        <tr><td><strong>CLAUDE.md rule</strong></td><td>"When you produce an HTML artifact" &mdash; read the pointer, adopt the system when present, re-read the source each time. Applies even to ad-hoc HTML that never goes through <code>/artifact</code>.</td></tr>
+        <tr><td><strong><code>/solution-design-flow</code></strong></td><td>Phase 0 reads the pointer; the presentation track adopts the system when present and hands the generate-and-render mechanics to <code>/artifact</code> rather than duplicating them.</td></tr>
+        <tr><td><strong><code>/setup-awow</code> Step 8</strong></td><td>Detects an existing system; if none, asks one question &mdash; "do you produce styled HTML artifacts?" &mdash; and, on yes, suggests <code>/awow-add design-system</code>. Implicit and opt-in; never auto-run.</td></tr>
+        <tr><td><strong>Digests</strong></td><td>Styled HTML digests adopt the same tokens, so a daily/weekly digest looks like it belongs to the team rather than to the tool.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 6. CONVENTIONS -->
+  <div class="pad" id="conventions">
+    <h2>6. Conventions that make it work</h2>
+    <div class="grid-2">
+      <div class="card"><p class="card-label">Accent is the logo, full stop</p><p style="font-size:0.85rem;margin:0;">The single accent colour is reserved for the wordmark or one emphasis. Never a background fill. Hierarchy comes from weight, not colour.</p></div>
+      <div class="card"><p class="card-label">Borders over shadows</p><p style="font-size:0.85rem;margin:0;">1px borders and a small radius, not drop shadows. Calmer, prints cleanly, reads the same on every surface.</p></div>
+      <div class="card"><p class="card-label">Semantic tints</p><p style="font-size:0.85rem;margin:0;">Each tint family <em>means</em> something (plan, action, reference). Colour carries information; it is not decoration.</p></div>
+      <div class="card"><p class="card-label">Content before HTML</p><p style="font-size:0.85rem;margin:0;">Agree the markdown, then generate. Never hand-author a styled artifact when a template exists.</p></div>
+      <div class="card"><p class="card-label">Re-read the source</p><p style="font-size:0.85rem;margin:0;">The pointer's token summary is a cache. The style guide is authoritative; re-read it each run so artifacts don't drift.</p></div>
+      <div class="card"><p class="card-label">Self-contained, single file</p><p style="font-size:0.85rem;margin:0;">Inline CSS, inline SVG, no build step. Open it anywhere, print it to PDF, mail it. Like this very page.</p></div>
+    </div>
+  </div>
+
+  <!-- 7. OPEN -->
+  <div class="part-header" id="open">
+    <p class="part-num">For each team to answer</p>
+    <h2>7. Open questions a team should answer</h2>
+    <p>Calls each adopting team makes for itself &mdash; intentionally not decided here.</p>
+  </div>
+  <div class="pad" style="border-bottom:none;">
+    <div class="open-q"><strong>Q1.</strong> In-repo or external? Keep the system under <code>context/design-system/</code> for self-containment, or point at a dedicated design repo you already maintain? External wins when design assets live elsewhere; in-repo wins when they don't.</div>
+    <div class="open-q"><strong>Q2.</strong> Which artifact types earn a template? Every type you produce more than once or twice. A presentation template almost always; a one-pager template only if one-pagers recur.</div>
+    <div class="open-q"><strong>Q3.</strong> Render toolchain. Chrome headless is the default for print-to-PDF because modern CSS survives. Is that available in your environment, or do you need a different exporter (and to constrain the CSS accordingly)?</div>
+    <div class="open-q"><strong>Q4.</strong> Cache vs source drift. The pointer caches a token summary. How hard do you enforce "re-read the source"? A lint that diffs the cache against the style guide, or trust the rule?</div>
+    <div class="open-q"><strong>Q5.</strong> Should awow itself declare its own system? These guides clearly use one, yet the shipped pointer is <code>absent</code> so adopters start clean. If the project dogfoods its own pointer, keep adopters resetting to <code>absent</code> on clone.</div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var toc=document.getElementById('guideToc'); if(!toc) return;
+  var heads=[].slice.call(document.querySelectorAll('.wrap h2')); if(!heads.length) return;
+  var pad2=function(n){return n<10?'0'+n:''+n;};
+  var slug=function(t){return t.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'sec';};
+  var top=function(el){return el.getBoundingClientRect().top+window.scrollY;};
+  var items=[];
+  heads.forEach(function(h){
+    var label=h.textContent.trim().replace(/^\s*\d+[.)]\s*/,'');
+    if(!label) return;
+    var target=h.closest('.pad,.pad-tight,.part-header,section')||h;
+    if(!target.id) target.id='sec-'+(items.length+1)+'-'+slug(label);
+    var a=document.createElement('a'); a.className='toc-item'; a.href='#'+target.id;
+    var num=document.createElement('span'); num.className='toc-num'; num.textContent=pad2(items.length+1);
+    var lab=document.createElement('span'); lab.className='toc-label'; lab.textContent=label;
+    a.appendChild(num); a.appendChild(lab);
+    a.addEventListener('click',function(e){e.preventDefault(); target.scrollIntoView({behavior:'smooth',block:'start'}); history.replaceState(null,'','#'+target.id);});
+    toc.appendChild(a); items.push({t:target,a:a});
+  });
+  var spy=function(){
+    var y=window.scrollY+130, cur=items[0];
+    for(var i=0;i<items.length;i++){ if(top(items[i].t)<=y) cur=items[i]; }
+    items.forEach(function(it){ it.a.classList.toggle('active', it===cur); });
+  };
+  window.addEventListener('scroll',spy,{passive:true});
+  window.addEventListener('resize',spy); spy();
+})();
+</script>
+</body>
+</html>

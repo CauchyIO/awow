@@ -128,7 +128,7 @@
     <h1>Design systems &amp; HTML artifacts</h1>
     <p style="font-size:1rem;color:var(--text-2);margin:6px 0 0;font-weight:500;">Stand a design system up once; produce decks, blogs, and solution designs from it many times &mdash; without re-deciding the styling each time.</p>
     <div class="meta-row" style="margin-top:14px;">
-      <span><strong>Phase</strong> Spread</span>
+      <span><strong>Stage</strong> Spread</span>
       <span><strong>Commands</strong> <code>/design-system</code>, <code>/artifact</code></span>
       <span><strong>Audience</strong> teams that publish styled HTML</span>
     </div>
@@ -157,7 +157,7 @@
           </marker>
         </defs>
 
-        <!-- phase labels + divider -->
+        <!-- stage labels + divider -->
         <text x="160" y="34" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="800" fill="#f24b37" letter-spacing="1.5">BUILD ONCE &middot; RARE</text>
         <text x="600" y="34" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="800" fill="#337FF9" letter-spacing="1.5">USE OFTEN &middot; FREQUENT</text>
         <line x1="340" y1="48" x2="340" y2="308" stroke="#e0dfdd" stroke-width="1.5" stroke-dasharray="5 5"/>
@@ -393,7 +393,7 @@
       <thead><tr><th style="width:30%">Surface</th><th>What it does with the design system</th></tr></thead>
       <tbody>
         <tr><td><strong>CLAUDE.md rule</strong></td><td>"When you produce an HTML artifact" &mdash; read the pointer, adopt the system when present, re-read the source each time. Applies even to ad-hoc HTML that never goes through <code>/artifact</code>.</td></tr>
-        <tr><td><strong><code>/solution-design-flow</code></strong></td><td>Phase 0 reads the pointer; the presentation track adopts the system when present and hands the generate-and-render mechanics to <code>/artifact</code> rather than duplicating them.</td></tr>
+        <tr><td><strong><code>/solution-design-flow</code></strong></td><td>Step 0 reads the pointer; the presentation track adopts the system when present and hands the generate-and-render mechanics to <code>/artifact</code> rather than duplicating them.</td></tr>
         <tr><td><strong><code>/setup-awow</code> Step 8</strong></td><td>Detects an existing system; if none, asks one question &mdash; "do you produce styled HTML artifacts?" &mdash; and, on yes, suggests <code>/awow-add design-system</code>. Implicit and opt-in; never auto-run.</td></tr>
         <tr><td><strong>Digests</strong></td><td>Styled HTML digests adopt the same tokens, so a daily/weekly digest looks like it belongs to the team rather than to the tool.</td></tr>
       </tbody>

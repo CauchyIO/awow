@@ -268,7 +268,7 @@
   <!-- MODE A VS B -->
   <div class="pad">
     <h2>Mode A vs. Mode B</h2>
-    <p>Phase 1b of Step 1 picks a mode automatically by counting closed (or <code>Done</code>) issues on the board. The threshold is <strong>10</strong>. Either way, the output file has identical headings.</p>
+    <p>Step 1b picks a mode automatically by counting closed (or <code>Done</code>) issues on the board. The threshold is <strong>10</strong>. Either way, the output file has identical headings.</p>
     <div class="grid-2">
       <div class="card">
         <p class="card-label" style="color:var(--ok)">Mode A &middot; &lt;10 closed issues</p>
@@ -381,7 +381,7 @@ gh auth refresh -s repo,project,read:org</pre>
       <li><strong>Write access</strong> &mdash; a <em>no-op</em> write on a scratch issue (re-set an existing label or its current description). Read-only is a blocker: the agent cannot do its job without write.</li>
       <li><strong>Record the verification status</strong> in <code>context/tooling/board.md</code> (<code>Tool &amp; wiring</code>).</li>
     </ol>
-    <p style="margin-bottom:0;">If the install cannot be completed in-session (token in another browser, IT ticket), the surface is recorded as <code>pending</code> and the wizard continues with Phase 1b so the repo is at least partially usable; write-dependent items are marked <code>pending-write</code>.</p>
+    <p style="margin-bottom:0;">If the install cannot be completed in-session (token in another browser, IT ticket), the surface is recorded as <code>pending</code> and the wizard continues with Step 1b so the repo is at least partially usable; write-dependent items are marked <code>pending-write</code>.</p>
   </div>
 
   <!-- FOOTER -->

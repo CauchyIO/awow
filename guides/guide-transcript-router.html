@@ -130,7 +130,7 @@
     <h1>Transcript router</h1>
     <p style="font-size:1rem;color:var(--text-2);margin:6px 0 0;font-weight:500;">One entry point. The router reads the transcript, recommends a specialist, and walks you through gated review &mdash; meeting to board in minutes.</p>
     <div class="meta-row" style="margin-top:14px;">
-      <span><strong>Phase</strong> Spread</span>
+      <span><strong>Stage</strong> Spread</span>
       <span><strong>Command</strong> <code>/process-transcript</code></span>
       <span><strong>Audience</strong> anyone turning meetings into board-ready work</span>
     </div>
@@ -398,7 +398,7 @@
     <pre>/process-transcript .github/transcripts/your-meeting.vtt</pre>
 
     <div class="diagram">
-      <p class="diagram-title"><span>Phase 0 &rarr; 4, with two gates you control</span><span class="tag">/process-transcript</span></p>
+      <p class="diagram-title"><span>Step 0 &rarr; 4, with two gates you control</span><span class="tag">/process-transcript</span></p>
       <svg viewBox="0 0 880 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Process-transcript pipeline with two gates">
         <defs>
           <marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -406,11 +406,11 @@
           </marker>
         </defs>
         <rect x="8"   y="62" width="118" height="60" rx="9" fill="#ffffff" stroke="#9a9a9a"/>
-        <text x="67" y="86" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#1a1a1a">Phase 0</text>
+        <text x="67" y="86" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#1a1a1a">Step 0</text>
         <text x="67" y="103" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">load context</text>
 
         <rect x="152" y="62" width="118" height="60" rx="9" fill="#ffffff" stroke="#1a1a1a"/>
-        <text x="211" y="86" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#1a1a1a">Phase 1</text>
+        <text x="211" y="86" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#1a1a1a">Step 1</text>
         <text x="211" y="103" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">detect + match</text>
 
         <rect x="296" y="62" width="118" height="60" rx="9" fill="#f7e3df" stroke="#b53a2a" stroke-width="1.5"/>
@@ -418,7 +418,7 @@
         <text x="355" y="103" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">confirm dispatch</text>
 
         <rect x="440" y="62" width="118" height="60" rx="9" fill="#e6eef6" stroke="#2b5f8a"/>
-        <text x="499" y="86" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#1a1a1a">Phase 2</text>
+        <text x="499" y="86" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#1a1a1a">Step 2</text>
         <text x="499" y="103" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">dispatch + stitch</text>
 
         <rect x="584" y="62" width="118" height="60" rx="9" fill="#fbf0e0" stroke="#c97a1a" stroke-width="1.5"/>
@@ -426,7 +426,7 @@
         <text x="643" y="103" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">approve actions</text>
 
         <rect x="728" y="62" width="118" height="60" rx="9" fill="#e7f0e7" stroke="#2e7d4f"/>
-        <text x="787" y="86" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#1a1a1a">Phase 4</text>
+        <text x="787" y="86" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#1a1a1a">Step 4</text>
         <text x="787" y="103" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">execute</text>
 
         <line x1="126" y1="92" x2="150" y2="92" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrP)"/>
@@ -437,7 +437,7 @@
 
         <text x="355" y="150" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#b53a2a">you confirm / correct / override</text>
         <text x="643" y="150" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#c97a1a">you approve before any board write</text>
-        <text x="499" y="172" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#9a9a9a">Phases 3&ndash;4 run only when a segment falls through to templated extraction</text>
+        <text x="499" y="172" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#9a9a9a">Steps 3&ndash;4 run only when a segment falls through to templated extraction</text>
       </svg>
     </div>
 
@@ -619,7 +619,7 @@ Then wireframes for the UI components.</pre>
       <tbody>
         <tr><td><code>&lt;skill&gt;.md</code></td><td><code>.agents/commands/</code></td><td>The full prompt (flat; phase lives in frontmatter)</td></tr>
         <tr><td>Mirror files</td><td><code>.claude/commands/</code> and <code>.github/prompts/</code></td><td>Auto-generated by <code>tools/gather.py</code></td></tr>
-        <tr><td>Grounding context</td><td><code>context/&lt;domain&gt;/</code></td><td>Canon + anti-patterns the prompt reads at Phase 0</td></tr>
+        <tr><td>Grounding context</td><td><code>context/&lt;domain&gt;/</code></td><td>Canon + anti-patterns the prompt reads at Step 0</td></tr>
         <tr><td>Guide HTML</td><td><code>guides/guide-&lt;workflow&gt;.html</code></td><td>Onboarding for first-time adopters</td></tr>
         <tr><td><code>consumes: transcript</code> + <code>when-to-use</code> / <code>when-not-to-use</code></td><td>frontmatter of the new <code>&lt;skill&gt;.md</code></td><td>What the router matches segments against at runtime &mdash; no registry file to maintain.</td></tr>
       </tbody>

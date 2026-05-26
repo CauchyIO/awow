@@ -1,0 +1,13 @@
+{
+  "name": "awow",
+  "owner": {
+    "name": "awow maintainers"
+  },
+  "plugins": [
+    {
+      "name": "awow",
+      "source": "./",
+      "description": "Drop awow onto an existing repo: /awowify vendors the starter tree and continues into setup. (Greenfield repos use \"Use this template\" instead.)"
+    }
+  ]
+}

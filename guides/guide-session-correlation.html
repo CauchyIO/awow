@@ -64,15 +64,18 @@
   .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:0.78rem; color:var(--text-2); padding:8px 8px 0; }
   .legend span { display:inline-flex; align-items:center; gap:6px; }
   .legend i { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid var(--border); }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
   .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
   .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
   .card .card-label { font-size:0.7rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; }
+  .card h3 { margin-top:0; }
   .step { display:flex; gap:14px; margin:0 0 14px; align-items:flex-start; }
   .step .n { flex:0 0 28px; width:28px; height:28px; border-radius:50%; background:var(--text-1); color:#fff; font-size:0.8rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
   .step .b { font-size:0.9rem; color:var(--text-2); line-height:1.6; }
   .step .b strong { color:var(--text-1); }
-  @media (max-width: 720px) {
+  @media (max-width: 760px) {
     .pad, .pad-tight { padding-left:22px; padding-right:22px; }
+    .grid-3 { grid-template-columns:1fr; }
     .grid-2 { grid-template-columns:1fr; }
   }
   @media print {

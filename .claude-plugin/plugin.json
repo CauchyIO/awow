@@ -1,0 +1,6 @@
+{
+  "name": "awow",
+  "description": "Drop the agentic way of working onto an existing repo. /awowify vendors the starter tree non-destructively, then continues straight into the setup wizard.",
+  "version": "0.1.0",
+  "commands": ["./.agents/commands/awowify.md"]
+}

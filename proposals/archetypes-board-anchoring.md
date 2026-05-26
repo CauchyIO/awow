@@ -1,6 +1,14 @@
 # Anchor work-item archetypes to board types and the creation flow
 
-**Status:** proposed · **Date:** 2026-05-25
+**Status:** SUPERSEDED — rolled back to generic reference · **Date:** 2026-05-25
+
+## Outcome
+
+Stages 1–3 were implemented, then **rolled back**. The [[entra-archetype-findings]] trace analysis showed that real archetypes are mostly locally-authored and domain-specific, and that the dominant board interaction isn't even item *execution* — so board-anchoring (`board_type` join, `board.md` `## Archetype mapping`, `setup-awow` 8b) and creation-side enforcement (`refinement-prep` Step 4) were judged "overdoing it."
+
+What remains: archetypes are kept **generic and for reference** — a small set of example handlers under `_workitem-archetypes/`, the optional/"extension surface"/"method not content" framing in the README, and loose story-based inference in `process-workitem`. The board-anchoring and creation-side machinery described below is **not** in the codebase.
+
+The orchestration/status need that the trace analysis surfaced became a separate command, `/my-work`, rather than an archetype feature.
 
 ## Context
 

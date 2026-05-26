@@ -6,9 +6,14 @@
 <title>Transcript router &mdash; one entry, many specialists</title>
 <!--
   AWOW GUIDE — transcript router
-  How /process-transcript routes a meeting transcript to the right specialist.
+  How /process-transcript routes a meeting transcript to the right specialist,
+  and how to run it end to end: set up, get the transcript, work the gates,
+  then compound the output across meetings.
+  Merges the former "agentic transcript workflow" getting-started detail into
+  the router model. The pipeline shown here mirrors .agents/commands/process-transcript.md.
   Scope: transcript-consuming commands only. The full command catalogue lives in
   .agents/commands/README.md — this guide is deliberately not a catalogue of every prompt.
+  Self-contained — no external fonts, links, or scripts.
 -->
 <style>
   :root {
@@ -33,6 +38,7 @@
   h1 { font-size:1.9rem; font-weight:700; margin:0; letter-spacing:-0.02em; }
   h2 { font-size:1.35rem; font-weight:600; margin:0 0 16px; letter-spacing:-0.01em; }
   h3 { font-size:1.05rem; font-weight:600; margin:24px 0 10px; letter-spacing:-0.01em; }
+  h4 { font-size:0.92rem; font-weight:600; margin:18px 0 8px; }
   p  { font-size:0.92rem; color:var(--text-2); margin:0 0 12px; line-height:1.7; }
   ul, ol { font-size:0.92rem; color:var(--text-2); line-height:1.7; padding-left:22px; margin:0 0 14px; }
   li { margin:4px 0; }
@@ -48,6 +54,8 @@
   table.data tr:last-child td { border-bottom:none; }
   table.data td strong { color:var(--text-1); }
   .kicker { font-size:0.72rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin:0 0 8px; }
+  .meta-row { display:flex; flex-wrap:wrap; gap:14px 24px; margin:4px 0 0; font-size:0.78rem; color:var(--text-3); }
+  .meta-row span strong { color:var(--text-2); font-weight:600; }
   .badge { display:inline-block; font-size:0.7rem; font-weight:600; padding:3px 10px; border-radius:4px; border:1px solid var(--border); color:var(--text-1); background:var(--surface); }
   .badge-accent { background:var(--accent); color:#fff; border-color:var(--accent); }
   .badge-ok { background:rgba(46,125,79,0.08); color:var(--ok); border-color:rgba(46,125,79,0.25); }
@@ -57,27 +65,62 @@
   .callout { background:var(--surface-alt); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 16px; font-size:0.88rem; color:var(--text-2); line-height:1.65; }
   .callout strong { color:var(--text-1); }
   .callout-warn { border-left-color:var(--warn); }
+  .callout-risk { border-left-color:var(--risk); }
   .callout-ok { border-left-color:var(--ok); }
+  .part-header { background:var(--text-1); color:#fff; padding:28px 40px; }
+  .part-header .part-num { font-size:0.72rem; font-weight:600; color:var(--accent); text-transform:uppercase; letter-spacing:0.16em; margin:0 0 8px; }
+  .part-header h2 { color:#fff; margin:0; font-size:1.45rem; font-weight:700; letter-spacing:-0.01em; }
+  .part-header p  { color:rgba(255,255,255,0.7); margin:6px 0 0; font-size:0.92rem; }
   .diagram { background:var(--surface-alt); border:1px solid var(--border-subtle); border-radius:10px; padding:18px 16px 12px; margin:0 0 18px; }
+  .diagram-title { font-size:0.72rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin:0 0 12px; padding:0 8px; display:flex; justify-content:space-between; }
+  .diagram-title .tag { color:var(--accent); }
   .diagram svg { display:block; max-width:100%; height:auto; margin:0 auto; }
   .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:0.78rem; color:var(--text-2); padding:8px 8px 0; }
   .legend span { display:inline-flex; align-items:center; gap:6px; }
   .legend i { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid var(--border); }
+  .toc { background:var(--surface-alt); border-radius:8px; padding:18px 22px; margin:0; }
+  .toc ol { padding-left:22px; margin:0; columns:2; column-gap:28px; }
+  .toc li { margin:5px 0; font-size:0.85rem; color:var(--text-2); }
+  .toc a { color:var(--text-1); font-weight:500; }
   .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
   .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
   .card .card-label { font-size:0.7rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; }
+  .pill { display:inline-block; font-family:'JetBrains Mono',ui-monospace,monospace; font-size:0.72rem; padding:2px 8px; background:#fff; color:var(--text-1); border:1px solid var(--border); border-radius:10px; }
   @media (max-width: 720px) {
-    .pad, .pad-tight { padding-left:22px; padding-right:22px; }
-    .grid-2 { grid-template-columns:1fr; }
+    .pad, .pad-tight, .part-header { padding-left:22px; padding-right:22px; }
+    .grid-2, .grid-3 { grid-template-columns:1fr; }
+    .toc ol { columns:1; }
   }
   @media print {
     body { background:#fff; }
     .wrap { border:none; border-radius:0; max-width:100%; }
     a { color:var(--text-1); }
+    .part-header { page-break-before:always; }
   }
+
+  /* ===== LEFT INDEX (auto-built from section headings) ===== */
+  .guide-toc { position:fixed; top:0; left:0; width:232px; height:100vh; background:var(--surface); border-right:1px solid var(--border); z-index:60; display:flex; flex-direction:column; overflow-y:auto; padding:20px 0; }
+  .guide-toc .toc-brand { display:flex; align-items:center; gap:8px; padding:0 20px 18px; border-bottom:1px solid var(--border-subtle); margin-bottom:10px; flex-shrink:0; }
+  .guide-toc .toc-brand svg { width:18px; height:18px; flex:none; }
+  .guide-toc .toc-brand span { font-size:12px; font-weight:700; letter-spacing:0.06em; color:var(--text-2); text-transform:uppercase; }
+  .guide-toc a.toc-item { display:flex; align-items:flex-start; gap:10px; padding:8px 20px; text-decoration:none; color:var(--text-2); font-size:12px; font-weight:500; line-height:1.45; border-left:3px solid transparent; transition:background 0.12s, color 0.12s; }
+  .guide-toc a.toc-item:hover { background:var(--surface-alt); color:var(--text-1); }
+  .guide-toc a.toc-item.active { background:var(--surface-alt); color:var(--text-1); font-weight:700; border-left-color:var(--accent); }
+  .guide-toc .toc-num { font-size:10px; font-weight:700; color:var(--accent); min-width:16px; opacity:0.5; padding-top:1px; flex:none; }
+  .guide-toc a.toc-item.active .toc-num { opacity:1; }
+  @media (min-width:1024px) { body { padding-left:232px; } }
+  @media (max-width:1023px) { .guide-toc { display:none; } }
+  @media print { .guide-toc { display:none !important; } body { padding-left:0 !important; } }
 </style>
 </head>
 <body>
+
+<nav class="guide-toc" id="guideToc" aria-label="Contents">
+  <a class="toc-brand" href="index.html" style="text-decoration:none;"><svg viewBox="0 0 500 500" fill="none"><path d="M250 50C139.543 50 50 139.543 50 250C50 360.457 139.543 450 250 450C360.457 450 450 360.457 450 250C450 214.612 440.841 181.387 424.664 152.664L353.033 224.295C356.229 232.471 358 241.473 358 250C358 309.647 309.647 358 250 358C190.353 358 142 309.647 142 250C142 190.353 190.353 142 250 142C275.948 142 299.727 151.424 318.295 166.967L389.926 95.336C348.387 66.159 297.388 50 250 50Z" fill="#f24b37"/></svg><span>awow &middot; guides</span></a>
+  <!-- items injected by script below -->
+</nav>
+
 
 <div class="wrap">
 
@@ -85,11 +128,15 @@
   <div class="pad" style="padding-top:36px;padding-bottom:24px;">
     <p style="font-size:13px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin:0 0 10px;">Way of Working &middot; Guide</p>
     <h1>Transcript router</h1>
-    <p style="font-size:1rem;color:var(--text-2);margin:6px 0 0;font-weight:500;">One entry point. The router recommends; the user types one command.</p>
-    <p style="font-size:0.85rem;color:var(--text-3);margin:8px 0 0;">Scope: how <code>/process-transcript</code> routes a transcript to a specialist. This is not a catalogue of every command &mdash; the full list lives in <code>.agents/commands/README.md</code>.</p>
+    <p style="font-size:1rem;color:var(--text-2);margin:6px 0 0;font-weight:500;">One entry point. The router reads the transcript, recommends a specialist, and walks you through gated review &mdash; meeting to board in minutes.</p>
+    <div class="meta-row" style="margin-top:14px;">
+      <span><strong>Phase</strong> Spread</span>
+      <span><strong>Command</strong> <code>/process-transcript</code></span>
+      <span><strong>Audience</strong> anyone turning meetings into board-ready work</span>
+    </div>
     <div class="badges" style="margin-top:16px;">
       <span class="badge">router pattern</span>
-      <span class="badge">recommender behaviour</span>
+      <span class="badge">gated pipeline</span>
       <span class="badge badge-accent">single entry, many specialists</span>
     </div>
   </div>
@@ -97,14 +144,37 @@
   <!-- TL;DR -->
   <div class="pad-tight">
     <p class="kicker">TL;DR</p>
-    <p>As your team adopts more transcript-driven prompts (<code>/process-retro</code>, <code>/coaching-review</code>, <code>/solution-design-flow</code>&hellip;), the user shouldn&rsquo;t have to know which one to invoke. <strong>One command</strong> &mdash; <code>/process-transcript</code> &mdash; reads the transcript, identifies what kind of session it is (or which segments of which kinds), recommends one or more specialists with a one-line rationale, and waits for confirmation. The specialists stay focused; the user gets a single front door.</p>
+    <p>As your team adopts more transcript-driven prompts (<code>/coaching-review</code>, <code>/solution-design-flow</code>, future leaves), you shouldn&rsquo;t have to know which one to invoke. <strong>One command</strong> &mdash; <code>/process-transcript</code> &mdash; reads the transcript, names what kind of session it is (or which segments of which kinds), recommends one or more specialists with a one-line rationale, and waits at a gate. Confirm, and it dispatches; correct it, or override. The philosophy: <strong>talk like a human, let the agent handle the admin</strong>. Every meeting becomes structured input that feeds your board, your docs, and your next meeting.</p>
   </div>
 
-  <!-- DIAGRAM -->
-  <div class="pad">
-    <h2>The shape</h2>
+  <!-- TOC -->
+  <div class="pad-tight">
+    <div class="toc">
+      <p class="kicker" style="margin:0 0 8px;">Contents</p>
+      <ol>
+        <li><a href="#shape">The shape &mdash; one entry, many specialists</a></li>
+        <li><a href="#rules">Two rules the router obeys</a></li>
+        <li><a href="#setup">Set up the repo</a></li>
+        <li><a href="#transcript">Get the transcript</a></li>
+        <li><a href="#context">Team context sharpens everything</a></li>
+        <li><a href="#gate1">The run &mdash; Gate 1: detected &amp; recommended</a></li>
+        <li><a href="#gate2">Gate 2: board actions, or a proposal</a></li>
+        <li><a href="#enrich">After the gates &mdash; enrich the output</a></li>
+        <li><a href="#iterate">Iterate across meetings</a></li>
+        <li><a href="#agentic">Go agentic &mdash; parallel execution</a></li>
+        <li><a href="#submodes">Sub-modes live inside leaves</a></li>
+        <li><a href="#adding">Adding a new specialist</a></li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- 1. THE SHAPE -->
+  <div class="pad" id="shape">
+    <h2>1. The shape &mdash; one entry, many specialists</h2>
+    <p>Cognitive load is the enemy. The more specialists a team adopts, the harder it gets to remember which one to type. <code>/coaching-review</code>? <code>/solution-design-flow</code>? When the answer depends on what kind of session you just had, the router should answer it for you.</p>
 
     <div class="diagram">
+      <p class="diagram-title"><span>The router recommends; you type one command</span><span class="tag">/process-transcript</span></p>
       <div class="legend" style="margin-bottom:8px;">
         <span><i style="background:#1a1a1a;border-color:#1a1a1a;"></i> Router / recommender</span>
         <span><i style="background:rgba(46,125,79,0.12);border-color:rgba(46,125,79,0.5);"></i> Existing specialist</span>
@@ -112,7 +182,7 @@
         <span><i style="background:#fff;border-style:dashed;border-color:var(--text-3);"></i> Future placeholder</span>
       </div>
 
-      <svg viewBox="0 0 1000 760" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Prompt taxonomy diagram">
+      <svg viewBox="0 0 1240 760" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Prompt taxonomy diagram">
         <defs>
           <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M0,0 L10,5 L0,10 z" fill="#6b6b6b"/>
@@ -121,112 +191,115 @@
 
         <!-- Router -->
         <g>
-          <rect x="320" y="20" width="360" height="100" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
-          <text x="500" y="50" text-anchor="middle" font-size="17" font-weight="700" fill="#ffffff" font-family="Nunito,sans-serif">/process-transcript</text>
-          <text x="500" y="72" text-anchor="middle" font-size="12" fill="#f24b37" font-family="Nunito,sans-serif">Recommender &middot; not just dispatcher</text>
-          <text x="500" y="94" text-anchor="middle" font-size="11" fill="#e0dfdd" font-family="Nunito,sans-serif">Reads transcript &#8594; identifies segments &#8594;</text>
-          <text x="500" y="110" text-anchor="middle" font-size="11" fill="#e0dfdd" font-family="Nunito,sans-serif">recommends one or more specialists, with rationale</text>
+          <rect x="385" y="20" width="380" height="100" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
+          <text x="575" y="50" text-anchor="middle" font-size="17" font-weight="700" fill="#ffffff" font-family="Nunito,sans-serif">/process-transcript</text>
+          <text x="575" y="72" text-anchor="middle" font-size="12" fill="#f24b37" font-family="Nunito,sans-serif">Recommender &middot; not just dispatcher</text>
+          <text x="575" y="94" text-anchor="middle" font-size="11" fill="#e0dfdd" font-family="Nunito,sans-serif">Reads transcript &#8594; identifies segments &#8594;</text>
+          <text x="575" y="110" text-anchor="middle" font-size="11" fill="#e0dfdd" font-family="Nunito,sans-serif">recommends one or more specialists, with rationale</text>
         </g>
 
         <!-- Trunk -->
-        <line x1="500" y1="120" x2="500" y2="160" stroke="#6b6b6b" stroke-width="1.5"/>
-        <line x1="140" y1="160" x2="860" y2="160" stroke="#6b6b6b" stroke-width="1.5"/>
+        <line x1="575" y1="120" x2="575" y2="160" stroke="#6b6b6b" stroke-width="1.5"/>
+        <line x1="160" y1="160" x2="990" y2="160" stroke="#6b6b6b" stroke-width="1.5"/>
 
         <!-- Categories -->
         <g>
-          <line x1="140" y1="160" x2="140" y2="200" stroke="#6b6b6b" stroke-width="1.5"/>
-          <rect x="20" y="200" width="240" height="56" rx="8" fill="#ffffff" stroke="#e0dfdd" stroke-width="1.5"/>
-          <text x="140" y="223" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">Action-output</text>
-          <text x="140" y="242" text-anchor="middle" font-size="11" fill="#6b6b6b" font-family="Nunito,sans-serif">What should we DO based on this?</text>
+          <line x1="160" y1="160" x2="160" y2="200" stroke="#6b6b6b" stroke-width="1.5"/>
+          <rect x="40" y="200" width="240" height="56" rx="8" fill="#ffffff" stroke="#e0dfdd" stroke-width="1.5"/>
+          <text x="160" y="223" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">Action-output</text>
+          <text x="160" y="242" text-anchor="middle" font-size="11" fill="#6b6b6b" font-family="Nunito,sans-serif">What should we DO based on this?</text>
         </g>
         <g>
-          <line x1="500" y1="160" x2="500" y2="200" stroke="#6b6b6b" stroke-width="1.5"/>
-          <rect x="380" y="200" width="240" height="56" rx="8" fill="#ffffff" stroke="#e0dfdd" stroke-width="1.5"/>
-          <text x="500" y="223" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">Pattern-output</text>
-          <text x="500" y="242" text-anchor="middle" font-size="11" fill="#6b6b6b" font-family="Nunito,sans-serif">How did this session GO?</text>
+          <line x1="540" y1="160" x2="540" y2="200" stroke="#6b6b6b" stroke-width="1.5"/>
+          <rect x="420" y="200" width="240" height="56" rx="8" fill="#ffffff" stroke="#e0dfdd" stroke-width="1.5"/>
+          <text x="540" y="223" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">Pattern-output</text>
+          <text x="540" y="242" text-anchor="middle" font-size="11" fill="#6b6b6b" font-family="Nunito,sans-serif">How did this session GO?</text>
         </g>
         <g>
-          <line x1="860" y1="160" x2="860" y2="200" stroke="#6b6b6b" stroke-width="1.5"/>
-          <rect x="740" y="200" width="240" height="56" rx="8" fill="#ffffff" stroke="#e0dfdd" stroke-width="1.5"/>
-          <text x="860" y="223" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">Specialized signal</text>
-          <text x="860" y="242" text-anchor="middle" font-size="11" fill="#6b6b6b" font-family="Nunito,sans-serif">What does this specifically tell us?</text>
+          <line x1="990" y1="160" x2="990" y2="200" stroke="#6b6b6b" stroke-width="1.5"/>
+          <rect x="870" y="200" width="240" height="56" rx="8" fill="#ffffff" stroke="#e0dfdd" stroke-width="1.5"/>
+          <text x="990" y="223" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">Specialized signal</text>
+          <text x="990" y="242" text-anchor="middle" font-size="11" fill="#6b6b6b" font-family="Nunito,sans-serif">What does this specifically tell us?</text>
         </g>
 
         <!-- Action-output leaf: /process-transcript fallback -->
-        <line x1="140" y1="256" x2="140" y2="290" stroke="#6b6b6b" stroke-width="1.5"/>
+        <line x1="160" y1="256" x2="160" y2="290" stroke="#6b6b6b" stroke-width="1.5"/>
         <g>
-          <rect x="20" y="290" width="240" height="86" rx="8" fill="rgba(46,125,79,0.08)" stroke="rgba(46,125,79,0.45)" stroke-width="1.5"/>
-          <text x="140" y="313" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/process-transcript (fallback)</text>
-          <text x="140" y="332" text-anchor="middle" font-size="10" fill="#2e7d4f" font-family="Nunito,sans-serif">existing</text>
-          <text x="140" y="350" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Templated extraction &#8594;</text>
-          <text x="140" y="364" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">actions, owners, follow-ups</text>
+          <rect x="40" y="290" width="240" height="86" rx="8" fill="rgba(46,125,79,0.08)" stroke="rgba(46,125,79,0.45)" stroke-width="1.5"/>
+          <text x="160" y="313" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">templated fallback</text>
+          <text x="160" y="332" text-anchor="middle" font-size="10" fill="#2e7d4f" font-family="Nunito,sans-serif">stays in /process-transcript</text>
+          <text x="160" y="350" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Templated extraction &#8594;</text>
+          <text x="160" y="364" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">actions, owners, follow-ups</text>
         </g>
 
         <!-- Pattern-output leaves: process-retro + coaching-review -->
-        <line x1="500" y1="256" x2="500" y2="290" stroke="#6b6b6b" stroke-width="1.5"/>
-        <line x1="380" y1="290" x2="620" y2="290" stroke="#6b6b6b" stroke-width="1.5"/>
+        <line x1="540" y1="256" x2="540" y2="290" stroke="#6b6b6b" stroke-width="1.5"/>
+        <line x1="430" y1="290" x2="650" y2="290" stroke="#6b6b6b" stroke-width="1.5"/>
 
         <g>
-          <line x1="380" y1="290" x2="380" y2="330" stroke="#6b6b6b" stroke-width="1.5"/>
-          <rect x="280" y="330" width="200" height="86" rx="8" fill="rgba(242,75,55,0.10)" stroke="rgba(242,75,55,0.45)" stroke-width="1.5"/>
-          <text x="380" y="353" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/process-retro</text>
-          <text x="380" y="372" text-anchor="middle" font-size="10" fill="#f24b37" font-family="Nunito,sans-serif">proposed</text>
-          <text x="380" y="390" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Retrospective &#8594;</text>
-          <text x="380" y="404" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">actions + anti-patterns + diffs</text>
+          <line x1="430" y1="290" x2="430" y2="330" stroke="#6b6b6b" stroke-width="1.5"/>
+          <rect x="330" y="330" width="200" height="86" rx="8" fill="rgba(242,75,55,0.10)" stroke="rgba(242,75,55,0.45)" stroke-width="1.5"/>
+          <text x="430" y="353" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/process-retro</text>
+          <text x="430" y="372" text-anchor="middle" font-size="10" fill="#f24b37" font-family="Nunito,sans-serif">proposed</text>
+          <text x="430" y="390" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Retrospective &#8594;</text>
+          <text x="430" y="404" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">actions + anti-patterns + diffs</text>
         </g>
 
         <g>
-          <line x1="620" y1="290" x2="620" y2="330" stroke="#6b6b6b" stroke-width="1.5"/>
-          <rect x="520" y="330" width="200" height="86" rx="8" fill="rgba(46,125,79,0.08)" stroke="rgba(46,125,79,0.45)" stroke-width="1.5"/>
-          <text x="620" y="353" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/coaching-review</text>
-          <text x="620" y="372" text-anchor="middle" font-size="10" fill="#2e7d4f" font-family="Nunito,sans-serif">existing</text>
-          <text x="620" y="390" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Teacher/learner session &#8594;</text>
-          <text x="620" y="404" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">interpersonal feedback</text>
+          <line x1="650" y1="290" x2="650" y2="330" stroke="#6b6b6b" stroke-width="1.5"/>
+          <rect x="550" y="330" width="200" height="86" rx="8" fill="rgba(46,125,79,0.08)" stroke="rgba(46,125,79,0.45)" stroke-width="1.5"/>
+          <text x="650" y="353" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/coaching-review</text>
+          <text x="650" y="372" text-anchor="middle" font-size="10" fill="#2e7d4f" font-family="Nunito,sans-serif">existing</text>
+          <text x="650" y="390" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Teacher/learner session &#8594;</text>
+          <text x="650" y="404" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">interpersonal feedback</text>
         </g>
 
-        <!-- Specialized signal leaves: solution-design-flow + futures -->
-        <line x1="860" y1="256" x2="860" y2="290" stroke="#6b6b6b" stroke-width="1.5"/>
-        <line x1="780" y1="290" x2="940" y2="290" stroke="#6b6b6b" stroke-width="1.5"/>
+        <!-- Specialized signal leaves -->
+        <line x1="990" y1="256" x2="990" y2="290" stroke="#6b6b6b" stroke-width="1.5"/>
+        <line x1="880" y1="290" x2="1100" y2="290" stroke="#6b6b6b" stroke-width="1.5"/>
+        <line x1="880" y1="290" x2="880" y2="330" stroke="#6b6b6b" stroke-width="1.5"/>
+        <line x1="1100" y1="290" x2="1100" y2="330" stroke="#6b6b6b" stroke-width="1.5"/>
+        <line x1="990" y1="290" x2="990" y2="420" stroke="#6b6b6b" stroke-width="1.5"/>
+        <line x1="880" y1="420" x2="1100" y2="420" stroke="#6b6b6b" stroke-width="1.5"/>
+        <line x1="880" y1="420" x2="880" y2="440" stroke="#6b6b6b" stroke-width="1.5"/>
+        <line x1="1100" y1="420" x2="1100" y2="440" stroke="#6b6b6b" stroke-width="1.5"/>
 
         <g>
-          <line x1="780" y1="290" x2="780" y2="330" stroke="#6b6b6b" stroke-width="1.5"/>
-          <rect x="680" y="330" width="200" height="86" rx="8" fill="rgba(46,125,79,0.08)" stroke="rgba(46,125,79,0.45)" stroke-width="1.5"/>
-          <text x="780" y="353" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/solution-design-flow</text>
-          <text x="780" y="372" text-anchor="middle" font-size="10" fill="#2e7d4f" font-family="Nunito,sans-serif">existing</text>
-          <text x="780" y="390" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Solution-design session &#8594;</text>
-          <text x="780" y="404" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">design artefact + rationale</text>
+          <rect x="790" y="330" width="180" height="86" rx="8" fill="rgba(46,125,79,0.08)" stroke="rgba(46,125,79,0.45)" stroke-width="1.5"/>
+          <text x="880" y="353" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/solution-design-flow</text>
+          <text x="880" y="372" text-anchor="middle" font-size="10" fill="#2e7d4f" font-family="Nunito,sans-serif">existing</text>
+          <text x="880" y="390" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Solution-design session &#8594;</text>
+          <text x="880" y="404" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">design artefact + rationale</text>
         </g>
 
         <g>
-          <line x1="940" y1="290" x2="940" y2="330" stroke="#6b6b6b" stroke-width="1.5"/>
-          <rect x="840" y="330" width="140" height="86" rx="8" fill="#ffffff" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="4 3"/>
-          <text x="910" y="353" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/course-review</text>
-          <text x="910" y="372" text-anchor="middle" font-size="10" fill="#9a9a9a" font-family="Nunito,sans-serif">future</text>
-          <text x="910" y="390" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Lecture / cohort &#8594;</text>
-          <text x="910" y="404" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">delivery feedback</text>
+          <rect x="1010" y="330" width="180" height="86" rx="8" fill="#ffffff" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <text x="1100" y="353" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/course-review</text>
+          <text x="1100" y="372" text-anchor="middle" font-size="10" fill="#9a9a9a" font-family="Nunito,sans-serif">future</text>
+          <text x="1100" y="390" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Lecture / cohort &#8594;</text>
+          <text x="1100" y="404" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">delivery feedback</text>
         </g>
 
-        <!-- Second future row -->
         <g>
-          <rect x="680" y="440" width="200" height="86" rx="8" fill="#ffffff" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="4 3"/>
-          <text x="780" y="463" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/discovery-review</text>
-          <text x="780" y="482" text-anchor="middle" font-size="10" fill="#9a9a9a" font-family="Nunito,sans-serif">future</text>
-          <text x="780" y="500" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Sales / user research &#8594;</text>
-          <text x="780" y="514" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">customer signals</text>
+          <rect x="790" y="440" width="180" height="86" rx="8" fill="#ffffff" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <text x="880" y="463" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/discovery-review</text>
+          <text x="880" y="482" text-anchor="middle" font-size="10" fill="#9a9a9a" font-family="Nunito,sans-serif">future</text>
+          <text x="880" y="500" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Sales / user research &#8594;</text>
+          <text x="880" y="514" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">customer signals</text>
         </g>
         <g>
-          <rect x="840" y="440" width="140" height="86" rx="8" fill="#ffffff" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="4 3"/>
-          <text x="910" y="463" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/interview-review</text>
-          <text x="910" y="482" text-anchor="middle" font-size="10" fill="#9a9a9a" font-family="Nunito,sans-serif">future</text>
-          <text x="910" y="500" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Hiring interview &#8594;</text>
-          <text x="910" y="514" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">candidate signals</text>
+          <rect x="1010" y="440" width="180" height="86" rx="8" fill="#ffffff" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <text x="1100" y="463" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/interview-review</text>
+          <text x="1100" y="482" text-anchor="middle" font-size="10" fill="#9a9a9a" font-family="Nunito,sans-serif">future</text>
+          <text x="1100" y="500" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Hiring interview &#8594;</text>
+          <text x="1100" y="514" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">candidate signals</text>
         </g>
 
         <!-- Recommender behaviour panel -->
         <g>
-          <rect x="20" y="570" width="960" height="170" rx="10" fill="rgba(242,75,55,0.06)" stroke="rgba(242,75,55,0.35)" stroke-width="1.5"/>
+          <rect x="20" y="570" width="1200" height="170" rx="10" fill="rgba(242,75,55,0.06)" stroke="rgba(242,75,55,0.35)" stroke-width="1.5"/>
           <text x="40" y="598" font-size="13" font-weight="700" fill="#1a1a1a" font-family="Nunito,sans-serif">Recommender behaviour &mdash; mandatory</text>
-          <text x="40" y="620" font-size="11" fill="#6b6b6b" font-family="Nunito,sans-serif">The router never silently dispatches. It shows what it heard, names the segments, recommends specialists with rationale, waits for the user.</text>
+          <text x="40" y="620" font-size="11" fill="#6b6b6b" font-family="Nunito,sans-serif">The router never silently dispatches. It shows what it heard, names the segments, recommends specialists with rationale, waits for you.</text>
           <text x="40" y="652" font-size="11" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">Example output for a 60-min mixed meeting:</text>
           <text x="40" y="672" font-size="11" fill="#6b6b6b" font-family="JetBrains Mono,ui-monospace,monospace">  Detected two segments. 00:00&ndash;00:32 reads as a team retrospective.</text>
           <text x="40" y="688" font-size="11" fill="#6b6b6b" font-family="JetBrains Mono,ui-monospace,monospace">  00:32&ndash;01:01 reads as a solution-design discussion.</text>
@@ -235,43 +308,299 @@
         </g>
       </svg>
     </div>
-  </div>
-
-  <!-- WHY THIS MATTERS -->
-  <div class="pad">
-    <h2>Why a router and not separate commands?</h2>
-    <p>Cognitive load. The more specialists a team adopts, the harder it gets to remember which one to type. <code>/coaching-review</code>? <code>/process-retro</code>? <code>/solution-design-flow</code>? When the answer depends on what kind of session you just had, the router should answer it for you.</p>
 
     <div class="grid-2">
       <div class="card">
         <p class="card-label">Without a router</p>
-        <p style="font-size:0.88rem;margin:0;">User has to know the catalogue. New specialists added &rarr; team has to learn them. Wrong choice &rarr; wrong output. The catalogue grows faster than the team&rsquo;s memory.</p>
+        <p style="font-size:0.88rem;margin:0;">You have to know the catalogue. New specialists added &rarr; the team has to learn them. Wrong choice &rarr; wrong output. The catalogue grows faster than the team&rsquo;s memory.</p>
       </div>
       <div class="card">
         <p class="card-label">With a router</p>
-        <p style="font-size:0.88rem;margin:0;">User types one command. Router reads the transcript, names what it saw, recommends specialists. Adding a new specialist is a registry entry, not a re-training event.</p>
+        <p style="font-size:0.88rem;margin:0;">You type one command. The router reads the transcript, names what it saw, recommends specialists. Adding a new specialist is a registry entry, not a re-training event.</p>
       </div>
     </div>
   </div>
 
-  <!-- TWO RULES -->
-  <div class="pad">
-    <h2>Two rules the router obeys</h2>
+  <!-- 2. TWO RULES -->
+  <div class="pad" id="rules">
+    <h2>2. Two rules the router obeys</h2>
 
     <div class="callout">
-      <strong>Honest routing.</strong> Always say what was detected and what was recommended, in one line at the top of the output. Silent dispatching creates "why did it do that?" debugging.
+      <strong>Honest routing.</strong> Always say what was detected and what was recommended, in one line at the top of the output. Silent dispatching creates &ldquo;why did it do that?&rdquo; debugging.
     </div>
 
     <div class="callout">
-      <strong>Always overridable.</strong> <code>--as=&lt;skill&gt;</code> forces a specific specialist. The router gets it wrong sometimes; the user gets the last word.
+      <strong>Always overridable.</strong> <code>--as=&lt;skill&gt;</code> forces a specific specialist and skips detection entirely; <code>--yes</code> skips the dispatch-confirmation gate when you already trust the call. The router gets it wrong sometimes; you get the last word.
     </div>
   </div>
 
-  <!-- SUB-MODES -->
+  <!-- ===== PART A ===== -->
+  <div class="part-header" id="setup">
+    <p class="part-num">Before you run it &middot; once per repo</p>
+    <h2>3. Set up the repo</h2>
+    <p>Three things, then you never touch them again. Skip this if your repo was bootstrapped with <code style="color:#fff;background:rgba(255,255,255,0.12);border:none;">/setup-awow</code>.</p>
+  </div>
   <div class="pad">
-    <h2>Sub-modes live inside leaves</h2>
+    <ol>
+      <li><strong>The prompt is present.</strong> <code>/process-transcript</code> ships under <code>.agents/commands/</code> and is mirrored to the harness surfaces by <code>tools/gather.py</code> &mdash; <code>.claude/commands/</code> for Claude Code, <code>.github/prompts/</code> for GitHub Copilot. You invoke it the same way from either harness.</li>
+      <li><strong>A place to drop transcripts.</strong> Keep a working folder for your <code>.vtt</code> files &mdash; e.g. <code>.github/transcripts/</code>. It starts empty.</li>
+      <li><strong>Keep transcripts out of git.</strong> Transcripts are working files and may contain personal data &mdash; add the folder to <code>.gitignore</code>. The trace pipeline records the <em>path</em> to a transcript, never its contents.</li>
+    </ol>
+
+    <pre># .gitignore — add at the bottom
+.github/transcripts/</pre>
+
+    <div class="callout callout-warn">
+      <strong>Cloud PC users:</strong> if your editor runs on a Cloud PC but the recording downloads to your laptop, copy the VTT across (OneDrive, email-to-self, or clipboard paste if supported) before you point the prompt at it.
+    </div>
+  </div>
+
+  <!-- 4. GET THE TRANSCRIPT -->
+  <div class="pad" id="transcript">
+    <h2>4. Get the transcript</h2>
+    <p>The router reads whatever file you hand it. <strong>Prefer WebVTT</strong> (<code>.vtt</code>) over <code>.docx</code> &mdash; it preserves speaker tags (<code>&lt;v Speaker Name&gt;</code>) and timestamps, which the router uses for attribution, segment boundaries, and chronological ordering. Plain text/Markdown and <code>.srt</code> work too.</p>
+    <p>From Microsoft Teams:</p>
+    <ol>
+      <li>Open the meeting (in the recap, or live during the call).</li>
+      <li>Click the <strong>Transcript</strong> tab.</li>
+      <li><strong>Download</strong> &rarr; choose <strong>.vtt</strong> (WebVTT).</li>
+      <li>Save it into your transcripts folder.</li>
+    </ol>
+    <p>Name the file descriptively &mdash; <code>refinement-payments-rewrite.vtt</code> beats <code>meeting1.vtt</code>. The filename is a hint the router uses when it classifies the session.</p>
+    <div class="callout">
+      <strong>Got an agenda?</strong> Paste it alongside the transcript. The router will note which agenda items the meeting actually covered versus skipped. It will not fetch transcripts or agendas for you &mdash; you supply the file.
+    </div>
+  </div>
+
+  <!-- 5. TEAM CONTEXT -->
+  <div class="pad" id="context">
+    <h2>5. Team context sharpens everything</h2>
+    <p>Before touching the transcript, the router reads your team context from <code>context/team/</code> &mdash; members, conventions, glossary, neighbouring teams, the board pointer. This is what turns best-effort guessing into accurate work:</p>
+    <table class="data">
+      <thead><tr><th style="width:34%">Context file</th><th>What it buys you</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill">context/team/members.md</span></td><td>Speaker disambiguation and correct attribution &mdash; a garbled name that sounds like a known member resolves to that member.</td></tr>
+        <tr><td><span class="pill">context/knowledge-base/glossary.md</span></td><td>Domain terms and abbreviations survive voice-to-text mangling.</td></tr>
+        <tr><td><span class="pill">context/company/neighbouring-teams.md</span></td><td>Cross-team blocker detection &mdash; dependencies get traced to the right board.</td></tr>
+        <tr><td><span class="pill">context/tooling/board.md</span></td><td>The board family and read/write surface, so proposed actions match your hierarchy.</td></tr>
+      </tbody>
+    </table>
+    <p>The router never gates on context &mdash; missing files just mean a degraded-confidence label, not a stop. If context is stale (&gt;~8 weeks) or absent, it warns and offers <code>/setup-awow</code>, then proceeds with what it has.</p>
+  </div>
+
+  <!-- ===== PART B ===== -->
+  <div class="part-header" id="gate1">
+    <p class="part-num">The run &middot; a gated pipeline</p>
+    <h2>6. The run &mdash; Gate 1: detected &amp; recommended</h2>
+    <p>Open a <strong>fresh chat session</strong> and point the command at your file. A 30&ndash;60 min transcript takes a couple of minutes &mdash; the agent reads the whole thing, cross-references names, and classifies content.</p>
+  </div>
+  <div class="pad">
+    <pre>/process-transcript .github/transcripts/your-meeting.vtt</pre>
+
+    <div class="diagram">
+      <p class="diagram-title"><span>Phase 0 &rarr; 4, with two gates you control</span><span class="tag">/process-transcript</span></p>
+      <svg viewBox="0 0 880 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Process-transcript pipeline with two gates">
+        <defs>
+          <marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/>
+          </marker>
+        </defs>
+        <rect x="8"   y="62" width="118" height="60" rx="9" fill="#ffffff" stroke="#9a9a9a"/>
+        <text x="67" y="86" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#1a1a1a">Phase 0</text>
+        <text x="67" y="103" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">load context</text>
+
+        <rect x="152" y="62" width="118" height="60" rx="9" fill="#ffffff" stroke="#1a1a1a"/>
+        <text x="211" y="86" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#1a1a1a">Phase 1</text>
+        <text x="211" y="103" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">detect + match</text>
+
+        <rect x="296" y="62" width="118" height="60" rx="9" fill="#f7e3df" stroke="#b53a2a" stroke-width="1.5"/>
+        <text x="355" y="86" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#1a1a1a">GATE 1</text>
+        <text x="355" y="103" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">confirm dispatch</text>
+
+        <rect x="440" y="62" width="118" height="60" rx="9" fill="#e6eef6" stroke="#2b5f8a"/>
+        <text x="499" y="86" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#1a1a1a">Phase 2</text>
+        <text x="499" y="103" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">dispatch + stitch</text>
+
+        <rect x="584" y="62" width="118" height="60" rx="9" fill="#fbf0e0" stroke="#c97a1a" stroke-width="1.5"/>
+        <text x="643" y="86" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#1a1a1a">GATE 2</text>
+        <text x="643" y="103" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">approve actions</text>
+
+        <rect x="728" y="62" width="118" height="60" rx="9" fill="#e7f0e7" stroke="#2e7d4f"/>
+        <text x="787" y="86" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#1a1a1a">Phase 4</text>
+        <text x="787" y="103" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6b6b6b">execute</text>
+
+        <line x1="126" y1="92" x2="150" y2="92" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrP)"/>
+        <line x1="270" y1="92" x2="294" y2="92" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrP)"/>
+        <line x1="414" y1="92" x2="438" y2="92" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrP)"/>
+        <line x1="558" y1="92" x2="582" y2="92" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrP)"/>
+        <line x1="702" y1="92" x2="726" y2="92" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrP)"/>
+
+        <text x="355" y="150" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#b53a2a">you confirm / correct / override</text>
+        <text x="643" y="150" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#c97a1a">you approve before any board write</text>
+        <text x="499" y="172" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#9a9a9a">Phases 3&ndash;4 run only when a segment falls through to templated extraction</text>
+      </svg>
+    </div>
+
+    <p>At <strong>Gate 1</strong> the router stops and shows what it heard before it touches a specialist or the board. It looks like this:</p>
+    <pre>GATE 1 — DETECTED &amp; RECOMMENDED
+
+Detected 2 segment(s):
+  00:00–00:32  retrospective       (8 participants, confidence: clear)
+  00:32–01:01  solution design     (4 participants, confidence: likely)
+
+Recommended dispatch:
+  /process-retro          on segment 1  — looking-back framing, peer dynamic
+  /solution-design-flow   on segment 2  — options weighed, architecture decided
+
+Duration: ~61 min | Participants: Alex, Sam, Pat, …
+Disambiguation: "S-D-W" → SDW (glossary); "Sam" turn at 00:14 likely Pat</pre>
+
+    <h3>What to check here</h3>
+    <p>This is your chance to verify it understood the conversation. Scan for:</p>
+    <ul>
+      <li><strong>Session type</strong> &mdash; did it classify each segment correctly?</li>
+      <li><strong>Participants</strong> &mdash; are the names right?</li>
+      <li><strong>Decisions vs discussion</strong> &mdash; did it separate what was decided from what was merely explored?</li>
+      <li><strong>Disambiguation</strong> &mdash; were garbled words and shared-device mis-attributions corrected sensibly?</li>
+    </ul>
+    <p>If something is off, just say so in plain language &mdash; then confirm:</p>
+    <pre>The person labelled "Sam" around 00:14 is actually Pat. And on
+segment 2 we landed on option B, not A — A was only explored.</pre>
+
+    <div class="callout callout-ok">
+      <strong>Three ways past Gate 1.</strong> Reply <code>go</code> to proceed as shown; <code>--as=&lt;skill&gt;</code> to override a segment&rsquo;s disposition; or <code>fallback</code> to skip dispatch and run templated extraction across the whole transcript. The router asks at most two clarifying questions, and only when getting an answer wrong would change a board write &mdash; otherwise it presents and waits.
+    </div>
+  </div>
+
+  <!-- 7. GATE 2 -->
+  <div class="pad" id="gate2">
+    <h2>7. Gate 2: board actions, or a proposal</h2>
+    <p>After Gate 1, segments that matched a specialist are dispatched &mdash; each runs its own pipeline (including its own gates) and owns its own board writes. The router stitches every output into one composite report. <strong>If every segment dispatched, you&rsquo;re done</strong> &mdash; there is no Gate 2.</p>
+    <p>Gate 2 fires only when at least one segment <em>fell through</em> to templated extraction. For those fallback action items, the router does board discovery &mdash; matching against existing items, detecting cross-team blockers, spotting gaps &mdash; and presents a compact action list:</p>
+    <pre>GATE 2 — PROPOSED ACTIONS
+
+Board mapping: 2 matched | 1 new | 1 cross-team dep | 0 untracked
+
+Actions:
+  UPDATE  1. #482 — add refinement outcome, move to Ready
+  CREATE  1. Story "Add idempotency key to payment retry"
+  ESCALATE 1. blocked by Platform #91 → cross-team sync
+  KB       1. decisions/payment-retry.md — chose at-least-once + dedupe
+
+Options: "go" · "skip 2,3" · "review" · "cancel"</pre>
+
+    <p>Here you choose your path. Both are first-class &mdash; the router never writes to the board without explicit approval at this gate.</p>
+    <div class="grid-2">
+      <div class="card">
+        <p class="card-label">Path A &middot; execute board actions</p>
+        <p style="font-size:0.88rem;margin:0;">Board is set up and the work is real? Reply <code>go</code> and the router creates/updates items one at a time, confirming each. Use <code>skip</code> or <code>review</code> to be selective.</p>
+      </div>
+      <div class="card">
+        <p class="card-label">Path B &middot; capture to a proposal</p>
+        <p style="font-size:0.88rem;margin:0;">Early-stage, pre-requirements, or board hierarchy still fuzzy? Decline the board &mdash; <em>&ldquo;don&rsquo;t touch the board, drop it all in <code>proposals/&lt;topic&gt;.md</code>&rdquo;</em> &mdash; and keep the detail without committing to structure yet.</p>
+      </div>
+    </div>
+    <p style="margin-top:14px;"><strong>When Path B earns its keep:</strong> the project is still in discovery or prototype phase; requirements aren&rsquo;t validated with business users yet; you want to accumulate context across several meetings before the board exists. This is the proposal-first principle &mdash; iterate on the cheap artefact, land on the board once it&rsquo;s solid.</p>
+  </div>
+
+  <!-- ===== PART C ===== -->
+  <div class="part-header" id="enrich">
+    <p class="part-num">After the gates &middot; compounding value</p>
+    <h2>8. Enrich the output</h2>
+    <p>The agent still has the full meeting loaded. Keep the conversation going to extract more value &mdash; all optional, all high-leverage.</p>
+  </div>
+  <div class="pad">
+    <h4>Surface what&rsquo;s missing</h4>
+    <pre>Add clarifying questions at the bottom — what's still missing
+to execute this in its entirety?</pre>
+    <p>A list of unknowns and gaps &mdash; prep for your next meeting.</p>
+
+    <h4>Build a stakeholder questionnaire</h4>
+    <pre>Tomorrow I'm meeting the business. Help me prepare a
+questionnaire — questions where I really need their input.</pre>
+    <p>20&ndash;30 targeted questions you can bring to stakeholders.</p>
+
+    <h4>Draw what was discussed</h4>
+    <pre>Create an architectural diagram of the data flows we discussed.
+Then wireframes for the UI components.</pre>
+    <p>Mermaid or ASCII diagrams and wireframes that visualise the conversation. If your team has a design system wired up, styled HTML artefacts adopt its tokens &mdash; see <a href="guide-design-system-and-artifacts.html">Design systems &amp; HTML artifacts</a>.</p>
+  </div>
+
+  <!-- 9. ITERATE -->
+  <div class="pad" id="iterate">
+    <h2>9. Iterate across meetings</h2>
+    <p>The real power is <strong>compounding context</strong>. After the next meeting, open a fresh session and point the router at <em>both</em> the new transcript and the proposal you saved last time:</p>
+    <pre>/process-transcript .github/transcripts/new-meeting.vtt
+
+# Also attach: proposals/&lt;topic&gt;.md (from the previous session)</pre>
+    <p>The router intersects the prior context with the new conversation &mdash; updating decisions, resolving open questions, adding requirements, and flagging contradictions.</p>
+
+    <div class="diagram">
+      <p class="diagram-title"><span>Each pass enriches the proposal until it&rsquo;s board-ready</span><span class="tag">compounding</span></p>
+      <svg viewBox="0 0 880 188" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Proposal compounding across meetings">
+        <defs>
+          <marker id="arrI" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/>
+          </marker>
+        </defs>
+        <rect x="20"  y="20" width="200" height="46" rx="9" fill="#ffffff" stroke="#1a1a1a"/>
+        <text x="120" y="48" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#1a1a1a">Meeting 1 &rarr; proposal v1</text>
+
+        <rect x="20"  y="86" width="320" height="46" rx="9" fill="#ffffff" stroke="#1a1a1a"/>
+        <text x="180" y="114" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#1a1a1a">Meeting 2 + proposal v1 &rarr; proposal v2</text>
+
+        <rect x="20"  y="152" width="440" height="46" rx="9" fill="#e7f0e7" stroke="#2e7d4f"/>
+        <text x="240" y="180" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#1a1a1a">Meeting 3 + proposal v2 &rarr; proposal v3 &rarr; board items</text>
+
+        <line x1="120" y1="66" x2="120" y2="84" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrI)"/>
+        <line x1="180" y1="132" x2="180" y2="150" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#arrI)"/>
+      </svg>
+    </div>
+
+    <div class="callout callout-ok">
+      <strong>Voice-to-text shortcut.</strong> Answer the generated questionnaire by dictating into your machine (macOS dictation, or Windows voice typing). Save the text and process <em>that</em> as a transcript too &mdash; it&rsquo;s a conversation with yourself, captured.
+    </div>
+  </div>
+
+  <!-- 10. GO AGENTIC -->
+  <div class="pad" id="agentic">
+    <h2>10. Go agentic &mdash; parallel execution</h2>
+    <p>Once you have board items, the workflow shifts from planning to execution. Open one agent session per item and let each pick up its work &mdash; <a href="guide-core-delivery-loop.html"><code>/process-workitem</code></a> takes a single item from refinement to PR.</p>
+
+    <div class="diagram">
+      <p class="diagram-title"><span>The board becomes the orchestration layer</span><span class="tag">parallel</span></p>
+      <svg viewBox="0 0 880 196" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Board items dispatched to parallel agent sessions">
+        <defs>
+          <marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#6b6b6b"/>
+          </marker>
+        </defs>
+        <rect x="30" y="66" width="150" height="64" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
+        <text x="105" y="94" text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#fff">Board</text>
+        <text x="105" y="113" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#e0dfdd">reflects reality</text>
+
+        <rect x="340" y="14"  width="240" height="42" rx="8" fill="#e7f0e7" stroke="#2e7d4f"/>
+        <text x="460" y="40" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#1a1a1a">Item A &rarr; agent session 1</text>
+        <rect x="340" y="64"  width="240" height="42" rx="8" fill="#e7f0e7" stroke="#2e7d4f"/>
+        <text x="460" y="90" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#1a1a1a">Item B &rarr; agent session 2</text>
+        <rect x="340" y="114" width="240" height="42" rx="8" fill="#ffffff" stroke="#9a9a9a" stroke-dasharray="4 3"/>
+        <text x="460" y="140" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" fill="#6b6b6b">Item C &rarr; not started</text>
+
+        <line x1="180" y1="84"  x2="338" y2="35"  stroke="#6b6b6b" stroke-width="1.4" marker-end="url(#arrG)"/>
+        <line x1="180" y1="98"  x2="338" y2="85"  stroke="#6b6b6b" stroke-width="1.4" marker-end="url(#arrG)"/>
+        <line x1="180" y1="112" x2="338" y2="135" stroke="#6b6b6b" stroke-width="1.4" marker-end="url(#arrG)"/>
+
+        <text x="460" y="184" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#9a9a9a">lose track? look at the board — the agents keep it current as they work</text>
+      </svg>
+    </div>
+    <p>You think less about admin and more about direction: the agents handle the 80%, you steer the 20%. That is the agentic way of working &mdash; meeting &rarr; transcript &rarr; structured work &rarr; parallel execution &rarr; delivered output.</p>
+  </div>
+
+  <!-- 11. SUB-MODES -->
+  <div class="pad" id="submodes">
+    <h2>11. Sub-modes live inside leaves</h2>
     <p>Some session types have variants that share a pattern library. <code>/coaching-review</code> is the clean example: the same prompt handles both <strong>1:1 coaching</strong> (pairing, demo, onboarding) and <strong>1:many teaching</strong> (course, lecture, cohort). The teacher / learner dynamic is the same; the patterns to watch for differ slightly.</p>
-    <p>This is a deliberate choice over splitting into separate skills. Two reasons:</p>
+    <p>This is a deliberate choice over splitting into separate skills:</p>
     <ul>
       <li>The shared core (parsing, relationship detection, phase breakdown) lives in one place. No duplication.</li>
       <li>Adopters learn one skill, not five. The variant gets detected, not declared.</li>
@@ -279,16 +608,10 @@
     <p>Apply the same idea as new skill types differentiate. When in doubt: sub-mode first, sibling skill only if the work diverges enough that the shared core is no longer shared.</p>
   </div>
 
-  <!-- FALLBACK -->
-  <div class="pad">
-    <h2>Fallback &mdash; when no specialist fits</h2>
-    <p>When inference is ambiguous, or the transcript doesn&rsquo;t match any specialist&rsquo;s shape, the router stays in <code>/process-transcript</code> and produces its existing templated output (actions, owners, follow-ups). No specialist = no surprise output. The router degrades gracefully into the behaviour the team already knew.</p>
-  </div>
-
-  <!-- ADDING -->
-  <div class="pad" style="border-bottom:none;">
-    <h2>Adding a new specialist</h2>
-    <p>Each new leaf needs five things:</p>
+  <!-- 12. ADDING -->
+  <div class="pad" id="adding" style="border-bottom:none;">
+    <h2>12. Adding a new specialist</h2>
+    <p>Each new leaf needs five things. The filesystem <em>is</em> the registry &mdash; the router globs commands at runtime and matches segments against frontmatter, so there is no central registry file to keep in sync.</p>
     <table class="data">
       <thead>
         <tr><th>Artefact</th><th>Where</th><th>Purpose</th></tr>
@@ -297,8 +620,8 @@
         <tr><td><code>&lt;skill&gt;.md</code></td><td><code>.agents/commands/</code></td><td>The full prompt (flat; phase lives in frontmatter)</td></tr>
         <tr><td>Mirror files</td><td><code>.claude/commands/</code> and <code>.github/prompts/</code></td><td>Auto-generated by <code>tools/gather.py</code></td></tr>
         <tr><td>Grounding context</td><td><code>context/&lt;domain&gt;/</code></td><td>Canon + anti-patterns the prompt reads at Phase 0</td></tr>
-        <tr><td>Guide HTML</td><td>repo root (<code>guide-&lt;workflow&gt;.html</code>)</td><td>Slide-based onboarding for first-time adopters</td></tr>
-        <tr><td><code>consumes: transcript</code> + <code>when-to-use</code> / <code>when-not-to-use</code></td><td>frontmatter of the new <code>&lt;skill&gt;.md</code></td><td>The filesystem is the registry &mdash; the router globs commands at runtime and matches segments against these fields. No central registry file to keep in sync.</td></tr>
+        <tr><td>Guide HTML</td><td><code>guides/guide-&lt;workflow&gt;.html</code></td><td>Onboarding for first-time adopters</td></tr>
+        <tr><td><code>consumes: transcript</code> + <code>when-to-use</code> / <code>when-not-to-use</code></td><td>frontmatter of the new <code>&lt;skill&gt;.md</code></td><td>What the router matches segments against at runtime &mdash; no registry file to maintain.</td></tr>
       </tbody>
     </table>
     <p style="margin-top:14px;">After landing the source, run <code>python tools/gather.py</code> to refresh the mirrors. Then update <code>.agents/commands/README.md</code> to list the new command.</p>
@@ -306,5 +629,34 @@
 
 </div>
 
+<script>
+(function(){
+  var toc=document.getElementById('guideToc'); if(!toc) return;
+  var heads=[].slice.call(document.querySelectorAll('.wrap h2')); if(!heads.length) return;
+  var pad2=function(n){return n<10?'0'+n:''+n;};
+  var slug=function(t){return t.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'sec';};
+  var top=function(el){return el.getBoundingClientRect().top+window.scrollY;};
+  var items=[];
+  heads.forEach(function(h){
+    var label=h.textContent.trim().replace(/^\s*\d+[.)]\s*/,'');
+    if(!label) return;
+    var target=h.closest('.pad,.pad-tight,.part-header,section')||h;
+    if(!target.id) target.id='sec-'+(items.length+1)+'-'+slug(label);
+    var a=document.createElement('a'); a.className='toc-item'; a.href='#'+target.id;
+    var num=document.createElement('span'); num.className='toc-num'; num.textContent=pad2(items.length+1);
+    var lab=document.createElement('span'); lab.className='toc-label'; lab.textContent=label;
+    a.appendChild(num); a.appendChild(lab);
+    a.addEventListener('click',function(e){e.preventDefault(); target.scrollIntoView({behavior:'smooth',block:'start'}); history.replaceState(null,'','#'+target.id);});
+    toc.appendChild(a); items.push({t:target,a:a});
+  });
+  var spy=function(){
+    var y=window.scrollY+130, cur=items[0];
+    for(var i=0;i<items.length;i++){ if(top(items[i].t)<=y) cur=items[i]; }
+    items.forEach(function(it){ it.a.classList.toggle('active', it===cur); });
+  };
+  window.addEventListener('scroll',spy,{passive:true});
+  window.addEventListener('resize',spy); spy();
+})();
+</script>
 </body>
 </html>

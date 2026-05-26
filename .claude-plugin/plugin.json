@@ -1,6 +1,7 @@
 {
   "name": "awow",
-  "description": "Drop the agentic way of working onto an existing repo. /awowify vendors the starter tree non-destructively, then continues straight into the setup wizard.",
+  "displayName": "awow — Agentic Way of Working",
+  "description": "Add awow to a project you already have. /awowify copies in the files Claude Code or GitHub Copilot needs to follow your team's issue board (Linear, Jira, GitHub Issues, Azure DevOps) and conventions — without overwriting your existing files — then walks you through configuring it.",
   "version": "0.1.0",
   "commands": "./commands/"
 }

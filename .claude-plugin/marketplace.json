@@ -7,7 +7,7 @@
     {
       "name": "awow",
       "source": "./",
-      "description": "Drop awow onto an existing repo: /awowify vendors the starter tree and continues into setup. (Greenfield repos use \"Use this template\" instead.)"
+      "description": "Set up the Agentic Way of Working in a repo you already have. /awowify adds the agent-setup files (leaving your own files untouched) and guides you through connecting your issue board and team conventions. Brand-new repos can use \"Use this template\" instead."
     }
   ]
 }

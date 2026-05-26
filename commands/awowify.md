@@ -20,7 +20,7 @@ If the directory is not under git, say once that committing first makes the vend
 
 ## Step 2 — Tailor what gets copied
 
-Two choices decide how much lands in the repo. Ask both before previewing, so awow copies only what this user will use rather than everything. Ask them as one short plain-text message with a numbered list and wait for the reply — do not call a structured-question or form tool for this.
+Two choices decide how much lands in the repo. Offer both before previewing, so awow copies only what this user will use rather than everything. Present each as a selectable pick-one list (the harness's multiple-choice prompt) so the user clicks rather than types; fall back to a plain-text question only if no selection prompt is available.
 
 1. **Solo or team?** "Is this just for you, or a whole team?" Solo drops the team-coordination files — neighbouring teams, the member roster, and the digest / cross-team / coaching / transcript commands. Pass `--solo` for solo; omit it for team.
 2. **Which board?** "Which issue tracker does this project use — Linear, Jira, Azure DevOps, or GitHub Issues? Pick 'not sure' to keep all four references for now." Pass `--board <linear|jira|azure-devops|github-issues>`; on "not sure", omit the flag.

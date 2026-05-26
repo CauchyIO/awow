@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic Retrospective Workflow</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ─── Design system tokens ─── */
+  :root {
+    --color-bg: #f6f5f3;
+    --color-surface: #ffffff;
+    --color-surface-alt: #f0efed;
+    --color-text: #1a1a1a;
+    --color-text-secondary: #6b6b6b;
+    --color-text-tertiary: #9a9a9a;
+    --color-border: #e0dfdd;
+    --color-border-light: #ebeae8;
+    --color-accent: #f24b37;
+    --color-accent-hover: #e04530;
+    --color-link: #337FF9;
+
+    --tint-blue-bg: #f0f4fb;
+    --tint-blue-border: #cdd8ed;
+    --tint-blue-text: #506fa0;
+    --tint-warm-bg: #faf6f0;
+    --tint-warm-border: #e3d9ca;
+    --tint-warm-text: #8a7556;
+    --tint-sage-bg: #f0f5f2;
+    --tint-sage-border: #c8dad2;
+    --tint-sage-text: #4e7566;
+
+    --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+    --sp-6: 24px; --sp-8: 32px; --sp-10: 40px; --sp-12: 48px; --sp-16: 64px;
+
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    --content-width: 880px;
+    --page-width: 1200px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── Site header (top bar) ─── */
+  .site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--sp-3) var(--sp-8);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border-light);
+    flex-shrink: 0;
+  }
+  .site-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    text-decoration: none;
+    color: var(--color-text);
+  }
+  .header-logo { width: 22px; height: 22px; }
+  .header-brand {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-text);
+  }
+  .header-context {
+    font-size: 0.75rem;
+    color: var(--color-text-tertiary);
+    font-weight: 500;
+  }
+  .header-context strong { color: var(--color-text-secondary); font-weight: 600; }
+
+  /* ─── Progress dots ─── */
+  .progress { display: flex; gap: 6px; align-items: center; }
+  .progress .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--color-border);
+    transition: background .25s, transform .25s;
+    cursor: pointer;
+  }
+  .progress .dot.visited { background: var(--color-border); opacity: 1; }
+  .progress .dot.active {
+    background: var(--color-accent);
+    transform: scale(1.4);
+  }
+
+  /* ─── Slide area ─── */
+  .slider-viewport {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    background: var(--color-bg);
+  }
+  .slider-track {
+    display: flex;
+    height: 100%;
+    transition: transform .45s cubic-bezier(.4, 0, .2, 1);
+  }
+  .slide {
+    min-width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    padding: var(--sp-12) var(--sp-6);
+    overflow-y: auto;
+  }
+  .slide-inner {
+    max-width: var(--content-width);
+    width: 100%;
+  }
+
+  /* ─── Slide typography ─── */
+  .step-label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-text-tertiary);
+    margin-bottom: var(--sp-3);
+  }
+  .slide-inner h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+    margin-bottom: var(--sp-3);
+  }
+  .slide-inner h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--color-text);
+    letter-spacing: -0.005em;
+    margin: var(--sp-8) 0 var(--sp-3);
+  }
+  .slide-inner p, .slide-inner li {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+  }
+  .slide-inner p { margin-bottom: var(--sp-4); }
+  .slide-inner ul, .slide-inner ol {
+    padding-left: var(--sp-6);
+    margin-bottom: var(--sp-4);
+  }
+  .slide-inner li { margin-bottom: var(--sp-2); }
+  .slide-inner li strong { color: var(--color-text); font-weight: 600; }
+  .slide-inner em { color: var(--color-text); font-style: italic; }
+
+  .slide-inner code {
+    background: var(--color-surface-alt);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    font-family: 'Fira Code', monospace;
+    font-size: 0.85em;
+    color: var(--color-text);
+    font-weight: 500;
+  }
+  .slide-inner pre {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: var(--sp-4) var(--sp-6);
+    margin: var(--sp-4) 0 var(--sp-6);
+    overflow-x: auto;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: var(--color-text);
+  }
+  .slide-inner pre code {
+    background: transparent;
+    padding: 0;
+    font-size: inherit;
+  }
+
+  /* ─── "You say:" prose block ─── */
+  .say {
+    background: var(--tint-sage-bg);
+    border: 1px solid var(--tint-sage-border);
+    border-left: 3px solid var(--tint-sage-border);
+    border-radius: var(--radius-sm);
+    padding: var(--sp-4) var(--sp-6);
+    margin: var(--sp-3) 0 var(--sp-4);
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: var(--tint-sage-text);
+    font-style: italic;
+  }
+  .say::before {
+    content: "You say";
+    display: block;
+    font-style: normal;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--tint-sage-text);
+    opacity: 0.75;
+    margin-bottom: var(--sp-2);
+  }
+  .say.alt::before { content: "Or"; }
+  .say code {
+    background: rgba(255,255,255,0.55);
+    color: var(--tint-sage-text);
+    font-style: normal;
+  }
+
+  /* ─── Callouts (tint variants) ─── */
+  .callout {
+    background: var(--tint-blue-bg);
+    border: 1px solid var(--tint-blue-border);
+    border-left: 3px solid var(--tint-blue-border);
+    border-radius: var(--radius-sm);
+    padding: var(--sp-3) var(--sp-4);
+    margin: var(--sp-4) 0;
+    font-size: 0.92rem;
+    line-height: 1.65;
+    color: var(--tint-blue-text);
+  }
+  .callout strong { color: var(--tint-blue-text); font-weight: 600; }
+  .callout p { color: inherit; margin-bottom: 0; font-size: inherit; line-height: inherit; }
+  .callout.warn {
+    background: var(--tint-warm-bg);
+    border-color: var(--tint-warm-border);
+    border-left-color: var(--tint-warm-border);
+    color: var(--tint-warm-text);
+  }
+  .callout.warn strong { color: var(--tint-warm-text); }
+  .callout.success {
+    background: var(--tint-sage-bg);
+    border-color: var(--tint-sage-border);
+    border-left-color: var(--tint-sage-border);
+    color: var(--tint-sage-text);
+  }
+  .callout.success strong { color: var(--tint-sage-text); }
+
+  /* ─── Badges ─── */
+  .badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 3px 9px;
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--sp-4);
+    border: 1px solid;
+  }
+  .badge.required {
+    background: var(--tint-blue-bg);
+    border-color: var(--tint-blue-border);
+    color: var(--tint-blue-text);
+  }
+  .badge.optional {
+    background: var(--tint-warm-bg);
+    border-color: var(--tint-warm-border);
+    color: var(--tint-warm-text);
+  }
+  .badge.advanced {
+    background: var(--color-surface-alt);
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+  }
+
+  /* ─── Diagram (Fira Code preformatted) ─── */
+  .diagram {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: var(--sp-6) var(--sp-8);
+    margin: var(--sp-4) 0 var(--sp-6);
+    text-align: center;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.8rem;
+    line-height: 1.85;
+    color: var(--color-text-secondary);
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  /* ─── Format card grid ─── */
+  .formats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-3);
+    margin: var(--sp-3) 0 var(--sp-4);
+  }
+  .fmt {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: var(--sp-4) var(--sp-4);
+  }
+  .fmt .name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: var(--sp-1);
+    letter-spacing: -0.005em;
+  }
+  .fmt .when {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+  .fmt.warn { border-color: var(--tint-warm-border); background: var(--tint-warm-bg); }
+  .fmt.warn .name { color: var(--tint-warm-text); }
+  .fmt.warn .when { color: var(--tint-warm-text); opacity: 0.85; }
+  @media (max-width: 720px) {
+    .formats { grid-template-columns: 1fr; }
+  }
+
+  /* ─── Bottom nav ─── */
+  .bottombar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--sp-3) var(--sp-8);
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border-light);
+    flex-shrink: 0;
+  }
+  .nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: 8px 18px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s;
+  }
+  .nav-btn:hover {
+    background: var(--color-surface-alt);
+    border-color: var(--color-text-tertiary);
+  }
+  .nav-btn.primary {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #fff;
+  }
+  .nav-btn.primary:hover {
+    background: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+  }
+  .nav-btn:disabled { opacity: 0.35; cursor: default; }
+  .nav-btn:disabled:hover { background: var(--color-surface); border-color: var(--color-border); }
+  .page-num {
+    font-size: 0.8rem;
+    color: var(--color-text-tertiary);
+    font-family: 'Fira Code', monospace;
+  }
+  .kbd-hint {
+    font-size: 0.7rem;
+    color: var(--color-text-tertiary);
+    text-align: center;
+    padding-top: 4px;
+  }
+  .kbd-hint kbd {
+    display: inline-block;
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    padding: 0 5px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.7rem;
+    color: var(--color-text-secondary);
+  }
+
+  /* ─── Final-slide tagline ─── */
+  .tagline {
+    text-align: center;
+    color: var(--color-accent);
+    font-weight: 600;
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin-top: var(--sp-8);
+    letter-spacing: -0.01em;
+  }
+
+  /* ─── Inline citation links ─── */
+  .slide-inner a.cite {
+    color: var(--color-link);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--color-link);
+    font-size: 0.88em;
+    margin-left: 2px;
+  }
+  .slide-inner a.cite:hover { border-bottom-style: solid; }
+
+  /* ─── Pull-quote (for Prime Directive) ─── */
+  .pull-quote {
+    background: var(--tint-warm-bg);
+    border: 1px solid var(--tint-warm-border);
+    border-left: 3px solid var(--tint-warm-border);
+    border-radius: var(--radius-md);
+    padding: var(--sp-6) var(--sp-8);
+    margin: var(--sp-4) 0 var(--sp-6);
+    font-family: 'Nunito', sans-serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: var(--tint-warm-text);
+  }
+  .pull-quote-attr {
+    display: block;
+    font-style: normal;
+    font-size: 0.78rem;
+    margin-top: var(--sp-3);
+    color: var(--tint-warm-text);
+    opacity: 0.8;
+    letter-spacing: 0.02em;
+  }
+
+  /* ─── Phase / canon row ─── */
+  .phase-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--sp-2);
+    margin: var(--sp-3) 0 var(--sp-6);
+  }
+  .phase {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: var(--sp-3) var(--sp-3);
+    position: relative;
+  }
+  .phase .pn {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.7rem;
+    color: var(--color-text-tertiary);
+    margin-bottom: var(--sp-1);
+  }
+  .phase .pname {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: var(--sp-1);
+    letter-spacing: -0.005em;
+    line-height: 1.3;
+  }
+  .phase .pwhere {
+    font-size: 0.7rem;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+  }
+  .phase.our { border-color: var(--tint-sage-border); background: var(--tint-sage-bg); }
+  .phase.our .pname { color: var(--tint-sage-text); }
+  .phase.our .pwhere { color: var(--tint-sage-text); opacity: 0.85; }
+  @media (max-width: 720px) {
+    .phase-row { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ─── References list ─── */
+  .refs {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-3);
+    margin: var(--sp-3) 0 var(--sp-4);
+  }
+  .ref-group h4 {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-text-tertiary);
+    margin: var(--sp-4) 0 var(--sp-2);
+  }
+  .ref-group:first-child h4 { margin-top: 0; }
+  .ref-group ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .ref-group li {
+    padding: var(--sp-2) 0;
+    border-bottom: 1px solid var(--color-border-light);
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: var(--color-text-secondary);
+  }
+  .ref-group li:last-child { border-bottom: 0; }
+  .ref-group a {
+    color: var(--color-link);
+    text-decoration: none;
+  }
+  .ref-group a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<!-- ─── Header ─── -->
+<header class="site-header">
+  <a href="#" class="site-brand" onclick="goTo(0); return false;">
+    <span style="color: var(--color-accent); font-size: 1rem; line-height: 1;">◆</span>
+    <span class="header-brand">AWOW</span>
+  </a>
+  <div class="header-context">Guide <span style="opacity:0.4;margin:0 6px;">/</span> <strong>Agentic Retrospective Workflow</strong></div>
+  <div class="progress" id="progress"></div>
+</header>
+
+<!-- ─── Slides ─── -->
+<div class="slider-viewport">
+  <div class="slider-track" id="track">
+
+    <!-- ───────── SLIDE 0: Intro ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Welcome</div>
+        <h2>From Retro to Action Loop</h2>
+        <p>This guide walks you through the <strong>agentic retrospective workflow</strong> — a method for turning a 15–20 minute team retro into structured action items, anti-pattern detection, governance signal, and concrete tightenings of your team's agent instructions.</p>
+
+        <div class="diagram">Retro meeting ─→ VTT transcript ─→ /process-retro ─→ Retro report
+                                                              ├─→ Team checklist
+                                                              ├─→ Governance digest
+                                                              ├─→ Sponsor one-pager
+                                                              └─→ Instruction diffs ─┐
+                                                                                    ▼
+                                                                              CLAUDE.md
+                                                                              copilot-instructions.md</div>
+
+        <p>The philosophy: <strong>the retro is not the artefact — the instruction-tightening is.</strong> Each week's retro produces concrete diffs that close the loop back into how the agent works, and the <em>next</em> retro verifies whether those diffs actually prevented the issues they targeted.</p>
+
+        <div class="callout">
+          <p>Works with any AWOW team adopting agentic workflows. You need a way to record the retro (Teams, Zoom, etc.), an agent surface (GitHub Copilot in Agent mode or Claude Code), and a repository with the prompt installed.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 1: Background — the canon ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Background</div>
+        <h2>The Retrospective Canon</h2>
+
+        <p>The agentic retro is not a new ceremony. It sits inside two decades of practice that started with Toyota's <em>hansei</em>, was named by Norm Kerth in 2001, and was codified by Esther Derby &amp; Diana Larsen in 2006. Everything <code>/process-retro</code> does maps onto that canon — it just automates the parts a meeting tool can do better than a facilitator with a flip-chart.</p>
+
+        <h3>The five-phase model</h3>
+        <p>Derby &amp; Larsen's <em>Agile Retrospectives</em><a class="cite" href="https://pragprog.com/titles/dlret2/agile-retrospectives-second-edition/" target="_blank">↗</a> separates a retro into five phases. Most pathological retros conflate them; the discipline is keeping them distinct.</p>
+
+        <div class="phase-row">
+          <div class="phase">
+            <div class="pn">1</div>
+            <div class="pname">Set the Stage</div>
+            <div class="pwhere">Purpose + Prime Directive. Done by the team.</div>
+          </div>
+          <div class="phase our">
+            <div class="pn">2</div>
+            <div class="pname">Gather Data</div>
+            <div class="pwhere">/process-retro sections 1–5.</div>
+          </div>
+          <div class="phase our">
+            <div class="pn">3</div>
+            <div class="pname">Generate Insights</div>
+            <div class="pwhere">/process-retro sections 8–9.</div>
+          </div>
+          <div class="phase our">
+            <div class="pn">4</div>
+            <div class="pname">Decide What to Do</div>
+            <div class="pwhere">/process-retro sections 6 &amp; 11.</div>
+          </div>
+          <div class="phase">
+            <div class="pn">5</div>
+            <div class="pname">Close</div>
+            <div class="pwhere">Team appreciation + meta-retro.</div>
+          </div>
+        </div>
+
+        <p>The agent handles the middle three phases. Phases 1 and 5 are irreducibly human — the team frames the session and closes it.</p>
+
+        <h3>The Prime Directive</h3>
+        <p>Norm Kerth's opening framing<a class="cite" href="https://retrospectivewiki.org/index.php?title=The_Prime_Directive" target="_blank">↗</a> is the closest thing the field has to a constitutional clause. Read it aloud at the top of every retro. It binds the team to a blameless frame <em>before</em> anything is revealed.</p>
+
+        <div class="pull-quote">
+          "Regardless of what we discover, we understand and truly believe that everyone did the best job they could, given what they knew at the time, their skills and abilities, the resources available, and the situation at hand."
+          <span class="pull-quote-attr">— Norm Kerth, <em>Project Retrospectives</em> (2001)</span>
+        </div>
+
+        <div class="callout">
+          <p>If you do nothing else, do this. Skip the templates, skip the formats — but read the Prime Directive at the top of every retro and the rest is recoverable.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 2: Prerequisites ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 1</div>
+        <h2>Set Up Your Repository</h2>
+        <span class="badge required">Required</span>
+
+        <p>Before your first retro, your repository needs:</p>
+
+        <ol>
+          <li><strong>The prompt</strong> — <code>process-retro.prompt.md</code> in <code>.github/prompts/</code> (Copilot) or <code>.claude/commands/</code> (Claude Code). Copy from the AWOW starter pack.</li>
+          <li><strong>A transcripts folder</strong> — <code>.github/transcripts/</code> (or equivalent) where you drop the <code>.vtt</code> files. Add it to <code>.gitignore</code>; transcripts are working files and shouldn't be committed.</li>
+          <li><strong>A retro-reports folder</strong> — <code>retro-reports/&lt;team&gt;/</code>. The prompt writes its outputs here. This <em>is</em> committed — it's your team's trajectory history.</li>
+        </ol>
+
+        <pre><code># .gitignore
+.github/transcripts/
+
+# but keep
+!retro-reports/</code></pre>
+
+        <div class="callout">
+          <p><strong>Optional but recommended.</strong> Add a <code>context/retros/anti-patterns.md</code> file. It's the catalogue of named issues the prompt will actively probe for. Ships with ~10 starter patterns; add your own as you discover them.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 2: Pick a format ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 2</div>
+        <h2>Pick Your Retro Format</h2>
+        <span class="badge required">Required</span>
+
+        <p>There is not one right way to run a retro. Format choice depends on team maturity, who's loud, and whether the previous format produced honest signal. Pick deliberately — the prompt will detect what you used and recommend the next one. Most of these patterns have established names in the literature; we use them where they exist.</p>
+
+        <div class="formats">
+          <div class="fmt">
+            <div class="name">Open discussion</div>
+            <div class="when">Continuous conversation, no silent phase. Often paired with a sticky-note template (Mad/Sad/Glad, Plus/Delta) for structure. Best for young teams that need to vent before they can think.</div>
+          </div>
+          <div class="fmt">
+            <div class="name">Silent generation + walk-through</div>
+            <div class="when">Solo writing on cards, then a structured walk-through. Templates: Starfish<a class="cite" href="https://thekua.com/rant/2006/03/the-retrospective-starfish/" target="_blank">↗</a>, 4Ls<a class="cite" href="https://ebgconsulting.com/blog/the-4ls-a-retrospective-technique/" target="_blank">↗</a>, KALM, DAKI. Use when one voice is dominating and quieter members aren't getting in.</div>
+          </div>
+          <div class="fmt">
+            <div class="name">1-2-4-All &middot; silent → pair → group</div>
+            <div class="when">Solo (1 min) → pairs (2 min) → fours (4 min) → all. From Liberating Structures<a class="cite" href="https://www.liberatingstructures.com/1-1-2-4-all/" target="_blank">↗</a>. The structured form of what most teams informally call "silent stickies then discussion." Strong default.</div>
+          </div>
+          <div class="fmt">
+            <div class="name">Rotating activities</div>
+            <div class="when">Cycle through templates (Sailboat, Timeline, TRIZ, Futurespective) on purpose. Derby &amp; Larsen support varying when the <em>signal</em> goes stale — not for novelty's sake.</div>
+          </div>
+          <div class="fmt">
+            <div class="name">Consistent template</div>
+            <div class="when">Same template every retro. Predictability is its own value for teams that need it; the canon supports this as long as the signal still arrives. Vary only when it stops doing so.</div>
+          </div>
+          <div class="fmt warn">
+            <div class="name">Conversational dominance &middot; pathology</div>
+            <div class="when">Not a choice — what <em>emerged</em> when one speaker held the floor disproportionately. Named in Google's Project Aristotle<a class="cite" href="https://psychsafety.com/googles-project-aristotle/" target="_blank">↗</a> as a negative predictor. The prompt flags this; next retro switches format.</div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <p><strong>Cadence.</strong> Weekly, 15–20 minutes, low ceremony. The retro is a heartbeat, not an event. Long retros are usually a sign you're catching up on weeks of suppressed signal — fix the cadence first.</p>
+        </div>
+
+        <div class="callout warn">
+          <p><strong>On personality-based facilitation.</strong> Folk wisdom about "introvert-friendly" or "analytical team" retro styles is widespread but weakly supported. What the literature <em>does</em> back is that written-first-then-spoken structures (1-2-4-All, silent generation) raise participation in every team — regardless of personality typing. Use the structures, skip the labels.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 3: Run the retro ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 3</div>
+        <h2>Run the Retro &amp; Record It</h2>
+        <span class="badge required">Required</span>
+
+        <p>Open the retro in your meeting tool with recording <em>and</em> transcription enabled. The transcript is the artefact the prompt needs — not the recording itself.</p>
+
+        <ol>
+          <li><strong>Start the meeting</strong> with transcription explicitly on (Teams shows it in the meeting controls; Zoom needs it enabled in account settings).</li>
+          <li><strong>Read the Prime Directive aloud.</strong> Yes, every time. It is the single most leveraged 20 seconds in the entire retro. The agent will pick up the framing in the transcript and treat the conversation accordingly.</li>
+          <li><strong>Run the format you picked.</strong> If 1-2-4-All: open with one minute of silent writing on what worked, what didn't, and what needs attention.</li>
+          <li><strong>Keep to time-box.</strong> 15–20 minutes total. If you overrun consistently, your retros are doing too many jobs — split governance topics into a separate session.</li>
+          <li><strong>Close with explicit action ownership.</strong> Every action gets a name attached, even tentatively. Anonymous actions don't ship.</li>
+        </ol>
+
+        <div class="callout warn">
+          <p><strong>Psychological safety matters more than format.</strong> Amy Edmondson's research<a class="cite" href="https://psychsafety.com/the-history-of-psychological-safety/" target="_blank">↗</a> identifies team psychological safety as the strongest predictor of team learning. The prompt will detect hedges, cut-offs, and conversational dominance. If a retro consistently produces flat affect or one-voice transcripts, the format isn't the problem — the safety floor is.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 4: Download ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 4</div>
+        <h2>Download the Transcript</h2>
+        <span class="badge required">Required</span>
+
+        <p>After the retro:</p>
+
+        <ol>
+          <li>Open the meeting in your tool (Teams, Zoom, etc.).</li>
+          <li>Locate the transcript and <strong>download as <code>.vtt</code></strong> (WebVTT format).</li>
+          <li>Save into your <code>.github/transcripts/</code> folder with a date-and-team filename.</li>
+        </ol>
+
+        <pre><code>.github/transcripts/2026-05-22-platform-team-retro.vtt</code></pre>
+
+        <div class="callout">
+          <p>VTT preserves <strong>speaker tags</strong> and <strong>timestamps</strong>, which the prompt uses for citation and turn-taking analysis. Don't use plain text exports — you'll lose attribution.</p>
+        </div>
+
+        <p>If your tool only exports plain text, you can still run the prompt, but several sections (sentiment snapshot, dominance detection, citations) will be degraded.</p>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 5: Tell the agent ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 5</div>
+        <h2>Tell the Agent What You Want</h2>
+        <span class="badge required">Required</span>
+
+        <p>Open a <strong>new agent session</strong> — clean context produces better analysis. Then, and this is the part that surprises people, <strong>just describe what you want in your own words</strong>. Attach the VTT file if you have it.</p>
+
+        <div class="say">
+          Process this retro for the platform team. It's the one from yesterday in <code>.github/transcripts/</code>. Compare it against the last few we've run so we can see if anything keeps coming back.
+        </div>
+
+        <div class="say alt">
+          Here's the VTT from our retro this morning <em>(file attached)</em>. Have a look and tell me what you find. The board is in <code>context/tooling/board.md</code> if you want to check what we promised last time.
+        </div>
+
+        <p>You don't need to learn flags or remember argument syntax. The agent reads what you wrote, looks at the files you pointed to (or finds them itself), and figures out:</p>
+
+        <ul>
+          <li><strong>Which transcript</strong> to analyse — from your attachment, your path, or by looking in the obvious place.</li>
+          <li><strong>Which team</strong> this is for — from the filename, your prose, or <code>context/team/members.md</code>.</li>
+          <li><strong>Whether to do trajectory analysis</strong> — if you mention earlier retros, or if <code>retro-reports/&lt;team&gt;/</code> already exists.</li>
+          <li><strong>Whether to check closure</strong> — if you mention "what we promised" or "did we fix", or if a board file is reachable.</li>
+        </ul>
+
+        <div class="callout">
+          <p><strong>The shorthand also works.</strong> If you prefer it: <code>/process-retro path/to/retro.vtt</code>. But you're not expected to memorise an interface — the agent meets you where you are.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 6: Two gates ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 6</div>
+        <h2>Watch It Work — Two Gates</h2>
+        <span class="badge required">Required</span>
+
+        <p>The prompt runs as a pipeline with <strong>two gates</strong>. The agent stops at each gate, shows you its work, and waits.</p>
+
+        <h3>Gate 1 &middot; Confirm understanding</h3>
+        <p>The agent presents a short summary: detected format, participants, anti-patterns it found, recurring issues vs. last retros, sentiment notes, and anything it's unsure about. This is where you correct it before the heavy lifting.</p>
+
+        <div class="say">
+          Looks right, but Pat wasn't actually the one who raised the duplicate-creation issue — that was Sam. And we did discuss the security topic, briefly, around the 12-minute mark.
+        </div>
+
+        <h3>Gate 2 &middot; Approve closures</h3>
+        <p>The agent presents the proposed <strong>instruction-tightening diffs</strong> (concrete lines to add to <code>CLAUDE.md</code> or <code>copilot-instructions.md</code>) and the <strong>sponsor one-pager</strong> before it goes anywhere. You approve, redact, or reject.</p>
+
+        <div class="say">
+          Land the duplicate-check diff. Hold the attribution-marker one — we tried something similar last month and it didn't stick. Redact the cost number from the sponsor pager; I'll add it manually.
+        </div>
+
+        <div class="callout success">
+          <p><strong>You're always in the loop.</strong> The agent never edits <code>CLAUDE.md</code> or files board issues without your sign-off at Gate 2. The pipeline is designed to make oversight cheap, not optional.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 7: The report ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 7</div>
+        <h2>Read the Report</h2>
+        <span class="badge required">Required</span>
+
+        <p>After Gate 2, the agent writes the full report to <code>retro-reports/&lt;team&gt;/&lt;date&gt;-&lt;format&gt;.md</code>. It has 13 sections in fixed order. You don't read it top-to-bottom every time — different sections matter for different readers.</p>
+
+        <h3>Core &middot; every retro</h3>
+        <ul>
+          <li><strong>1 &middot; Header &amp; format</strong> — detected format, discard rate, participants</li>
+          <li><strong>2 &middot; Sentiment &amp; safety snapshot</strong> — talk-time share, cut-offs, energy curve</li>
+          <li><strong>3 &middot; What worked / 4 &middot; What didn't</strong> — bulleted with citations</li>
+          <li><strong>5 &middot; Detected anti-patterns</strong> — matched against the library, with quotes</li>
+          <li><strong>6 &middot; Action list</strong> — severity × scope grid, owners, deadlines</li>
+        </ul>
+
+        <h3>Trajectory &amp; closure &middot; when history is available</h3>
+        <ul>
+          <li><strong>7 &middot; Cost &amp; velocity</strong> — token-spend trajectory if available</li>
+          <li><strong>8 &middot; Trajectory vs last retro</strong> — recurring, new, resolved</li>
+          <li><strong>9 &middot; Counter-signal</strong> — topics that were <em>absent</em> from the discussion</li>
+          <li><strong>10 &middot; Closure tracker</strong> — last retro's promises × current board state</li>
+        </ul>
+
+        <h3>Loop &amp; audiences</h3>
+        <ul>
+          <li><strong>11 &middot; Instruction-tightening proposals</strong> — concrete <code>CLAUDE.md</code> diffs</li>
+          <li><strong>12 &middot; Three role-conditioned summaries</strong> — team, governance, sponsor</li>
+          <li><strong>13 &middot; Next-retro format recommendation</strong> — based on what was detected</li>
+        </ul>
+
+        <div class="callout">
+          <p><strong>Citation rule.</strong> Every output bullet links back to <code>[hh:mm:ss] @Speaker</code>. If a claim has no citation, the agent made it up — flag it back.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 8: Three audiences ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 8</div>
+        <h2>Three Audiences, One Retro</h2>
+        <span class="badge required">Required</span>
+
+        <p>Section 12 of the report produces three distinct artefacts from the same transcript — not the same content reordered. Each is for a different reader.</p>
+
+        <h3>12a &middot; Team-local checklist</h3>
+        <p>~10 lines. Tactical. For the team itself, going into next retro.</p>
+        <pre><code>- [ ] Tighten duplicate-check on board item creation (@alex, next retro)
+- [ ] Document the new MCP install steps (@sam, next retro)
+- [ ] Decide: do we drop the daily standup or keep it? (@team, week +2)</code></pre>
+
+        <h3>12b &middot; Governance digest</h3>
+        <p>~½ page. Patterns, risks, trajectory. For manager-level reads. No tactical noise.</p>
+
+        <h3>12c &middot; Sponsor one-pager</h3>
+        <p>~½ page. Value delivered, cost trajectory, adoption velocity, top 3 risks, ask. For executive sponsorship conversations.</p>
+
+        <div class="callout success">
+          <p>You don't have to share all three every retro. The team-local checklist goes into the next standup; the governance digest goes to your line manager monthly; the sponsor one-pager goes up quarterly. Same source, different cadence.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 9: Close the loop ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 9</div>
+        <h2>Close the Loop into the Instructions</h2>
+        <span class="badge required">Required</span>
+
+        <p>Section 11 of the report produces <strong>actionable diffs</strong> — not vague suggestions. These are the lines you add to your agent's instruction surface so the issues the retro surfaced are prevented permanently.</p>
+
+        <p>Example diff the agent might propose:</p>
+
+        <pre><code># Add to CLAUDE.md § Linear interaction guidelines
+
+When creating a board item, the agent MUST mark itself as the actor
+by appending "— created by agent (session &lt;id&gt;)" to the description.
+
+# Reason: attribution-gap anti-pattern detected this retro, 3 instances.</code></pre>
+
+        <p>These diffs land in one of three places:</p>
+
+        <ul>
+          <li><strong><code>CLAUDE.md</code></strong> — most tightening lives here. Agent-global rules.</li>
+          <li><strong><code>copilot-instructions.md</code></strong> — the GitHub Copilot mirror for shops on that stack.</li>
+          <li><strong>Specific prompts</strong> in <code>.github/prompts/</code> or <code>.claude/commands/</code> when the issue is local to one workflow.</li>
+        </ul>
+
+        <div class="callout">
+          <p><strong>Closure verification.</strong> The next retro's section 10 (closure tracker) automatically checks whether the diffs you landed actually prevented their target anti-patterns. This is what makes the retro a learning loop, not a venting ritual.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 10: Trajectory ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 10</div>
+        <h2>Trajectory Across Retros</h2>
+        <span class="badge optional">Optional &middot; Power Move</span>
+
+        <p>The real value compounds across retros. If <code>retro-reports/&lt;team&gt;/</code> already has prior reports, the agent uses them automatically — or you can mention it in prose:</p>
+
+        <div class="say">
+          Compare this against the last few retros for the platform team. I want to know if anything keeps coming back.
+        </div>
+
+        <div class="diagram">Retro 1 ─→ report 1
+              ↓
+Retro 2 + history ─→ report 2  (+ recurring/new/resolved deltas)
+              ↓
+Retro 3 + history ─→ report 3  (+ "3rd retro flagging duplicates" — escalate)
+              ↓
+Retro 4 + history ─→ report 4  (resolved! Issue X gone for 2 retros)</div>
+
+        <p>The most valuable governance line in any retro is <em>"this is the 3rd retro flagging X."</em> It promotes a recurring nuisance to a blocker automatically — no human has to remember.</p>
+
+        <div class="callout success">
+          <p><strong>Resolved issues deserve celebration.</strong> Section 8 calls out anti-patterns that were flagged in prior retros but are absent this time. Don't skip this — the dopamine of seeing an issue actually go away is what makes teams care about retros.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 11: Next format ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 11</div>
+        <h2>Let the Agent Suggest Next Week's Format</h2>
+        <span class="badge optional">Optional &middot; Recommended</span>
+
+        <p>Section 13 of every report recommends the format for the next retro, based on what the agent detected this week. The rule that fired is named so the recommendation is auditable.</p>
+
+        <ul>
+          <li><strong>Dominance detected</strong> → next retro: silent stickies or hybrid</li>
+          <li><strong>Same format 3+ retros in a row</strong> → next retro: rotate</li>
+          <li><strong>&gt;50&thinsp;% noise discarded</strong> → next retro: tighter agenda or pre-read</li>
+          <li><strong>Blue-team indicators</strong> (high consistency, low affect) → keep format, rotate the focus angle</li>
+          <li><strong>None of the above</strong> → keep current format, name one small experiment</li>
+        </ul>
+
+        <div class="callout">
+          <p>You can always override the recommendation. The agent is making a default suggestion based on observable signal — you have context it doesn't (an off-site coming up, a difficult team event, a new joiner). Use it as a starting point, not a verdict.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 12: Solo mode ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Step 12</div>
+        <h2>Solo Mode — Personal Retros</h2>
+        <span class="badge advanced">Optional &middot; Advanced</span>
+
+        <p>Not every retro is a team event. Sometimes the most useful retro is a 5-minute voice memo to yourself at the end of a workday. Just say so:</p>
+
+        <div class="say">
+          This is a voice memo I recorded for myself, not a team retro. Have a look and tell me what patterns you see.
+        </div>
+
+        <p>In solo mode, the agent:</p>
+
+        <ul>
+          <li><strong>Skips the sentiment &amp; safety snapshot</strong> — it doesn't make sense for one speaker.</li>
+          <li><strong>Collapses the three audience summaries</strong> to just the personal action list.</li>
+          <li><strong>Keeps anti-pattern detection on</strong> — solo retros are often where you spot patterns the team would deflect.</li>
+          <li><strong>Still does trajectory analysis</strong> against your personal retro history if it exists.</li>
+        </ul>
+
+        <div class="callout">
+          <p>Solo retros are especially useful when adopting an agentic workflow yourself before introducing it to your team. You'll surface the friction your team would otherwise discover the hard way.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 13: Anti-pattern library ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Appendix A</div>
+        <h2>The Anti-Pattern Library</h2>
+        <span class="badge optional">Optional &middot; Maintained</span>
+
+        <p>A <code>context/retros/anti-patterns.md</code> file is the catalogue the agent actively probes for. It ships with a starter set; you add patterns as your team discovers them.</p>
+
+        <div class="callout warn">
+          <p><strong>Note on provenance.</strong> General retro anti-patterns are well documented<a class="cite" href="https://www.retrium.com/ultimate-guide-to-agile-retrospectives/retrospective-anti-patterns" target="_blank">↗</a> — venting, action-list inflation, hijacked agendas, etc. But the agentic-AI-specific patterns below (duplicate-creation, attribution-gap, ghost-edit, prompt-drift, context-bleed) are <em>net-new</em>. There is no prior canon to draw from; this library is part of what the AWOW community is contributing.</p>
+        </div>
+
+        <pre><code># context/retros/anti-patterns.md
+
+## duplicate-creation
+Agent creates a new board item that overlaps an existing one
+because the duplicate-check was insufficient or skipped.
+
+## attribution-gap
+Work shows under a human's name with no marker that an agent
+performed it on the human's behalf.
+
+## ghost-edit
+Agent modifies a board item without flagging itself as the actor.
+
+## prompt-drift
+Repo instructions no longer match what the agent is actually
+doing in practice.
+
+## board-zombie
+Items that haven't moved in N retros and no-one owns.
+
+## silent-fail
+A task is reported done but no artefact landed in the board
+or the work tree.
+
+## acoustic-prioritisation
+Loudest-voice prioritisation instead of severity-driven priority.
+
+## context-bleed
+Old session context leaks into a new conversation, producing
+stale references or wrong file paths.
+
+# (add your own — keep names hyphenated, descriptions ≤3 lines)</code></pre>
+
+        <div class="callout">
+          <p>Without this file, the agent falls back to an embedded list of ~10 patterns. With it, your team's specific failure modes get named, tracked, and prevented. Treat the library as a living artefact.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 14: Auxiliary context ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Appendix B</div>
+        <h2>What Else the Agent Looks At</h2>
+        <span class="badge optional">Optional &middot; Improves Output</span>
+
+        <p>You don't tell the agent about these — it finds them on its own. But if they exist in your repo, the report gets richer:</p>
+
+        <h3>Team membership</h3>
+        <p><code>context/team/members.md</code> — names, roles, focus areas. Improves speaker attribution and the sentiment snapshot. Without it, the agent uses whatever names appear in the transcript.</p>
+
+        <h3>Glossary</h3>
+        <p><code>context/knowledge-base/glossary.md</code> — domain terms and abbreviations. Helps disambiguate transcription errors and gives the agent vocabulary for the discard taxonomy.</p>
+
+        <h3>Board pointer</h3>
+        <p><code>context/tooling/board.md</code> — which board this team uses and how it's reached. Unlocks the closure tracker (section 10) — the agent can verify whether last retro's promises actually landed.</p>
+
+        <h3>Prior retro reports</h3>
+        <p><code>retro-reports/&lt;team&gt;/</code> — committed history of past reports. Unlocks trajectory analysis (section 8) and lets the agent escalate recurring issues.</p>
+
+        <h3>Activity log</h3>
+        <p>A reachable agent-activity / token-spend log — unlocks cost &amp; velocity (section 7). The agent doesn't fabricate this; if it can't find a log, the section is omitted cleanly.</p>
+
+        <div class="callout">
+          <p><strong>You can also just mention them in prose</strong> if they live somewhere unusual: <em>"the spend log is in <code>logs/agents/may.jsonl</code>"</em>. The agent reads what you wrote and looks where you pointed.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 16: References ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Appendix C</div>
+        <h2>References &amp; Further Reading</h2>
+        <span class="badge optional">Optional &middot; Canon</span>
+
+        <p>The retrospective is a practice with two decades of literature behind it. If you want to go deeper than this guide, these are the load-bearing sources — the ones <code>/process-retro</code> draws on and the ones a curious facilitator should read first.</p>
+
+        <div class="refs">
+          <div class="ref-group">
+            <h4>Canonical books</h4>
+            <ul>
+              <li><strong>Norm Kerth</strong> &middot; <em>Project Retrospectives: A Handbook for Team Reviews</em> (Dorset House, 2001). The book that named the practice and authored the Prime Directive. <a href="https://www.amazon.com/Project-Retrospectives-Handbook-Team-Reviews/dp/0932633447" target="_blank">amazon.com</a></li>
+              <li><strong>Esther Derby &amp; Diana Larsen</strong> &middot; <em>Agile Retrospectives: Making Good Teams Great</em> (Pragmatic Bookshelf, 2006). The five-phase model. <a href="https://pragprog.com/titles/dlret/agile-retrospectives/" target="_blank">pragprog.com</a></li>
+              <li><strong>Derby, Larsen &amp; Horowitz</strong> &middot; <em>Agile Retrospectives, Second Edition</em> (2024). Updates the original for remote / hybrid practice. <a href="https://pragprog.com/titles/dlret2/agile-retrospectives-second-edition/" target="_blank">pragprog.com</a></li>
+              <li><strong>Lipmanowicz &amp; McCandless</strong> &middot; <em>The Surprising Power of Liberating Structures</em> (2014). Source for 1-2-4-All, TRIZ, and most of the modern facilitation toolkit. <a href="https://www.liberatingstructures.com/" target="_blank">liberatingstructures.com</a></li>
+              <li><strong>Luke Hohmann</strong> &middot; <em>Innovation Games</em> (2006). Source for Speedboat and the metaphor-driven retro family. <a href="https://www.lukehohmann.com/innovation-games/speed-boat" target="_blank">lukehohmann.com</a></li>
+            </ul>
+          </div>
+
+          <div class="ref-group">
+            <h4>The Prime Directive</h4>
+            <ul>
+              <li><a href="https://retrospectivewiki.org/index.php?title=The_Prime_Directive" target="_blank">retrospectivewiki.org — The Prime Directive</a></li>
+              <li><a href="https://www.retrium.com/blog/an-agile-prime-directive" target="_blank">retrium.com — An Agile Prime Directive</a></li>
+            </ul>
+          </div>
+
+          <div class="ref-group">
+            <h4>Format origins</h4>
+            <ul>
+              <li><a href="https://thekua.com/rant/2006/03/the-retrospective-starfish/" target="_blank">Patrick Kua — The Retrospective Starfish (2006)</a></li>
+              <li><a href="https://ebgconsulting.com/blog/the-4ls-a-retrospective-technique/" target="_blank">EBG Consulting — The 4Ls (Gorman &amp; Gottesdiener)</a></li>
+              <li><a href="https://www.liberatingstructures.com/1-1-2-4-all/" target="_blank">Liberating Structures — 1-2-4-All</a></li>
+              <li><a href="https://www.liberatingstructures.com/6-making-space-with-triz/" target="_blank">Liberating Structures — TRIZ</a></li>
+              <li><a href="https://agilealliance.org/how-to-improve-the-speedboat-retrospective/" target="_blank">Agile Alliance — Speedboat Retrospective</a></li>
+              <li><a href="https://leancoffee.org/" target="_blank">leancoffee.org — Lean Coffee origin</a></li>
+              <li><a href="https://retrospectivewiki.org/index.php?title=Futurespective%3A_learning_from_failures_that_haven%27t_happened_yet" target="_blank">Retrospective Wiki — Futurespective</a></li>
+              <li><a href="https://kanbanzone.com/resources/lean/toyota-production-system/hansei/" target="_blank">Kanban Zone — Hansei in TPS</a></li>
+            </ul>
+          </div>
+
+          <div class="ref-group">
+            <h4>Evaluation, anti-patterns, psychological safety</h4>
+            <ul>
+              <li><a href="https://www.retrium.com/ultimate-guide-to-agile-retrospectives/retrospective-anti-patterns" target="_blank">Retrium — Retrospective Anti-Patterns</a></li>
+              <li><a href="https://dzone.com/articles/21-sprint-retrospective-anti-patterns" target="_blank">Stefan Wolpers — 21 Sprint Retrospective Anti-Patterns</a></li>
+              <li><a href="https://www.easyagile.com/blog/improve-sprint-retrospective-action-items" target="_blank">Easy Agile — Why Retrospectives Fail (action-item completion)</a></li>
+              <li><a href="https://count.co/metric/action-item-completion-rate" target="_blank">count.co — Action-Item Completion Rate as a metric</a></li>
+              <li><a href="https://psychsafety.com/googles-project-aristotle/" target="_blank">Psych Safety — Google's Project Aristotle</a></li>
+              <li><a href="https://psychsafety.com/the-history-of-psychological-safety/" target="_blank">Psych Safety — History of Psychological Safety (Edmondson)</a></li>
+              <li><a href="https://www.neatro.io/blog/retrospective-roti/" target="_blank">Neatro — ROTI as a lightweight evaluation tool</a></li>
+              <li><a href="https://blog.crisp.se/2019/03/11/jimmyjanlen/health-checks-for-teams-and-leadership" target="_blank">Crisp Blog — Spotify Squad Health Check</a></li>
+            </ul>
+          </div>
+
+          <div class="ref-group">
+            <h4>Scrum context</h4>
+            <ul>
+              <li><a href="https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf" target="_blank">2020 Scrum Guide (Schwaber &amp; Sutherland)</a></li>
+              <li><a href="https://www.scrum.org/resources/blog/scrum-brief-history-long-lived-hype" target="_blank">Scrum.org — A Brief History of Scrum</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout">
+          <p>The agentic-AI anti-pattern library this guide ships with — duplicate-creation, attribution-gap, ghost-edit, prompt-drift, context-bleed — has no prior canon. It is part of what the AWOW community contributes back.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── SLIDE 17: Summary ───────── -->
+    <div class="slide">
+      <div class="slide-inner">
+        <div class="step-label">Summary</div>
+        <h2>The Complete Flow</h2>
+
+        <div class="diagram">┌─────────────────────────────────────────────────────┐
+│                   PREPARATION                       │
+│  1. Set up repo (prompts + transcripts + reports)   │
+│  2. Add .gitignore entry for transcripts            │
+│  3. (Optional) Curate retros/anti-patterns.md       │
+└───────────────────────┬─────────────────────────────┘
+                        ▼
+┌─────────────────────────────────────────────────────┐
+│                   WEEKLY RETRO                       │
+│  4. Pick a format (open / silent / hybrid / …)      │
+│  5. Run 15–20 min, recording on                     │
+│  6. Download VTT into transcripts/                  │
+│  7. Tell the agent what you want — in prose         │
+│  8. Two gates: confirm understanding, approve diffs │
+└───────────────────────┬─────────────────────────────┘
+                        ▼
+┌─────────────────────────────────────────────────────┐
+│                   CLOSE THE LOOP                     │
+│  9. Land section-11 diffs in CLAUDE.md              │
+│ 10. Distribute the three audience summaries         │
+│ 11. Save report; next retro compares trajectory     │
+└─────────────────────────────────────────────────────┘</div>
+
+        <div class="tagline">
+          Talk like a human. The agent figures out the admin.<br>
+          Every retro tightens the instructions that prevent the next one.
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /track -->
+</div><!-- /viewport -->
+
+<!-- ─── Bottom bar ─── -->
+<div class="bottombar">
+  <button class="nav-btn" id="prevBtn" onclick="navigate(-1)">← Previous</button>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+    <span class="page-num" id="pageNum">1 / 18</span>
+    <div class="kbd-hint">Navigate &middot; <kbd>←</kbd> <kbd>→</kbd> &middot; <kbd>Space</kbd></div>
+  </div>
+  <button class="nav-btn primary" id="nextBtn" onclick="navigate(1)">Next →</button>
+</div>
+
+<script>
+  const track = document.getElementById('track');
+  const slides = track.children;
+  const total = slides.length;
+  const progress = document.getElementById('progress');
+  const pageNum = document.getElementById('pageNum');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  let current = 0;
+
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => goTo(i));
+    progress.appendChild(d);
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total) return;
+    current = idx;
+    track.style.transform = `translateX(-${current * 100}%)`;
+    const dots = progress.children;
+    for (let i = 0; i < total; i++) {
+      dots[i].className = 'dot' + (i === current ? ' active' : (i < current ? ' visited' : ''));
+    }
+    pageNum.textContent = `${current + 1} / ${total}`;
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === total - 1;
+    nextBtn.textContent = current === total - 1 ? 'Done ✓' : 'Next →';
+  }
+
+  function navigate(dir) { goTo(current + dir); }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); navigate(1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); navigate(-1); }
+  });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) navigate(dx < 0 ? 1 : -1);
+  });
+
+  goTo(0);
+</script>
+
+</body>
+</html>

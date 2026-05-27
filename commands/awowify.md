@@ -16,6 +16,8 @@ The target is the current working directory; confirm it is the repo the user mea
 
 **If awow is already present here** — `${CLAUDE_PLUGIN_ROOT}` is unset or resolves to the current directory, or `.agents/commands/setup-awow.md` already exists — there is nothing to vendor. Skip to Step 5 and continue into the wizard. Never bounce the user to a different command; awowify carries the flow through itself.
 
+Probe for presence with a **non-failing** check — `test -f .agents/commands/setup-awow.md && echo present || echo absent` — never by reading the file. Before vendoring the file does not exist; a Read or `cat` would surface a harmless `ENOENT` as a red error and alarm the user. "Absent" is the normal, expected result on a fresh target.
+
 If the directory is not under git, say once that committing first makes the vendored tree and any `.awow` files easy to review, then continue. Do not block on it.
 
 ## Step 2 — Tailor what gets copied

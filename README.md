@@ -111,7 +111,14 @@ A team that adopts awow takes a copy of the starter pack and grows their own con
 
 `/awowify` first asks two questions — solo or team, and which board you use — then copies only the starter-owned paths that combination needs (a solo + single-board repo lands ~90 files instead of the full ~130). It overwrites nothing: existing files are saved as `<file>.awow` for you to merge, and your `README.md` is never touched. Then it runs the installer and continues straight into `/setup-awow`, carrying your two answers forward so the wizard does not re-ask.
 
-**GitHub Copilot users** have no plugin marketplace, so use the engine directly: clone awow, then run `setup/awowify.sh --target /path/to/your/repo` (add `--dry-run` first to preview). Same non-destructive vendoring; finish with `setup/install.sh` and `/setup-awow`.
+**GitHub Copilot CLI** now has its own plugin marketplace, so the same repo installs there too:
+
+```
+copilot plugin marketplace add CauchyIO/awow
+copilot plugin install awow
+```
+
+Copilot reads the marketplace from `.claude-plugin/marketplace.json` and the plugin from `.github/plugin/plugin.json`, exposing awowify as a **skill** (Copilot has skills, not slash commands). The skill wraps the same `setup/awowify.sh` engine. If you are not on Copilot CLI, the engine still runs standalone: clone awow and run `setup/awowify.sh --target /path/to/your/repo` (add `--dry-run` to preview), then `setup/install.sh` and `/setup-awow`.
 
 **Contributing improvements back to awow.** Today the path is manual: in a fresh clone of upstream awow, recreate your change against starter-owned files only, and open a PR. The split above makes this easy — anything outside the team-owned rows is fair game. If demand emerges, a `tools/propose-upstream.py` helper in a later release could diff starter-owned paths against the upstream tip and prep a PR branch automatically.
 

@@ -9,6 +9,8 @@ description: "Export all traces and grouped chat sessions from a Databricks MLfl
 
 Exports every trace in a Databricks MLflow experiment, including full spans, plus a per-session view that groups traces by their `mlflow.trace.session` metadata (this is what powers the "Chat sessions" tab in the Databricks MLflow UI).
 
+> **The export is private session data — never commit it.** Traces contain verbatim prompts, real names, private issue IDs, infra details, and secrets users pasted. The default output dir `mlflow_export/` is gitignored; keep it that way. Do not move the export, or any report derived from it, into a tracked path (`proposals/`, `context/`, …) — if the repo is public, that leaks customer data.
+
 ## Inputs to collect from the user
 
 - **Experiment id** — required. Either a numeric id (e.g. `1727480765814570`) or an MLflow URL like `https://adb-XYZ.azuredatabricks.net/ml/experiments/<id>/...`. The script extracts the id from a URL automatically.

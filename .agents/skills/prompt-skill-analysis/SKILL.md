@@ -9,6 +9,8 @@ description: "Assess prompt-engineering quality from a Claude Code session and w
 
 Reads an agent session (or batch of sessions) and produces an honest, evidence-backed markdown assessment of how the user prompts: clarity, specificity, structure, iteration patterns, voice, and concrete suggestions for improvement.
 
+> **The report quotes verbatim prompts — treat it as private session data.** It can carry real names, private issue IDs, infra details, and secrets a prompt pasted. Write it only to a gitignored path (`coach_reviews/`), never to `proposals/` or any tracked path; committing it to a public repo leaks customer data.
+
 The skill has two parts:
 1. A small Python script (`scripts/extract_prompts.py`) that normalizes the input and computes objective stats.
 2. Instructions in this file telling the agent how to read the resulting JSON and turn it into a report.

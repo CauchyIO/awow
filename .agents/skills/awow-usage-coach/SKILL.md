@@ -217,10 +217,23 @@ Print 3 short bullets to the user:
 
 Do not restate the report in chat. The markdown file is the deliverable.
 
+## Per-session coaching (visual timeline path)
+
+The extractor reads MLflow `mlflow_export/` traces. When the team has **no tracing wired up**, you can still coach off the raw Claude Code logs via `/project-retrospective`, which runs `tools/session_timeline.py` over `~/.claude/projects/<encoded-path>/*.jsonl` and emits `sessions.json` + an interactive `timeline.html`. Use that path when asked for a **per-session** review or a whole-project picture rather than the aggregate Mode A/B reports.
+
+When coaching per session this way, apply Mode B's voice rules unchanged (imperative, lead with strengths, every claim carries a verbatim quote, no grades) and write one `<short-id>.md` per session that the timeline embeds via `--coach-dir`. The timeline also surfaces three signals the trace extractor does not, worth reading into the coaching:
+
+- **Concurrency / fan-out** — how many sessions ran in parallel. High parallelism that compresses many session-hours into a short span is the awow rhythm working; flag it as a strength.
+- **Idle gaps** — stretches where no session logged any event (the human stepped away). Lead any "how long did this take" read with active time, not elapsed span.
+- **Peak context per session** — the fullest prompt size reached. A session crossing the standard window is a signal it was doing two or three jobs that each wanted their own fanned-out session — coach toward splitting, not bigger context.
+
+Reviews and the project overview are **private session-derived data** — real names, private issue IDs, infra topology, cost figures. Write them only to `coach_reviews/` (gitignored). **Never** write them to `proposals/`, `context/`, or any tracked path: if this repo is public, committing them leaks customer data. Never copy a secret a prompt pasted into a review or overview — flag it to the user out-of-band.
+
 ## Interplay with sister skills
 
-- `mlflow-export` produces the input. If sessions are stale, suggest re-running it first.
+- `mlflow-export` produces the trace input. If sessions are stale, suggest re-running it first.
 - `prompt-skill-analysis` covers generic prompt quality (clarity, specificity, length distribution, voice). If the user wants both styles of feedback, run them as two reports against the same export — they don't overlap. This skill is about *workflow shape*, that one is about *prompt craft*.
+- `/project-retrospective` is the **visual, no-tracing** sibling: the same workflow-shape lens, rendered from raw Claude Code logs. Reach for it for per-session coaching or a whole-project timeline; reach for the extractor for aggregate team-nudge / self-coach reports and cross-user baselines.
 
 ## Troubleshooting
 

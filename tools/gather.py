@@ -18,10 +18,8 @@ Layout produced
     .agents/CLAUDE.md                    → .claude/CLAUDE.md
                                          → .github/copilot-instructions.md
                                          → .github/AGENTS.md
-    .agents/commands/<phase>/<name>.md   → .claude/commands/<name>.md
+    .agents/commands/<name>.md           → .claude/commands/<name>.md
                                          → .github/prompts/<name>.prompt.md
-    .agents/commands/<name>.md (top)     → same as above (phase folder flat-
-                                            tens; meta commands also flat)
 
 The `.prompt.md` extension under .github/prompts/ is required: VS Code's
 GitHub Copilot Chat discovers prompt files by that exact suffix; plain `.md`

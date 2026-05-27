@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Standardise-phase reporting &mdash; daily, weekly, and cross-team synthesis</title>
+<title>Standardise reporting &mdash; daily, weekly, and cross-team synthesis</title>
 <!--
-  AWOW GUIDE — standardise-phase reporting
+  AWOW GUIDE — standardise reporting
   The read-only synthesis layer: /daily-digest aggregates a day into a team-wide
   synthesis; /weekly-digest does the same at a weekly altitude; /cross-team-view
   (planned, v0.3 — not yet built) is the third altitude. None of these mutate the
@@ -104,11 +104,11 @@
   <!-- HEADER -->
   <div class="pad" style="padding-top:36px;padding-bottom:24px;">
     <p style="font-size:13px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin:0 0 10px;">Way of Working &middot; Guide</p>
-    <h1>Standardise-phase reporting</h1>
+    <h1>Standardise reporting</h1>
     <p style="font-size:1rem;color:var(--text-2);margin:6px 0 0;font-weight:500;">The read-only synthesis layer: a day, then a week, then the neighbouring teams &mdash; each a different altitude on the same activity.</p>
-    <p style="font-size:0.85rem;color:var(--text-3);margin:8px 0 0;">Three commands in the <em>Standardise</em> phase. <code>/daily-digest</code> and <code>/weekly-digest</code> are live; <code>/cross-team-view</code> is documented but <strong>not yet built</strong> (planned for v0.3). All three only read &mdash; they never touch the board or the code.</p>
+    <p style="font-size:0.85rem;color:var(--text-3);margin:8px 0 0;">Three commands in the <em>Standardise</em> layer. <code>/daily-digest</code> and <code>/weekly-digest</code> are live; <code>/cross-team-view</code> is documented but <strong>not yet built</strong> (planned for v0.3). All three only read &mdash; they never touch the board or the code.</p>
     <div class="badges" style="margin-top:16px;">
-      <span class="badge">phase: standardise</span>
+      <span class="badge">standardise</span>
       <span class="badge">read-only synthesis</span>
       <span class="badge badge-accent">day &rarr; week &rarr; cross-team</span>
       <span class="badge badge-muted">cross-team-view: v0.3</span>
@@ -118,13 +118,13 @@
   <!-- TL;DR -->
   <div class="pad-tight">
     <p class="kicker">TL;DR</p>
-    <p>Once a team is past the Seed phase and most people are committing, the board <em>lists</em> what changed but nobody can see the shape of it. The Standardise reporting layer answers the harder question &mdash; <strong>what actually happened, where is it heading, what connects, and what should someone know that they don&rsquo;t?</strong> <code>/daily-digest</code> does this for one day and writes <code>digests/YYYY-MM-DD.md</code>; <code>/weekly-digest</code> does it for a Mon&ndash;Fri window at a higher altitude and writes <code>digests/weekly/YYYY-Www.md</code>; <code>/cross-team-view</code> is the planned third altitude for neighbouring teams &mdash; a stub today, real in v0.3. None of them mutate anything.</p>
+    <p>Once a team is past the Seed stage and most people are committing, the board <em>lists</em> what changed but nobody can see the shape of it. The Standardise reporting layer answers the harder question &mdash; <strong>what actually happened, where is it heading, what connects, and what should someone know that they don&rsquo;t?</strong> <code>/daily-digest</code> does this for one day and writes <code>digests/YYYY-MM-DD.md</code>; <code>/weekly-digest</code> does it for a Mon&ndash;Fri window at a higher altitude and writes <code>digests/weekly/YYYY-Www.md</code>; <code>/cross-team-view</code> is the planned third altitude for neighbouring teams &mdash; a stub today, real in v0.3. None of them mutate anything.</p>
   </div>
 
   <!-- PREREQUISITES -->
   <div class="pad-tight">
     <div class="callout">
-      <strong>When this layer makes sense.</strong> Reporting is a <em>Standardise</em>-phase concern: it earns its keep only once there is a steady stream of activity to synthesize. The shared prerequisites are that the team has shipped <strong>at least three Seed cycles</strong>, <strong>most of the team is actively committing</strong>, and Step&nbsp;0 of <code>/setup-awow</code> is complete (the agent can read and write the board). <code>/weekly-digest</code> adds one more: <code>/daily-digest</code> must have been running for <strong>at least four working days</strong>, because the dailies are its richest input.
+      <strong>When this layer makes sense.</strong> Reporting is a <em>Standardise</em>-stage concern: it earns its keep only once there is a steady stream of activity to synthesize. The shared prerequisites are that the team has shipped <strong>at least three Seed cycles</strong>, <strong>most of the team is actively committing</strong>, and Step&nbsp;0 of <code>/setup-awow</code> is complete (the agent can read and write the board). <code>/weekly-digest</code> adds one more: <code>/daily-digest</code> must have been running for <strong>at least four working days</strong>, because the dailies are its richest input.
     </div>
   </div>
 
@@ -222,12 +222,12 @@
   <div class="pad">
     <h2><code>/daily-digest</code> &mdash; one day, synthesized</h2>
     <p>Collects the day&rsquo;s board, code, and (optional) chat activity, synthesizes it, and writes <code>digests/YYYY-MM-DD.md</code>. The flow is a short pipeline:</p>
-    <pre><span class="c">Phase 0 ─ Input &amp; mode detection   (markdown-only, or email mode)</span>
-<span class="c">Phase 1 ─ Data collection          (board + code + optional chat)</span>
-<span class="c">Phase 2 ─ Synthesis                (the four questions above)</span>
-<span class="c">Phase 3 ─ Markdown output          → digests/YYYY-MM-DD.md</span>
-<span class="c">Phase 4 ─ (optional) HTML render   → GATE: manual review in browser</span>
-<span class="c">Phase 5 ─ (optional) Email send    (only after explicit approval)</span></pre>
+    <pre><span class="c">Step 0 ─ Input &amp; mode detection   (markdown-only, or email mode)</span>
+<span class="c">Step 1 ─ Data collection          (board + code + optional chat)</span>
+<span class="c">Step 2 ─ Synthesis                (the four questions above)</span>
+<span class="c">Step 3 ─ Markdown output          → digests/YYYY-MM-DD.md</span>
+<span class="c">Step 4 ─ (optional) HTML render   → GATE: manual review in browser</span>
+<span class="c">Step 5 ─ (optional) Email send    (only after explicit approval)</span></pre>
 
     <h3>What it collects</h3>
     <ul>
@@ -309,7 +309,7 @@
         </tr>
       </tbody>
     </table>
-    <p style="font-size:0.82rem;color:var(--text-3);margin:0;">All three are <code>phase: standardise</code> and strictly read-only &mdash; they synthesize activity, they never mutate the board, the code, or any external system.</p>
+    <p style="font-size:0.82rem;color:var(--text-3);margin:0;">All three are strictly read-only &mdash; they synthesize activity, they never mutate the board, the code, or any external system.</p>
   </div>
 
   <!-- BOUNDARIES -->

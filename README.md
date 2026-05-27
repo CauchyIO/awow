@@ -4,6 +4,13 @@ A clone-and-go template for engineering teams adopting an agentic way of working
 
 > The agentic way of working is a method for running engineering teams in which agents maintain the plan — the board, the context, and the ceremonies — so people can spend their time on judgement, not coordination. Its aim is to make the plan as trustworthy and current as the code. This repo is the bootstrap for that method.
 
+## tl;dr
+
+- **For humans:** clone the repo, open it in an agent (Claude Code or GitHub Copilot), and run `/setup-awow`. The wizard wires your board and walks you through the rest — you answer and approve, it does the work.
+- **Want the tour first?** Open [`guides/index.html`](guides/index.html) in a browser: a visual map of how the work actually flows.
+
+Everything below is the detail behind those two lines.
+
 ## Install
 
 awow's scaffolding tools (`tools/gather.py`, `tools/bootstrap-claude-md.py`) are stdlib-only Python — there are no third-party packages to install — but they do need a Python 3.10+ interpreter. The recommended path uses [`uv`](https://docs.astral.sh/uv/) so you do not need a system-wide Python:
@@ -30,7 +37,7 @@ After that, every subsequent gather is `uv run python tools/gather.py`. The `set
 
 ## Day one — five steps
 
-1. **Install:** `git clone … && cd awow && ./install.sh` (see [Install](#install) above).
+1. **Install:** `git clone … && cd awow && ./setup/install.sh` (see [Install](#install) above).
 2. **Open an agent session** at the repo root. Claude Code (`claude` in the directory) or GitHub Copilot (open the folder in VS Code) — both are wired up at install time. The wizard auto-detects which one you are running in and asks if you also use the other.
 3. **Run `/setup-awow`.** The wizard lays out its full plan up front on every invocation. Step 0 is the installer (requests your confirmation, then runs `./setup/install.sh` or the PowerShell equivalent). Step 1 walks you through the **board MCP** (Linear / Jira / Azure DevOps / GitHub Issues) and harness configuration — these two are the only required steps. The wizard surfaces the harness-specific install command for your board, with a link to the upstream docs. Subsequent steps (mission, conventions, members, knowledge base, neighbours) are *recommended-next* in any order.
 4. **Review the proposals** under `proposals/setup/`, then let the wizard land them into their final paths.
@@ -42,7 +49,7 @@ The wizard is **incremental and resumable.** It reads `setup-progress.md` on eve
 
 ```
 .agents/           Source of truth for agent instructions — edit here
-  commands/        Slash commands (seed / spread / standardise + archetypes)
+  commands/        Slash commands + work-item archetypes (_workitem-archetypes/)
   skills/          "What good looks like" markdown the agent reads at session start
 .claude/           Pointer stubs for Claude Code — generated, redirect to .agents/
 .github/           Pointer stubs for GitHub Copilot (copilot-instructions.md
@@ -52,6 +59,7 @@ context/           Everything the agent needs to know about this team
   knowledge-base/  Durable reference — what stories link to but don't repeat
   company/         Stakeholders, neighbouring teams, RACI
   tooling/         Board and harness reference docs
+guides/            Self-contained HTML guides + index.html — the human-facing tour
 input/             Slidedecks, briefs, exports, design history — agent reads
 transcripts/       Meeting transcripts — ephemeral, gitignored
 proposals/         Agent drafts everything here first; humans review before land
@@ -59,6 +67,7 @@ meta/              awow's own awow-on-awow workspace (read via --root meta/; ado
 mcps/              Approved MCP catalogue + intake template
 setup/             First-time install scripts (prerequisite for /setup-awow)
 tools/             Python scripts used during normal operation (gather, bootstrap, validate)
+tests/             Regression suite for the scaffolding (run via /test-setup-awow)
 REFERENCES.md      Upstream registries (Anthropic Skills, awesome-copilot, MCP catalogues)
 SETUP.md           Long-form walkthrough of /setup-awow
 setup-progress.md  Wizard state — tracks what's been completed (resumable)
@@ -68,7 +77,7 @@ setup-progress.md  Wizard state — tracks what's been completed (resumable)
 
 Teams using both Claude Code and GitHub Copilot face the same trap: every instruction file, prompt, and skill ends up duplicated across `.claude/` and `.github/`, and the two drift. awow's answer is **pointer stubs**: author once under `.agents/`, and let `tools/gather.py` generate tiny redirect files in `.claude/` and `.github/` that the harness discovers natively.
 
-- **Edit:** `.agents/CLAUDE.md`, `.agents/commands/<phase>/<name>.md`, `.agents/skills/<name>/SKILL.md`
+- **Edit:** `.agents/CLAUDE.md`, `.agents/commands/<name>.md`, `.agents/skills/<name>/SKILL.md`
 - **Regenerate stubs:** `uv run python tools/gather.py` (or `python tools/gather.py` if you have a system Python). Use `--check` in CI to detect drift.
 - **What the stubs contain:** the frontmatter the harness needs for discovery (description, name) plus a one-line body that says "read `.agents/...` and follow it". No substantive content. Nothing to drift.
 - **File extensions matter for Copilot:** prompts under `.github/prompts/` must end in `.prompt.md` — VS Code's Copilot Chat silently ignores plain `.md` there. gather.py emits the right extension automatically; you only need to know this if you are debugging "my new command isn't showing up in Copilot".
@@ -82,7 +91,8 @@ A team that adopts awow takes a copy of the starter pack and grows their own con
 | Path | Owner | Notes |
 |---|---|---|
 | `.agents/commands/`, `.agents/skills/` | Starter | Improvements here are the most valuable to send back upstream. |
-| `context/tooling/`, `mcps/`, `tools/` | Starter | Board/harness references, MCP catalogue, scaffolding scripts. |
+| `context/tooling/`, `mcps/`, `tools/`, `setup/` | Starter | Board/harness references, MCP catalogue, scaffolding and installer scripts. |
+| `.claude-plugin/` | Starter | Plugin + marketplace manifests behind `/awowify`. Not vendored into adopter repos. |
 | `REFERENCES.md`, `SETUP.md`, `README.md` | Starter | Top-level docs. |
 | `.agents/CLAUDE.md` | Starter → Team | The shipped file is a stub; `tools/bootstrap-claude-md.py` rewrites it with your team's content during `/setup-awow` Step 5. Treat as team-owned thereafter. |
 | `context/team/`, `context/company/`, `context/knowledge-base/`, `context/quarterly/` | Team | Your mission, members, knowledge, goals. |
@@ -92,15 +102,33 @@ A team that adopts awow takes a copy of the starter pack and grows their own con
 
 **Recommended clone style: GitHub template, not fork.** Click *Use this template* so your repo starts with no upstream relationship. A fork would put `git pull` merges through `.agents/CLAUDE.md` and `context/team/`, which is exactly where you've diverged.
 
+**Adding awow to a repo that already has code.** "Use this template" only seeds a brand-new repo. For an existing project, install the awow plugin and run `/awowify` from inside that repo:
+
+```
+/plugin marketplace add <your-org>/awow
+/plugin install awow@awow
+```
+
+`/awowify` first asks two questions — solo or team, and which board you use — then copies only the starter-owned paths that combination needs (a solo + single-board repo lands ~90 files instead of the full ~130). It overwrites nothing: existing files are saved as `<file>.awow` for you to merge, and your `README.md` is never touched. Then it runs the installer and continues straight into `/setup-awow`, carrying your two answers forward so the wizard does not re-ask.
+
+**GitHub Copilot CLI** now has its own plugin marketplace, so the same repo installs there too:
+
+```
+copilot plugin marketplace add CauchyIO/awow
+copilot plugin install awow
+```
+
+Copilot reads the marketplace from `.claude-plugin/marketplace.json` and the plugin from `.github/plugin/plugin.json`, exposing awowify as a **skill** (Copilot has skills, not slash commands). The skill wraps the same `setup/awowify.sh` engine. If you are not on Copilot CLI, the engine still runs standalone: clone awow and run `setup/awowify.sh --target /path/to/your/repo` (add `--dry-run` to preview), then `setup/install.sh` and `/setup-awow`.
+
 **Contributing improvements back to awow.** Today the path is manual: in a fresh clone of upstream awow, recreate your change against starter-owned files only, and open a PR. The split above makes this easy — anything outside the team-owned rows is fair game. If demand emerges, a `tools/propose-upstream.py` helper in a later release could diff starter-owned paths against the upstream tip and prep a PR branch automatically.
 
 **Pulling later improvements from awow.** Also manual today: watch the awow upstream, and cherry-pick changes from starter-owned paths into your repo when they look worth picking up. Most teams will not need to do this often — the scaffolding is small and the team-owned surface is what grows.
 
 ## Status
 
-v0.1 — skeleton. The structure and the pointer-stub toolchain are in place. The wizard and seed-command implementations are next.
+**v0.1.** The pointer-stub toolchain, the `/setup-awow` wizard (plus `/awowify` for dropping awow onto an existing repo), the command-and-skill set, the work-item archetypes, and the `guides/` tour are all in place and working. Expect rough edges — the team-owned surface is meant to grow under you.
 
-The full design proposal lives in `input/PROPOSAL.md`. Linear-research additions in `input/ADDITIONS_FROM_LINEAR.md`. Peer-research synthesis in `input/research/synthesis.md`.
+The design inputs that informed this repo live under `input/`.
 
 ## Prerequisites
 
@@ -108,7 +136,7 @@ The full design proposal lives in `input/PROPOSAL.md`. Linear-research additions
 - An LLM coding agent available locally: Claude Code or GitHub Copilot.
 - One engineer who wants to try this.
 
-If those three are not true, the procurement conversation comes before the adoption conversation. See `input/PROPOSAL.md` §9.
+If those three are not true, the procurement conversation comes before the adoption conversation.
 
 ## License
 

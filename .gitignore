@@ -28,3 +28,14 @@ tools/.distribute-targets
 mlruns/
 
 # Regression suite — run files now live at /tmp/awow-test-runs/, not in-repo
+
+# Private session-derived data — NEVER commit to this PUBLIC repo.
+# Raw exports and the reports/timelines built from them carry real names,
+# private issue IDs, infra topology, and cost figures. The pre-push leak scan
+# (tools/hooks/pre-push) is a backstop; keeping the data untracked is the first line.
+mlflow_export/
+**/mlflow_export/
+coach_reviews/
+**/coach_reviews/
+sessions.json
+timeline.html

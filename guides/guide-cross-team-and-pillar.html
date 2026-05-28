@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Two feedback loops + a plan&harr;execution bridge across the awow tier boundary</title>
+<!--
+  AWOW PROPOSAL COMPANION — cross-team feedback & service drift
+  Visual companion to proposals/cross-team-feedback-and-service-drift.md. Three mechanisms
+  across the team↔pillar seam: a cadence-triggered team loop, an event-triggered pillar loop,
+  and a plan↔execution bridge. A pillar is a different archetype (leaf vs internal node), and
+  one activity RACI is the spine — services distil up, projects route down.
+  Self-contained: no external fonts/links by design. Matches the awow guide house style.
+-->
+<style>
+  :root {
+    --bg: #f6f5f3;
+    --surface: #ffffff;
+    --surface-alt: #f0efed;
+    --text-1: #1a1a1a;
+    --text-2: #6b6b6b;
+    --text-3: #9a9a9a;
+    --border: #e0dfdd;
+    --border-subtle: #ebeae8;
+    --accent: #f24b37;
+    --link: #337FF9;
+    --ok: #2e7d4f;
+    --warn: #c97a1b;
+    --risk: #b53a2a;
+  }
+  body { margin:0; padding:0; width:100%; font-family:'Nunito',system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text-1); line-height:1.6; }
+  .wrap { max-width:1040px; margin:0 auto; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .pad { padding:28px 40px; border-bottom:1px solid var(--border-subtle); }
+  .pad-tight { padding:20px 40px; border-bottom:1px solid var(--border-subtle); }
+  h1 { font-size:1.9rem; font-weight:700; margin:0; letter-spacing:-0.02em; }
+  h2 { font-size:1.35rem; font-weight:600; margin:0 0 16px; letter-spacing:-0.01em; }
+  h3 { font-size:1.05rem; font-weight:600; margin:24px 0 10px; letter-spacing:-0.01em; }
+  p  { font-size:0.92rem; color:var(--text-2); margin:0 0 12px; line-height:1.7; }
+  ul, ol { font-size:0.92rem; color:var(--text-2); line-height:1.7; padding-left:22px; margin:0 0 14px; }
+  li { margin:6px 0; }
+  strong { color:var(--text-1); font-weight:600; }
+  em { color:var(--text-1); font-style:italic; }
+  code { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.85em; background:var(--surface-alt); padding:1px 6px; border-radius:3px; border:1px solid var(--border-subtle); }
+  pre { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.82rem; background:var(--surface-alt); padding:14px 18px; border-radius:8px; border:1px solid var(--border-subtle); overflow-x:auto; line-height:1.55; color:var(--text-1); }
+  table.data { border-collapse:collapse; width:100%; font-size:0.85rem; margin:0 0 4px; }
+  table.data th { text-align:left; font-weight:600; padding:8px 12px; border-bottom:2px solid var(--border); background:var(--surface-alt); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; }
+  table.data td { padding:9px 12px; border-bottom:1px solid var(--border-subtle); color:var(--text-2); vertical-align:top; line-height:1.5; }
+  table.data tr:last-child td { border-bottom:none; }
+  table.data td strong { color:var(--text-1); }
+  td.ok { color:var(--ok); font-weight:600; }
+  td.risk { color:var(--risk); font-weight:700; }
+  .kicker { font-size:0.72rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin:0 0 8px; }
+  .lede { font-size:1rem; color:var(--text-2); margin:6px 0 0; font-weight:500; line-height:1.6; }
+  .badge { display:inline-block; font-size:0.7rem; font-weight:600; padding:3px 10px; border-radius:4px; border:1px solid var(--border); color:var(--text-1); background:var(--surface); }
+  .badge-accent { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .badge-ok { background:rgba(46,125,79,0.08); color:var(--ok); border-color:rgba(46,125,79,0.25); }
+  .badge-warn { background:rgba(201,122,27,0.10); color:var(--warn); border-color:rgba(201,122,27,0.30); }
+  .badge-link { background:rgba(51,127,249,0.08); color:var(--link); border-color:rgba(51,127,249,0.30); }
+  .badge-muted { background:var(--surface-alt); color:var(--text-3); border-color:var(--border-subtle); border-style:dashed; }
+  .badges { display:flex; gap:6px; flex-wrap:wrap; }
+  .callout { background:var(--surface-alt); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 16px; font-size:0.9rem; color:var(--text-2); line-height:1.65; }
+  .callout:last-child { margin-bottom:0; }
+  .callout strong { color:var(--text-1); }
+  .callout-warn { border-left-color:var(--warn); }
+  .callout-ok { border-left-color:var(--ok); }
+  .callout-risk { border-left-color:var(--risk); }
+  .callout-big { font-size:1.05rem; color:var(--text-1); line-height:1.55; padding:18px 22px; }
+  .diagram { background:var(--surface-alt); border:1px solid var(--border-subtle); border-radius:10px; padding:18px 16px 12px; margin:0 0 8px; }
+  .diagram svg { display:block; max-width:100%; height:auto; margin:0 auto; }
+  .figcap { font-size:0.8rem; color:var(--text-3); text-align:center; margin:8px 0 0; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:0.78rem; color:var(--text-2); padding:0 8px 12px; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .legend i { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid var(--border); }
+  .legend i.line { width:16px; height:0; border-radius:0; border-top-width:2px; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
+  .card.alt { background:var(--surface-alt); }
+  .card .card-label { font-size:0.7rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; }
+  .card h3 { margin-top:0; }
+  .card ul { margin:6px 0 0; }
+  .prob { border-left:3px solid var(--risk); }
+  .prob .card-label { color:var(--risk); }
+  .steps { display:flex; gap:0; flex-wrap:wrap; }
+  .step { flex:1; min-width:150px; background:var(--surface); border:1px solid var(--border); padding:13px 15px; position:relative; }
+  .step:first-child { border-radius:10px 0 0 10px; }
+  .step:last-child { border-radius:0 10px 10px 0; }
+  .step + .step { border-left:none; }
+  .step .step-n { font-family:'JetBrains Mono',ui-monospace,monospace; font-size:0.72rem; font-weight:700; color:var(--accent); }
+  .step strong { display:block; margin:3px 0 3px; font-size:0.92rem; }
+  .step span { font-size:0.8rem; color:var(--text-2); line-height:1.5; }
+  @media (max-width: 760px) {
+    .pad, .pad-tight { padding-left:22px; padding-right:22px; }
+    .grid-2, .grid-3 { grid-template-columns:1fr; }
+    .step { border-radius:10px !important; border-left:1px solid var(--border) !important; }
+  }
+  @media print {
+    body { background:#fff; }
+    .wrap { border:none; border-radius:0; max-width:100%; }
+  }
+
+  /* ===== LEFT INDEX (auto-built from section headings) ===== */
+  .guide-toc { position:fixed; top:0; left:0; width:232px; height:100vh; background:var(--surface); border-right:1px solid var(--border); z-index:60; display:flex; flex-direction:column; overflow-y:auto; padding:20px 0; }
+  .guide-toc .toc-brand { display:flex; align-items:center; gap:8px; padding:0 20px 18px; border-bottom:1px solid var(--border-subtle); margin-bottom:10px; flex-shrink:0; }
+  .guide-toc .toc-brand svg { width:18px; height:18px; flex:none; }
+  .guide-toc .toc-brand span { font-size:12px; font-weight:700; letter-spacing:0.06em; color:var(--text-2); text-transform:uppercase; }
+  .guide-toc a.toc-item { display:flex; align-items:flex-start; gap:10px; padding:8px 20px; text-decoration:none; color:var(--text-2); font-size:12px; font-weight:500; line-height:1.45; border-left:3px solid transparent; transition:background 0.12s, color 0.12s; }
+  .guide-toc a.toc-item:hover { background:var(--surface-alt); color:var(--text-1); }
+  .guide-toc a.toc-item.active { background:var(--surface-alt); color:var(--text-1); font-weight:700; border-left-color:var(--accent); }
+  .guide-toc .toc-num { font-size:10px; font-weight:700; color:var(--accent); min-width:16px; opacity:0.5; padding-top:1px; flex:none; }
+  .guide-toc a.toc-item.active .toc-num { opacity:1; }
+  @media (min-width:1024px) { body { padding-left:232px; } }
+  @media (max-width:1023px) { .guide-toc { display:none; } }
+  @media print { .guide-toc { display:none !important; } body { padding-left:0 !important; } }
+</style>
+</head>
+<body>
+
+<nav class="guide-toc" id="guideToc" aria-label="Contents">
+  <a class="toc-brand" href="index.html" style="text-decoration:none;"><svg viewBox="0 0 500 500" fill="none"><path d="M250 50C139.543 50 50 139.543 50 250C50 360.457 139.543 450 250 450C360.457 450 450 360.457 450 250C450 214.612 440.841 181.387 424.664 152.664L353.033 224.295C356.229 232.471 358 241.473 358 250C358 309.647 309.647 358 250 358C190.353 358 142 309.647 142 250C142 190.353 190.353 142 250 142C275.948 142 299.727 151.424 318.295 166.967L389.926 95.336C348.387 66.159 297.388 50 250 50Z" fill="#f24b37"/></svg><span>awow &middot; proposal</span></a>
+  <!-- items injected by script below -->
+</nav>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="pad" style="padding-top:36px;padding-bottom:24px;">
+    <p style="font-size:13px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin:0 0 10px;">Way of Working &middot; Proposal companion</p>
+    <h1>Two feedback loops + a plan&harr;execution bridge</h1>
+    <p class="lede">Three mechanisms across the team&harr;pillar seam &mdash; and why a pillar is a different archetype, not a bigger team.</p>
+    <p style="font-size:0.85rem;color:var(--text-3);margin:8px 0 0;">A <strong>team loop</strong> that runs on a clock, a <strong>pillar loop</strong> that runs on evidence, and a <strong>bridge</strong> that keeps the plan and the work in sync. Companion to <code>proposals/cross-team-feedback-and-service-drift.md</code>.</p>
+    <div class="badges" style="margin-top:16px;">
+      <span class="badge badge-accent">draft &middot; for review</span>
+      <span class="badge badge-link">pillar tier</span>
+      <span class="badge">3 mechanisms</span>
+    </div>
+  </div>
+
+  <!-- TL;DR -->
+  <div class="pad-tight">
+    <p class="kicker">TL;DR</p>
+    <p>Feedback <em>on</em> the awow stays inside a team and runs on a weekly clock. Re-defining a <strong>service</strong> is a different kind of thing: it lives <em>between</em> teams and up at the pillar, and must run on accumulated evidence, not a cadence. Keeping the plan and the board reconciled is a third thing again &mdash; a continuous sync. A pillar is therefore a different <strong>archetype</strong> (an internal node, not a leaf), and the object it turns on is <strong>one activity&times;team RACI</strong>: services distil up from it, project routing decomposes down through it.</p>
+  </div>
+
+  <!-- PROBLEMS -->
+  <div class="pad">
+    <h2>The problems this must solve</h2>
+    <div class="grid-3">
+      <div class="card prob"><p class="card-label">P1 &middot; steer resources</p><p style="margin:0;">No live picture of who's working on what, so leadership can't see where to add or shift people.</p></div>
+      <div class="card prob"><p class="card-label">P2 &middot; plan &ne; execution</p><p style="margin:0;">The planning model (goals, services, dependencies) and the board (epics/stories) don't reflect each other.</p></div>
+      <div class="card prob"><p class="card-label">P3 &middot; services undefined</p><p style="margin:0;">Routing and classification are ambiguous; the definition drifts as ambiguous work arrives.</p></div>
+      <div class="card prob"><p class="card-label">P4 &middot; run-the-business as projects</p><p style="margin:0;">Planned work, maintenance, and incidents are managed as one undifferentiated stream.</p></div>
+      <div class="card prob"><p class="card-label">P5 &middot; invisible blocks</p><p style="margin:0;">Cross-team critical-path blocks surface only after they've already sunk a deliverable.</p></div>
+      <div class="card prob"><p class="card-label">P6 &middot; adoption risk</p><p style="margin:0;">While everything is novel, people must both <em>feel</em> and <em>be</em> heard.</p></div>
+    </div>
+    <div class="callout" style="margin-top:16px;"><strong>Coverage.</strong> P3 + P6 &rarr; the two loops + the RACI spine. &nbsp;P1 + P2 + P5 &rarr; the plan&harr;execution bridge. &nbsp;P4 falls out of P2 + P3.</div>
+  </div>
+
+  <!-- PRINCIPLE -->
+  <div class="pad">
+    <h2>The principle both loops share</h2>
+    <div class="callout"><strong>People <em>feel</em> heard when their input produces a visible change &mdash; or a recorded, reasoned <em>no</em>. People <em>are</em> heard when the system captures their reality whether or not they had words for it in a meeting.</strong></div>
+    <div class="grid-2">
+      <div class="card"><p class="card-label">Stated feedback</p><p style="margin:0;">What someone says in a retro. The voiced channel.</p></div>
+      <div class="card"><p class="card-label">Revealed feedback</p><p style="margin:0;">What their sessions actually show &mdash; usage-coach, digests. The channel that survives a thin week.</p></div>
+    </div>
+    <p style="margin:14px 0 0;">Closure for both loops is the same mechanic: the change lands as a <strong>git diff</strong>. The repo is the podium &mdash; "heard" becomes auditable instead of vibes.</p>
+  </div>
+
+  <!-- TWO LOOPS -->
+  <div class="pad">
+    <h2>Two loops, two triggers</h2>
+    <div class="grid-2">
+      <div class="card">
+        <div class="badges" style="margin-bottom:10px;"><span class="badge badge-accent">Loop 1 &middot; cadence-triggered</span></div>
+        <h3 style="margin-top:0;">Feedback ON the awow</h3>
+        <p style="margin:0 0 8px;font-size:0.84rem;">Inside one team's repo. Fits awow today.</p>
+        <ul>
+          <li><strong>Trigger:</strong> the clock &mdash; a weekly 20&ndash;30&nbsp;min retro, kept frequent while the learning rate is highest.</li>
+          <li><strong>Rotate the convener</strong>; the substrate (usage-coach) drives, the human just convenes.</li>
+          <li><strong>Always close with</strong> a diff to conventions <em>or</em> a recorded "heard X, chose not to act because Y."</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="badges" style="margin-bottom:10px;"><span class="badge badge-warn">Loop 2 &middot; event-triggered</span></div>
+        <h3 style="margin-top:0;">Service-definition drift</h3>
+        <p style="margin:0 0 8px;font-size:0.84rem;">Between teams + up to the pillar. Ascends out of team scope.</p>
+        <ul>
+          <li><strong>Trigger:</strong> evidence, not a clock &mdash; reviewing a definition on a cadence destabilises it.</li>
+          <li><strong>Log, don't meet:</strong> every time work won't fit the RACI, one line in the exceptions log.</li>
+          <li><strong>Threshold:</strong> revise when N same-failures pile up, <em>or</em> one severe collision/gap appears.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIER TREE -->
+  <div class="pad">
+    <h2>The tier tree &mdash; leaf vs internal nodes</h2>
+    <p>"Team vs pillar" is really <strong>leaf vs internal node</strong> in a tree, and it nests (team &rarr; pillar &rarr; department &rarr; org). Same substrate shape everywhere; only the <em>role</em> differs. The sharpest difference is <strong>direction of data flow</strong>.</p>
+    <div class="diagram">
+      <div class="legend">
+        <span><i style="background:rgba(242,75,55,0.10);border-color:var(--accent);"></i> internal node (pillar)</span>
+        <span><i style="background:var(--surface-alt);"></i> leaf node (team)</span>
+        <span><i class="line" style="border-color:var(--accent);"></i> contracts published <strong>down</strong></span>
+        <span><i class="line" style="border-color:var(--link);border-top-style:dashed;"></i> signal aggregated <strong>up</strong></span>
+      </div>
+      <svg viewBox="0 0 880 220" role="img" aria-label="A pillar internal node above three team leaf nodes; for each link a solid arrow publishes contracts down and a dashed arrow aggregates signal up.">
+        <rect x="330" y="14" width="220" height="54" rx="9" fill="rgba(242,75,55,0.07)" stroke="#f24b37" stroke-width="2"/>
+        <text x="440" y="38" text-anchor="middle" font-family="system-ui,sans-serif" font-size="15" font-weight="700" fill="#1a1a1a">Pillar (internal)</text>
+        <text x="440" y="56" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11.5" fill="#6b6b6b">services &middot; RACI &middot; exceptions log</text>
+
+        <line x1="432" y1="68" x2="122" y2="158" stroke="#f24b37" stroke-width="2" marker-end="url(#ao)"/>
+        <line x1="138" y1="158" x2="448" y2="68" stroke="#337FF9" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#au)"/>
+        <line x1="432" y1="68" x2="432" y2="158" stroke="#f24b37" stroke-width="2" marker-end="url(#ao)"/>
+        <line x1="448" y1="158" x2="448" y2="68" stroke="#337FF9" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#au)"/>
+        <line x1="448" y1="68" x2="758" y2="158" stroke="#f24b37" stroke-width="2" marker-end="url(#ao)"/>
+        <line x1="742" y1="158" x2="432" y2="68" stroke="#337FF9" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#au)"/>
+
+        <g font-family="system-ui,sans-serif">
+          <rect x="20"  y="160" width="220" height="50" rx="9" fill="#f0efed" stroke="#e0dfdd" stroke-width="1.5"/>
+          <text x="130" y="182" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1a1a">Team A (leaf)</text>
+          <text x="130" y="199" text-anchor="middle" font-size="11" fill="#9a9a9a">pins RACI &middot; own board</text>
+          <rect x="330" y="160" width="220" height="50" rx="9" fill="#f0efed" stroke="#e0dfdd" stroke-width="1.5"/>
+          <text x="440" y="182" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1a1a">Team B (leaf)</text>
+          <text x="440" y="199" text-anchor="middle" font-size="11" fill="#9a9a9a">pins RACI &middot; own board</text>
+          <rect x="640" y="160" width="220" height="50" rx="9" fill="#f0efed" stroke="#e0dfdd" stroke-width="1.5"/>
+          <text x="750" y="182" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1a1a">Team C (leaf)</text>
+          <text x="750" y="199" text-anchor="middle" font-size="11" fill="#9a9a9a">pins RACI &middot; own board</text>
+        </g>
+
+        <defs>
+          <marker id="ao" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#f24b37"/></marker>
+          <marker id="au" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#337FF9"/></marker>
+        </defs>
+      </svg>
+    </div>
+    <p class="figcap">A leaf only <em>consumes</em>; a pillar is <em>bidirectional</em> &mdash; publishes down + aggregates up. That bidirectionality is the new machinery.</p>
+  </div>
+
+  <!-- ARCHETYPE -->
+  <div class="pad">
+    <h2>Different nouns, different flow</h2>
+    <table class="data">
+      <thead><tr><th>Dimension</th><th>Team repo (leaf)</th><th>Pillar repo (internal)</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Domain nouns</strong></td><td>people &middot; stories &middot; board &middot; code</td><td>teams &middot; services &middot; exceptions &middot; boundaries</td></tr>
+        <tr><td><strong>Unit of work</strong></td><td>a story</td><td>a boundary contract</td></tr>
+        <tr><td><strong>Pipeline</strong></td><td>refinement &rarr; process-workitem &rarr; PR</td><td>exception &rarr; accumulate &rarr; threshold &rarr; revision PR &rarr; ratify &rarr; publish</td></tr>
+        <tr><td><strong>Register</strong></td><td>the team's backlog</td><td>service map + exceptions log (not a backlog)</td></tr>
+        <tr><td><strong>Required setup</strong></td><td><code>context/tooling/board.md</code></td><td><code>context/services/</code> (activities + map + log)</td></tr>
+        <tr><td><strong>Data-flow direction</strong></td><td>consumes only (vendors awow in)</td><td><strong>bidirectional</strong> &mdash; publishes down, aggregates up</td></tr>
+        <tr><td><strong>Rhythm</strong></td><td>daily / weekly cadence</td><td>mostly dormant + event-triggered</td></tr>
+        <tr><td><strong>Has code?</strong></td><td>often</td><td>no &mdash; pure governance substrate</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- RACI -->
+  <div class="pad">
+    <h2>One activity RACI is the spine</h2>
+    <p>The primitive is the <strong>activity</strong> &mdash; the lowest-granularity unit of work, concrete enough to assign unambiguously (which is why it beats fuzzy "services"). <strong>One</strong> RACI maps activities&nbsp;&rarr;&nbsp;teams. Services are distilled up from it; project routing decomposes down through it. There is no separate "service RACI" &mdash; service drift <em>is</em> activity-RACI drift.</p>
+    <div class="diagram">
+      <svg viewBox="0 0 880 150" role="img" aria-label="One activity-by-team RACI in the centre; services distil upward from it, project routing decomposes downward through it.">
+        <rect x="330" y="50" width="220" height="50" rx="9" fill="rgba(242,75,55,0.07)" stroke="#f24b37" stroke-width="2"/>
+        <text x="440" y="73" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" font-weight="700" fill="#1a1a1a">ACTIVITY &times; TEAM RACI</text>
+        <text x="440" y="89" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#6b6b6b">one Accountable team per activity</text>
+        <rect x="40" y="55" width="180" height="40" rx="8" fill="rgba(46,125,79,0.08)" stroke="#2e7d4f" stroke-width="1.5"/>
+        <text x="130" y="73" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12.5" font-weight="700" fill="#1f5a3a">SERVICE</text>
+        <text x="130" y="88" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10.5" fill="#6b6b6b">distilled cluster</text>
+        <rect x="660" y="55" width="180" height="40" rx="8" fill="rgba(51,127,249,0.07)" stroke="#337FF9" stroke-width="1.5"/>
+        <text x="750" y="73" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12.5" font-weight="700" fill="#23508f">ROUTING</text>
+        <text x="750" y="88" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10.5" fill="#6b6b6b">project &rarr; activities</text>
+        <line x1="330" y1="75" x2="225" y2="75" stroke="#2e7d4f" stroke-width="2" marker-end="url(#ag)"/>
+        <text x="277" y="42" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10.5" font-weight="700" fill="#2e7d4f">distil &uarr;</text>
+        <line x1="550" y1="75" x2="655" y2="75" stroke="#337FF9" stroke-width="2" marker-end="url(#ar)"/>
+        <text x="603" y="42" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10.5" font-weight="700" fill="#337FF9">decompose &darr;</text>
+        <defs>
+          <marker id="ag" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#2e7d4f"/></marker>
+          <marker id="ar" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#337FF9"/></marker>
+        </defs>
+      </svg>
+    </div>
+    <div class="grid-2" style="margin-top:14px;align-items:start;">
+      <div class="card">
+        <p class="card-label">The invariant &mdash; exactly one Accountable team per activity</p>
+        <table class="data" style="font-size:0.82rem;">
+          <thead><tr><th>Activity</th><th>Service</th><th>Accountable</th></tr></thead>
+          <tbody>
+            <tr><td>Ingest raw events</td><td>Data ingestion</td><td class="ok">Team A</td></tr>
+            <tr><td>Normalise schema</td><td>Data ingestion</td><td class="ok">Team C</td></tr>
+            <tr><td>Reconcile shared records</td><td>Shared records</td><td class="risk">&#9888; Team A &amp; B</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout callout-risk" style="margin:0;">
+        <strong>The ways the invariant breaks <em>are</em> the drift triggers.</strong>
+        <ul style="margin:8px 0 0;">
+          <li><strong>Gap</strong> &mdash; an activity with no Accountable team &rarr; coverage hole.</li>
+          <li><strong>Overlap</strong> &mdash; an activity with &ge;2 Accountable teams &rarr; boundary conflict.</li>
+          <li><strong>Service drift</strong> &mdash; a service whose activities scatter across teams incoherently.</li>
+        </ul>
+        <p style="margin:8px 0 0;font-size:0.84rem;">All visible <em>at activity granularity</em>. Each unplaceable activity becomes one line in the exceptions log.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CADENCE -->
+  <div class="pad">
+    <h2>How the event cadence runs</h2>
+    <div class="steps">
+      <div class="step"><span class="step-n">01</span><strong>Log</strong><span>Work won't fit the RACI &rarr; one line in the exceptions log. No meeting.</span></div>
+      <div class="step"><span class="step-n">02</span><strong>Accumulate</strong><span>The log gathers evidence over time. The steward watches it.</span></div>
+      <div class="step"><span class="step-n">03</span><strong>Threshold trips</strong><span>N same-failures, or one severe collision / gap.</span></div>
+      <div class="step"><span class="step-n">04</span><strong>Revision PR</strong><span>A team authors a change to the RACI. Reviewed in the open.</span></div>
+      <div class="step"><span class="step-n">05</span><strong>Ratify &amp; publish</strong><span>Pillar ratifies; merge publishes the new pinned version down.</span></div>
+    </div>
+    <div class="callout callout-warn" style="margin-top:16px;"><strong>Guardrail.</strong> Teams <em>author</em> their boundaries (the PR); the pillar <em>ratifies</em> coverage coherence &mdash; ratification, not dictation. The moment the tier-up hands teams their definitions, the autonomy that drives adoption dies and "feel heard" dies with it.</div>
+  </div>
+
+  <!-- BRIDGE -->
+  <div class="pad">
+    <h2>The plan&harr;execution bridge</h2>
+    <p>The two loops and the RACI govern the <em>definition</em> of work &mdash; what each service is, which team owns it. They do <strong>not</strong> keep the plan and the execution in sync. That join &mdash; the <strong>seam</strong> &mdash; is where P1, P2 and P5 live, and it decides whether a portfolio roll-up is truth or fiction. It's a <em>sync</em>, not a feedback ritual.</p>
+    <div class="grid-2" style="align-items:start;">
+      <div class="card">
+        <div class="badges" style="margin-bottom:10px;"><span class="badge badge-link">Loop 3 &middot; continuous sync</span></div>
+        <h3 style="margin-top:0;">Two directions, both continuous</h3>
+        <ul>
+          <li><strong>Down &mdash; translation.</strong> A plan node decomposes into <strong>activities</strong>, each routed to its Accountable team by the RACI and sized, via a human-set directive. An activity that won't route is exactly an exceptions-log entry.</li>
+          <li><strong>Up &mdash; reconciliation.</strong> As work moves on the board, status flows back to the plan node so the portfolio stays current. The leaf agent's existing board-maintenance, extended.</li>
+        </ul>
+      </div>
+      <div class="card alt">
+        <h3 style="margin-top:0;">First-class &mdash; and not day zero</h3>
+        <p style="margin:0 0 10px;">Maintained by hand, the plan&harr;board link rots within a sprint &mdash; the same drift awow exists to remove, reintroduced one tier up. So the mapping is a <strong>versioned, owned artifact</strong>, not a one-off integration script.</p>
+        <p style="margin:0;"><strong>Sequencing:</strong> don't switch it on across the board at day zero &mdash; routing is wrong while definitions are fuzzy. Pilot on <strong>one well-defined plan node</strong>, let the threshold mature the definitions underneath it, then widen.</p>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:14px;"><strong>Source of truth.</strong> When the plan already lives in an external EA system, awow doesn't duplicate it &mdash; the external system stays authoritative; awow owns only the <strong>linkage</strong> + <strong>up-reconciliation</strong>, and even the RACI becomes a pinned projection. <strong>Owner:</strong> the leaf agent maintains the links; the steward owns the translation directive &mdash; no new human role.</div>
+  </div>
+
+  <!-- WHY -->
+  <div class="pad">
+    <h2>Why it's so different</h2>
+    <div class="callout callout-big"><strong>A team repo only ever <em>consumes</em>. A pillar repo <em>publishes contracts down</em> and <em>aggregates signal up</em> &mdash; and it runs on accumulated evidence, not a clock.</strong> Treating it as "a team repo with extra files" would smuggle in an entire work-pipeline that has no meaning at this tier.</div>
+    <p style="margin:0;">The fix isn't a second product. It's one substrate, parameterised by node role (<code>role: leaf | internal</code>) with a parent pointer &mdash; exactly how <code>phase:</code> frontmatter already gates command discovery today.</p>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="pad-tight" style="border-bottom:none;">
+    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Companion to <code>proposals/cross-team-feedback-and-service-drift.md</code> &middot; awow &middot; draft for review. Self-contained, no external resources. Team names and activities are generic placeholders.</p>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var toc=document.getElementById('guideToc'); if(!toc) return;
+  var heads=[].slice.call(document.querySelectorAll('.wrap h2')); if(!heads.length) return;
+  var pad2=function(n){return n<10?'0'+n:''+n;};
+  var slug=function(t){return t.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'sec';};
+  var top=function(el){return el.getBoundingClientRect().top+window.scrollY;};
+  var items=[];
+  heads.forEach(function(h){
+    var label=h.textContent.trim().replace(/^\s*\d+[.)]\s*/,'');
+    if(!label) return;
+    var target=h.closest('.pad,.pad-tight,section')||h;
+    if(!target.id) target.id='sec-'+(items.length+1)+'-'+slug(label);
+    var a=document.createElement('a'); a.className='toc-item'; a.href='#'+target.id;
+    var num=document.createElement('span'); num.className='toc-num'; num.textContent=pad2(items.length+1);
+    var lab=document.createElement('span'); lab.className='toc-label'; lab.textContent=label;
+    a.appendChild(num); a.appendChild(lab);
+    a.addEventListener('click',function(e){e.preventDefault(); target.scrollIntoView({behavior:'smooth',block:'start'}); history.replaceState(null,'','#'+target.id);});
+    toc.appendChild(a); items.push({t:target,a:a});
+  });
+  var spy=function(){
+    var y=window.scrollY+130, cur=items[0];
+    for(var i=0;i<items.length;i++){ if(top(items[i].t)<=y) cur=items[i]; }
+    items.forEach(function(it){ it.a.classList.toggle('active', it===cur); });
+  };
+  window.addEventListener('scroll',spy,{passive:true});
+  window.addEventListener('resize',spy); spy();
+})();
+</script>
+
+</body>
+</html>

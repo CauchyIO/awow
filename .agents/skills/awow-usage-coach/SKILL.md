@@ -219,7 +219,7 @@ Do not restate the report in chat. The markdown file is the deliverable.
 
 ## Per-session coaching (visual timeline path)
 
-The extractor reads MLflow `mlflow_export/` traces. When the team has **no tracing wired up**, you can still coach off the raw Claude Code logs via `/project-retrospective`, which runs `tools/session_timeline.py` over `~/.claude/projects/<encoded-path>/*.jsonl` and emits `sessions.json` + an interactive `timeline.html`. Use that path when asked for a **per-session** review or a whole-project picture rather than the aggregate Mode A/B reports.
+The extractor reads MLflow `mlflow_export/` traces. When the team has **no tracing wired up**, you can still coach off the raw Claude Code logs via `project-timeline`, which runs `tools/session_timeline.py` over `~/.claude/projects/<encoded-path>/*.jsonl` and emits `sessions.json` + an interactive `timeline.html`. Use that path when asked for a **per-session** review or a whole-project picture rather than the aggregate Mode A/B reports.
 
 When coaching per session this way, apply Mode B's voice rules unchanged (imperative, lead with strengths, every claim carries a verbatim quote, no grades) and write one `<short-id>.md` per session that the timeline embeds via `--coach-dir`. The timeline also surfaces three signals the trace extractor does not, worth reading into the coaching:
 
@@ -233,7 +233,7 @@ Reviews and the project overview are **private session-derived data** — real n
 
 - `mlflow-export` produces the trace input. If sessions are stale, suggest re-running it first.
 - `prompt-skill-analysis` covers generic prompt quality (clarity, specificity, length distribution, voice). If the user wants both styles of feedback, run them as two reports against the same export — they don't overlap. This skill is about *workflow shape*, that one is about *prompt craft*.
-- `/project-retrospective` is the **visual, no-tracing** sibling: the same workflow-shape lens, rendered from raw Claude Code logs. Reach for it for per-session coaching or a whole-project timeline; reach for the extractor for aggregate team-nudge / self-coach reports and cross-user baselines.
+- `project-timeline` is the **visual, no-tracing** sibling: the same workflow-shape lens, rendered from raw Claude Code logs. Reach for it for per-session coaching or a whole-project timeline; reach for the extractor for aggregate team-nudge / self-coach reports and cross-user baselines.
 
 ## Troubleshooting
 

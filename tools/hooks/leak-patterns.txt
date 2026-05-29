@@ -1,7 +1,7 @@
 # Leak signatures scanned by tools/hooks/pre-push before content reaches a remote.
 #
 # This repo is PUBLIC. Reports derived from agent session traces (mlflow-export,
-# awow-usage-coach, prompt-skill-analysis, project-retrospective) carry customer/
+# awow-usage-coach, prompt-skill-analysis, project-timeline) carry customer/
 # session data — real names, private issue IDs, infra topology, cost figures. They
 # must never be committed here. These patterns are a backstop, not a guarantee.
 #

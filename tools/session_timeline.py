@@ -10,7 +10,7 @@ Outputs:
   - timeline.html : self-contained interactive view (no server, no CDN)
 
 The visual, zero-setup entry to awow's session analysis, driven by the
-/project-retrospective command. stdlib-only. The multi-day calendar view engages
+project-timeline skill. stdlib-only. The multi-day calendar view engages
 automatically when sessions span more than one day.
 
 Usage:

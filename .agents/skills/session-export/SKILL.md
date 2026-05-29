@@ -1,6 +1,6 @@
 ---
 name: session-export
-description: "Export a project's Claude Code sessions into a readable transcript dump (the input the /project-retrospective command needs). Walks the user through choosing the project, scoping which sessions to include (date window, excluding meta/plugin runs), and warns about secrets before writing. Use when the user wants to export, dump, collect, or back up their Claude Code sessions for a project so they can be analysed or coached. Produces <out>/<session-id>.txt transcripts + INDEX.md + manifest.json. Reads ~/.claude/projects/<encoded-path>/*.jsonl."
+description: "Export a project's Claude Code sessions into a readable transcript dump (the input the project-timeline skill needs). Walks the user through choosing the project, scoping which sessions to include (date window, excluding meta/plugin runs), and warns about secrets before writing. Use when the user wants to export, dump, collect, or back up their Claude Code sessions for a project so they can be analysed or coached. Produces <out>/<session-id>.txt transcripts + INDEX.md + manifest.json. Reads ~/.claude/projects/<encoded-path>/*.jsonl."
 ---
 
 # Session Export
@@ -8,7 +8,7 @@ description: "Export a project's Claude Code sessions into a readable transcript
 Turns the per-session JSONL logs Claude Code keeps under
 `~/.claude/projects/<encoded-path>/` into a human-readable transcript dump: one
 `<session-id>.txt` per session (a readable USER/ASSISTANT transcript),
-plus `INDEX.md` and `manifest.json`. That dump is the input `/project-retrospective`
+plus `INDEX.md` and `manifest.json`. That dump is the input `project-timeline`
 reads to produce a timeline + coaching report.
 
 The judgment in this skill is the *guidance* — helping the user scope a sensible
@@ -22,7 +22,7 @@ Run everything from the repo root. The script lives at
 > **This skill is Claude-Code-only.** It reads local `~/.claude/projects` logs. If
 > the user instead has an **MLflow trace export** (from awow's `mlflow-export`
 > skill — a Databricks experiment dumped to `traces.jsonl`), they don't need this
-> skill: `/project-retrospective` consumes that `mlflow_export` directory directly. Use
+> skill: `project-timeline` consumes that `mlflow_export` directory directly. Use
 > this skill only to turn local Claude Code sessions into a transcript dump.
 
 ## Walk the user through it
@@ -100,7 +100,7 @@ transcripts/<project-slug>/
 └── manifest.json        # project_path, session list, sizes, est_read_tokens
 ```
 
-`manifest.json` is what lets `/project-retrospective` run without re-asking for
+`manifest.json` is what lets `project-timeline` run without re-asking for
 the project path or re-estimating cost — keep it with the dump.
 
 ## After exporting
@@ -108,7 +108,7 @@ the project path or re-estimating cost — keep it with the dump.
 Tell the user, in 2-3 lines:
 - where the dump landed and how many sessions / how much it is,
 - whether any secrets were flagged or redacted (and to rotate real ones),
-- that the next step is `/project-retrospective` on `transcripts/<project-slug>`.
+- that the next step is `project-timeline` on `transcripts/<project-slug>`.
 
 ## Troubleshooting
 

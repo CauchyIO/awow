@@ -22,6 +22,7 @@ Usage:
 Route all output to the gitignored coach_reviews/ — it is private session data.
 """
 import argparse, collections, glob, json, os, re, datetime, html
+import mlflow_reader as mr  # shared canonical reader + sessions.json schema (same dir)
 
 EDIT_TOOLS = {"Edit", "Write", "NotebookEdit", "MultiEdit"}
 STOP = set("the a an and or to of for in on with into from this that is are be "
@@ -197,24 +198,20 @@ def load_from_mlflow_export(export_dir, user_filter=None):
                 tr = json.loads(line)
             except json.JSONDecodeError:
                 continue
-            info = tr.get("info") or {}
-            meta = info.get("trace_metadata") or {}
-            tags = info.get("tags") or {}
 
-            user = meta.get("mlflow.user") or meta.get("mlflow.trace.user") or tags.get("mlflow.user")
-            if user_filter and _user_local(user) != _user_local(user_filter):
+            user = mr.user(tr)
+            if user_filter and mr.local_part(user) != mr.local_part(user_filter):
                 continue
 
-            sid = (meta.get("mlflow.trace.session") or tags.get("mlflow.trace.session")
-                   or info.get("client_request_id") or info.get("trace_id") or "unknown")
+            sid = mr.session_id(tr)
             rec = sessions.get(sid)
             if rec is None:
                 rec = new_record(sid)
                 sessions[sid] = rec
 
-            start = ms_to_dt(info.get("request_time"))
-            dur_ms = info.get("execution_duration") or 0
-            end = ms_to_dt((info.get("request_time") or 0) + (dur_ms or 0)) if start else None
+            req_ms = mr.request_time_ms(tr)
+            start = ms_to_dt(req_ms)
+            end = ms_to_dt((req_ms or 0) + (mr.duration_ms(tr) or 0)) if start else None
             for ev in (start, end):
                 if ev:
                     rec["events"].append(ev)
@@ -224,39 +221,26 @@ def load_from_mlflow_export(export_dir, user_filter=None):
                         rec["end"] = ev
 
             if rec["user"] is None and user:
-                rec["user"] = _user_local(user)
-            wd = meta.get("mlflow.trace.working_directory")
+                rec["user"] = mr.local_part(user)
+            wd = mr.working_directory(tr)
             if rec["working_directory"] is None and wd:
                 rec["working_directory"] = wd
-            br = tags.get("git.branch") or meta.get("mlflow.source.git.branch")
+            br = mr.git_branch(tr)
             if br:
                 rec["branch"] = br
 
-            # tokens: tags (schema v3) first, then the older tokenUsage blob
-            def _tok(key_tag, *meta_keys):
-                v = tags.get(key_tag)
-                if v is None:
-                    tu = _parse_json(meta.get("mlflow.trace.tokenUsage"))
-                    for mk in meta_keys:
-                        if isinstance(tu, dict) and tu.get(mk) is not None:
-                            v = tu.get(mk)
-                            break
-                try:
-                    return int(v)
-                except (TypeError, ValueError):
-                    return 0
-
-            rec["in_tokens"] += _tok("tokens.input", "input_tokens")
-            rec["out_tokens"] += _tok("tokens.output", "output_tokens")
-            rec["cache_read"] += _tok("tokens.cache_read", "cache_read_input_tokens")
-            rec["cache_write"] += _tok("tokens.cache_creation", "cache_creation_input_tokens")
-            # NOTE: MLflow tags are CUMULATIVE per trace (cache_read sums every turn's
-            # re-read of the prompt), so they measure cost, not the per-turn context
-            # window. peak_context is left 0 (unknown) for MLflow — unlike Claude logs,
-            # where it's a true per-turn maximum.
+            # tokens are CUMULATIVE per trace (cache_read sums every turn's re-read of
+            # the prompt), so they measure cost, not the per-turn context window.
+            # peak_context is left 0 (unknown) for MLflow — unlike Claude logs, where
+            # it's a true per-turn maximum.
+            tk = mr.tokens(tr)
+            rec["in_tokens"] += tk["in"]
+            rec["out_tokens"] += tk["out"]
+            rec["cache_read"] += tk["cache_read"]
+            rec["cache_write"] += tk["cache_write"]
 
             # spans: count turns (llm_call*) and tools (tool_<Name>)
-            for sp in tr.get("spans") or []:
+            for sp in mr.spans(tr):
                 name = sp.get("name") if isinstance(sp, dict) else None
                 if not name:
                     continue
@@ -277,9 +261,9 @@ def load_from_mlflow_export(export_dir, user_filter=None):
 
             # title: first conversation's prompt
             if rec["first_prompt"] is None:
-                ti = _parse_json(meta.get("mlflow.traceInputs"))
-                if isinstance(ti, dict) and ti.get("prompt"):
-                    rec["first_prompt"] = str(ti["prompt"]).strip()[:200]
+                fp0 = mr.first_prompt(tr)
+                if fp0:
+                    rec["first_prompt"] = fp0[:200]
 
     out = []
     for rec in sessions.values():
@@ -291,17 +275,6 @@ def load_from_mlflow_export(export_dir, user_filter=None):
         rec["title"] = clean_title(rec["title"] or (rec["first_prompt"] or "(untitled session)")[:60])
         out.append(rec)
     return out
-
-
-def _parse_json(s):
-    if not s:
-        return None
-    if isinstance(s, (dict, list)):
-        return s
-    try:
-        return json.loads(s)
-    except (json.JSONDecodeError, TypeError):
-        return None
 
 
 def load_coach_review(coach_dir, short):
@@ -447,12 +420,24 @@ def build(sessions, project_dir, project_root, transcripts_dir, coach_dir=None,
         "cache_read": sum(s["cache_read"] for s in out),
         "cache_write": sum(s["cache_write"] for s in out),
     }
-    # per-user rollup (distinct users + their session counts); drives the view's
-    # colour-by-user mode. For Claude logs this is usually a single (or null) user.
+    # per-user rollup: session count plus the aggregates the view's per-user summary
+    # needs (active minutes, token split). Drives colour-by-user + the comparison table.
+    # For Claude logs this is usually a single (or null) user.
     user_counts = collections.Counter(s["user"] for s in out if s.get("user"))
-    users = [{"user": u, "sessions": n} for u, n in user_counts.most_common()]
+    users = []
+    for u, n in user_counts.most_common():
+        us = [s for s in out if s.get("user") == u]
+        users.append({
+            "user": u, "sessions": n,
+            "active_min": round(sum(s["duration_min"] for s in us)),
+            "in_tokens": sum(s["in_tokens"] for s in us),
+            "out_tokens": sum(s["out_tokens"] for s in us),
+            "cache_read": sum(s["cache_read"] for s in us),
+            "cache_write": sum(s["cache_write"] for s in us),
+        })
 
     return {
+        "schema_version": mr.SESSIONS_SCHEMA_VERSION,
         "project_dir": project_dir, "root": root, "source": source,
         "generated": datetime.datetime.now().isoformat(timespec="seconds"),
         "sessions": out, "file_edges": file_edges, "topic_edges": topic_edges,
@@ -466,6 +451,69 @@ def find_transcript(transcripts_dir, sid):
         return None
     p = os.path.join(transcripts_dir, sid + ".txt")
     return p if os.path.exists(p) else None
+
+
+def _slug(s):
+    return re.sub(r"[^a-z0-9]+", "-", (s or "").lower()).strip("-") or "project"
+
+
+def unique_project_slug(working_dir, taken):
+    """A short, filesystem-safe, unique slug for a project (working directory).
+    Uses the shortest tail of path components that disambiguates it from siblings,
+    so /a/repos/design and /b/repos/design become 'design' and 'repos-design'."""
+    parts = [p for p in (working_dir or "").rstrip("/").split("/") if p] or ["project"]
+    for n in range(1, len(parts) + 1):
+        cand = _slug("-".join(parts[-n:]))
+        if cand not in taken:
+            return cand
+    base = _slug("-".join(parts))
+    cand, k = base, 2
+    while cand in taken:
+        cand, k = f"{base}-{k}", k + 1
+    return cand
+
+
+def render_timeline_html(tmpl, data, off, tz_label, ctx_window):
+    return (tmpl
+            .replace("/*__DATA__*/null", json.dumps(data))
+            .replace("__GENERATED__", html.escape(data["generated"]))
+            .replace("__TZ_OFFSET_HOURS__", repr(off))
+            .replace("__TZ_LABEL__", tz_label)
+            .replace("__CTX_WINDOW__", str(ctx_window)))
+
+
+def write_index(out_dir, projects, generated):
+    """A small Cauchy-styled landing page linking each project's dashboard. Local
+    relative links only (no external resources)."""
+    rows = "".join(
+        f'<a class="card" href="{html.escape(p["html"])}">'
+        f'<div class="lbl">{html.escape(p["label"])}</div>'
+        f'<div class="meta">{p["sessions"]} session(s)'
+        + (f' · {p["users"]} user(s)' if p["users"] else "")
+        + (f' · {p["span"]}' if p.get("span") else "")
+        + "</div></a>"
+        for p in projects)
+    doc = f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<title>Agentic Session Timelines — by project</title><style>
+:root{{--bg:#f6f5f3;--surface:#fff;--text:#1a1a1a;--text-2:#6b6b6b;--text-3:#9a9a9a;--border:#e0dfdd;}}
+body{{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 'Nunito',system-ui,sans-serif;padding:40px 28px;}}
+.wrap{{max-width:760px;margin:0 auto;}}
+h1{{font-size:18px;font-weight:600;margin:0 0 4px;}}
+p.sub{{color:var(--text-2);font-size:12.5px;margin:0 0 24px;}}
+.card{{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--border);
+border-radius:12px;padding:16px 18px;margin:0 0 12px;transition:box-shadow .15s;}}
+.card:hover{{box-shadow:0 4px 12px rgba(0,0,0,.06);}}
+.lbl{{font-weight:600;font-size:14px;}}
+.meta{{color:var(--text-3);font-size:12px;margin-top:3px;text-transform:uppercase;letter-spacing:.04em;}}
+</style></head><body><div class="wrap">
+<h1>Agentic session timelines</h1>
+<p class="sub">One dashboard per project. Generated {html.escape(generated)}.</p>
+{rows}
+</div></body></html>"""
+    p = os.path.join(out_dir, "index.html")
+    with open(p, "w") as f:
+        f.write(doc)
+    return p
 
 
 def main():
@@ -525,32 +573,60 @@ def main():
     transcripts = os.path.expanduser(args.transcripts) if args.transcripts else None
     coach = os.path.expanduser(args.coach_dir) if args.coach_dir else None
     overview = os.path.expanduser(args.overview) if args.overview else None
-    data = build(sessions, project_dir, project_root, transcripts, coach, overview, source=source)
+
+    # One dashboard per project, never a cross-project aggregate. An MLflow export
+    # commonly spans several working directories; each becomes its own scoped
+    # timeline. Claude-logs is always a single repo → a single timeline.
+    if source == "mlflow":
+        groups = collections.OrderedDict()
+        for s in sessions:
+            wd = (s.get("working_directory") or "").rstrip("/") or "(unknown)"
+            groups.setdefault(wd, []).append(s)
+    else:
+        groups = {project_root or project_dir: sessions}
+    multi_project = source == "mlflow" and len(groups) > 1
+
     os.makedirs(args.out, exist_ok=True)
-
-    json_path = os.path.join(args.out, "sessions.json")
-    with open(json_path, "w") as f:
-        json.dump(data, f, indent=2)
-
     tmpl_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "session_timeline_template.html")
     with open(tmpl_path) as f:
         tmpl = f.read()
-    html_out = (tmpl
-                .replace("/*__DATA__*/null", json.dumps(data))
-                .replace("__GENERATED__", html.escape(data["generated"]))
-                .replace("__TZ_OFFSET_HOURS__", repr(off))
-                .replace("__TZ_LABEL__", tz_label)
-                .replace("__CTX_WINDOW__", str(args.context_window)))
-    html_path = os.path.join(args.out, "timeline.html")
-    with open(html_path, "w") as f:
-        f.write(html_out)
 
-    print(f"[{source}] {len(data['sessions'])} sessions, "
-          f"{len(data['file_edges'])} shared-file edges, "
-          f"{len(data['topic_edges'])} topic edges"
-          + (f", {len(data['users'])} users" if data['users'] else ""))
-    print(f"wrote {json_path}")
-    print(f"wrote {html_path}")
+    taken, built = set(), []
+    for wd, sess in groups.items():
+        proot = wd if source == "mlflow" else project_root
+        pdir = wd if source == "mlflow" else project_dir
+        # a single overview markdown can't describe several projects, so only attach
+        # it when this run produces one dashboard. Coach reviews match per session id.
+        ov = None if multi_project else overview
+        data = build(sess, pdir, proot, transcripts, coach, ov, source=source)
+        mr.validate_sessions_doc(data)  # fail loud before writing — no blank dashboards
+
+        if multi_project:
+            slug = unique_project_slug(wd, taken)
+            taken.add(slug)
+            json_name, html_name = f"sessions-{slug}.json", f"timeline-{slug}.html"
+        else:
+            json_name, html_name = "sessions.json", "timeline.html"
+
+        json_path = os.path.join(args.out, json_name)
+        with open(json_path, "w") as f:
+            json.dump(data, f, indent=2)
+        html_path = os.path.join(args.out, html_name)
+        with open(html_path, "w") as f:
+            f.write(render_timeline_html(tmpl, data, off, tz_label, args.context_window))
+
+        built.append({"label": wd, "html": html_name,
+                      "sessions": len(data["sessions"]), "users": len(data["users"])})
+        print(f"[{source}] {wd if multi_project else 'project'}: {len(data['sessions'])} sessions, "
+              f"{len(data['file_edges'])} shared-file edges, {len(data['topic_edges'])} topic edges"
+              + (f", {len(data['users'])} users" if data["users"] else ""))
+        print(f"  wrote {json_path}")
+        print(f"  wrote {html_path}")
+
+    if multi_project:
+        idx = write_index(args.out, built,
+                          datetime.datetime.now().isoformat(timespec="seconds"))
+        print(f"wrote {idx}  ({len(built)} projects)")
 
 
 if __name__ == "__main__":

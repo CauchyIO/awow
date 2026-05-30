@@ -227,6 +227,20 @@
     </div>
   </div>
 
+  <!-- MULTI-DAY -->
+  <div class="pad">
+    <h2>One evening, or many days</h2>
+    <p>The swimlane above is the view of a <strong>single day</strong>. When a project's sessions span more than one day &mdash; common for trace exports that cover weeks or months &mdash; the page switches automatically to <strong>calendar mode</strong>:</p>
+    <ul>
+      <li><strong>A day-navigator strip</strong> runs along the top, one cell per <em>active</em> day, its height scaled to that day's session count. Long empty stretches between active days are <strong>collapsed</strong> to a small <code>// 12d</code> marker, so a four-month project stays a few screens wide instead of hundreds.</li>
+      <li><strong>Click a day, or press &larr;/&rarr;</strong>, to load that day's full detail below &mdash; the same swimlane + concurrency strip + idle gaps, scoped to that day's hours. The selected day is marked in the brand accent.</li>
+      <li><strong>Sessions resumed across days</strong> (a session id that keeps living for a week) are placed on their start day and clipped at midnight with a <code>&rarr; +Nd</code> marker, so one long-lived id never stretches the whole axis.</li>
+    </ul>
+    <div class="callout">
+      <strong>Whole-project shape up top, hour-level detail below.</strong> The navigator is the overview &mdash; sparse weeks vs. crunch days at a glance &mdash; while each day still renders at full resolution when you open it.
+    </div>
+  </div>
+
   <!-- HANDOFFS + IDLE -->
   <div class="pad">
     <h2>Handoffs and idle gaps</h2>
@@ -281,6 +295,8 @@
       <thead><tr><th style="width:24%">Flag</th><th>Purpose</th></tr></thead>
       <tbody>
         <tr><td><code>--project-path</code></td><td>The repo whose sessions to render; used to locate the encoded log dir under <code>~/.claude/projects/</code>.</td></tr>
+        <tr><td><code>--mlflow-export</code></td><td><em>Alternative source.</em> An <code>mlflow_export/</code> dir of Databricks traces (from <code>mlflow-export</code>) instead of local logs. Supports multiple users.</td></tr>
+        <tr><td><code>--user</code></td><td><em>Optional.</em> Scope an MLflow export to one user (matches <code>mlflow.user</code>, local-part or email).</td></tr>
         <tr><td><code>--transcripts</code></td><td>An export directory of the session JSONL to read.</td></tr>
         <tr><td><code>--coach-dir</code></td><td><em>Optional.</em> Directory of per-session coach reviews (markdown) to embed in panels.</td></tr>
         <tr><td><code>--overview</code></td><td><em>Optional.</em> A project overview / meta-analysis markdown to use as the default panel.</td></tr>
@@ -288,6 +304,12 @@
         <tr><td><code>--out</code></td><td>Where to write <code>sessions.json</code> and <code>timeline.html</code>.</td></tr>
       </tbody>
     </table>
+    <p>To read Databricks traces instead of local logs, swap the source flag:</p>
+    <pre>python tools/session_timeline.py \
+    --mlflow-export ./mlflow_export/&lt;experiment&gt; \
+    --user casper \
+    --tz-offset 2 \
+    --out coach_reviews/&lt;repo&gt;-retrospective</pre>
     <div class="callout callout-ok">
       <strong>Then just open it.</strong> <code>timeline.html</code> is self-contained &mdash; double-click it. No build step, no local server, no network. <code>sessions.json</code> stays next to it for any other tool that wants the parsed data.
     </div>
@@ -300,13 +322,13 @@
     <table class="data">
       <thead><tr><th style="width:30%">Tool</th><th>Role</th></tr></thead>
       <tbody>
-        <tr><td><strong>session timeline</strong> (this)</td><td>The picture. Reads raw Claude Code JSONL, renders the interactive timeline. No tracing infrastructure needed.</td></tr>
+        <tr><td><strong>session timeline</strong> (this)</td><td>The picture. Reads raw Claude Code JSONL <em>or</em> an MLflow trace export, renders the interactive timeline. No tracing infrastructure needed for the local-log path.</td></tr>
         <tr><td><strong>session correlation</strong></td><td>The board&harr;trace plumbing &mdash; how a board entry gets linked to a recorded trace. Different concern; this tool does not touch it.</td></tr>
-        <tr><td><strong>awow-usage-coach</strong></td><td>Trace-driven <em>prose</em> coaching. Its markdown can be embedded here via <code>--coach-dir</code>, but it is a separate, deeper read.</td></tr>
+        <tr><td><strong>awow-usage-coach</strong> / <strong>prompt-skill-analysis</strong></td><td>Trace-driven <em>prose</em> coaching and prompt-craft scoring. Embed coach markdown here via <code>--coach-dir</code>; for a deep read, defer to those skills.</td></tr>
       </tbody>
     </table>
     <div class="callout callout-warn">
-      <strong>Claude Code only.</strong> This tool reads Claude Code's JSONL format directly, so it works only for Claude Code sessions. Copilot teams &mdash; and anyone wanting the trace-correlated, board-linked reports &mdash; stay on the MLflow path described in <code>guide-trace-analysis.html</code>.
+      <strong>Two sources, different fidelity.</strong> The local-log path (Claude Code only) carries the most detail &mdash; file edits, per-turn context, handoff arrows. The MLflow path works for any traced harness and supports multiple users, but traces carry no file paths (bars colour by working directory) and no per-turn context. Copilot teams use the MLflow path.
     </div>
   </div>
 

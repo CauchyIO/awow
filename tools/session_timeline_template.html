@@ -4,67 +4,99 @@
 <meta charset="utf-8">
 <title>Agentic Session Timeline</title>
 <style>
-  :root { --bg:#0f1117; --panel:#1a1d27; --ink:#e6e8ef; --muted:#8b90a0; --line:#2a2e3a; }
+  /* Cauchy design system — warm-stone light theme (cauchy-style-guide-v2). */
+  :root {
+    --bg:#f6f5f3; --surface:#ffffff; --surface-alt:#f0efed;
+    --text:#1a1a1a; --text-2:#6b6b6b; --text-3:#9a9a9a;
+    --border:#e0dfdd; --border-light:#ebeae8;
+    --accent:#f24b37; --accent-hover:#e04530; --link:#337ff9;
+    --radius:8px; --radius-lg:12px;
+    --shadow-sm:0 1px 3px rgba(0,0,0,.04); --shadow-md:0 4px 12px rgba(0,0,0,.06);
+  }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink);
-         font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
-  header { padding:12px 18px; border-bottom:1px solid var(--line); }
-  header h1 { font-size:15px; margin:0 0 6px; font-weight:600; }
-  .stats { display:flex; gap:26px; flex-wrap:wrap; }
-  .stat b { font-size:19px; font-weight:700; }
-  .stat span { color:var(--muted); font-size:11px; display:block; }
-  .lede { color:var(--muted); margin:8px 0 0; max-width:880px; font-size:12.5px; }
-  .legend { display:flex; flex-wrap:wrap; gap:6px 16px; padding:8px 18px; border-bottom:1px solid var(--line); }
-  .legend span { color:var(--muted); cursor:pointer; user-select:none; }
-  .legend .sw { display:inline-block; width:11px; height:11px; border-radius:2px; margin-right:5px; vertical-align:middle; }
-  .legend .off { opacity:.35; text-decoration:line-through; }
-  #wrap { display:flex; height:calc(100vh - 168px); }
+  body { margin:0; background:var(--bg); color:var(--text);
+         font:13px/1.6 'Nunito',system-ui,-apple-system,"Segoe UI",sans-serif; font-weight:400; }
+  header { padding:14px 20px; border-bottom:1px solid var(--border); background:var(--surface); }
+  header h1 { font-size:15px; margin:0 0 8px; font-weight:600; }
+  .ctrl { float:right; color:var(--text-2); cursor:pointer; font-size:12px; margin-left:18px; }
+  .ctrl select { font-family:inherit; background:var(--surface); color:var(--text);
+                 border:1px solid var(--border); border-radius:6px; padding:1px 4px; }
+  .stats { display:flex; gap:24px; flex-wrap:wrap; }
+  .stat b { font-size:19px; font-weight:600; }
+  .stat span { color:var(--text-3); font-size:11px; display:block;
+               text-transform:uppercase; letter-spacing:.04em; }
+  .lede { color:var(--text-2); margin:10px 0 0; max-width:900px; font-size:12.5px; }
+  .legend { display:flex; flex-wrap:wrap; gap:6px 16px; padding:8px 20px;
+            border-bottom:1px solid var(--border); background:var(--surface); }
+  .legend span { color:var(--text-2); cursor:pointer; user-select:none; }
+  .legend .sw { display:inline-block; width:11px; height:11px; border-radius:3px;
+                margin-right:5px; vertical-align:middle; border:1px solid var(--border); }
+  .legend .off { opacity:.4; text-decoration:line-through; }
+  /* day navigator (multi-day) */
+  #nav { display:flex; align-items:flex-end; gap:2px; padding:10px 20px 6px;
+         border-bottom:1px solid var(--border); background:var(--surface);
+         overflow-x:auto; white-space:nowrap; }
+  #nav .navhdr { align-self:center; color:var(--text-3); font-size:10px;
+                 text-transform:uppercase; letter-spacing:.06em; margin-right:10px; }
+  .navcell { display:inline-flex; flex-direction:column; align-items:center; gap:3px;
+             cursor:pointer; padding:2px 3px; border-radius:6px; min-width:22px; }
+  .navcell:hover { background:var(--surface-alt); }
+  .navcell .nbar { width:12px; background:#cdd8ed; border:1px solid #b9c8e4;
+                   border-radius:2px; min-height:3px; }
+  .navcell .ndate { font-size:9px; color:var(--text-3); }
+  .navcell.sel .nbar { background:var(--accent); border-color:var(--accent-hover); }
+  .navcell.sel .ndate { color:var(--accent); font-weight:600; }
+  .navgap { align-self:center; color:var(--text-3); font-size:9px; padding:0 4px; opacity:.7; }
+  #wrap { display:flex; height:calc(100vh - 232px); }
   #chart { flex:1; overflow:auto; }
-  #panel { width:420px; border-left:1px solid var(--line); padding:16px; overflow:auto; background:var(--panel); }
-  #panel.empty { color:var(--muted); }
-  #panel h2 { font-size:14px; margin:0 0 4px; }
-  #panel .chip { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; margin:4px 6px 10px 0; }
-  #panel dl { display:grid; grid-template-columns:auto 1fr; gap:2px 10px; margin:0 0 12px; }
-  #panel dt { color:var(--muted); }
+  #panel { width:430px; border-left:1px solid var(--border); padding:18px; overflow:auto;
+           background:var(--surface); }
+  #panel.empty { color:var(--text-3); }
+  #panel h2 { font-size:14px; margin:0 0 4px; font-weight:600; }
+  #panel .chip { display:inline-block; padding:2px 9px; border-radius:10px; font-size:11px;
+                 margin:4px 6px 10px 0; border:1px solid var(--border); }
+  #panel dl { display:grid; grid-template-columns:auto 1fr; gap:3px 10px; margin:0 0 12px; }
+  #panel dt { color:var(--text-3); }
   #panel ul { margin:4px 0; padding-left:16px; }
-  #panel li { font-family:ui-monospace,Menlo,monospace; font-size:11px; }
-  #panel a { color:#6ea8ff; }
+  #panel li { font-family:'SF Mono',Menlo,Monaco,Consolas,monospace; font-size:11px; }
+  #panel a { color:var(--link); }
   /* coach review */
-  #panel h3 { font-size:13px; margin:16px 0 6px; border-top:1px solid var(--line); padding-top:12px; }
+  #panel h3 { font-size:13px; margin:16px 0 6px; border-top:1px solid var(--border); padding-top:12px; font-weight:600; }
   #panel .coach .coachbody { font-size:12px; }
-  #panel .coach h4 { font-size:12px; margin:11px 0 3px; color:#f0d264; }
-  #panel .coach h5 { font-size:11.5px; margin:9px 0 2px; color:#7fd88f; }
-  #panel .coach p { margin:4px 0; color:var(--ink); }
+  #panel .coach h4 { font-size:12px; margin:11px 0 3px; color:var(--text); font-weight:600; }
+  #panel .coach h5 { font-size:11.5px; margin:9px 0 2px; color:var(--text-2); font-weight:600; }
+  #panel .coach p { margin:4px 0; color:var(--text-2); }
   #panel .coach ul { margin:4px 0; padding-left:16px; }
-  #panel .coach li { font-family:inherit; font-size:12px; }
-  #panel .coach blockquote { margin:6px 0; padding:3px 10px; border-left:2px solid var(--line); color:var(--muted); }
-  #panel .coach code { font-family:ui-monospace,Menlo,monospace; font-size:11px; background:#0006; padding:1px 4px; border-radius:3px; }
-  .coached-dot { fill:#f0d264; }
-  rect.bar { cursor:pointer; rx:3; }
+  #panel .coach li { font-family:inherit; font-size:12px; color:var(--text-2); }
+  #panel .coach blockquote { margin:6px 0; padding:3px 10px; border-left:2px solid var(--border); color:var(--text-3); }
+  #panel .coach code { font-family:'SF Mono',Menlo,monospace; font-size:11px; background:var(--surface-alt); padding:1px 4px; border-radius:3px; }
+  .coached-dot { fill:var(--accent); }
+  rect.bar { cursor:pointer; }
   rect.bar.dim { opacity:.12; }
-  text.lbl { fill:var(--ink); font-size:10px; pointer-events:none; }
-  text.axis { fill:var(--muted); font-size:10px; }
-  line.grid { stroke:var(--line); }
-  .striphdr,.ganthdr { fill:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.5px; }
-  .tip { position:fixed; pointer-events:none; background:#000; border:1px solid var(--line);
-         padding:6px 9px; border-radius:6px; font-size:12px; max-width:300px; display:none; z-index:9; }
+  text.lbl { fill:var(--text); font-size:10px; pointer-events:none; }
+  text.axis { fill:var(--text-3); font-size:10px; }
+  line.grid { stroke:var(--border); }
+  .striphdr,.ganthdr { fill:var(--text-3); font-size:10px; text-transform:uppercase; letter-spacing:.06em; }
+  .tip { position:fixed; pointer-events:none; background:var(--surface); color:var(--text);
+         border:1px solid var(--border); box-shadow:var(--shadow-md);
+         padding:7px 10px; border-radius:var(--radius); font-size:12px; max-width:320px; display:none; z-index:9; }
 </style>
 </head>
 <body>
 <header>
-  <h1>Agentic development across many small sessions</h1>
-  <label style="float:right;color:var(--muted);cursor:pointer;font-size:12px">
-    <input type="checkbox" id="t-handoff" checked> handoff flow (B continued A's files)</label>
-  <label style="float:right;color:var(--muted);cursor:pointer;font-size:12px;margin-right:18px">
-    <input type="checkbox" id="t-idle" checked> idle gaps (nobody working)</label>
+  <h1>Agentic development across sessions</h1>
+  <label class="ctrl" id="colourByWrap">colour by
+    <select id="colourBy">
+      <option value="area">functional area</option>
+      <option value="user">user</option>
+    </select></label>
+  <label class="ctrl"><input type="checkbox" id="t-handoff" checked> handoff flow</label>
+  <label class="ctrl"><input type="checkbox" id="t-idle" checked> idle gaps</label>
   <div class="stats" id="stats"></div>
-  <p class="lede">Each bar is one Claude Code session. Work <b>fans out</b> into several
-  sessions running in parallel terminals, then <b>contracts</b> to one or two, then fans out
-  again — while each session stays short and focused (small context) instead of one giant session.
-  The strip up top counts how many sessions were live at each moment. Pink bands mark
-  <b>idle gaps</b> (no session logged any event — you were away). <b>All times __TZ_LABEL__.</b></p>
+  <p class="lede" id="lede"></p>
 </header>
 <div class="legend" id="legend"></div>
+<div id="nav"></div>
 <div id="wrap">
   <div id="chart"></div>
   <div id="panel" class="empty">Click a session bar for details.</div>
@@ -81,256 +113,333 @@ const GEN = "__GENERATED__";
   const NS="http://www.w3.org/2000/svg";
   const mk=(n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
   const esc=t=>(t||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-  // ---- display all times in the configured offset (logs are UTC) ----
-  const TZL="__TZ_LABEL__";
-  const G2MS=Math.round(__TZ_OFFSET_HOURS__*3600*1000);
+  const fmtTok=n=>n>=1e6?(n/1e6).toFixed(1)+"M":n>=1e3?(n/1e3).toFixed(1)+"K":String(n||0);
+  // ---- display all times at the configured offset (logs are UTC) ----
+  const TZ_OFFSET_H=__TZ_OFFSET_HOURS__, TZ_LABEL="__TZ_LABEL__", CTX_WINDOW=__CTX_WINDOW__;
+  const G2MS=TZ_OFFSET_H*3600*1000;
   const g2=v=>new Date((+new Date(v))+G2MS);
   const hm=v=>g2(v).toISOString().slice(11,16);
   const md=v=>g2(v).toISOString().slice(5,10);
+  const ymd=v=>g2(v).toISOString().slice(0,10);
   const ymdhm=v=>g2(v).toISOString().slice(0,16).replace("T"," ");
+  const DAY=864e5;
 
-  // ---- areas + colour ----
-  const palette=["#6ea8ff","#ff9f6e","#7fd88f","#d98fde","#f0d264","#6edede","#ff8fa3","#9b8cff","#b0b6c4"];
-  const areas=[...new Set(S.map(s=>s.area))].sort();
-  const color={}; areas.forEach((a,i)=>color[a]=palette[i%palette.length]);
+  // ---- Cauchy categorical palette: low-saturation tint families (no full-sat) ----
+  const FAMS=[
+    {fill:"#f0f4fb",edge:"#cdd8ed",ink:"#506fa0"}, // blue
+    {fill:"#f0f5f2",edge:"#c8dad2",ink:"#4e7566"}, // sage
+    {fill:"#faf6f0",edge:"#e3d9ca",ink:"#8a7556"}, // warm
+    {fill:"#f5f1f7",edge:"#ddd0e6",ink:"#6f5a86"}, // lavender
+    {fill:"#eef2f3",edge:"#d2dcdf",ink:"#5a7077"}, // slate
+    {fill:"#f6f2ee",edge:"#e2d6c8",ink:"#7d6a52"}, // taupe
+  ];
+  const hasUsers=(DATA.users||[]).length>0;
+  let colourMode="area";
+  const keyOf=s=> colourMode==="user" ? (s.user||"(unknown)") : s.area;
+  let color={}, keys=[];
+  function buildColours(){
+    keys=[...new Set(S.map(keyOf))].sort();
+    color={}; keys.forEach((k,i)=>color[k]=FAMS[i%FAMS.length]);
+  }
+  buildColours();
   const hidden=new Set();
 
-  // ---- time scale ----
+  // ---- group sessions into local-time days ----
+  const dayMap=new Map();
+  S.forEach(s=>{const k=ymd(s.start); if(!dayMap.has(k))dayMap.set(k,[]); dayMap.get(k).push(s);});
+  const days=[...dayMap.entries()].map(([date,sess])=>({date,sess})).sort((a,b)=>a.date<b.date?-1:1);
+  const MULTI = days.length>1;
   const T0=Math.min(...S.map(s=>+new Date(s.start)));
   const T1=Math.max(...S.map(s=>+new Date(s.end)));
-  const M={l:54,r:24,t:18}, W=Math.max(1100,(T1-T0)/60000*4.2+M.l+M.r);
-  const x=t=>M.l+(+new Date(t)-T0)/(T1-T0||1)*(W-M.l-M.r);
 
-  // ---- concurrency series (step) ----
-  const evs=[]; S.forEach(s=>{evs.push([+new Date(s.start),1]);evs.push([+new Date(s.end),-1]);});
-  evs.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
-  let cur=0,peak=0; const series=[[T0,0]];
-  evs.forEach(([t,d])=>{cur+=d;peak=Math.max(peak,cur);series.push([t,cur]);});
-  series.push([T1,0]);
-
-  // ---- row packing (greedy: overlapping sessions stack) ----
-  const GAP=60000; // 1-min visual gap
-  const rowEnd=[]; S.forEach(s=>{
-    const st=+new Date(s.start), en=Math.max(+new Date(s.end), st+90000);
-    let r=rowEnd.findIndex(e=>e<=st-GAP);
-    if(r<0){r=rowEnd.length;rowEnd.push(0);}
-    rowEnd[r]=en; s._row=r; s._x=x(s.start); s._w=Math.max(7,x(en)-x(s.start));
-  });
-  const rows=rowEnd.length;
-
-  // ---- layout sizes ----
-  const stripH=86, rowH=26, gantTop=stripH+34;
-  const H=gantTop+rows*rowH+40;
-  const svg=mk("svg",{width:W,height:H});
-  document.getElementById("chart").appendChild(svg);
-  // arrowhead marker for handoff edges
-  const defs=mk("defs",{});
-  defs.innerHTML='<marker id="arr" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">'+
-    '<path d="M0,0 L6,3 L0,6 Z" fill="#e6e8ef"/></marker>';
-  svg.appendChild(defs);
-
-  // time gridlines + day labels
-  const day=864e5;
-  for(let t=Math.ceil(T0/36e5)*36e5;t<=T1;t+=36e5){ // hourly
-    svg.appendChild(mk("line",{class:"grid",x1:x(t),y1:M.t,x2:x(t),y2:H-30,opacity:.5}));
-    const lab=mk("text",{class:"axis",x:x(t)+3,y:H-16});
-    lab.textContent=hm(t); svg.appendChild(lab);
-    const dl=mk("text",{class:"axis",x:x(t)+3,y:H-4}); dl.textContent=md(t);
-    dl.setAttribute("opacity",.6); svg.appendChild(dl);
-  }
-
-  // ---- concurrency strip ----
-  svg.appendChild(Object.assign(mk("text",{class:"striphdr",x:M.l,y:M.t-2}),{textContent:"sessions running concurrently"}));
-  const sBase=stripH+M.t, sScale=(stripH-6)/Math.max(1,peak);
-  let dpath=`M${x(series[0][0])},${sBase}`;
-  for(let i=0;i<series.length;i++){const[t,v]=series[i];const px=x(t);
-    dpath+=` L${px},${sBase-(series[i-1]?series[i-1][1]:0)*sScale}`;
-    dpath+=` L${px},${sBase-v*sScale}`;}
-  dpath+=` L${x(series[series.length-1][0])},${sBase} Z`;
-  svg.appendChild(mk("path",{d:dpath,fill:"#6ea8ff22",stroke:"#6ea8ff","stroke-width":1.3}));
-  for(let v=1;v<=peak;v++){ // y ticks
-    svg.appendChild(mk("line",{class:"grid",x1:M.l,y1:sBase-v*sScale,x2:W-M.r,y2:sBase-v*sScale,opacity:.25}));
-    const t=mk("text",{class:"axis",x:M.l-8,y:sBase-v*sScale+3,"text-anchor":"end"});t.textContent=v;svg.appendChild(t);
-  }
-
-  // ---- idle gaps: shaded bands where no session logged any event (you were away).
-  //      Drawn first so session bars render on top of the band. ----
-  const gIdle=mk("g",{});
-  (DATA.idle_gaps||[]).forEach(gp=>{
-    const gx=x(gp.start), gw=Math.max(2,x(gp.end)-gx);
-    gIdle.appendChild(mk("rect",{x:gx,y:stripH+M.t-4,width:gw,height:H-30-(stripH+M.t-4),
-      fill:"#ff8fa314",stroke:"#ff8fa3",opacity:.9,"stroke-dasharray":"3 3","stroke-width":1}));
-    const lb=mk("text",{class:"axis",x:gx+gw/2,y:gantTop-22,"text-anchor":"middle",fill:"#ff8fa3"});
-    lb.textContent=`idle ${gp.min}m`; gIdle.appendChild(lb);
-  });
-  svg.appendChild(gIdle);
-
-  // ---- gantt ----
-  svg.appendChild(Object.assign(mk("text",{class:"ganthdr",x:M.l,y:gantTop-8}),{textContent:"one bar = one session (width = duration, colour = functional area)"}));
   const tip=document.getElementById("tip");
-  const bars=[];
-  S.forEach((s,i)=>{
-    const y=gantTop+s._row*rowH;
-    const g=mk("g",{});
-    const rc=mk("rect",{class:"bar",x:s._x,y:y,width:s._w,height:rowH-7,rx:3,
-      fill:color[s.area],opacity:s.readonly?0.4:0.92,
-      stroke:color[s.area],"stroke-width":s.readonly?1.2:0,
-      "stroke-dasharray":s.readonly?"3 2":""});
-    rc.dataset.i=i; g.appendChild(rc); bars.push(rc);
-    if(s.coach){ // small dot marks sessions that have a coach review (grey = excluded)
-      g.appendChild(mk("circle",{class:"coached-dot",cx:s._x+s._w-4.5,cy:y+4,r:2.6,
-        fill:s.coach.excluded?"#8b90a0":"#f0d264"}));}
-    if(s._w>46){const tx=mk("text",{class:"lbl",x:s._x+5,y:y+rowH/2-1});
-      tx.textContent=s.title.length>Math.floor(s._w/6)?s.title.slice(0,Math.floor(s._w/6))+"…":s.title;
-      g.appendChild(tx);}
-    svg.appendChild(g);
-    rc.addEventListener("mouseenter",()=>{tip.style.display="block";
-      tip.innerHTML=`<b>${esc(s.title)}</b><br>${s.area} · ${s.readonly?"read-only":s.edit_count+" edits"} · ${s.duration_min} min<br>`+
-        `${hm(s.start)}–${hm(s.end)} ${TZL}`+
-        (s.peak_context?`<br>peak context ${(s.peak_context/1000).toFixed(0)}K tokens`:"")+
-        (s.coach?`<br>★ coach review${s.coach.excluded?" (excluded)":""}`:"");
-      if(window._focusEdges) window._focusEdges(i);});
-    rc.addEventListener("mousemove",ev=>{tip.style.left=(ev.clientX+12)+"px";tip.style.top=(ev.clientY+12)+"px";});
-    rc.addEventListener("mouseleave",()=>{tip.style.display="none";if(window._focusEdges)window._focusEdges(null);});
-    rc.addEventListener("click",()=>showPanel(s));
-  });
+  const moveTip=ev=>{tip.style.left=(ev.clientX+12)+"px";tip.style.top=(ev.clientY+12)+"px";};
 
-  // ---- handoff DAG: edge anchored at the predecessor's actual edit moment ----
-  const barH=rowH-7;
-  const topY=s=>gantTop+s._row*rowH;            // top edge of a bar
-  const cy=s=>gantTop+s._row*rowH+barH/2;
-  const gHand=mk("g",{}), edgePaths=[];
-  const REST=0.12;                               // resting opacity (decluttered)
-  (DATA.handoff_edges||[]).forEach(e=>{
-    const a=S[e.source], b=S[e.target];
-    const x1=Math.max(a._x, Math.min(x(e.anchor), b._x));  // predecessor's edit time, clamped
-    const y1=topY(a), x2=b._x, y2=topY(b);
-    const lift=Math.min(60, 18+Math.abs(x2-x1)*0.12);      // consistent upward bow
-    const my=Math.min(y1,y2)-lift, mx=(x1+x2)/2;
-    const p=mk("path",{d:`M${x1},${y1} Q${mx},${my} ${x2},${y2}`,
-      fill:"none",stroke:"#e6e8ef","stroke-width":Math.min(3,0.8+e.weight*0.35),
-      opacity:REST,"marker-end":"url(#arr)"});
-    p.dataset.s=e.source; p.dataset.t=e.target;
-    p.addEventListener("mouseenter",()=>{tip.style.display="block";
-      tip.innerHTML=`<b>${esc(a.title)}</b><br>↓ ${e.weight} file(s): ${esc(e.shared.join(", "))}`+
-        `<br>${e.gap_min<1?"continued while overlapping":"picked up "+Math.round(e.gap_min)+"m later"}`+
-        `<br><b>${esc(b.title)}</b>`;});
-    p.addEventListener("mousemove",ev=>{tip.style.left=(ev.clientX+12)+"px";tip.style.top=(ev.clientY+12)+"px";});
-    p.addEventListener("mouseleave",()=>tip.style.display="none");
-    gHand.appendChild(p); edgePaths.push(p);
-  });
-  svg.appendChild(gHand);
-  document.getElementById("t-handoff").onchange=ev=>gHand.style.display=ev.target.checked?"":"none";
-  document.getElementById("t-idle").onchange=ev=>gIdle.style.display=ev.target.checked?"":"none";
-  // highlight a session's lineage (in+out edges) on bar hover; rest stay faint
-  window._focusEdges=function(i){
-    edgePaths.forEach(p=>{
-      const on=i!=null && (+p.dataset.s===i || +p.dataset.t===i);
-      p.setAttribute("opacity", i==null?REST:(on?0.85:0.03));
-      p.setAttribute("marker-end", on?"url(#arr)":"url(#arr)");
-    });
-  };
-
-  // ---- stats ----
+  // ===== whole-project header stats (computed once) =====
+  // peak parallelism is only meaningful within a day (sessions on different days
+  // never overlap), so report the busiest single day.
+  function dayPeak(sess){
+    const evs=[]; sess.forEach(s=>{evs.push([+new Date(s.start),1]);evs.push([+new Date(s.end),-1]);});
+    evs.sort((a,b)=>a[0]-b[0]||a[1]-b[1]); let c=0,p=0; evs.forEach(([,d])=>{c+=d;p=Math.max(p,c);}); return p;
+  }
+  const peakParallel=Math.max(1,...days.map(d=>dayPeak(d.sess)));
   const durs=S.map(s=>s.duration_min).sort((a,b)=>a-b);
   const median=durs[Math.floor(durs.length/2)];
-  const spanMin=Math.round((T1-T0)/60000);
+  const calDays=Math.round((T1-T0)/DAY)+1;
   const stat=(b,l)=>`<div class="stat"><b>${b}</b><span>${l}</span></div>`;
+  const TOT=DATA.totals||{in_tokens:0,out_tokens:0,cache_read:0,cache_write:0};
+  const nAreas=new Set(S.map(s=>s.area)).size;
   document.getElementById("stats").innerHTML=
-    stat(S.length,"sessions")+stat(peak,"peak parallel")+
-    stat(median+"m","median length")+stat(Math.round(spanMin/60*10)/10+"h","total span")+
-    stat(areas.length,"functional areas");
+    stat(S.length,"sessions")+stat(peakParallel,"peak parallel/day")+
+    stat(median+"m","median length")+
+    (MULTI?stat(days.length+" / "+calDays,"active / cal. days"):stat(Math.round((T1-T0)/36e5*10)/10+"h","total span"))+
+    stat(nAreas,"functional areas")+
+    ((DATA.users||[]).length>1?stat(DATA.users.length,"users"):"")+
+    stat(fmtTok(TOT.in_tokens),"tokens read")+stat(fmtTok(TOT.out_tokens),"tokens written")+
+    stat(fmtTok(TOT.cache_read),"cache read")+stat(fmtTok(TOT.cache_write),"cache write");
+  document.getElementById("lede").innerHTML = MULTI
+    ? `Each bar is one agent session. The strip below indexes every <b>active day</b> across `
+      +`${calDays} calendar days — click a day (or use <b>←/→</b>) to open its detail: a per-day `
+      +`timeline with a concurrency strip and idle gaps. Empty stretches are collapsed. <b>Times ${TZ_LABEL}.</b>`
+    : `Each bar is one agent session. Work <b>fans out</b> into several sessions in parallel, then `
+      +`<b>contracts</b>, then fans out again. The strip up top counts concurrent sessions; shaded bands `
+      +`mark <b>idle gaps</b> (nobody working). <b>Times ${TZ_LABEL}.</b>`;
 
-  // ---- legend (filter by area) ----
+  // ===== day navigator (multi-day only) =====
+  const navEl=document.getElementById("nav");
+  // default to the busiest active day so the detail view opens on something rich
+  let curDay = 0;
+  if(MULTI){let best=-1; days.forEach((d,i)=>{if(d.sess.length>best){best=d.sess.length;curDay=i;}});}
+  const maxCount=Math.max(...days.map(d=>d.sess.length));
+  if(MULTI){
+    navEl.appendChild(Object.assign(document.createElement("span"),{className:"navhdr",textContent:"activity"}));
+    days.forEach((d,i)=>{
+      if(i>0){ // collapse calendar gaps between non-consecutive active days
+        const gap=Math.round((Date.parse(d.date)-Date.parse(days[i-1].date))/DAY)-1;
+        if(gap>=1){const g=document.createElement("span");g.className="navgap";g.textContent="// "+gap+"d";navEl.appendChild(g);}
+      }
+      const cell=document.createElement("div"); cell.className="navcell"; cell.dataset.i=i;
+      const bar=document.createElement("div"); bar.className="nbar";
+      bar.style.height=(4+Math.round(d.sess.length/maxCount*34))+"px";
+      const lab=document.createElement("div"); lab.className="ndate"; lab.textContent=d.date.slice(5);
+      cell.title=`${d.date} · ${d.sess.length} session(s)`;
+      cell.appendChild(bar); cell.appendChild(lab);
+      cell.onclick=()=>selectDay(i);
+      navEl.appendChild(cell);
+    });
+    document.addEventListener("keydown",e=>{
+      if(e.key==="ArrowLeft"){selectDay(curDay-1);} else if(e.key==="ArrowRight"){selectDay(curDay+1);}
+    });
+  } else { navEl.style.display="none"; }
+
+  function selectDay(i){
+    if(i<0||i>=days.length)return; curDay=i;
+    navEl.querySelectorAll(".navcell").forEach(c=>c.classList.toggle("sel",+c.dataset.i===i));
+    const sel=navEl.querySelector(".navcell.sel"); if(sel)sel.scrollIntoView({inline:"center",block:"nearest"});
+    renderDay(i);
+  }
+
+  // ===== legend + colour toggle (persist across day changes) =====
   const lg=document.getElementById("legend");
-  areas.forEach(a=>{const el=document.createElement("span");
-    el.innerHTML=`<span class="sw" style="background:${color[a]}"></span>${a}`;
-    el.onclick=()=>{hidden.has(a)?hidden.delete(a):hidden.add(a);el.classList.toggle("off");refilter();};
-    lg.appendChild(el);});
-  const ro=document.createElement("span"); ro.style.marginLeft="auto"; ro.style.cursor="default";
-  ro.innerHTML=`<span class="sw" style="background:transparent;border:1.2px dashed #888"></span>read-only / research`;
-  lg.appendChild(ro);
-  function refilter(){bars.forEach(b=>b.classList.toggle("dim",hidden.has(S[+b.dataset.i].area)));}
+  function buildLegend(){
+    lg.innerHTML="";
+    keys.forEach(k=>{const el=document.createElement("span");
+      el.innerHTML=`<span class="sw" style="background:${color[k].edge}"></span>${esc(k)}`;
+      if(hidden.has(k))el.classList.add("off");
+      el.onclick=()=>{hidden.has(k)?hidden.delete(k):hidden.add(k);el.classList.toggle("off");applyFilter();};
+      lg.appendChild(el);});
+    const ro=document.createElement("span"); ro.style.marginLeft="auto"; ro.style.cursor="default";
+    ro.innerHTML=`<span class="sw" style="background:var(--surface);border:1.2px dashed var(--text-3)"></span>read-only / research`;
+    lg.appendChild(ro);
+  }
+  let curBars=[];
+  function applyFilter(){curBars.forEach(b=>b.classList.toggle("dim",hidden.has(keyOf(S[+b.dataset.gi]))));}
+  buildLegend();
+  const cbWrap=document.getElementById("colourByWrap");
+  if(!hasUsers) cbWrap.style.display="none";
+  document.getElementById("colourBy").onchange=e=>{
+    colourMode=e.target.value; hidden.clear(); buildColours(); buildLegend(); renderDay(curDay);
+  };
+  document.getElementById("t-handoff").onchange=()=>renderDay(curDay);
+  document.getElementById("t-idle").onchange=()=>renderDay(curDay);
 
+  // ===== per-day detail render =====
+  const chart=document.getElementById("chart");
+  function renderDay(di){
+    const d=days[di]; if(!d)return;
+    const sess=d.sess.slice().sort((a,b)=>new Date(a.start)-new Date(b.start));
+    chart.innerHTML="";
+    // day window in UTC: local midnight .. next local midnight
+    const dayStart=Date.parse(d.date+"T00:00:00Z")-G2MS, dayEnd=dayStart+DAY;
+    let lo=Math.min(...sess.map(s=>+new Date(s.start)));
+    let hi=Math.max(...sess.map(s=>Math.min(+new Date(s.end),dayEnd)));
+    lo=Math.max(dayStart, lo-12*60000); hi=Math.min(dayEnd, hi+12*60000);
+    const spanMin=(hi-lo)/60000;
+    const pxPerMin=Math.min(4.2, 22000/Math.max(spanMin,1));
+    const M={l:54,r:24,t:18}, W=Math.max(1100,spanMin*pxPerMin+M.l+M.r);
+    const x=t=>M.l+(+new Date(t)-lo)/((hi-lo)||1)*(W-M.l-M.r);
+
+    // concurrency series for the day
+    const evs=[]; sess.forEach(s=>{evs.push([+new Date(s.start),1]);evs.push([Math.min(+new Date(s.end),dayEnd),-1]);});
+    evs.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+    let cur=0,peak=0; const series=[[lo,0]];
+    evs.forEach(([t,dd])=>{cur+=dd;peak=Math.max(peak,cur);series.push([t,cur]);});
+    series.push([hi,0]);
+
+    // greedy row packing
+    const GAP=60000, rowEnd=[];
+    sess.forEach(s=>{const st=+new Date(s.start), enRaw=Math.min(+new Date(s.end),dayEnd);
+      const en=Math.max(enRaw, st+90000);
+      let r=rowEnd.findIndex(e=>e<=st-GAP); if(r<0){r=rowEnd.length;rowEnd.push(0);}
+      rowEnd[r]=en; s._row=r; s._x=x(st); s._w=Math.max(7,x(en)-x(st)); s._clip=+new Date(s.end)>dayEnd;});
+    const rows=rowEnd.length;
+    const stripH=86, rowH=26, gantTop=stripH+34, H=gantTop+rows*rowH+40;
+    const svg=mk("svg",{width:W,height:H}); chart.appendChild(svg);
+    const defs=mk("defs",{});
+    defs.innerHTML='<marker id="arr" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">'+
+      '<path d="M0,0 L6,3 L0,6 Z" fill="#6b6b6b"/></marker>';
+    svg.appendChild(defs);
+
+    // hourly gridlines (a day is <=24h)
+    const HMS=36e5, step=spanMin>14*60?2*HMS:HMS;
+    for(let t=Math.ceil(lo/step)*step;t<=hi;t+=step){
+      svg.appendChild(mk("line",{class:"grid",x1:x(t),y1:M.t,x2:x(t),y2:H-22,opacity:.6}));
+      const lab=mk("text",{class:"axis",x:x(t)+3,y:H-8}); lab.textContent=hm(t); svg.appendChild(lab);
+    }
+
+    // day header
+    svg.appendChild(Object.assign(mk("text",{class:"striphdr",x:M.l,y:M.t-2}),
+      {textContent:`${d.date} — ${sess.length} session(s), concurrency`}));
+
+    // concurrency strip
+    const sBase=stripH+M.t, sScale=(stripH-6)/Math.max(1,peak);
+    let dpath=`M${x(series[0][0])},${sBase}`;
+    for(let i=0;i<series.length;i++){const[t,v]=series[i];const px=x(t);
+      dpath+=` L${px},${sBase-(series[i-1]?series[i-1][1]:0)*sScale}`;
+      dpath+=` L${px},${sBase-v*sScale}`;}
+    dpath+=` L${x(series[series.length-1][0])},${sBase} Z`;
+    svg.appendChild(mk("path",{d:dpath,fill:"rgba(80,111,160,.12)",stroke:"#506fa0","stroke-width":1.3}));
+    for(let v=1;v<=peak;v++){
+      svg.appendChild(mk("line",{class:"grid",x1:M.l,y1:sBase-v*sScale,x2:W-M.r,y2:sBase-v*sScale,opacity:.3}));
+      const t=mk("text",{class:"axis",x:M.l-8,y:sBase-v*sScale+3,"text-anchor":"end"});t.textContent=v;svg.appendChild(t);}
+
+    // idle gaps within this day window (neutral, no pink)
+    const gIdle=mk("g",{});
+    (DATA.idle_gaps||[]).forEach(gp=>{
+      const a=+new Date(gp.start), b=+new Date(gp.end);
+      if(b<=lo||a>=hi)return;
+      const gx=x(Math.max(a,lo)), gw=Math.max(2,x(Math.min(b,hi))-gx);
+      gIdle.appendChild(mk("rect",{x:gx,y:stripH+M.t-4,width:gw,height:H-22-(stripH+M.t-4),
+        fill:"rgba(154,154,154,.10)",stroke:"#c9c4bb",opacity:.95,"stroke-dasharray":"3 3","stroke-width":1}));
+      const lb=mk("text",{class:"axis",x:gx+gw/2,y:gantTop-22,"text-anchor":"middle",fill:"#9a9a9a"});
+      lb.textContent=`idle ${gp.min}m`; gIdle.appendChild(lb);});
+    if(document.getElementById("t-idle").checked) svg.appendChild(gIdle);
+
+    // gantt bars
+    svg.appendChild(Object.assign(mk("text",{class:"ganthdr",x:M.l,y:gantTop-8}),
+      {textContent:`one bar = one session (width = duration, colour = ${colourMode==="user"?"user":"functional area"})`}));
+    curBars=[]; const idIndex={};
+    sess.forEach(s=>{
+      const gi=S.indexOf(s); idIndex[s.id]=s;
+      const y=gantTop+s._row*rowH, c=color[keyOf(s)];
+      const g=mk("g",{});
+      const rc=mk("rect",{class:"bar",x:s._x,y:y,width:s._w,height:rowH-7,rx:3,
+        fill:c.fill,stroke:c.edge,"stroke-width":1.5,opacity:s.readonly?0.55:1,
+        "stroke-dasharray":s.readonly?"3 2":""});
+      rc.dataset.gi=gi; g.appendChild(rc); curBars.push(rc);
+      if(s.coach) g.appendChild(mk("circle",{class:"coached-dot",cx:s._x+s._w-4.5,cy:y+4,r:2.6,
+        fill:s.coach.excluded?"#9a9a9a":"#f24b37"}));
+      if(s._w>46){const tx=mk("text",{class:"lbl",x:s._x+5,y:y+rowH/2-1});
+        tx.textContent=s.title.length>Math.floor(s._w/6)?s.title.slice(0,Math.floor(s._w/6))+"…":s.title;
+        g.appendChild(tx);}
+      if(s._clip){ // long session continues past this day
+        const nd=Math.ceil((+new Date(s.end)-dayEnd)/DAY);
+        const m=mk("text",{class:"axis",x:s._x+s._w+3,y:y+rowH/2-1,fill:"#8a7556"});
+        m.textContent=`⟶ +${nd}d`; g.appendChild(m);}
+      svg.appendChild(g);
+      rc.addEventListener("mouseenter",()=>{tip.style.display="block";
+        tip.innerHTML=`<b>${esc(s.title)}</b><br>${esc(s.area)}${s.user?" · "+esc(s.user):""} · `+
+          `${s.readonly?"read-only":s.edit_count+" edits"} · ${s.duration_min} min<br>`+
+          `${hm(s.start)}–${hm(s.end)} ${TZ_LABEL}`+
+          (s.peak_context?`<br>peak context ${(s.peak_context/1000).toFixed(0)}K tokens`:"")+
+          (s.tool_count?`<br>${s.tool_count} tool calls`:"")+
+          (s.coach?`<br>★ coach review${s.coach.excluded?" (excluded)":""}`:"");});
+      rc.addEventListener("mousemove",moveTip);
+      rc.addEventListener("mouseleave",()=>tip.style.display="none");
+      rc.addEventListener("click",()=>showPanel(s));
+    });
+
+    // handoff edges, only those whose both endpoints are in this day
+    const gHand=mk("g",{}); const topY=s=>gantTop+s._row*rowH;
+    (DATA.handoff_edges||[]).forEach(e=>{
+      const a=S[e.source], b=S[e.target];
+      if(!idIndex[a.id]||!idIndex[b.id])return;
+      const x1=Math.max(a._x,Math.min(x(e.anchor),b._x)), y1=topY(a), x2=b._x, y2=topY(b);
+      const lift=Math.min(60,18+Math.abs(x2-x1)*0.12), my=Math.min(y1,y2)-lift, mx=(x1+x2)/2;
+      const p=mk("path",{d:`M${x1},${y1} Q${mx},${my} ${x2},${y2}`,fill:"none",stroke:"#6b6b6b",
+        "stroke-width":Math.min(3,0.8+e.weight*0.35),opacity:.22,"marker-end":"url(#arr)"});
+      p.addEventListener("mouseenter",()=>{tip.style.display="block";
+        tip.innerHTML=`<b>${esc(a.title)}</b><br>↓ ${e.weight} file(s): ${esc(e.shared.join(", "))}`+
+          `<br>${e.gap_min<1?"continued while overlapping":"picked up "+Math.round(e.gap_min)+"m later"}<br><b>${esc(b.title)}</b>`;});
+      p.addEventListener("mousemove",moveTip);
+      p.addEventListener("mouseleave",()=>tip.style.display="none");
+      gHand.appendChild(p);});
+    if(document.getElementById("t-handoff").checked) svg.appendChild(gHand);
+    applyFilter();
+  }
+
+  // ===== side panel =====
+  const PEAK_MAX=Math.max(1,...S.map(s=>s.peak_context||0));
+  function ctxBar(peak){
+    const pct=Math.round(peak/PEAK_MAX*100);
+    const overStd=peak>CTX_WINDOW;
+    const col=overStd?"#8a7556":peak>=CTX_WINDOW*0.6?"#7d6a52":"#4e7566";
+    return `<div style="margin:0 0 12px">`+
+      `<div style="color:var(--text-3);font-size:11px;margin-bottom:3px">peak context vs busiest session (${(PEAK_MAX/1000).toFixed(0)}K)`+
+      (overStd?` · <span style="color:#8a7556">exceeded ${(CTX_WINDOW/1000).toFixed(0)}K window</span>`:"")+`</div>`+
+      `<div style="background:var(--surface-alt);border-radius:3px;height:7px;overflow:hidden">`+
+      `<div style="width:${pct}%;height:100%;background:${col}"></div></div></div>`;
+  }
   function showOverview(){
     const p=document.getElementById("panel");
     if(!DATA.overview){p.classList.add("empty");p.innerHTML="Click a session bar for details.";return;}
     p.classList.remove("empty");p.scrollTop=0;
-    p.innerHTML=`<div class="coach"><h2>Project overview</h2>`+
-      `<div class="coachbody">${mdToHtml(DATA.overview)}</div></div>`+
-      `<p style="color:var(--muted);font-size:11px">Click any bar for that session's detail + coach review.</p>`;
+    p.innerHTML=`<div class="coach"><h2>Project overview</h2><div class="coachbody">${mdToHtml(DATA.overview)}</div></div>`+
+      `<p style="color:var(--text-3);font-size:11px">Click any bar for that session's detail + coach review.</p>`;
   }
-
   function showPanel(s){
     const p=document.getElementById("panel");p.classList.remove("empty");p.scrollTop=0;
+    const c=color[keyOf(s)];
     const areaBits=Object.entries(s.areas).map(([a,n])=>`${a} ${n}`).join(" · ");
     p.innerHTML=(DATA.overview?`<p style="margin:0 0 8px"><a href="#" id="toOverview">← project overview</a></p>`:"")+
       `<h2>${esc(s.title)}</h2>`+
-      `<span class="chip" style="background:${color[s.area]}22;color:${color[s.area]}">${s.area}</span>`+
-      (s.readonly?`<span class="chip" style="background:#8882;color:#aaa">read-only</span>`:"")+
-      `<dl><dt>start</dt><dd>${ymdhm(s.start)} ${TZL}</dd>`+
+      `<span class="chip" style="background:${c.fill};border-color:${c.edge};color:${c.ink}">${esc(s.area)}</span>`+
+      (s.user?`<span class="chip">${esc(s.user)}</span>`:"")+
+      (s.readonly?`<span class="chip">read-only</span>`:"")+
+      `<dl><dt>start</dt><dd>${ymdhm(s.start)} ${TZ_LABEL}</dd>`+
+      (s.working_directory?`<dt>working dir</dt><dd>${esc(s.working_directory)}</dd>`:"")+
       `<dt>duration</dt><dd>${s.duration_min} min</dd>`+
       `<dt>messages</dt><dd>${s.msg_count}</dd>`+
       `<dt>tool calls</dt><dd>${s.tool_count}</dd>`+
       `<dt>edits</dt><dd>${s.edit_count}</dd>`+
       (s.peak_context?`<dt>peak context</dt><dd>${(s.peak_context/1000).toFixed(0)}K tokens</dd>`:"")+
-      (s.out_tokens?`<dt>output</dt><dd>${(s.out_tokens/1000).toFixed(1)}K tokens</dd>`:"")+
-      `</dl>`+
+      `<dt>tokens read</dt><dd>${fmtTok(s.in_tokens)}</dd>`+
+      `<dt>tokens written</dt><dd>${fmtTok(s.out_tokens)}</dd>`+
+      `<dt>cache read</dt><dd>${fmtTok(s.cache_read)}</dd>`+
+      `<dt>cache write</dt><dd>${fmtTok(s.cache_write)}</dd></dl>`+
       (s.peak_context?ctxBar(s.peak_context):"")+
-      (areaBits?`<b>Touched areas</b><div style="color:var(--muted);margin:2px 0 10px">${esc(areaBits)}</div>`:"")+
+      (areaBits?`<b>Touched areas</b><div style="color:var(--text-2);margin:2px 0 10px">${esc(areaBits)}</div>`:"")+
+      (s.tools&&Object.keys(s.tools).length?`<b>Tools used</b><div style="color:var(--text-2);margin:2px 0 10px">`+
+        Object.entries(s.tools).slice(0,10).map(([t,n])=>`${esc(t)} ${n}`).join(" · ")+`</div>`:"")+
       `<b>Files edited (${s.files.length})</b><ul>${s.files.map(f=>`<li>${esc(f)}</li>`).join("")||"<li>none</li>"}</ul>`+
       (s.transcript?`<p><a href="file://${encodeURI(s.transcript)}">open transcript →</a></p>`:"")+
       (s.coach?renderCoach(s.coach):"");
-    const ov=document.getElementById("toOverview");
-    if(ov)ov.onclick=e=>{e.preventDefault();showOverview();};
+    const ov=document.getElementById("toOverview"); if(ov)ov.onclick=e=>{e.preventDefault();showOverview();};
   }
 
-  // ---- peak-context bar: width = relative to the busiest session; colour flags
-  //      sessions that ran past the standard context window (extended context) ----
-  const CTX_WINDOW=__CTX_WINDOW__;
-  const PEAK_MAX=Math.max(1,...S.map(s=>s.peak_context||0));
-  function ctxBar(peak){
-    const pct=Math.round(peak/PEAK_MAX*100);
-    const overStd=peak>CTX_WINDOW;
-    const col=overStd?"#ff8fa3":peak>=CTX_WINDOW*0.6?"#f0d264":"#7fd88f";
-    return `<div style="margin:0 0 12px">`+
-      `<div style="color:var(--muted);font-size:11px;margin-bottom:3px">peak context vs busiest session (${(PEAK_MAX/1000).toFixed(0)}K)`+
-      (overStd?` · <span style="color:#ff8fa3">exceeded ${(CTX_WINDOW/1000).toFixed(0)}K window</span>`:"")+`</div>`+
-      `<div style="background:#0006;border-radius:3px;height:7px;overflow:hidden">`+
-      `<div style="width:${pct}%;height:100%;background:${col}"></div></div></div>`;
-  }
-
-  // ---- minimal markdown -> HTML for the embedded coach reviews ----
-  function mdInline(t){
-    return esc(t)
-      .replace(/\*\*(.+?)\*\*/g,"<b>$1</b>")
-      .replace(/`([^`]+?)`/g,"<code>$1</code>")
-      .replace(/\*(.+?)\*/g,"<i>$1</i>");
-  }
+  // ---- minimal markdown -> HTML for the embedded overview / coach reviews ----
+  function mdInline(t){return esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`([^`]+?)`/g,"<code>$1</code>").replace(/\*(.+?)\*/g,"<i>$1</i>");}
   function mdToHtml(md){
     const lines=(md||"").split("\n"); const out=[]; let inList=false;
     const closeList=()=>{ if(inList){out.push("</ul>");inList=false;} };
-    for(const raw of lines){
-      const line=raw.replace(/\s+$/,""); let m;
-      if(/^#\s/.test(line)){closeList();continue;}            // skip H1 (panel has its own title)
+    for(const raw of lines){const line=raw.replace(/\s+$/,""); let m;
+      if(/^#\s/.test(line)){closeList();continue;}
       if(m=line.match(/^###\s+(.*)/)){closeList();out.push(`<h5>${mdInline(m[1])}</h5>`);continue;}
       if(m=line.match(/^##\s+(.*)/)){closeList();out.push(`<h4>${mdInline(m[1])}</h4>`);continue;}
       if(m=line.match(/^>\s?(.*)/)){closeList();out.push(`<blockquote>${mdInline(m[1])}</blockquote>`);continue;}
       if(m=line.match(/^[-*]\s+(.*)/)){if(!inList){out.push("<ul>");inList=true;}out.push(`<li>${mdInline(m[1])}</li>`);continue;}
       if(line.trim()===""){closeList();continue;}
-      closeList();out.push(`<p>${mdInline(line)}</p>`);
-    }
-    closeList();
-    return out.join("");
+      closeList();out.push(`<p>${mdInline(line)}</p>`);}
+    closeList(); return out.join("");
   }
   function renderCoach(c){
-    const badge=c.excluded?` <span class="chip" style="background:#8882;color:#aaa">excluded from analysis</span>`:"";
-    return `<div class="coach"><h3>Coach review${badge}</h3>`+
-      `<div class="coachbody">${mdToHtml(c.md)}</div>`+
+    const badge=c.excluded?` <span class="chip">excluded from analysis</span>`:"";
+    return `<div class="coach"><h3>Coach review${badge}</h3><div class="coachbody">${mdToHtml(c.md)}</div>`+
       `<p><a href="file://${encodeURI(c.path)}">open full review →</a></p></div>`;
   }
 
-  // show the project meta-analysis by default (until a bar is clicked)
+  // ---- init ----
+  if(MULTI) selectDay(curDay); else renderDay(0);
   showOverview();
 })();
 </script>

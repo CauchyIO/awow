@@ -25,6 +25,8 @@ Gated to **new initiatives**, not every edit. Reading files, running a grep, ans
 
 If the user has already named a ticket (e.g. "work on AWOW-42"), skip the lookup. Comment on the ticket as you progress.
 
+**Carry the board-hygiene decision for them.** Apply that rule-of-thumb *yourself*, proactively — do not bounce it back with *"shall I make an issue for this?"* Make the call, act on it, and report what you did in one line. Read what the work *is* from the conversation, not from the current branch (a developer may sit on one branch, or on `main`, for weeks). Link to an existing item with no ceremony (*"tracking this under AWOW-42"*); reserve approval for *creating* a new one. As work lands, move state and drop a one-line comment unprompted, so the board stays current as a byproduct — never a silent change, never a chore deferred to the end. Full rules: [`conventions/REQUIRED/board-linkage.md`](../context/team/conventions/REQUIRED/board-linkage.md).
+
 ## Where to write
 
 - **Drafts:** always to `proposals/<artefact>.md` first — create the `proposals/` folder if it does not exist. Never write directly to the board, the team context, or the knowledge base without human approval.

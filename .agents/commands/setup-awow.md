@@ -193,7 +193,7 @@ Draft `context/team/style/board-output.md`, `comments.md`, `placement.md`, `pros
 
 ## Step 5 — CLAUDE.md / AGENTS.md bootstrap
 
-Run `tools/bootstrap-claude-md.py` (or the inline equivalent). It reads the stub at `.agents/CLAUDE.md` plus every file the wizard has produced so far and writes a team-specific `CLAUDE.md`.
+Run `tools/bootstrap-claude-md.py` (or the inline equivalent). It reads the stub at `.agents/AGENTS.md` plus every file the wizard has produced so far and writes a team-specific `CLAUDE.md`.
 
 Critically: ask the user to populate the `## Do not propose` block. Surface scope-shedding statements ("we are not adding multi-user this quarter", "do not propose moving away from Linear"). Land the result. Run `tools/gather.py` to mirror to `.claude/CLAUDE.md` and `.github/AGENTS.md`.
 

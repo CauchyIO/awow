@@ -1,6 +1,6 @@
 ---
 name: awow-usage-coach
-description: "Analyse how a team or an individual works through agent sessions in the awow repo (or a sibling repo as stand-in) and produce one of two markdown reports: (a) team-nudge — proposed additions to .agents/CLAUDE.md / copilot-instructions based on recurring sequence + editing patterns, or (b) self-coach — imperative, encouraging coaching for one developer compared against the team baseline. Uses an intent taxonomy (investigate/plan/propose/implement/refine/verify/document/inform) plus files-modified analysis so it works regardless of whether the team uses awow's exact vocabulary. Use when the user asks for awow usage feedback, adoption review, nudges for CLAUDE.md, or wants to see how they're using the project vs. teammates. Input: an mlflow_export directory (or equivalent — see below)."
+description: "Analyse how a team or an individual works through agent sessions in the awow repo (or a sibling repo as stand-in) and produce one of two markdown reports: (a) team-nudge — proposed additions to .agents/AGENTS.md / copilot-instructions based on recurring sequence + editing patterns, or (b) self-coach — imperative, encouraging coaching for one developer compared against the team baseline. Uses an intent taxonomy (investigate/plan/propose/implement/refine/verify/document/inform) plus files-modified analysis so it works regardless of whether the team uses awow's exact vocabulary. Use when the user asks for awow usage feedback, adoption review, nudges for CLAUDE.md, or wants to see how they're using the project vs. teammates. Input: an mlflow_export directory (or equivalent — see below)."
 ---
 
 # awow Usage Coach
@@ -91,7 +91,7 @@ If `target_sessions == 0`, stop and tell the user the export contains no session
 
 ## Mode A — team-nudge report (no `--user`)
 
-**Goal:** produce proposed additions to `.agents/CLAUDE.md` that an *agent* can read and apply, both as text edits to the file and as rules to follow in the next session. A nudge is a rule for the agent, not advice for the human prompter.
+**Goal:** produce proposed additions to `.agents/AGENTS.md` that an *agent* can read and apply, both as text edits to the file and as rules to follow in the next session. A nudge is a rule for the agent, not advice for the human prompter.
 
 **Length cap:** aim for ≤120 lines total. For thin slices (<30 prompts) cap at ≤60 lines. Every section earns its width.
 
@@ -117,7 +117,7 @@ If `target_sessions == 0`, stop and tell the user the export contains no session
 
    ````markdown
    ### Nudge N — <≤8-word title in imperative voice>
-   **Target file:** `.agents/CLAUDE.md`
+   **Target file:** `.agents/AGENTS.md`
    **Target section:** `## <existing section name>` or `## <new section name (proposed)>`
    **Insert verbatim:**
    > <one or two sentences, addressed to the AGENT in second person, matching awow's existing CLAUDE.md voice>
@@ -128,7 +128,7 @@ If `target_sessions == 0`, stop and tell the user the export contains no session
    The `Insert verbatim` block is a **single short paragraph**. No bullets, no sub-headings, no "you should" hedging. It must read as a rule the agent follows during a session.
 
 9. **Don't nudge** — patterns the data shows but that don't deserve a CLAUDE.md addition. One line each, ≤4 items.
-10. **Distribution checklist** — three lines max: edit `.agents/CLAUDE.md`, run `tools/gather.py`, do not hand-edit mirrored files.
+10. **Distribution checklist** — three lines max: edit `.agents/AGENTS.md`, run `tools/gather.py`, do not hand-edit mirrored files.
 
 ### How to write the `Insert verbatim` block
 
@@ -144,7 +144,7 @@ Nudge-specific addenda:
 
 - **Every nudge is anchored.** A real frequency number AND a verbatim quote in the `Evidence:` line, or it doesn't ship.
 - **Sequence > vocabulary.** Prefer nudges driven by bigrams/trigrams or edit patterns over nudges driven only by awow-keyword matching.
-- **Propose only what's missing.** Read `.agents/CLAUDE.md` first. If the rule already exists, say so in "Don't nudge" rather than reproposing.
+- **Propose only what's missing.** Read `.agents/AGENTS.md` first. If the rule already exists, say so in "Don't nudge" rather than reproposing.
 - **Bias toward fewer nudges.** Two sharp nudges that an agent can apply tomorrow beat five soft ones it has to interpret. Borderline patterns go to "Don't nudge".
 - **Length discipline.** If the report exceeds the cap, cut analytical prose first, then quotes, then the second-place patterns — never cut the nudge directive itself.
 

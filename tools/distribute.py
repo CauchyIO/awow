@@ -1,8 +1,8 @@
-"""Distribute CLAUDE.md updates across sibling repos (when team has multiple repos).
+"""Distribute AGENTS.md updates across sibling repos (when team has multiple repos).
 
 Used when the team has grown into a mono-repo trajectory or runs multiple repos
-that share conventions. Reads .agents/CLAUDE.md and writes the team-core portion
-into each registered sibling repo's CLAUDE.md between
+that share conventions. Reads .agents/AGENTS.md and writes the team-core portion
+into each registered sibling repo's AGENTS.md between
 `AWOW:CORE:START` and `AWOW:CORE:END` markers.
 
 Sibling repos are listed in `tools/.distribute-targets` (one path per line, gitignored).

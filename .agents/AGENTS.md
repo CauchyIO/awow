@@ -1,6 +1,6 @@
 # Agent instructions — BOOTSTRAP STUB
 
-This is the **stub** version of `CLAUDE.md` shipped in awow v0.1. Once `/setup-awow` runs against your team's board and context, `tools/bootstrap-claude-md.py` regenerates this file with your team's actual conventions, mission, and style.
+This is the **stub** version of `AGENTS.md` shipped in awow v0.1. Once `/setup-awow` runs against your team's board and context, `tools/bootstrap-claude-md.py` regenerates this file with your team's actual conventions, mission, and style.
 
 Until then, the rules below are the minimum the agent needs to operate inside this repo.
 
@@ -55,7 +55,7 @@ Until then, do not propose:
 
 ## Proposal-first principle
 
-Iterate on the cheap-to-change artefact. A markdown file under `proposals/` is free; the board, the knowledge base, and `CLAUDE.md` itself are expensive to change well. Always draft first; land only after a human approves.
+Iterate on the cheap-to-change artefact. A markdown file under `proposals/` is free; the board, the knowledge base, and `AGENTS.md` itself are expensive to change well. Always draft first; land only after a human approves.
 
 ## When you author or edit prompts
 
@@ -87,4 +87,4 @@ This repository is **public**. Reports and exports derived from agent session tr
 
 ---
 
-This stub is replaced by `tools/bootstrap-claude-md.py` once `/setup-awow` Steps 0–4 are complete. Re-running `tools/gather.py` mirrors the resulting CLAUDE.md to `.claude/CLAUDE.md` and `.github/AGENTS.md`.
+This stub is replaced by `tools/bootstrap-claude-md.py` once `/setup-awow` Steps 0–4 are complete. Re-running `tools/gather.py` mirrors the resulting AGENTS.md to `.claude/CLAUDE.md` and `.github/AGENTS.md`.

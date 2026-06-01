@@ -15,7 +15,7 @@ Why pointers (not copies, not symlinks):
 
 Layout produced
 ---------------
-    .agents/CLAUDE.md                    → .claude/CLAUDE.md
+    .agents/AGENTS.md                    → .claude/CLAUDE.md
                                          → .github/copilot-instructions.md
                                          → .github/AGENTS.md
     .agents/commands/<name>.md           → .claude/commands/<name>.md
@@ -196,14 +196,14 @@ def gen_skill_stub(source: Path, stub_target: Path, name: str, description: str)
 
 
 def gen_top_level_instructions(stub_target: Path, harness_label: str) -> str:
-    source = AGENTS_DIR / "CLAUDE.md"
+    source = AGENTS_DIR / "AGENTS.md"
     link = rel_link(stub_target, source)
     return (
         f"{header(source)}\n\n"
         f"# Agent instructions ({harness_label})\n\n"
         f"This repo uses a single source of truth for agent instructions, commands, and skills: "
         f"the `.agents/` directory. **Before doing anything else, read "
-        f"[`.agents/CLAUDE.md`]({link}) and follow its instructions.** That file is the canonical "
+        f"[`.agents/AGENTS.md`]({link}) and follow its instructions.** That file is the canonical "
         f"rule set for both Claude Code and GitHub Copilot working in this repo.\n\n"
         f"- Commands → `.agents/commands/` (also discoverable from this surface as pointer stubs)\n"
         f"- Skills → `.agents/skills/` (also discoverable from this surface as pointer stubs)\n"

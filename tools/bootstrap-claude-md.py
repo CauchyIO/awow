@@ -1,7 +1,7 @@
-"""Bootstrap the team's CLAUDE.md from the stub plus answers gathered by /setup-awow.
+"""Bootstrap the team's AGENTS.md from the stub plus answers gathered by /setup-awow.
 
 Reads:
-  .agents/CLAUDE.md                        — the stub (with placeholder sections)
+  .agents/AGENTS.md                        — the stub (with placeholder sections)
   setup-progress.md                        — which steps completed
   context/team/mission.md                  — team mission
   context/team/members.md                  — team members
@@ -10,7 +10,7 @@ Reads:
   context/tooling/board.md                 — board choice
 
 Writes:
-  .agents/CLAUDE.md                        — team-specific CLAUDE.md (overwriting the stub)
+  .agents/AGENTS.md                        — team-specific AGENTS.md (overwriting the stub)
 
 The output includes:
   - Header pointing to context/ surfaces
@@ -36,7 +36,7 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-CLAUDE_MD = REPO_ROOT / ".agents" / "CLAUDE.md"
+AGENTS_MD = REPO_ROOT / ".agents" / "AGENTS.md"
 PROGRESS = REPO_ROOT / "setup-progress.md"
 CONTEXT = REPO_ROOT / "context"
 

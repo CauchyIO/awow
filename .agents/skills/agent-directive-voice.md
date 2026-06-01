@@ -82,4 +82,4 @@ When the agent edits a prompt, it should:
 3. **Check the length.** Two sentences per rule; longer means the rule is doing two jobs.
 4. **Strip evidence from the imperative.** Move stats and quotes to a separate block beside the rule.
 
-When in doubt, mirror the cadence of existing awow rules in `.agents/CLAUDE.md` — that file is the calibration sample.
+When in doubt, mirror the cadence of existing awow rules in `.agents/AGENTS.md` — that file is the calibration sample.

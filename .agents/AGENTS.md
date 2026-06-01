@@ -1,6 +1,6 @@
 # Agent instructions — BOOTSTRAP STUB
 
-This is the **stub** version of `CLAUDE.md` shipped in awow v0.1. Once `/setup-awow` runs against your team's board and context, `tools/bootstrap-claude-md.py` regenerates this file with your team's actual conventions, mission, and style.
+This is the **stub** version of `AGENTS.md` shipped in awow v0.1. Once `/setup-awow` runs against your team's board and context, `tools/bootstrap-claude-md.py` regenerates this file with your team's actual conventions, mission, and style.
 
 Until then, the rules below are the minimum the agent needs to operate inside this repo.
 
@@ -24,6 +24,8 @@ Before starting work on something with a discernible outcome — a new bug, a ne
 Gated to **new initiatives**, not every edit. Reading files, running a grep, answering a clarifying question, fixing a typo the user named — these do not need a ticket. Rule of thumb: would a teammate reasonably expect to find this on the board next week? If yes, ticket. If no, just do it.
 
 If the user has already named a ticket (e.g. "work on AWOW-42"), skip the lookup. Comment on the ticket as you progress.
+
+**Carry the board-hygiene decision for them.** Apply that rule-of-thumb *yourself*, proactively — do not bounce it back with *"shall I make an issue for this?"* Make the call, act on it, and report what you did in one line. Read what the work *is* from the conversation, not from the current branch (a developer may sit on one branch, or on `main`, for weeks). Link to an existing item with no ceremony (*"tracking this under AWOW-42"*); reserve approval for *creating* a new one. As work lands, move state and drop a one-line comment unprompted, so the board stays current as a byproduct — never a silent change, never a chore deferred to the end. Full rules: [`conventions/REQUIRED/board-linkage.md`](../context/team/conventions/REQUIRED/board-linkage.md).
 
 ## Where to write
 
@@ -53,7 +55,7 @@ Until then, do not propose:
 
 ## Proposal-first principle
 
-Iterate on the cheap-to-change artefact. A markdown file under `proposals/` is free; the board, the knowledge base, and `CLAUDE.md` itself are expensive to change well. Always draft first; land only after a human approves.
+Iterate on the cheap-to-change artefact. A markdown file under `proposals/` is free; the board, the knowledge base, and `AGENTS.md` itself are expensive to change well. Always draft first; land only after a human approves.
 
 ## When you author or edit prompts
 
@@ -85,4 +87,4 @@ This repository is **public**. Reports and exports derived from agent session tr
 
 ---
 
-This stub is replaced by `tools/bootstrap-claude-md.py` once `/setup-awow` Steps 0–4 are complete. Re-running `tools/gather.py` mirrors the resulting CLAUDE.md to `.claude/CLAUDE.md` and `.github/AGENTS.md`.
+This stub is replaced by `tools/bootstrap-claude-md.py` once `/setup-awow` Steps 0–4 are complete. Re-running `tools/gather.py` mirrors the resulting AGENTS.md to `.claude/CLAUDE.md` and `.github/AGENTS.md`.

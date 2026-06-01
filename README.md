@@ -41,7 +41,7 @@ After that, every subsequent gather is `uv run python tools/gather.py`. The `set
 2. **Open an agent session** at the repo root. Claude Code (`claude` in the directory) or GitHub Copilot (open the folder in VS Code) — both are wired up at install time. The wizard auto-detects which one you are running in and asks if you also use the other.
 3. **Run `/setup-awow`.** The wizard lays out its full plan up front on every invocation. Step 0 is the installer (requests your confirmation, then runs `./setup/install.sh` or the PowerShell equivalent). Step 1 walks you through the **board MCP** (Linear / Jira / Azure DevOps / GitHub Issues) and harness configuration — these two are the only required steps. The wizard surfaces the harness-specific install command for your board, with a link to the upstream docs. Subsequent steps (mission, conventions, members, knowledge base, neighbours) are *recommended-next* in any order.
 4. **Review the proposals** under `proposals/setup/`, then let the wizard land them into their final paths.
-5. **Pick a real story** and run `/refinement-prep` against it. The first ceremony is what proves the value.
+5. **Pick a real story** and run `/refinement-prep` against it. The first ceremony is what proves the value. (Teams already in steady state often start with `/process-retro` on a recorded retro instead — same point: a single concrete ceremony beats abstract setup.)
 
 The wizard is **incremental and resumable.** It reads `setup-progress.md` on every invocation and offers the next unfilled step.
 
@@ -59,10 +59,12 @@ context/           Everything the agent needs to know about this team
   knowledge-base/  Durable reference — what stories link to but don't repeat
   company/         Stakeholders, neighbouring teams, RACI
   tooling/         Board and harness reference docs
+  retros/          Retrospective canon + named anti-patterns (`/process-retro` reads)
 guides/            Self-contained HTML guides + index.html — the human-facing tour
 input/             Slidedecks, briefs, exports, design history — agent reads
 transcripts/       Meeting transcripts — ephemeral, gitignored
 proposals/         Agent drafts everything here first; humans review before land
+retro-reports/     Committed history of retrospective reports per team — trajectory data
 meta/              awow's own awow-on-awow workspace (read via --root meta/; adopters may delete)
 mcps/              Approved MCP catalogue + intake template
 setup/             First-time install scripts (prerequisite for /setup-awow)
@@ -72,6 +74,12 @@ REFERENCES.md      Upstream registries (Anthropic Skills, awesome-copilot, MCP c
 SETUP.md           Long-form walkthrough of /setup-awow
 setup-progress.md  Wizard state — tracks what's been completed (resumable)
 ```
+
+## Guides
+
+Self-contained HTML walkthroughs that an adopter can open in any browser — no agent session needed. Start at **[`guides/index.html`](guides/index.html)**, a visual map of the phases and the commands in each.
+
+They're distributable: share a URL with a teammate who has never opened an agent and they'll get the practice, with citations. For example, **[`guides/guide-agentic-retro-workflow.html`](guides/guide-agentic-retro-workflow.html)** covers the retrospective ceremony — the five-phase model (Derby & Larsen), the Prime Directive (Kerth), format selection (1-2-4-All, silent generation, the conversational-dominance pathology), and how `/process-retro` closes the loop back into the agent's instructions. It cites the canon throughout.
 
 ## One source of truth, two harness surfaces
 

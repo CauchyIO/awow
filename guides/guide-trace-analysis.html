@@ -64,12 +64,14 @@
   .legend span { display:inline-flex; align-items:center; gap:6px; }
   .legend i { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid var(--border); }
   .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
   .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
   .card .card-label { font-size:0.7rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; }
   .card h3 { margin-top:0; }
   @media (max-width: 760px) {
     .pad, .pad-tight { padding-left:22px; padding-right:22px; }
     .grid-3 { grid-template-columns:1fr; }
+    .grid-2 { grid-template-columns:1fr; }
   }
   @media print {
     body { background:#fff; }
@@ -237,10 +239,10 @@
         <tr><td><strong>Edit patterns</strong></td><td>Each trace's <code>files.modified</code> is bucketed by type (proposal, context, agents-config, code, markdown&hellip;) and crossed with intent &mdash; e.g. <em>&ldquo;when teammates 'propose', 70% of touched files are .md; when you 'propose', 50% are code.&rdquo;</em></td></tr>
       </tbody>
     </table>
-    <div class="grid-3" style="grid-template-columns:1fr 1fr;">
+    <div class="grid-2">
       <div class="card">
         <p class="card-label">team-nudge mode &middot; no <code>--user</code></p>
-        <p style="margin-bottom:0;">Proposes additions to <code>.agents/CLAUDE.md</code> / copilot-instructions based on recurring patterns across the team.</p>
+        <p style="margin-bottom:0;">Proposes additions to <code>.agents/AGENTS.md</code> / copilot-instructions based on recurring patterns across the team.</p>
       </div>
       <div class="card">
         <p class="card-label">self-coach mode &middot; with <code>--user</code></p>

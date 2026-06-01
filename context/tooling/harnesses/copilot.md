@@ -18,7 +18,7 @@ Presence of `.github/` directory with `copilot-instructions.md` or `AGENTS.md`, 
 
 `tools/gather.py` copies:
 
-- `.agents/CLAUDE.md` → `.github/AGENTS.md` (rename; same content)
+- `.agents/AGENTS.md` → `.github/AGENTS.md` (rename; same content)
 - `.agents/commands/<phase>/<name>.md` → `.github/prompts/<name>.md` or `.github/skills/<name>/SKILL.md` (depending on shape)
 - `.agents/skills/*.md` → `.github/skills/<name>/SKILL.md`
 

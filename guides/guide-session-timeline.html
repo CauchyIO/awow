@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session timeline &mdash; an interactive picture of a project's Claude Code sessions</title>
+<!--
+  AWOW GUIDE — session timeline
+  tools/session_timeline.py reads raw Claude Code JSONL straight from
+  ~/.claude/projects/ and emits sessions.json + a self-contained timeline.html
+  (vanilla JS + SVG, no server, no CDN). The zero-setup, visual on-ramp to the
+  session-analysis story that guide-trace-analysis.html describes — no MLflow needed.
+  Self-contained: no external fonts/links by design.
+-->
+<style>
+  :root {
+    --bg: #f6f5f3;
+    --surface: #ffffff;
+    --surface-alt: #f0efed;
+    --text-1: #1a1a1a;
+    --text-2: #6b6b6b;
+    --text-3: #9a9a9a;
+    --border: #e0dfdd;
+    --border-subtle: #ebeae8;
+    --accent: #f24b37;
+    --link: #337FF9;
+    --ok: #2e7d4f;
+    --warn: #c97a1b;
+    --risk: #b53a2a;
+  }
+  body { margin:0; padding:0; width:100%; font-family:'Nunito',system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text-1); line-height:1.6; }
+  .wrap { max-width:1040px; margin:0 auto; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .pad { padding:28px 40px; border-bottom:1px solid var(--border-subtle); }
+  .pad-tight { padding:20px 40px; border-bottom:1px solid var(--border-subtle); }
+  h1 { font-size:1.9rem; font-weight:700; margin:0; letter-spacing:-0.02em; }
+  h2 { font-size:1.35rem; font-weight:600; margin:0 0 16px; letter-spacing:-0.01em; }
+  h3 { font-size:1.05rem; font-weight:600; margin:24px 0 10px; letter-spacing:-0.01em; }
+  p  { font-size:0.92rem; color:var(--text-2); margin:0 0 12px; line-height:1.7; }
+  ul, ol { font-size:0.92rem; color:var(--text-2); line-height:1.7; padding-left:22px; margin:0 0 14px; }
+  li { margin:4px 0; }
+  strong { color:var(--text-1); font-weight:600; }
+  em { color:var(--text-1); font-style:italic; }
+  code { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.85em; background:var(--surface-alt); padding:1px 6px; border-radius:3px; border:1px solid var(--border-subtle); }
+  pre { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.82rem; background:var(--surface-alt); padding:14px 18px; border-radius:8px; border:1px solid var(--border-subtle); overflow-x:auto; line-height:1.55; color:var(--text-1); }
+  pre .c { color:var(--text-3); }
+  table.data { border-collapse:collapse; width:100%; font-size:0.85rem; margin:0 0 16px; }
+  table.data th { text-align:left; font-weight:600; padding:8px 10px; border-bottom:2px solid var(--border); background:var(--surface-alt); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; }
+  table.data td { padding:9px 10px; border-bottom:1px solid var(--border-subtle); color:var(--text-2); vertical-align:top; line-height:1.5; }
+  table.data tr:last-child td { border-bottom:none; }
+  table.data td strong { color:var(--text-1); }
+  .kicker { font-size:0.72rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin:0 0 8px; }
+  .badge { display:inline-block; font-size:0.7rem; font-weight:600; padding:3px 10px; border-radius:4px; border:1px solid var(--border); color:var(--text-1); background:var(--surface); }
+  .badge-accent { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .badge-ok { background:rgba(46,125,79,0.08); color:var(--ok); border-color:rgba(46,125,79,0.25); }
+  .badge-warn { background:rgba(201,122,27,0.08); color:var(--warn); border-color:rgba(201,122,27,0.25); }
+  .badge-muted { background:var(--surface-alt); color:var(--text-3); border-color:var(--border-subtle); border-style:dashed; }
+  .badges { display:flex; gap:6px; flex-wrap:wrap; }
+  .callout { background:var(--surface-alt); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 16px; font-size:0.88rem; color:var(--text-2); line-height:1.65; }
+  .callout strong { color:var(--text-1); }
+  .callout-warn { border-left-color:var(--warn); }
+  .callout-ok { border-left-color:var(--ok); }
+  .diagram { background:var(--surface-alt); border:1px solid var(--border-subtle); border-radius:10px; padding:18px 16px 12px; margin:0 0 18px; }
+  .diagram svg { display:block; max-width:100%; height:auto; margin:0 auto; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:0.78rem; color:var(--text-2); padding:8px 8px 0; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .legend i { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid var(--border); }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
+  .card .card-label { font-size:0.7rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; }
+  .card h3 { margin-top:0; }
+  @media (max-width: 760px) {
+    .pad, .pad-tight { padding-left:22px; padding-right:22px; }
+    .grid-3 { grid-template-columns:1fr; }
+    .grid-2 { grid-template-columns:1fr; }
+  }
+  @media print {
+    body { background:#fff; }
+    .wrap { border:none; border-radius:0; max-width:100%; }
+  }
+
+  /* ===== LEFT INDEX (auto-built from section headings) ===== */
+  .guide-toc { position:fixed; top:0; left:0; width:232px; height:100vh; background:var(--surface); border-right:1px solid var(--border); z-index:60; display:flex; flex-direction:column; overflow-y:auto; padding:20px 0; }
+  .guide-toc .toc-brand { display:flex; align-items:center; gap:8px; padding:0 20px 18px; border-bottom:1px solid var(--border-subtle); margin-bottom:10px; flex-shrink:0; }
+  .guide-toc .toc-brand svg { width:18px; height:18px; flex:none; }
+  .guide-toc .toc-brand span { font-size:12px; font-weight:700; letter-spacing:0.06em; color:var(--text-2); text-transform:uppercase; }
+  .guide-toc a.toc-item { display:flex; align-items:flex-start; gap:10px; padding:8px 20px; text-decoration:none; color:var(--text-2); font-size:12px; font-weight:500; line-height:1.45; border-left:3px solid transparent; transition:background 0.12s, color 0.12s; }
+  .guide-toc a.toc-item:hover { background:var(--surface-alt); color:var(--text-1); }
+  .guide-toc a.toc-item.active { background:var(--surface-alt); color:var(--text-1); font-weight:700; border-left-color:var(--accent); }
+  .guide-toc .toc-num { font-size:10px; font-weight:700; color:var(--accent); min-width:16px; opacity:0.5; padding-top:1px; flex:none; }
+  .guide-toc a.toc-item.active .toc-num { opacity:1; }
+  @media (min-width:1024px) { body { padding-left:232px; } }
+  @media (max-width:1023px) { .guide-toc { display:none; } }
+  @media print { .guide-toc { display:none !important; } body { padding-left:0 !important; } }
+</style>
+</head>
+<body>
+
+<nav class="guide-toc" id="guideToc" aria-label="Contents">
+  <a class="toc-brand" href="index.html" style="text-decoration:none;"><svg viewBox="0 0 500 500" fill="none"><path d="M250 50C139.543 50 50 139.543 50 250C50 360.457 139.543 450 250 450C360.457 450 450 360.457 450 250C450 214.612 440.841 181.387 424.664 152.664L353.033 224.295C356.229 232.471 358 241.473 358 250C358 309.647 309.647 358 250 358C190.353 358 142 309.647 142 250C142 190.353 190.353 142 250 142C275.948 142 299.727 151.424 318.295 166.967L389.926 95.336C348.387 66.159 297.388 50 250 50Z" fill="#f24b37"/></svg><span>awow &middot; guides</span></a>
+  <!-- items injected by script below -->
+</nav>
+
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="pad" style="padding-top:36px;padding-bottom:24px;">
+    <p style="font-size:13px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin:0 0 10px;">Way of Working &middot; Guide</p>
+    <h1>Session timeline</h1>
+    <p style="font-size:1rem;color:var(--text-2);margin:6px 0 0;font-weight:500;">An interactive visual timeline of a project's Claude Code sessions, built straight from the raw logs &mdash; no tracing setup required.</p>
+    <p style="font-size:0.85rem;color:var(--text-3);margin:8px 0 0;">The zero-setup, visual on-ramp to awow's session-analysis story. This is the picture that <em>trace analysis</em> describes in prose &mdash; but it reads Claude Code's own JSONL, so there is nothing to wire up first.</p>
+    <div class="badges" style="margin-top:16px;">
+      <span class="badge">zero setup</span>
+      <span class="badge">Claude Code only</span>
+      <span class="badge">vanilla JS + SVG</span>
+      <span class="badge badge-accent">timeline.html</span>
+    </div>
+  </div>
+
+  <!-- TL;DR -->
+  <div class="pad-tight">
+    <p class="kicker">TL;DR</p>
+    <p><code>tools/session_timeline.py</code> reads the raw session logs Claude Code already writes to <code>~/.claude/projects/&lt;encoded-path&gt;/*.jsonl</code> and emits two files: <code>sessions.json</code> (the parsed data) and a fully self-contained <code>timeline.html</code> (vanilla JS + SVG, no server, no CDN). The page is a <strong>Gantt swimlane</strong> of every session &mdash; coloured by functional area, packed so concurrent runs stack &mdash; with a <strong>concurrency strip</strong>, <strong>handoff arrows</strong>, <strong>idle gaps</strong>, and <strong>per-session peak context</strong>. Click any bar for a detail panel; optional flags fold in coach reviews and a whole-project overview. Its one advantage over the MLflow path: <em>it needs no MLflow, no Databricks, no Stop hook</em> &mdash; just the logs on disk.</p>
+  </div>
+
+  <!-- INPUT / NO-SETUP CALLOUT -->
+  <div class="pad-tight">
+    <div class="callout callout-ok">
+      <strong>No tracing required.</strong> The trace-analysis path (<code>mlflow-export</code> &rarr; <code>prompt-skill-analysis</code> / <code>awow-usage-coach</code>) needs traces to already exist in MLflow, written by a Stop hook. This tool reads the JSONL Claude Code writes for you anyway. If the logs are on disk, you can render the timeline &mdash; that is the whole point.
+    </div>
+  </div>
+
+  <!-- PIPELINE DIAGRAM -->
+  <div class="pad">
+    <h2>From raw logs to one HTML file</h2>
+    <div class="diagram">
+      <div class="legend" style="margin-bottom:6px;">
+        <span><i style="background:#1a1a1a;border-color:#1a1a1a;"></i> Source on disk</span>
+        <span><i style="background:rgba(51,127,249,0.10);border-color:rgba(51,127,249,0.55);"></i> The tool</span>
+        <span><i style="background:rgba(242,75,55,0.10);border-color:rgba(242,75,55,0.55);"></i> Output artefacts</span>
+        <span><i style="background:#fff;border-color:#9a9a9a;border-style:dashed;"></i> Optional inputs</span>
+      </div>
+
+      <svg viewBox="0 0 1000 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Session timeline pipeline">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#6b6b6b"/>
+          </marker>
+          <marker id="arrd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#9a9a9a"/>
+          </marker>
+        </defs>
+
+        <!-- A: raw jsonl -->
+        <rect x="24" y="186" width="226" height="92" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
+        <text x="137" y="214" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="Nunito,sans-serif">~/.claude/projects/</text>
+        <text x="137" y="234" text-anchor="middle" font-size="10.5" fill="#e0dfdd" font-family="JetBrains Mono,monospace">&lt;encoded-path&gt;/*.jsonl</text>
+        <text x="137" y="254" text-anchor="middle" font-size="10.5" fill="#e0dfdd" font-family="Nunito,sans-serif">raw Claude Code logs</text>
+        <text x="137" y="270" text-anchor="middle" font-size="10" fill="#9a9a9a" font-family="Nunito,sans-serif">(already on disk)</text>
+
+        <!-- optional inputs -->
+        <rect x="24" y="44" width="226" height="50" rx="10" fill="#fff" stroke="#9a9a9a" stroke-dasharray="5 4"/>
+        <text x="137" y="66" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1a1a" font-family="Nunito,sans-serif">--coach-dir / --overview</text>
+        <text x="137" y="83" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">markdown to embed (optional)</text>
+
+        <!-- A -> tool -->
+        <path d="M250,232 L362,232" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+        <!-- optional -> tool -->
+        <path d="M250,82 C320,110 340,150 362,196" fill="none" stroke="#9a9a9a" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arrd)"/>
+
+        <!-- TOOL -->
+        <rect x="364" y="184" width="244" height="96" rx="10" fill="rgba(51,127,249,0.08)" stroke="#337FF9"/>
+        <text x="486" y="214" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1a1a" font-family="Nunito,sans-serif">session_timeline.py</text>
+        <text x="486" y="234" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">parse &middot; bucket area &middot; pack rows</text>
+        <text x="486" y="250" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">infer handoffs &middot; find idle gaps</text>
+        <text x="486" y="266" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">peak-context per session</text>
+
+        <!-- tool -> outputs -->
+        <path d="M608,210 C660,182 690,160 722,148" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+        <path d="M608,254 C660,288 690,316 722,330" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <!-- output: sessions.json -->
+        <rect x="724" y="108" width="252" height="78" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
+        <text x="850" y="138" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">sessions.json</text>
+        <text x="850" y="158" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">parsed data &middot; one row per session</text>
+        <text x="850" y="174" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">re-usable by other tools</text>
+
+        <!-- output: timeline.html -->
+        <rect x="724" y="292" width="252" height="78" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
+        <text x="850" y="322" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">timeline.html</text>
+        <text x="850" y="342" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">self-contained &middot; open in a browser</text>
+        <text x="850" y="358" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">no server, no CDN, no fonts</text>
+      </svg>
+    </div>
+    <p style="font-size:0.82rem;color:var(--text-3);margin:0;">Everything the page needs is inlined into <code>timeline.html</code> at build time, so it opens from <code>file://</code> and survives being emailed or committed to a repo.</p>
+  </div>
+
+  <!-- WHAT THE TIMELINE SHOWS -->
+  <div class="pad">
+    <h2>What the timeline shows</h2>
+    <p>The page is one tall SVG read top to bottom. Each element answers a different question about how the work actually unfolded:</p>
+    <table class="data">
+      <thead><tr><th style="width:26%">Element</th><th>What it reveals</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Gantt swimlane</strong></td><td>One bar per session. Width is duration, colour is the <strong>functional area</strong> (the top-level dir most touched), and bars are packed into rows so overlapping sessions stack rather than collide. Read-only / research sessions are drawn <strong>hatched</strong>.</td></tr>
+        <tr><td><strong>Concurrency strip</strong></td><td>A band across the top counting how many sessions ran <strong>simultaneously</strong> at each moment &mdash; the awow fan-out / contract rhythm made visible.</td></tr>
+        <tr><td><strong>Handoff arrows</strong></td><td>An arrow from an earlier session to a later one when the later session continued the earlier one's files (inferred per-file last-writer).</td></tr>
+        <tr><td><strong>Idle gaps</strong></td><td>Pink bands where <strong>no session logged any event</strong> &mdash; the true gaps between activity, separating active time from elapsed time.</td></tr>
+        <tr><td><strong>Peak context</strong></td><td>Per session, the input + cache tokens at its fullest turn, plus output tokens, with a bar. Sessions past the standard 200K window are flagged.</td></tr>
+        <tr><td><strong>Detail panel</strong></td><td>Click any bar to open a panel for that session; it can embed a coach review and the project overview sits there by default.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SWIMLANE + CONCURRENCY -->
+  <div class="pad">
+    <h2>The swimlane and the concurrency strip</h2>
+    <p>The swimlane is the spine of the page. Sessions are placed on a real wall-clock x-axis and <strong>packed greedily into rows</strong>: a session takes the first row whose last bar ended before it starts, so two sessions that overlapped in time end up on different rows. The result reads like a Gantt chart of a day's work, and the row count at any vertical slice <em>is</em> the parallelism.</p>
+    <ul>
+      <li><strong>Colour = functional area.</strong> Each session is bucketed by the top-level directory it touched most (e.g. <code>tools/</code>, <code>ios/</code>, <code>docs/</code>), so a glance at the palette shows which part of the codebase each burst of work was in.</li>
+      <li><strong>Hatching = read-only.</strong> A session that only read / searched and wrote nothing is drawn with a hatch fill, so research and reconnaissance are visually distinct from sessions that changed code.</li>
+      <li><strong>The concurrency strip</strong> sits above the lanes and steps up and down with the live count of open sessions. Its shape is the story: work <em>fans out</em> into several parallel short sessions, <em>contracts</em> back to one, then fans out again. That cadence is awow's core rhythm, and here you can see it instead of describing it.</li>
+    </ul>
+    <div class="callout">
+      <strong>Why packing matters.</strong> Without row-packing, concurrent sessions would draw on top of each other and the parallelism would be invisible. Packing is what turns a flat list of sessions into a picture of fan-out.
+    </div>
+  </div>
+
+  <!-- HANDOFFS + IDLE -->
+  <div class="pad">
+    <h2>Handoffs and idle gaps</h2>
+    <h3>Handoff arrows</h3>
+    <p>The tool tracks, per file, which session last wrote it. When a later session edits a file an earlier session had touched, it draws an arrow from the earlier bar to the later one &mdash; an inferred <strong>handoff</strong>. Across a project this surfaces the threads of continuity: which session picked up where another left off, even when they were days apart and never shared a transcript.</p>
+    <h3>Idle gaps</h3>
+    <p>Idle bands are computed from <strong>event spacing</strong>, not from session open/close times. A gap is idle when <em>no session logged any event</em> during it. This is deliberate: a session left open while the human is away is <strong>not</strong> counted as active just because it is technically running &mdash; if nothing was logged, the band is pink. The contrast between the coloured bars and the pink bands is the difference between <strong>active time</strong> and <strong>elapsed time</strong>.</p>
+    <div class="callout callout-warn">
+      <strong>Read idle gaps as questions, not waste.</strong> A pink band might be a coffee break, a meeting, or a long human review &mdash; the timeline tells you <em>where</em> the day went, not whether that was good or bad.
+    </div>
+  </div>
+
+  <!-- PEAK CONTEXT -->
+  <div class="pad">
+    <h2>Per-session peak context</h2>
+    <p>For each session the tool finds its <strong>fullest turn</strong> and records the input + cache tokens at that point (peak context) alongside total output tokens, shown as a bar in the detail panel and on the row. Peak context is the better health signal than a running total: it is how close that session came to filling its window.</p>
+    <ul>
+      <li>Sessions whose peak context exceeded the standard <strong>200K window</strong> are <strong>flagged</strong> &mdash; a cue that the session was operating in compaction / large-context territory, where quality and cost both shift.</li>
+      <li>Reading peak context next to duration and area helps spot the sessions that were doing heavy, context-hungry work versus quick, focused ones.</li>
+    </ul>
+  </div>
+
+  <!-- DETAIL PANEL + EMBEDS -->
+  <div class="pad">
+    <h2>Detail panel, coach reviews, and the overview</h2>
+    <p>Clicking a bar opens a <strong>detail panel</strong> for that session: its area, duration, peak context, file footprint, and handoff links. Two optional inputs enrich it:</p>
+    <div class="grid-2">
+      <div class="card">
+        <p class="card-label" style="color:var(--link)">--coach-dir</p>
+        <p style="margin-bottom:0;">A directory of per-session <strong>coach reviews</strong> (markdown). When a review matches a session, it is embedded directly in that session's panel &mdash; so the prose assessment sits next to the bar it is about.</p>
+      </div>
+      <div class="card">
+        <p class="card-label" style="color:var(--accent)">--overview</p>
+        <p style="margin-bottom:0;">A whole-project <strong>overview / meta-analysis</strong> markdown file. It is embedded as the <strong>default panel</strong> &mdash; what you see before clicking any bar &mdash; framing the whole timeline.</p>
+      </div>
+    </div>
+    <p style="margin-top:14px;">Both are markdown you bring; the tool only renders and places them. That keeps the picture (this tool) and the prose (coaching skills) cleanly separable while letting them appear in one view.</p>
+  </div>
+
+  <!-- HOW TO RUN -->
+  <div class="pad">
+    <h2>How to run it</h2>
+    <p>One command. Point it at the repo, give it an export of the transcripts to read, optionally fold in coach reviews and an overview, set your timezone, and choose an output dir.</p>
+    <pre>python tools/session_timeline.py \
+    --project-path &lt;repo&gt; \
+    --transcripts ./_exports \
+    --coach-dir ./coach_reviews \
+    --overview ./OVERVIEW.md \
+    --tz-offset 2 \
+    --out .</pre>
+    <table class="data">
+      <thead><tr><th style="width:24%">Flag</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>--project-path</code></td><td>The repo whose sessions to render; used to locate the encoded log dir under <code>~/.claude/projects/</code>.</td></tr>
+        <tr><td><code>--transcripts</code></td><td>An export directory of the session JSONL to read.</td></tr>
+        <tr><td><code>--coach-dir</code></td><td><em>Optional.</em> Directory of per-session coach reviews (markdown) to embed in panels.</td></tr>
+        <tr><td><code>--overview</code></td><td><em>Optional.</em> A project overview / meta-analysis markdown to use as the default panel.</td></tr>
+        <tr><td><code>--tz-offset</code></td><td>Hours offset from UTC, so the wall-clock axis reads in your local time.</td></tr>
+        <tr><td><code>--out</code></td><td>Where to write <code>sessions.json</code> and <code>timeline.html</code>.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-ok">
+      <strong>Then just open it.</strong> <code>timeline.html</code> is self-contained &mdash; double-click it. No build step, no local server, no network. <code>sessions.json</code> stays next to it for any other tool that wants the parsed data.
+    </div>
+  </div>
+
+  <!-- WHERE IT FITS -->
+  <div class="pad">
+    <h2>Where it fits among the analysis tools</h2>
+    <p>This is the <strong>visual, zero-setup on-ramp</strong> to awow's session-analysis story &mdash; the picture that <code>guide-trace-analysis.html</code> describes in words. It complements the other tools rather than replacing them:</p>
+    <table class="data">
+      <thead><tr><th style="width:30%">Tool</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td><strong>session timeline</strong> (this)</td><td>The picture. Reads raw Claude Code JSONL, renders the interactive timeline. No tracing infrastructure needed.</td></tr>
+        <tr><td><strong>session correlation</strong></td><td>The board&harr;trace plumbing &mdash; how a board entry gets linked to a recorded trace. Different concern; this tool does not touch it.</td></tr>
+        <tr><td><strong>awow-usage-coach</strong></td><td>Trace-driven <em>prose</em> coaching. Its markdown can be embedded here via <code>--coach-dir</code>, but it is a separate, deeper read.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-warn">
+      <strong>Claude Code only.</strong> This tool reads Claude Code's JSONL format directly, so it works only for Claude Code sessions. Copilot teams &mdash; and anyone wanting the trace-correlated, board-linked reports &mdash; stay on the MLflow path described in <code>guide-trace-analysis.html</code>.
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="pad" style="border-bottom:none;">
+    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Sources of truth: <code>tools/session_timeline.py</code> and its emitted <code>sessions.json</code> / <code>timeline.html</code>. Companion guides: <code>guide-trace-analysis.html</code> (the prose it pictures), <code>guide-session-correlation.html</code> (board&harr;trace plumbing). This guide is self-contained &mdash; no external resources.</p>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var toc=document.getElementById('guideToc'); if(!toc) return;
+  var heads=[].slice.call(document.querySelectorAll('.wrap h2')); if(!heads.length) return;
+  var pad2=function(n){return n<10?'0'+n:''+n;};
+  var slug=function(t){return t.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'sec';};
+  var top=function(el){return el.getBoundingClientRect().top+window.scrollY;};
+  var items=[];
+  heads.forEach(function(h){
+    var label=h.textContent.trim().replace(/^\s*\d+[.)]\s*/,'');
+    if(!label) return;
+    var target=h.closest('.pad,.pad-tight,.part-header,section')||h;
+    if(!target.id) target.id='sec-'+(items.length+1)+'-'+slug(label);
+    var a=document.createElement('a'); a.className='toc-item'; a.href='#'+target.id;
+    var num=document.createElement('span'); num.className='toc-num'; num.textContent=pad2(items.length+1);
+    var lab=document.createElement('span'); lab.className='toc-label'; lab.textContent=label;
+    a.appendChild(num); a.appendChild(lab);
+    a.addEventListener('click',function(e){e.preventDefault(); target.scrollIntoView({behavior:'smooth',block:'start'}); history.replaceState(null,'','#'+target.id);});
+    toc.appendChild(a); items.push({t:target,a:a});
+  });
+  var spy=function(){
+    var y=window.scrollY+130, cur=items[0];
+    for(var i=0;i<items.length;i++){ if(top(items[i].t)<=y) cur=items[i]; }
+    items.forEach(function(it){ it.a.classList.toggle('active', it===cur); });
+  };
+  window.addEventListener('scroll',spy,{passive:true});
+  window.addEventListener('resize',spy); spy();
+})();
+</script>
+</body>
+</html>

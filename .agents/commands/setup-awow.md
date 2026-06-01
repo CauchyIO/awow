@@ -24,6 +24,15 @@ If `--root <path>` is given and `<path>/` does not exist, refuse and tell the us
 4. Write every artefact to `proposals/setup/<step>/` first. Land it (move to its final location) only after the user approves.
 5. Update `setup-progress.md` when a step completes.
 
+## Track — solo or team
+
+On first entry (no `track:` recorded in `setup-progress.md`), ask once: "Is this for a whole team, or just you?" Record the answer as `track: team` or `track: solo`. In **solo** mode, skip the steps that only make sense for a group and mark them as skipped when you lay out the plan:
+
+- **Step 4 members** — skip; the roster is just the user. Still draft the style files, since they shape every artefact.
+- **Step 7 neighbouring teams** — skip; there are no 1° teams to stub.
+
+Reframe **Step 2** as the user's focus for the work, not a team charter. Everything else runs unchanged. A solo adopter can switch later by re-running `/setup-awow` and answering "team".
+
 ## Step 0 — Installer (REQUIRED)
 
 The starter pack uses `tools/gather.py` to mirror `.agents/` into the harness surfaces (`.claude/`, `.github/`). The installer wires Python via `uv`, creates `.venv`, and runs `gather.py` once so the harness can discover this very command.
@@ -47,9 +56,9 @@ The starter pack uses `tools/gather.py` to mirror `.agents/` into the harness su
 
 The outcome of Step 1 is a **wired-up board read/write surface** plus a fully-populated `context/tooling/board.md` that specifies this team's board — state machine, hierarchy, label taxonomy, fields, team-page conventions — not just the MCP wiring. The agent reads `board.md` thereafter whenever it needs to know what a label means, which states are terminal, or where in the hierarchy a new issue belongs.
 
-Step 1 has two phases. Phase 1a wires up the read/write surface (an MCP or, for GitHub, the `gh` CLI). Phase 1b walks the team through configuration — either **Mode A** (set up from the reference for greenfield / under-configured boards) or **Mode B** (assess and capture current state for already-running boards). Phase choice is automatic, driven by counting closed issues.
+Step 1 has two parts. Step 1a wires up the read/write surface (an MCP or, for GitHub, the `gh` CLI). Step 1b walks the team through configuration — either **Mode A** (set up from the reference for greenfield / under-configured boards) or **Mode B** (assess and capture current state for already-running boards). The choice is automatic, driven by counting closed issues.
 
-### Phase 1a — Wire the read/write surface
+### Step 1a — Wire the read/write surface
 
 1. **Establish harness.** The starter pack ships both `.claude/` and `.github/` directories, so their presence is not a signal — do **not** infer "both harnesses in use" from directory listing alone. The real signal is which harness you (the model) are currently running inside:
    - If you are Claude Code, the user's current harness is Claude Code.
@@ -83,9 +92,9 @@ Step 1 has two phases. Phase 1a wires up the read/write surface (an MCP or, for 
    - Print the exact install command (or JSON snippet) for the user to run / paste. Configure it using the workspace / team identifier extracted from the URL where applicable.
    - Verify read access with a single call.
    - Verify write access with a **no-op** write against a scratch issue (set the description to its current value, or re-add an existing label). If write access is not granted yet, surface that as a blocker — the agent cannot do its job read-only.
-   - If the user cannot complete the install in this session (token in another browser, IT ticket, etc.), record the surface as `pending` in `setup-progress.md` and continue with Phase 1b so the repo is at least partially usable; mark configuration items that depend on write access as `pending-write`.
+   - If the user cannot complete the install in this session (token in another browser, IT ticket, etc.), record the surface as `pending` in `setup-progress.md` and continue with Step 1b so the repo is at least partially usable; mark configuration items that depend on write access as `pending-write`.
 
-### Phase 1b — Board configuration (from reference or assess current)
+### Step 1b — Board configuration (from reference or assess current)
 
 The reference for this team's board lives at `context/tooling/boards/<tool>/reference/`. The wizard reads it section by section and walks the team through either configuring from it (Mode A) or capturing what's already there (Mode B).
 
@@ -105,7 +114,7 @@ The reference for this team's board lives at `context/tooling/boards/<tool>/refe
 
    Repeat this preamble whenever the source layer changes for the next section.
 
-7. **Walk the reference sections in order.** For each file under `<tool>/reference/` (`states.md`, `hierarchy.md`, `labels.md`, `fields.md`, `team-page.md`, `mcp.md` already covered in Phase 1a, `cycles.md` / `iterations.md` if present):
+7. **Walk the reference sections in order.** For each file under `<tool>/reference/` (`states.md`, `hierarchy.md`, `labels.md`, `fields.md`, `team-page.md`, `mcp.md` already covered in Step 1a, `cycles.md` / `iterations.md` if present):
 
    - **Mode A.** Read the reference file. Summarise its decisions to the user. For each decision the reference asks the wizard to surface, ask **accept / override / skip**. Where the surface supports mutation (Linear MCP can create labels; `gh` can edit Project fields), apply the accepted choices. Where it does not (Linear Free workflow states, ADO process templates, Jira project workflows), emit a step-by-step manual checklist for the user to run in the board UI and re-verify after the user confirms. Skipped decisions land in `board.md` as `skipped: <reason>`.
    - **Mode B.** Read the same reference file for its `## What lands in board.md` shape. Pull the current state from the surface (workflow statuses, labels in use, native fields, team page contents). Write it to the corresponding `board.md` section. Diff against the reference; populate the `## Divergence from reference` section of `board.md` with each gap and the user's resolution (`close`, `override`, `accept`).
@@ -140,7 +149,7 @@ The reference for this team's board lives at `context/tooling/boards/<tool>/refe
 
     Accept one of:
     - **Proceed.** Continue to step 11.
-    - **Adjust `<section>`.** Re-enter Phase 1b for that section only. Re-walk it in Mode A or Mode B (whichever was used originally; the user can switch), update the draft under `proposals/setup/step-1/board.md`, ask for approval, replace the corresponding section of `context/tooling/board.md`, then return to this gate.
+    - **Adjust `<section>`.** Re-enter Step 1b for that section only. Re-walk it in Mode A or Mode B (whichever was used originally; the user can switch), update the draft under `proposals/setup/step-1/board.md`, ask for approval, replace the corresponding section of `context/tooling/board.md`, then return to this gate.
     - **Evaluate `<section>`.** Re-pull the live board state for that section via the surface, diff it against what is in `board.md`, surface differences, and ask the user whether to update `board.md` or leave as-is. Return to this gate.
 
     Loop on the gate until the user says proceed. Do not skip the gate even if the user approved the final draft in step 9 — the file existing on disk changes the question from "is this draft good enough to land?" to "now that it is the source of truth, does it still represent the team?".
@@ -167,7 +176,7 @@ Land at `context/team/mission.md` via `proposals/setup/step-2/mission.md`. Updat
 
 For each of the four REQUIRED conventions (`issue-titles.md`, `labels.md`, `branches.md`, `output-discipline.md`):
 
-- If the board has ≥10 closed issues, **observe**: query the board, summarise the existing pattern, and draft the convention to match. Show the user three real examples from their board so they can confirm. `labels.md` may already have been drafted in Step 1 Phase 1b (Mode B); reuse that draft and extend it with the rules.
+- If the board has ≥10 closed issues, **observe**: query the board, summarise the existing pattern, and draft the convention to match. Show the user three real examples from their board so they can confirm. `labels.md` may already have been drafted in Step 1b (Mode B); reuse that draft and extend it with the rules.
 - If the board is greenfield (<10 issues), **guide**: propose sensible defaults from `context/tooling/boards/<tool>/reference/`. Let the user opt out of any rule that does not fit.
 
 `output-discipline.md` is non-negotiable. If the user objects, explain why (the agent over-produces without it). Iterate on the rules, do not skip the file.
@@ -184,7 +193,7 @@ Draft `context/team/style/board-output.md`, `comments.md`, `placement.md`, `pros
 
 ## Step 5 — CLAUDE.md / AGENTS.md bootstrap
 
-Run `tools/bootstrap-claude-md.py` (or the inline equivalent). It reads the stub at `.agents/CLAUDE.md` plus every file the wizard has produced so far and writes a team-specific `CLAUDE.md`.
+Run `tools/bootstrap-claude-md.py` (or the inline equivalent). It reads the stub at `.agents/AGENTS.md` plus every file the wizard has produced so far and writes a team-specific `CLAUDE.md`.
 
 Critically: ask the user to populate the `## Do not propose` block. Surface scope-shedding statements ("we are not adding multi-user this quarter", "do not propose moving away from Linear"). Land the result. Run `tools/gather.py` to mirror to `.claude/CLAUDE.md` and `.github/AGENTS.md`.
 

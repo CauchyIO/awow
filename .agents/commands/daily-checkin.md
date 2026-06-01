@@ -17,7 +17,7 @@ You are not evaluating performance. You are not doing strategic forecasting. You
 
 **Bias hard against noise — this is the point of the command, not a footnote.** A daily check-in run every day is a noise machine if you let it be: duplicate tickets, verbose recaps, a new issue for every passing thought. Your default is the opposite. Advance work that is *already* tracked — comment on or move an existing issue. Treat creating a new issue as the exception that must justify itself, never the reflex. Keep every proposed board write to the minimum useful text.
 
-**The team has already written down how it works with its board — defer to it, don't reinvent it.** `context/tooling/board.md` is the mechanics: write surface, states, and the board's limitations. `.agents/CLAUDE.md` carries the look-first, never-duplicate rule; `context/team/style/board-output.md` carries placement and minimum-useful discipline. Read those before proposing anything, and when in doubt, propose less.
+**The team has already written down how it works with its board — defer to it, don't reinvent it.** `context/tooling/board.md` is the mechanics: write surface, states, and the board's limitations. `.agents/AGENTS.md` carries the look-first, never-duplicate rule; `context/team/style/board-output.md` carries placement and minimum-useful discipline. Read those before proposing anything, and when in doubt, propose less.
 
 **Writes to the board — but only after a gate.** Everything up to Section 5 is read-only synthesis. No issue is created, moved, or commented on until the user explicitly approves in Section 5.
 
@@ -115,7 +115,7 @@ Translate abstract descriptions into tangible outputs, decisions made, changes c
 
 ### C. Board discovery
 
-Search the board for project / area names, keywords, related topics, and recently updated issues, then map today's work onto existing issues. Apply the team's board doctrine here — don't re-derive it: the look-first, never-duplicate rule in `.agents/CLAUDE.md`, the placement and minimum-useful rules in `context/team/style/board-output.md`, and the query/write mechanics and limitations in `context/tooling/board.md`. **Never require the user to provide issue IDs.**
+Search the board for project / area names, keywords, related topics, and recently updated issues, then map today's work onto existing issues. Apply the team's board doctrine here — don't re-derive it: the look-first, never-duplicate rule in `.agents/AGENTS.md`, the placement and minimum-useful rules in `context/team/style/board-output.md`, and the query/write mechanics and limitations in `context/tooling/board.md`. **Never require the user to provide issue IDs.**
 
 ### D. Code cross-reference
 
@@ -123,11 +123,11 @@ Map today's code activity to board issues (linked branches, issue IDs in commit 
 
 ### E. Structural gaps
 
-Note only genuine gaps — work a teammate would expect on the board but can't find, a real dependency or follow-up that would otherwise be lost. What counts as board-worthy is the team's call (set in `.agents/CLAUDE.md` and `context/team/style/board-output.md`); apply it, don't redefine it. "No gaps today" is a fine and common outcome.
+Note only genuine gaps — work a teammate would expect on the board but can't find, a real dependency or follow-up that would otherwise be lost. What counts as board-worthy is the team's call (set in `.agents/AGENTS.md` and `context/team/style/board-output.md`); apply it, don't redefine it. "No gaps today" is a fine and common outcome.
 
 ### F. Knowledge discovery (implicit)
 
-Without being asked, identify reusable insights, documentation gaps, and recurring confusion, and suggest a capture location — for durable rationale that's `context/knowledge-base/` (per the placement rules in `.agents/CLAUDE.md`). No speculation beyond what the sources support.
+Without being asked, identify reusable insights, documentation gaps, and recurring confusion, and suggest a capture location — for durable rationale that's `context/knowledge-base/` (per the placement rules in `.agents/AGENTS.md`). No speculation beyond what the sources support.
 
 ---
 

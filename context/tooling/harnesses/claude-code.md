@@ -18,7 +18,7 @@ Presence of `.claude/` directory in the repo root, or the user explicitly choose
 
 `tools/gather.py` copies:
 
-- `.agents/CLAUDE.md` → `.claude/CLAUDE.md`
+- `.agents/AGENTS.md` → `.claude/CLAUDE.md`
 - `.agents/commands/<phase>/<name>.md` → `.claude/commands/<name>.md` (phase prefix dropped in the surface)
 - `.agents/skills/*.md` → `.claude/skills/*.md`
 

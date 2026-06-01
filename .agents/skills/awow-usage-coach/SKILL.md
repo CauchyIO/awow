@@ -1,6 +1,6 @@
 ---
 name: awow-usage-coach
-description: "Analyse how a team or an individual works through agent sessions in the awow repo (or a sibling repo as stand-in) and produce one of two markdown reports: (a) team-nudge — proposed additions to .agents/CLAUDE.md / copilot-instructions based on recurring sequence + editing patterns, or (b) self-coach — imperative, encouraging coaching for one developer compared against the team baseline. Uses an intent taxonomy (investigate/plan/propose/implement/refine/verify/document/inform) plus files-modified analysis so it works regardless of whether the team uses awow's exact vocabulary. Use when the user asks for awow usage feedback, adoption review, nudges for CLAUDE.md, or wants to see how they're using the project vs. teammates. Input: an mlflow_export directory (or equivalent — see below)."
+description: "Analyse how a team or an individual works through agent sessions in the awow repo (or a sibling repo as stand-in) and produce one of two markdown reports: (a) team-nudge — proposed additions to .agents/AGENTS.md / copilot-instructions based on recurring sequence + editing patterns, or (b) self-coach — imperative, encouraging coaching for one developer compared against the team baseline. Uses an intent taxonomy (investigate/plan/propose/implement/refine/verify/document/inform) plus files-modified analysis so it works regardless of whether the team uses awow's exact vocabulary. Use when the user asks for awow usage feedback, adoption review, nudges for CLAUDE.md, or wants to see how they're using the project vs. teammates. Input: an mlflow_export directory (or equivalent — see below)."
 ---
 
 # awow Usage Coach
@@ -91,7 +91,7 @@ If `target_sessions == 0`, stop and tell the user the export contains no session
 
 ## Mode A — team-nudge report (no `--user`)
 
-**Goal:** produce proposed additions to `.agents/CLAUDE.md` that an *agent* can read and apply, both as text edits to the file and as rules to follow in the next session. A nudge is a rule for the agent, not advice for the human prompter.
+**Goal:** produce proposed additions to `.agents/AGENTS.md` that an *agent* can read and apply, both as text edits to the file and as rules to follow in the next session. A nudge is a rule for the agent, not advice for the human prompter.
 
 **Length cap:** aim for ≤120 lines total. For thin slices (<30 prompts) cap at ≤60 lines. Every section earns its width.
 
@@ -117,7 +117,7 @@ If `target_sessions == 0`, stop and tell the user the export contains no session
 
    ````markdown
    ### Nudge N — <≤8-word title in imperative voice>
-   **Target file:** `.agents/CLAUDE.md`
+   **Target file:** `.agents/AGENTS.md`
    **Target section:** `## <existing section name>` or `## <new section name (proposed)>`
    **Insert verbatim:**
    > <one or two sentences, addressed to the AGENT in second person, matching awow's existing CLAUDE.md voice>
@@ -128,7 +128,7 @@ If `target_sessions == 0`, stop and tell the user the export contains no session
    The `Insert verbatim` block is a **single short paragraph**. No bullets, no sub-headings, no "you should" hedging. It must read as a rule the agent follows during a session.
 
 9. **Don't nudge** — patterns the data shows but that don't deserve a CLAUDE.md addition. One line each, ≤4 items.
-10. **Distribution checklist** — three lines max: edit `.agents/CLAUDE.md`, run `tools/gather.py`, do not hand-edit mirrored files.
+10. **Distribution checklist** — three lines max: edit `.agents/AGENTS.md`, run `tools/gather.py`, do not hand-edit mirrored files.
 
 ### How to write the `Insert verbatim` block
 
@@ -144,7 +144,7 @@ Nudge-specific addenda:
 
 - **Every nudge is anchored.** A real frequency number AND a verbatim quote in the `Evidence:` line, or it doesn't ship.
 - **Sequence > vocabulary.** Prefer nudges driven by bigrams/trigrams or edit patterns over nudges driven only by awow-keyword matching.
-- **Propose only what's missing.** Read `.agents/CLAUDE.md` first. If the rule already exists, say so in "Don't nudge" rather than reproposing.
+- **Propose only what's missing.** Read `.agents/AGENTS.md` first. If the rule already exists, say so in "Don't nudge" rather than reproposing.
 - **Bias toward fewer nudges.** Two sharp nudges that an agent can apply tomorrow beat five soft ones it has to interpret. Borderline patterns go to "Don't nudge".
 - **Length discipline.** If the report exceeds the cap, cut analytical prose first, then quotes, then the second-place patterns — never cut the nudge directive itself.
 
@@ -217,10 +217,23 @@ Print 3 short bullets to the user:
 
 Do not restate the report in chat. The markdown file is the deliverable.
 
+## Per-session coaching (visual timeline path)
+
+The extractor reads MLflow `mlflow_export/` traces. When the team has **no tracing wired up**, you can still coach off the raw Claude Code logs via `/project-retrospective`, which runs `tools/session_timeline.py` over `~/.claude/projects/<encoded-path>/*.jsonl` and emits `sessions.json` + an interactive `timeline.html`. Use that path when asked for a **per-session** review or a whole-project picture rather than the aggregate Mode A/B reports.
+
+When coaching per session this way, apply Mode B's voice rules unchanged (imperative, lead with strengths, every claim carries a verbatim quote, no grades) and write one `<short-id>.md` per session that the timeline embeds via `--coach-dir`. The timeline also surfaces three signals the trace extractor does not, worth reading into the coaching:
+
+- **Concurrency / fan-out** — how many sessions ran in parallel. High parallelism that compresses many session-hours into a short span is the awow rhythm working; flag it as a strength.
+- **Idle gaps** — stretches where no session logged any event (the human stepped away). Lead any "how long did this take" read with active time, not elapsed span.
+- **Peak context per session** — the fullest prompt size reached. A session crossing the standard window is a signal it was doing two or three jobs that each wanted their own fanned-out session — coach toward splitting, not bigger context.
+
+Reviews and the project overview are **private session-derived data** — real names, private issue IDs, infra topology, cost figures. Write them only to `coach_reviews/` (gitignored). **Never** write them to `proposals/`, `context/`, or any tracked path: if this repo is public, committing them leaks customer data. Never copy a secret a prompt pasted into a review or overview — flag it to the user out-of-band.
+
 ## Interplay with sister skills
 
-- `mlflow-export` produces the input. If sessions are stale, suggest re-running it first.
+- `mlflow-export` produces the trace input. If sessions are stale, suggest re-running it first.
 - `prompt-skill-analysis` covers generic prompt quality (clarity, specificity, length distribution, voice). If the user wants both styles of feedback, run them as two reports against the same export — they don't overlap. This skill is about *workflow shape*, that one is about *prompt craft*.
+- `/project-retrospective` is the **visual, no-tracing** sibling: the same workflow-shape lens, rendered from raw Claude Code logs. Reach for it for per-session coaching or a whole-project timeline; reach for the extractor for aggregate team-nudge / self-coach reports and cross-user baselines.
 
 ## Troubleshooting
 

@@ -9,7 +9,7 @@
   Two halves: (1) the /setup-awow wizard — incremental, resumable, proposal-first,
   Steps 0–9; (2) one source of truth, two harness surfaces — author once under
   .agents/, gather.py emits pointer stubs into .claude/ and .github/ so nothing drifts.
-  Sources of truth: .agents/commands/setup-awow.md, README.md, .agents/CLAUDE.md.
+  Sources of truth: .agents/commands/setup-awow.md, README.md, .agents/AGENTS.md.
   Self-contained: no external fonts/links by design.
 -->
 <style>
@@ -196,14 +196,14 @@
   <!-- STEP 1 DETAIL -->
   <div class="pad">
     <h2>Step 1 &mdash; Board kickoff <span class="badge badge-accent" style="font-size:0.62rem">required</span></h2>
-    <p>The outcome of Step 1 is a wired read/write surface <em>plus</em> a fully-populated <code>context/tooling/board.md</code> &mdash; the team&rsquo;s actual board spec, not just MCP wiring. The agent reads that file thereafter whenever it needs to know what a label means, which states are terminal, or where a new issue belongs. It runs in two phases:</p>
+    <p>The outcome of Step 1 is a wired read/write surface <em>plus</em> a fully-populated <code>context/tooling/board.md</code> &mdash; the team&rsquo;s actual board spec, not just MCP wiring. The agent reads that file thereafter whenever it needs to know what a label means, which states are terminal, or where a new issue belongs. It runs in two parts:</p>
     <div class="grid-2">
       <div class="card">
-        <p class="card-label" style="color:var(--accent)">Phase 1a &middot; wire the surface</p>
+        <p class="card-label" style="color:var(--accent)">Step 1a &middot; wire the surface</p>
         <p style="margin-bottom:0;">Detects or installs the read/write surface &mdash; an MCP for Linear / Jira / Azure DevOps / GitHub, or the <code>gh</code> CLI for GitHub-hosted boards. Verifies <strong>read</strong> with one call and <strong>write</strong> with a no-op write against a scratch issue. A surface that cannot finish this session is recorded <code>pending</code> so the repo is still partially usable.</p>
       </div>
       <div class="card">
-        <p class="card-label" style="color:var(--link)">Phase 1b &middot; configure</p>
+        <p class="card-label" style="color:var(--link)">Step 1b &middot; configure</p>
         <p style="margin-bottom:0;">Mode chosen automatically by counting closed issues. <strong>Mode A</strong> (&lt;10 closed) sets up from the reference &mdash; accept / override / skip per decision. <strong>Mode B</strong> (≥10 closed) assesses and captures what is already on the board, recording divergence from the reference.</p>
       </div>
     </div>
@@ -315,7 +315,7 @@ uv run python tools/gather.py --check</pre>
 
   <!-- FOOTER -->
   <div class="pad" style="border-bottom:none;">
-    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Sources of truth: <code>.agents/commands/setup-awow.md</code> (the wizard spec), <code>README.md</code> (&ldquo;Day one&rdquo;, &ldquo;What&rsquo;s in this repo&rdquo;, &ldquo;One source of truth, two harness surfaces&rdquo;, &ldquo;Adopting &amp; contributing back&rdquo;), and <code>.agents/CLAUDE.md</code> (the bootstrap stub). Companion guide: <code>guide-board-and-mcp.html</code> (board mechanics). This guide is self-contained &mdash; no external resources.</p>
+    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Sources of truth: <code>.agents/commands/setup-awow.md</code> (the wizard spec), <code>README.md</code> (&ldquo;Day one&rdquo;, &ldquo;What&rsquo;s in this repo&rdquo;, &ldquo;One source of truth, two harness surfaces&rdquo;, &ldquo;Adopting &amp; contributing back&rdquo;), and <code>.agents/AGENTS.md</code> (the bootstrap stub). Companion guide: <code>guide-board-and-mcp.html</code> (board mechanics). This guide is self-contained &mdash; no external resources.</p>
   </div>
 
 </div>

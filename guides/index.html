@@ -6,23 +6,16 @@
 <title>awow &mdash; Agentic Way of Working &middot; Guides</title>
 <!--
   AWOW GUIDES — landing page.
-  awow is presented not as a staged sequence but as a handful of independent FLOWS,
-  each a concrete command pipeline (command → artifact/human → board), that all meet
-  at one place: the board. No order to march through; run what you need, when you
-  need it. The flows: the delivery loop (daily), getting set up (once), from meetings
-  to work (ad hoc), synthesis & traces (now & then).
+  awow's guides are organised by SCOPE, not by sequence. There are three tiers, and the
+  "center of gravity" changes at each: the Individual works at the session; the Team works
+  at the board (the single source of truth); the Pillar works at the service RACI, one tier
+  up, governing boundaries between teams. Most of the repo lives at the Team tier; the
+  Individual and Pillar tiers bracket it. Within the Team tier the work is still a handful
+  of independent flows that all meet at one board.
 
-  The hero stays clean and restrained (no diagram in the black part); the substance is
-  the flow map below it, drawn in the guides' own diagram idiom: rounded command nodes
-  in mono with a coloured border, dashed boxes for inputs, a dark node for the durable
-  surface (board / PR / human), and a coloured connector docking each flow into the
-  shared board spine.
-
-  Nodes are laid out with CSS fl/grid (not hand-placed SVG text) so labels never
-  collide or overflow. Self-contained: no external fonts, links, or scripts; guide
-  links are relative to sibling files. Each flow gets a colour purely for identity
-  (no order implied): delivery loop=warn, getting set up=accent, meetings=link,
-  synthesis=ok.
+  Self-contained: no external fonts, links, or scripts; guide links are relative to sibling
+  files. Tier identity colours: Individual=link (blue), Team=warn (amber), Pillar=accent
+  (coral). Within Team, the sub-flows keep their own identity colours.
 -->
 <style>
   :root {
@@ -49,7 +42,7 @@
   .hero { background:var(--text-1); color:#fff; padding:46px 44px 42px; }
   .hero .kicker { color:rgba(255,255,255,0.45); }
   .hero h1 { font-size:2.4rem; font-weight:800; margin:0; letter-spacing:-0.025em; color:#fff; }
-  .hero .lead { font-size:1.08rem; color:rgba(255,255,255,0.8); margin:14px 0 0; font-weight:500; max-width:680px; line-height:1.6; }
+  .hero .lead { font-size:1.08rem; color:rgba(255,255,255,0.8); margin:14px 0 0; font-weight:500; max-width:700px; line-height:1.6; }
   .hero .lead strong { color:#fff; font-weight:800; }
   .hero-jump { display:flex; flex-wrap:wrap; gap:8px 10px; margin:24px 0 0; }
   .hero-jump a { display:inline-flex; align-items:center; gap:8px; text-decoration:none; font-size:0.8rem; font-weight:700; color:rgba(255,255,255,0.78); background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:6px 13px 6px 11px; transition:background 0.15s, border-color 0.15s, color 0.15s; }
@@ -57,26 +50,39 @@
   .hero-jump .jd { width:8px; height:8px; border-radius:50%; background:var(--jc); flex:none; }
   .hero-jump .jc { color:rgba(255,255,255,0.4); font-weight:600; font-size:0.74rem; }
 
-  /* ======== FLOW MAP ======== */
+  /* ======== FLOW MAP / LADDER shared section chrome ======== */
   .flows { padding:32px 44px 36px; border-bottom:1px solid var(--border-subtle); background:var(--surface); }
   .flows h2 { font-size:1.45rem; font-weight:800; margin:0 0 6px; letter-spacing:-0.02em; }
-  .flows .sub { font-size:0.92rem; color:var(--text-2); margin:0; max-width:760px; line-height:1.65; }
+  .flows .sub { font-size:0.92rem; color:var(--text-2); margin:0; max-width:780px; line-height:1.65; }
   .flows .sub strong { color:var(--text-1); }
 
+  /* ======== TIER LADDER (top-level orientation) ======== */
+  .ladder { display:flex; flex-direction:column; margin:24px 0 0; max-width:860px; }
+  .ladder-row { display:flex; align-items:center; gap:20px; border:1px solid var(--border); border-left:5px solid var(--tc); border-radius:12px; padding:15px 20px; background:var(--surface); text-decoration:none; color:inherit; transition:box-shadow 0.15s, transform 0.15s; }
+  .ladder-row:hover { box-shadow:0 5px 18px rgba(26,26,26,0.08); transform:translateY(-1px); }
+  .lr-left { flex:1; }
+  .lr-num { font-family:'JetBrains Mono',ui-monospace,monospace; font-size:0.72rem; font-weight:800; color:var(--tc); letter-spacing:0.06em; }
+  .lr-tier { font-size:1.15rem; font-weight:800; letter-spacing:-0.01em; margin:1px 0 0; }
+  .lr-desc { font-size:0.82rem; color:var(--text-2); margin:3px 0 0; line-height:1.5; }
+  .lr-center { display:flex; flex-direction:column; align-items:center; gap:1px; background:var(--tc-tint); border:1.5px solid var(--tc); border-radius:10px; padding:9px 16px; min-width:158px; text-align:center; flex:none; }
+  .lc-label { font-size:0.56rem; font-weight:800; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-3); }
+  .lc-name { font-size:0.98rem; font-weight:800; color:var(--text-1); }
+  .ladder-link { font-size:0.72rem; font-weight:700; color:var(--text-3); padding:8px 0 8px 26px; display:flex; align-items:center; gap:8px; }
+  .ladder-link b { color:var(--text-2); font-weight:800; }
+  .ladder-link .ll-g { color:var(--text-3); font-size:0.9rem; }
+
+  /* ======== TEAM FLOW MAP (the board spine) ======== */
   .flowmap { display:grid; grid-template-columns:1fr 158px; gap:0 22px; margin:24px 0 0; }
   .flow-rows { display:flex; flex-direction:column; gap:14px; }
   .flow-legend { display:flex; gap:16px; flex-wrap:wrap; font-size:0.74rem; color:var(--text-2); margin:18px 0 0; padding-top:14px; border-top:1px solid var(--border-subtle); }
   .flow-legend span { display:inline-flex; align-items:center; gap:7px; }
   .flow-legend i { display:inline-block; width:22px; height:14px; border-radius:4px; flex:none; }
-
-  /* one flow = a labelled rail of nodes */
   .flow { border:1px solid var(--border); border-left:4px solid var(--pc); border-radius:10px; padding:13px 15px; background:var(--surface); }
   .flow-head { display:flex; align-items:center; gap:10px; margin:0 0 11px; }
   a.flow-name { text-decoration:none; font-size:0.98rem; font-weight:800; color:var(--text-1); letter-spacing:-0.01em; }
   a.flow-name:hover { color:var(--pc); }
   .flow-cad { font-size:0.62rem; font-weight:800; letter-spacing:0.07em; text-transform:uppercase; color:var(--pc); background:var(--pc-tint); border:1px solid var(--pc-bd); border-radius:20px; padding:3px 9px; }
   .flow-note { font-size:0.78rem; color:var(--text-3); margin-left:auto; font-weight:600; }
-
   .rail { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
   .rail + .rail { margin-top:9px; }
   .node { display:inline-flex; flex-direction:column; gap:1px; border-radius:8px; padding:7px 11px; border:1.5px solid var(--pc); background:var(--surface); }
@@ -90,16 +96,11 @@
   .node.human .ns { color:rgba(255,255,255,0.7); }
   .sep { color:var(--text-3); font-size:0.95rem; flex:none; }
   .sep.loop { color:var(--pc); font-weight:800; }
-  /* connector — a dashed line that fills the gap and docks each flow into the board spine */
   .conn { flex:1 1 40px; display:flex; align-items:center; gap:9px; min-width:54px; margin-left:3px; }
   .conn .line { flex:1 1 auto; min-width:14px; height:0; border-top:2px dashed var(--pc); opacity:0.5; }
   .io { font-size:0.64rem; font-weight:800; letter-spacing:0.04em; text-transform:uppercase; color:var(--pc); white-space:nowrap; }
-
-  /* the shared board spine — every flow meets here */
   .board-spine { grid-column:2; grid-row:1; align-self:stretch; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; text-align:center; background:var(--text-1); color:#fff; border-radius:12px; padding:20px 14px; }
   .board-spine .bs-glyph { display:flex; gap:4px; }
-  .board-spine .bs-col { display:flex; flex-direction:column; gap:4px; }
-  .board-spine .bs-col i { display:block; width:15px; height:10px; border-radius:2px; }
   .board-spine .bs-name { font-size:1.02rem; font-weight:800; letter-spacing:-0.01em; }
   .board-spine .bs-sub { font-size:0.64rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:rgba(255,255,255,0.5); line-height:1.4; }
 
@@ -120,19 +121,31 @@
   .sh-why strong { color:var(--text-1); }
   .sh-why em { color:var(--text-1); font-style:italic; }
 
-  /* ======== PHASE SECTIONS ======== */
-  .phase { padding:30px 44px 34px; border-bottom:1px solid var(--border-subtle); }
+  /* ======== TIER BANDS ======== */
+  .tier-band { display:flex; align-items:flex-start; gap:18px; padding:28px 44px 8px; border-top:2px solid var(--tc); }
+  .tier-band .tier-num { font-family:'JetBrains Mono',ui-monospace,monospace; font-size:1.7rem; font-weight:800; color:var(--tc); opacity:0.5; line-height:1; flex:none; }
+  .tier-name { font-size:1.7rem; font-weight:800; letter-spacing:-0.025em; margin:0; line-height:1.05; }
+  .tier-go { display:inline-block; font-size:0.64rem; font-weight:800; text-transform:uppercase; letter-spacing:0.07em; color:var(--tc); background:var(--tc-tint); border:1px solid var(--tc); border-radius:20px; padding:3px 10px; margin-left:10px; vertical-align:middle; white-space:nowrap; }
+  .tier-frame { font-size:0.94rem; color:var(--text-2); margin:9px 0 0; max-width:800px; line-height:1.65; }
+  .tier-frame strong { color:var(--text-1); }
+  .levelup { display:flex; align-items:flex-start; gap:12px; margin:14px 44px 0; padding:13px 18px; background:rgba(242,75,55,0.06); border:1px solid rgba(242,75,55,0.30); border-radius:10px; }
+  .levelup .lu-mark { font-size:1.2rem; line-height:1; color:var(--accent); flex:none; }
+  .levelup p { font-size:0.86rem; color:var(--text-2); margin:0; line-height:1.6; }
+  .levelup strong { color:var(--text-1); }
+
+  /* ======== PHASE SECTIONS (sub-groups within a tier) ======== */
+  .phase { padding:26px 44px 30px; border-bottom:1px solid var(--border-subtle); }
   .phase-head { display:flex; align-items:flex-start; gap:16px; }
-  .phase-rule { width:4px; align-self:stretch; border-radius:3px; background:var(--pc); flex:none; min-height:54px; }
+  .phase-rule { width:4px; align-self:stretch; border-radius:3px; background:var(--pc); flex:none; min-height:48px; }
   .phase-cad { font-size:0.66rem; font-weight:800; color:#fff; background:var(--pc); border-radius:6px; padding:5px 10px; letter-spacing:0.05em; text-transform:uppercase; flex:none; white-space:nowrap; }
   .phase-titles { flex:1; }
-  .phase-name { font-size:1.5rem; font-weight:800; letter-spacing:-0.02em; margin:0; line-height:1.1; }
-  .phase-name .pt { color:var(--pc); font-weight:700; font-size:0.95rem; letter-spacing:0; margin-left:8px; }
-  .phase-frame { font-size:0.92rem; color:var(--text-2); margin:9px 0 0; max-width:770px; line-height:1.7; }
+  .phase-name { font-size:1.3rem; font-weight:800; letter-spacing:-0.02em; margin:0; line-height:1.1; }
+  .phase-name .pt { color:var(--pc); font-weight:700; font-size:0.9rem; letter-spacing:0; margin-left:8px; }
+  .phase-frame { font-size:0.9rem; color:var(--text-2); margin:8px 0 0; max-width:790px; line-height:1.65; }
   .phase-frame strong { color:var(--text-1); }
   .phase-frame em { color:var(--text-1); font-style:italic; }
 
-  .cards { display:grid; gap:14px; margin-top:20px; }
+  .cards { display:grid; gap:14px; margin-top:18px; }
   .cards.c2 { grid-template-columns:1fr 1fr; }
   .cards.c3 { grid-template-columns:repeat(3, 1fr); }
 
@@ -156,7 +169,7 @@
   a.card.lead .c-desc { font-size:0.9rem; }
 
   /* ======== METHODOLOGY + FOOTER ======== */
-  .pad { padding:30px 44px; border-bottom:1px solid var(--border-subtle); }
+  .pad { padding:30px 44px; border-bottom:1px solid var(--border-subtle); border-top:2px solid var(--border); }
   .pad h2 { font-size:1.3rem; font-weight:800; margin:0 0 10px; letter-spacing:-0.01em; }
   .pad p { font-size:0.92rem; color:var(--text-2); margin:0 0 12px; line-height:1.7; }
   .pad p strong { color:var(--text-1); }
@@ -166,10 +179,13 @@
   .foot p { font-size:0.77rem; color:var(--text-3); margin:0; line-height:1.6; }
 
   @media (max-width: 860px) {
-    .hero, .phase, .pad, .foot, .flows { padding-left:24px; padding-right:24px; }
+    .hero, .phase, .pad, .foot, .flows, .tier-band { padding-left:24px; padding-right:24px; }
+    .levelup { margin-left:24px; margin-right:24px; }
     .flowmap { grid-template-columns:1fr; }
     .board-spine { grid-column:1; grid-row:auto; flex-direction:row; gap:14px; padding:14px 18px; margin-bottom:14px; }
     .board-spine .bs-text { text-align:left; }
+    .ladder-row { flex-direction:column; align-items:flex-start; gap:12px; }
+    .lr-center { align-self:stretch; }
     .starthere { grid-template-columns:1fr; }
     a.sh-cta { border-right:none; border-bottom:1px solid var(--border-subtle); }
     a.sh-cta, .sh-why { padding:24px; }
@@ -189,28 +205,109 @@
 
 <div class="wrap">
 
-  <!-- ===== HERO (clean) ===== -->
+  <!-- ===== HERO ===== -->
   <div class="hero">
     <p class="kicker">Cauchy &middot; awow &middot; Agentic Way of Working</p>
     <h1>Guides</h1>
-    <p class="lead">awow is a handful of <strong>flows</strong> &mdash; each a real sequence of commands &mdash; that all meet at one place: the <strong>board</strong>. They&rsquo;re independent: run the ones you need, when you need them. Here is what each actually does.</p>
+    <p class="lead">awow is a handful of independent <strong>flows</strong> &mdash; but they live at <strong>three scopes</strong>, and the center of gravity changes at each: your <strong>session</strong>, the team&rsquo;s <strong>board</strong>, the pillar&rsquo;s <strong>service map</strong>. Find your scope, then run the flows you need.</p>
     <nav class="hero-jump">
-      <a href="#loop" style="--jc:var(--warn);"><span class="jd"></span>The delivery loop <span class="jc">&middot; daily</span></a>
-      <a href="#set-up" style="--jc:var(--accent);"><span class="jd"></span>Getting set up <span class="jc">&middot; once</span></a>
-      <a href="#meetings" style="--jc:var(--link);"><span class="jd"></span>From meetings to work <span class="jc">&middot; ad hoc</span></a>
-      <a href="#synthesis" style="--jc:var(--ok);"><span class="jd"></span>Synthesis &amp; traces <span class="jc">&middot; now &amp; then</span></a>
+      <a href="#tier-individual" style="--jc:var(--link);"><span class="jd"></span>Individual <span class="jc">&middot; the session</span></a>
+      <a href="#tier-team" style="--jc:var(--warn);"><span class="jd"></span>Team <span class="jc">&middot; the board</span></a>
+      <a href="#tier-pillar" style="--jc:var(--accent);"><span class="jd"></span>Pillar <span class="jc">&middot; the service map</span></a>
     </nav>
   </div>
 
-  <!-- ===== FLOW MAP ===== -->
+  <!-- ===== TIER LADDER (orientation) ===== -->
   <section class="flows">
-    <h2>How the work flows</h2>
-    <p class="sub">A handful of flows, one board. Some <strong>feed</strong> it, one <strong>wires</strong> it, one <strong>reads</strong> it &mdash; and none waits on another. There&rsquo;s no sequence to march through; run what you need, when you need it.</p>
+    <h2>Three scopes, three centers of gravity</h2>
+    <p class="sub">Almost everything in this repo lives at the <strong>team</strong> tier, where the board is the single source of truth. Two tiers bracket it: an <strong>individual</strong> below, working at the session, and a <strong>pillar</strong> above, working at the service map across teams. Zooming out doesn&rsquo;t just widen the view &mdash; the thing at the center <em>changes</em>. That is why the pillar tier feels like a different kind of place: it is.</p>
+    <div class="ladder">
+      <a class="ladder-row" href="#tier-individual" style="--tc:var(--link); --tc-tint:rgba(51,127,249,0.08);">
+        <div class="lr-left">
+          <div class="lr-num">TIER 01</div>
+          <div class="lr-tier">Individual</div>
+          <div class="lr-desc">How one person and the agent actually work &mdash; reading your own sessions back to sharpen the craft.</div>
+        </div>
+        <div class="lr-center"><span class="lc-label">center of gravity</span><span class="lc-name">the session</span></div>
+      </a>
+      <div class="ladder-link"><span class="ll-g">&uarr;</span> a person&rsquo;s work lands on <b>the team&rsquo;s board</b></div>
+      <a class="ladder-row" href="#tier-team" style="--tc:var(--warn); --tc-tint:rgba(201,122,27,0.10);">
+        <div class="lr-left">
+          <div class="lr-num">TIER 02</div>
+          <div class="lr-tier">Team</div>
+          <div class="lr-desc">One team&rsquo;s shared single source of truth. Most of awow lives here &mdash; a set of flows that all meet at one board.</div>
+        </div>
+        <div class="lr-center"><span class="lc-label">center of gravity</span><span class="lc-name">the board</span></div>
+      </a>
+      <div class="ladder-link"><span class="ll-g">&updownarrow;</span> teams roll their signal <b>up</b> &middot; the pillar publishes contracts <b>down</b></div>
+      <a class="ladder-row" href="#tier-pillar" style="--tc:var(--accent); --tc-tint:rgba(242,75,55,0.08);">
+        <div class="lr-left">
+          <div class="lr-num">TIER 03</div>
+          <div class="lr-tier">Pillar &middot; cross-team</div>
+          <div class="lr-desc">Boundaries <em>between</em> teams, governed one tier up. A different archetype &mdash; not a bigger team.</div>
+        </div>
+        <div class="lr-center"><span class="lc-label">center of gravity</span><span class="lc-name">the service RACI</span></div>
+      </a>
+    </div>
+  </section>
 
+  <!-- ===== START HERE ===== -->
+  <div class="starthere">
+    <a class="sh-cta" href="guide-setup-and-two-harnesses.html">
+      <span class="sh-tag">Start here</span>
+      <h2>New to awow?</h2>
+      <p>Start at the <strong>team</strong> tier. Run <code>/setup-awow</code> to wire the board, then take one real story through the delivery loop &mdash; <code>/refinement-prep</code>, then <code>/process-workitem</code> to a PR. That single turn of the loop is what proves the value; the individual and pillar tiers wait until you want them.</p>
+      <span class="sh-btn">Open the setup guide <span class="arrow">&rarr;</span></span>
+      <span class="sh-file">guide-setup-and-two-harnesses.html</span>
+    </a>
+    <div class="sh-why">
+      <p class="kicker">Why awow exists</p>
+      <p>Above a certain size, every organisation develops a fog: the question <em>what is actually happening right now?</em> gets three or four answers depending on who you ask. awow clears it by making the <strong>board the single source of truth</strong> and giving an agent the context to keep it honest &mdash; then lets that same discipline scale down to the individual and up to the pillar.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- ===== TIER 01 — INDIVIDUAL ================================== -->
+  <!-- ============================================================= -->
+  <div class="tier-band" id="tier-individual" style="--tc:var(--link); --tc-tint:rgba(51,127,249,0.08);">
+    <span class="tier-num">01</span>
+    <div class="tier-titles">
+      <h2 class="tier-name">Individual<span class="tier-go">center of gravity &middot; the session</span></h2>
+      <p class="tier-frame">Before the board, there is the session &mdash; you and the agent. This tier is about <strong>reading your own sessions back</strong>: how the work actually unfolded, and how well you prompted. Nothing here touches the board directly; it makes the person who does better.</p>
+    </div>
+  </div>
+  <section class="phase" style="--pc:var(--link); --pc-tint:rgba(51,127,249,0.08); --pc-bd:rgba(51,127,249,0.30);">
+    <div class="cards c2">
+      <a class="card" href="guide-session-timeline.html">
+        <div class="c-top"><span class="c-title">Session timeline</span><span class="c-pill">No tracing</span></div>
+        <p class="c-desc">A visual, zero-setup picture of how a repo got built across its sessions &mdash; fan-out, handoffs, idle gaps, context &mdash; straight from the Claude Code logs.</p>
+        <div class="c-foot"><span class="c-file">guide-session-timeline.html</span><span class="c-go">Open guide <span class="arrow">&rarr;</span></span></div>
+      </a>
+      <a class="card" href="guide-trace-analysis.html">
+        <div class="c-top"><span class="c-title">Trace analysis</span><span class="c-pill">Self-coach</span></div>
+        <p class="c-desc">Export the traces, then turn them into prompt-quality and usage-coaching reports &mdash; how you work, reflected back, and rolled up to team adoption.</p>
+        <div class="c-foot"><span class="c-file">guide-trace-analysis.html</span><span class="c-go">Open guide <span class="arrow">&rarr;</span></span></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ============================================================= -->
+  <!-- ===== TIER 02 — TEAM ======================================== -->
+  <!-- ============================================================= -->
+  <div class="tier-band" id="tier-team" style="--tc:var(--warn); --tc-tint:rgba(201,122,27,0.10);">
+    <span class="tier-num">02</span>
+    <div class="tier-titles">
+      <h2 class="tier-name">Team<span class="tier-go">center of gravity &middot; the board</span></h2>
+      <p class="tier-frame">The heart of awow. A handful of independent flows &mdash; some <strong>feed</strong> the board, one <strong>wires</strong> it, some <strong>read</strong> it &mdash; and none waits on another. There&rsquo;s no sequence to march through; run what you need, when you need it. They only ever meet at one place: the board.</p>
+    </div>
+  </div>
+
+  <!-- TEAM FLOW MAP -->
+  <section class="flows">
+    <h2>How the team&rsquo;s work flows</h2>
+    <p class="sub">A handful of flows, one board. Some <strong>feed</strong> it, one <strong>wires</strong> it, one <strong>reads</strong> it &mdash; and none waits on another.</p>
     <div class="flowmap">
       <div class="flow-rows">
-
-        <!-- THE DELIVERY LOOP -->
         <div class="flow" style="--pc:var(--warn); --pc-tint:rgba(201,122,27,0.10); --pc-bd:rgba(201,122,27,0.30);">
           <div class="flow-head">
             <a class="flow-name" href="#loop">The delivery loop</a>
@@ -231,8 +328,6 @@
             <span class="conn"><span class="line"></span><span class="io">reconciles &rarr;</span></span>
           </div>
         </div>
-
-        <!-- GETTING SET UP -->
         <div class="flow" style="--pc:var(--accent); --pc-tint:rgba(242,75,55,0.08); --pc-bd:rgba(242,75,55,0.30);">
           <div class="flow-head">
             <a class="flow-name" href="#set-up">Getting set up</a>
@@ -246,8 +341,6 @@
             <span class="conn"><span class="line"></span><span class="io">wires &rarr;</span></span>
           </div>
         </div>
-
-        <!-- FROM MEETINGS TO WORK -->
         <div class="flow" style="--pc:var(--link); --pc-tint:rgba(51,127,249,0.08); --pc-bd:rgba(51,127,249,0.30);">
           <div class="flow-head">
             <a class="flow-name" href="#meetings">From meetings to work</a>
@@ -263,16 +356,14 @@
             <span class="conn"><span class="line"></span><span class="io">feeds &rarr;</span></span>
           </div>
         </div>
-
-        <!-- SYNTHESIS & TRACES -->
         <div class="flow" style="--pc:var(--ok); --pc-tint:rgba(46,125,79,0.09); --pc-bd:rgba(46,125,79,0.30);">
           <div class="flow-head">
-            <a class="flow-name" href="#synthesis">Synthesis &amp; traces</a>
+            <a class="flow-name" href="#capabilities">Reporting &amp; capabilities</a>
             <span class="flow-cad">now &amp; then &middot; reads only</span>
             <span class="flow-note">reads, mutates nothing</span>
           </div>
           <div class="rail">
-            <span class="node art"><span class="nt">digests + traces</span><span class="ns">who needs to know</span></span>
+            <span class="node art"><span class="nt">digests + artifacts</span><span class="ns">who needs to know</span></span>
             <span class="sep">&larr;</span>
             <span class="node cmd"><span class="nt">/weekly-digest</span><span class="ns">the week&rsquo;s trajectory</span></span>
             <span class="sep">&larr;</span>
@@ -280,10 +371,7 @@
             <span class="conn"><span class="line"></span><span class="io">reads &larr;</span></span>
           </div>
         </div>
-
       </div>
-
-      <!-- the one board every flow touches -->
       <div class="board-spine" aria-label="The board — single source of truth, where every flow meets">
         <svg class="bs-glyph" width="58" height="44" viewBox="0 0 58 44" fill="none" aria-hidden="true">
           <g stroke="rgba(255,255,255,0.4)" stroke-width="1.3">
@@ -306,7 +394,6 @@
         </div>
       </div>
     </div>
-
     <div class="flow-legend">
       <span><i style="background:var(--surface);border:1.5px solid var(--accent)"></i> command you run</span>
       <span><i style="background:var(--surface-alt);border:1.5px dashed var(--text-3)"></i> input / artifact</span>
@@ -315,22 +402,7 @@
     </div>
   </section>
 
-  <!-- ===== START HERE ===== -->
-  <div class="starthere">
-    <a class="sh-cta" href="guide-setup-and-two-harnesses.html">
-      <span class="sh-tag">Start here</span>
-      <h2>New to awow?</h2>
-      <p>Run <code>/setup-awow</code> to wire the board, then take one real story through the delivery loop &mdash; <code>/refinement-prep</code>, then <code>/process-workitem</code> to a PR. That single turn of the loop is what proves the value; the other flows wait until you want them.</p>
-      <span class="sh-btn">Open the setup guide <span class="arrow">&rarr;</span></span>
-      <span class="sh-file">guide-setup-and-two-harnesses.html</span>
-    </a>
-    <div class="sh-why">
-      <p class="kicker">Why awow exists</p>
-      <p>Above a certain size, every organisation develops a fog: the question <em>what is actually happening right now?</em> gets three or four answers depending on who you ask. awow clears it by making the <strong>board the single source of truth</strong> and giving an agent the context to keep it honest. Every flow above earns its place by how it touches that one board.</p>
-    </div>
-  </div>
-
-  <!-- ===== THE DELIVERY LOOP ===== -->
+  <!-- THE DELIVERY LOOP -->
   <section class="phase" id="loop" style="--pc:var(--warn); --pc-tint:rgba(201,122,27,0.10); --pc-bd:rgba(201,122,27,0.30);">
     <div class="phase-head">
       <span class="phase-rule"></span>
@@ -352,7 +424,7 @@
     </div>
   </section>
 
-  <!-- ===== GETTING SET UP ===== -->
+  <!-- GETTING SET UP -->
   <section class="phase" id="set-up" style="--pc:var(--accent); --pc-tint:rgba(242,75,55,0.08); --pc-bd:rgba(242,75,55,0.30);">
     <div class="phase-head">
       <span class="phase-rule"></span>
@@ -376,7 +448,7 @@
     </div>
   </section>
 
-  <!-- ===== FROM MEETINGS TO WORK ===== -->
+  <!-- FROM MEETINGS TO WORK -->
   <section class="phase" id="meetings" style="--pc:var(--link); --pc-tint:rgba(51,127,249,0.08); --pc-bd:rgba(51,127,249,0.30);">
     <div class="phase-head">
       <span class="phase-rule"></span>
@@ -405,31 +477,58 @@
     </div>
   </section>
 
-  <!-- ===== SYNTHESIS & TRACES ===== -->
-  <section class="phase" id="synthesis" style="--pc:var(--ok); --pc-tint:rgba(46,125,79,0.09); --pc-bd:rgba(46,125,79,0.30);">
+  <!-- REPORTING & CAPABILITIES -->
+  <section class="phase" id="capabilities" style="--pc:var(--ok); --pc-tint:rgba(46,125,79,0.09); --pc-bd:rgba(46,125,79,0.30);">
     <div class="phase-head">
       <span class="phase-rule"></span>
-      <span class="phase-cad">Now &amp; then &middot; reads only</span>
+      <span class="phase-cad">Now &amp; then</span>
       <div class="phase-titles">
-        <h2 class="phase-name">Synthesis &amp; traces<span class="pt">step back and read</span></h2>
-        <p class="phase-frame">Sooner or later the question changes: not <em>what did I do today</em> but <em>what shifted across the team this week, and who needs to know?</em> This is the synthesis layer &mdash; digests and cross-team views &mdash; plus the traces underneath that let the work explain itself, by actor, after the fact.</p>
+        <h2 class="phase-name">Reporting &amp; capabilities<span class="pt">layer on when needed</span></h2>
+        <p class="phase-frame">Things you add to the team once the loop is humming: read-only digests that synthesise what shifted and who needs to know, a design system so HTML artifacts come out coherent, and the trace plumbing that lets every board entry link back to the session that produced it.</p>
       </div>
     </div>
     <div class="cards c3">
       <a class="card" href="guide-standardise-reporting.html">
         <div class="c-top"><span class="c-title">Reporting &amp; digests</span><span class="c-pill">New</span></div>
-        <p class="c-desc"><code>/daily-digest</code>, <code>/weekly-digest</code> and the planned <code>/cross-team-view</code>: read-only synthesis at rising altitudes.</p>
+        <p class="c-desc"><code>/daily-digest</code> and <code>/weekly-digest</code>: read-only synthesis at rising altitudes &mdash; the day, then the week&rsquo;s trajectory.</p>
         <div class="c-foot"><span class="c-file">guide-standardise-reporting.html</span><span class="c-go">Open guide <span class="arrow">&rarr;</span></span></div>
       </a>
+      <a class="card" href="guide-design-system-and-artifacts.html">
+        <div class="c-top"><span class="c-title">Design systems &amp; artifacts</span><span class="c-pill">Capability</span></div>
+        <p class="c-desc">Stand up (or point at) a design system so every HTML artifact &mdash; solution designs, decks, these guides &mdash; comes out on-brand and coherent.</p>
+        <div class="c-foot"><span class="c-file">guide-design-system-and-artifacts.html</span><span class="c-go">Open guide <span class="arrow">&rarr;</span></span></div>
+      </a>
       <a class="card" href="guide-session-correlation.html">
-        <div class="c-top"><span class="c-title">Session correlation</span><span class="c-pill">Write side</span></div>
+        <div class="c-top"><span class="c-title">Session correlation</span><span class="c-pill">Plumbing</span></div>
         <p class="c-desc">Stamping board entries and PRs with the session that produced them, so any artefact links back to its trace.</p>
         <div class="c-foot"><span class="c-file">guide-session-correlation.html</span><span class="c-go">Open guide <span class="arrow">&rarr;</span></span></div>
       </a>
-      <a class="card" href="guide-trace-analysis.html">
-        <div class="c-top"><span class="c-title">Trace analysis</span><span class="c-pill">Read side</span></div>
-        <p class="c-desc">Export the traces, then turn them into prompt-quality and team-adoption reports.</p>
-        <div class="c-foot"><span class="c-file">guide-trace-analysis.html</span><span class="c-go">Open guide <span class="arrow">&rarr;</span></span></div>
+    </div>
+  </section>
+
+  <!-- ============================================================= -->
+  <!-- ===== TIER 03 — PILLAR ====================================== -->
+  <!-- ============================================================= -->
+  <div class="tier-band" id="tier-pillar" style="--tc:var(--accent); --tc-tint:rgba(242,75,55,0.08);">
+    <span class="tier-num">03</span>
+    <div class="tier-titles">
+      <h2 class="tier-name">Pillar &middot; cross-team<span class="tier-go">center of gravity &middot; the service RACI</span></h2>
+      <p class="tier-frame">One tier above the team. A pillar doesn&rsquo;t have a board &mdash; it has the <strong>service map</strong> that says which team owns what, and it governs the boundaries between several teams&rsquo; boards at once. It is a different <strong>archetype</strong>: it publishes contracts down to teams and aggregates their signal up, where a team repo only ever consumes.</p>
+    </div>
+  </div>
+  <div class="levelup" style="--tc:var(--accent);">
+    <span class="lu-mark">&#9650;</span>
+    <p><strong>This leaves the team&rsquo;s board behind.</strong> If the rest of this page felt like one team&rsquo;s world, that&rsquo;s because it is. Here the center of gravity becomes the activity&times;team RACI, the rhythm is event-triggered rather than daily, and the work is governing boundaries &mdash; not shipping stories. Proposed, not yet built.</p>
+  </div>
+  <section class="phase" style="--pc:var(--accent); --pc-tint:rgba(242,75,55,0.08); --pc-bd:rgba(242,75,55,0.30);">
+    <div class="cards">
+      <a class="card lead" href="guide-cross-team-and-pillar.html">
+        <span class="lead-mark">&#9651;</span>
+        <div class="lead-body">
+          <div class="c-top"><span class="c-title">Cross-team feedback &amp; service drift</span><span class="c-pill">Proposed</span></div>
+          <p class="c-desc">Three mechanisms across the team&harr;pillar seam: a cadence-triggered team loop, an event-triggered pillar loop for service-definition drift, and a plan&harr;execution bridge. Why a pillar is a different archetype, and how one activity RACI becomes the spine &mdash; services distil up, projects route down. Reads alongside the digests&rsquo; planned <code>/cross-team-view</code>.</p>
+          <div class="c-foot"><span class="c-file">guide-cross-team-and-pillar.html</span><span class="c-go">Open guide <span class="arrow">&rarr;</span></span></div>
+        </div>
       </a>
     </div>
   </section>
@@ -438,9 +537,9 @@
   <div class="pad">
     <p class="kicker">The thinking behind it</p>
     <h2>Where these guides come from</h2>
-    <p>The guides are the hands-on layer. The reasoning underneath &mdash; the coordination fog, the board-as-graph reframe, ceremonies rethought, the prompt landscape, governance and works-council considerations, and a worked rollout &mdash; lives in the published <strong>Agentic Way of Working</strong> methodology and its Boskalis case study. Each flow above distils the idea you need to use the guides; the full argument is the long read.</p>
+    <p>The guides are the hands-on layer. The reasoning underneath &mdash; the coordination fog, the board-as-graph reframe, ceremonies rethought, the prompt landscape, governance and works-council considerations, and a worked rollout &mdash; lives in the published <strong>Agentic Way of Working</strong> methodology and its case study. Each flow above distils the idea you need to use the guides; the full argument is the long read.</p>
     <div class="callout">
-      <strong>Flows, not steps.</strong> There&rsquo;s no sequence to march through and no badge for finishing. Most teams lean on the delivery loop first and pick up the others when a real need shows up &mdash; each runs on its own clock, and they only ever meet at the board.
+      <strong>Scopes, not steps.</strong> There&rsquo;s no sequence to march through and no badge for finishing. Most teams live at the team tier and lean on the delivery loop first; the individual tier sharpens the people doing the work, and the pillar tier appears only once several teams need their boundaries governed together. Each runs on its own clock.
     </div>
   </div>
 

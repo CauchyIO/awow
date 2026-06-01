@@ -1,0 +1,13 @@
+{
+  "name": "awow",
+  "owner": {
+    "name": "awow maintainers"
+  },
+  "plugins": [
+    {
+      "name": "awow",
+      "source": "./",
+      "description": "Bring the Agentic Way of Working to any repo — brand-new or already full of code. /awowify adds the files an AI coding agent needs and walks you through connecting your issue board and conventions, without changing anything you've already built."
+    }
+  ]
+}

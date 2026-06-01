@@ -11,6 +11,9 @@ Python scripts the team runs occasionally to keep the repo coherent. None of the
 | `validate-context.py` | Lint `context/` for staleness and missing required files | Quarterly, or after refactors |
 | `distribute.py` | Push core updates into sibling repos (mono-repo mode) | When the team has grown into multiple repos |
 | `reset-adopter-state.py` | Wipe adopter-produced artefacts to re-run the walkthrough | Maintainer iteration loop (invoked by `/awow-reset`) |
+| `session_timeline.py` | Build an interactive timeline + meta-analysis of a project's Claude Code sessions from `~/.claude/projects/` logs (no tracing needed) | Via `/project-retrospective`; see `guides/guide-session-timeline.html` |
+
+`session_timeline.py` ships with `session_timeline_template.html` (the self-contained view it fills) and is **real, not a skeleton** — stdlib-only, Claude Code only.
 
 ## v0.1 status
 

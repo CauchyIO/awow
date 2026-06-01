@@ -44,9 +44,21 @@ import argparse
 import json
 import re
 import statistics
+import sys
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
+
+# Shared, canonical reader for an mlflow_export — the single source of the mlflow.*
+# field strings, used by both this extractor and tools/session_timeline.py so the two
+# consumers can't silently diverge on the trace format. Lives under the repo's tools/.
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "tools"))
+try:
+    import mlflow_reader as mr
+except ImportError as e:
+    raise SystemExit(
+        "could not import the shared mlflow_reader (expected at <repo>/tools/mlflow_reader.py); "
+        f"is this script running inside the awow repo tree? ({e})")
 
 # ---------------------------------------------------------------------------
 # awow surface: what we know exists in the repo
@@ -303,15 +315,7 @@ def load_mlflow_export(directory: Path) -> list[dict]:
             except json.JSONDecodeError:
                 continue
             info = rec.get("info", {}) or {}
-            tags = info.get("tags", {}) or {}
-            meta = info.get("trace_metadata", {}) or {}
-
-            session_id = (
-                tags.get("mlflow.trace.session")
-                or meta.get("mlflow.trace.session")
-                or info.get("client_request_id")
-                or "unknown"
-            )
+            session_id = mr.session_id(rec)
 
             try:
                 req = json.loads(rec.get("request", "{}"))
@@ -325,25 +329,16 @@ def load_mlflow_export(directory: Path) -> list[dict]:
             prompt_text = req.get("prompt", "") if isinstance(req, dict) else str(req)
             response_text = resp.get("response", "") if isinstance(resp, dict) else str(resp)
 
-            user_raw = (
-                meta.get("mlflow.trace.user")
-                or tags.get("mlflow.user")
-                or meta.get("mlflow.user")
-                or ""
-            )
-            working_dir = (
-                meta.get("mlflow.trace.working_directory")
-                or tags.get("mlflow.trace.working_directory", "")
-                or ""
-            )
+            user_raw = mr.user(rec)
+            working_dir = mr.working_directory(rec)
 
             sess = sessions.setdefault(
                 session_id,
                 {
                     "session_id": session_id,
                     "working_directory": working_dir,
-                    "git_branch": tags.get("git.branch", ""),
-                    "git_remote_url": tags.get("git.remote_url", ""),
+                    "git_branch": mr.git_branch(rec),
+                    "git_remote_url": mr.git_remote_url(rec),
                     "user_raw": user_raw,
                     "user": normalize_user(user_raw),
                     "first_time_ms": None,
@@ -351,14 +346,8 @@ def load_mlflow_export(directory: Path) -> list[dict]:
                     "prompts": [],
                 },
             )
-            # files.modified is a JSON-stringified list of relative paths.
-            files_raw = tags.get("files.modified", "[]")
-            try:
-                files_mod = json.loads(files_raw) if isinstance(files_raw, str) else (files_raw or [])
-            except Exception:
-                files_mod = []
-            if not isinstance(files_mod, list):
-                files_mod = []
+            # files.modified (JSON-stringified list of relative paths), via shared reader
+            files_mod = mr.files_modified(rec)
 
             sess["prompts"].append(
                 {

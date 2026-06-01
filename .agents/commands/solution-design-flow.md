@@ -207,9 +207,12 @@ Convert the locked design into a parent work item plus ranked children. Each chi
 - `## Standards` block (the team's house standards, per `context/team/conventions/REQUIRED/`)
 - `## Acceptance criteria` as a checklist
 - `## Out of scope`
+- `## Blocked by` — the sibling children (or external items) that must complete first, by title; `none` for a Layer-1 item
 - `## Architectural decisions already made — do not relitigate` (link to the decision record from 3.1)
 
 A child must pass the **cold-pickup test**: a different agent or engineer can execute it without re-deriving context. If a child fails the test, fold it back into the parent or rewrite it.
+
+State the **dependency edges between children** as part of the decomposition — which blocks which — even when loose. You are not building the full graph here (that is `/project-plan`'s job); you are handing it the edges the design implies so it has something true to formalise. A decomposition with no stated edges forces the next stage to guess them.
 
 ### 3.3 Cross-team escalations
 
@@ -227,27 +230,27 @@ GATE 3 — PROPOSED WRITES
 Artefact:
   [path]  ([N] sections, [type])
 
-Board work items:
-  CREATE Parent  "[Title]"
-  CREATE Child 1 "[Title]"  ← blocked by: none
-  CREATE Child 2 "[Title]"  ← blocked by: Child 1
-  ...
-
-Cross-team escalations:
-  ESCALATE [blocker] → [neighbouring team / contact]
-
 Knowledge-base promotions:
   KB:decisions  [path] — [decision title]
   KB:patterns   [path] — [pattern title]   (if a reusable pattern emerged)
 
+Decomposed work-item tree (hand-off to /project-plan — NOT created here):
+  Parent  "[Title]"
+  Child 1 "[Title]"  ← blocked by: none
+  Child 2 "[Title]"  ← blocked by: Child 1
+  ...
+
+Cross-team escalations carried into the plan:
+  ESCALATE [blocker] → [neighbouring team / contact]
+
 Options:
-  "go"       — execute all
-  "skip 2,3" — execute all except listed
+  "go"       — write the artefact + KB promotions
+  "skip 2"   — write all except listed
   "review"   — walk through each
   "cancel"   — no changes
 ```
 
-Wait for user response. Only proceed with explicitly approved actions.
+Wait for user response. Only proceed with explicitly approved writes. This command lands the **design** — the artefact and any knowledge-base records — but does **not** create board items; `/project-plan` owns that, working from the decomposed tree above.
 
 After execution:
 
@@ -256,12 +259,15 @@ DONE
 
 Wrote:
 - [artefact path]
-- Created parent #[ID]: [title]
-- Created children: #[ID], #[ID], ...
 - Wrote context/knowledge-base/<path>
+
+Decomposed tree ready: [N] items with stated edges.
 
 Skipped: [list or "none"]
 Failed: [list or "none"]
+
+Next:
+- Run /project-plan on [artefact path] to state the dependency graph and create the board items.
 
 Manual follow-up needed:
 - [cross-team escalation] → contact [Name] on [Team X]
@@ -286,4 +292,4 @@ Manual follow-up needed:
 
 ## Chained downstream
 
-`/solution-design-flow` produces a design artefact. If the artefact is a proposal with a decomposed work-item tree, the downstream `/proposal-from-board` (or equivalent) turns it into board items at scale. The shape produced in Phase 3.2 is designed to be consumable by that downstream skill without manual reshaping.
+`/solution-design-flow` produces a design artefact plus a decomposed work-item tree with stated edges. `/project-plan` consumes that tree, formalises the dependency graph (sequence, parallel layers, critical path), and creates the board items — it is the next command to run. The Phase 3.2 shape is designed to be consumable by `/project-plan` without manual reshaping; from there `/process-workitem` executes each item and `/project-manager` coordinates delivery against the published plan.

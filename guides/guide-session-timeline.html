@@ -32,7 +32,7 @@
   .wrap { max-width:1040px; margin:0 auto; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
   .pad { padding:28px 40px; border-bottom:1px solid var(--border-subtle); }
   .pad-tight { padding:20px 40px; border-bottom:1px solid var(--border-subtle); }
-  h1 { font-size:1.9rem; font-weight:700; margin:0; letter-spacing:-0.02em; }
+  h1 { font-size:1.9rem; font-weight:600; margin:0; letter-spacing:-0.02em; }
   h2 { font-size:1.35rem; font-weight:600; margin:0 0 16px; letter-spacing:-0.01em; }
   h3 { font-size:1.05rem; font-weight:600; margin:24px 0 10px; letter-spacing:-0.01em; }
   p  { font-size:0.92rem; color:var(--text-2); margin:0 0 12px; line-height:1.7; }
@@ -83,11 +83,11 @@
   .guide-toc { position:fixed; top:0; left:0; width:232px; height:100vh; background:var(--surface); border-right:1px solid var(--border); z-index:60; display:flex; flex-direction:column; overflow-y:auto; padding:20px 0; }
   .guide-toc .toc-brand { display:flex; align-items:center; gap:8px; padding:0 20px 18px; border-bottom:1px solid var(--border-subtle); margin-bottom:10px; flex-shrink:0; }
   .guide-toc .toc-brand svg { width:18px; height:18px; flex:none; }
-  .guide-toc .toc-brand span { font-size:12px; font-weight:700; letter-spacing:0.06em; color:var(--text-2); text-transform:uppercase; }
+  .guide-toc .toc-brand span { font-size:12px; font-weight:600; letter-spacing:0.06em; color:var(--text-2); text-transform:uppercase; }
   .guide-toc a.toc-item { display:flex; align-items:flex-start; gap:10px; padding:8px 20px; text-decoration:none; color:var(--text-2); font-size:12px; font-weight:500; line-height:1.45; border-left:3px solid transparent; transition:background 0.12s, color 0.12s; }
   .guide-toc a.toc-item:hover { background:var(--surface-alt); color:var(--text-1); }
-  .guide-toc a.toc-item.active { background:var(--surface-alt); color:var(--text-1); font-weight:700; border-left-color:var(--accent); }
-  .guide-toc .toc-num { font-size:10px; font-weight:700; color:var(--accent); min-width:16px; opacity:0.5; padding-top:1px; flex:none; }
+  .guide-toc a.toc-item.active { background:var(--surface-alt); color:var(--text-1); font-weight:600; border-left-color:var(--accent); }
+  .guide-toc .toc-num { font-size:10px; font-weight:600; color:var(--accent); min-width:16px; opacity:0.5; padding-top:1px; flex:none; }
   .guide-toc a.toc-item.active .toc-num { opacity:1; }
   @media (min-width:1024px) { body { padding-left:232px; } }
   @media (max-width:1023px) { .guide-toc { display:none; } }
@@ -154,14 +154,14 @@
 
         <!-- A: raw jsonl -->
         <rect x="24" y="186" width="226" height="92" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
-        <text x="137" y="214" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="Nunito,sans-serif">~/.claude/projects/</text>
+        <text x="137" y="214" text-anchor="middle" font-size="13" font-weight="600" fill="#fff" font-family="Nunito,sans-serif">~/.claude/projects/</text>
         <text x="137" y="234" text-anchor="middle" font-size="10.5" fill="#e0dfdd" font-family="JetBrains Mono,monospace">&lt;encoded-path&gt;/*.jsonl</text>
         <text x="137" y="254" text-anchor="middle" font-size="10.5" fill="#e0dfdd" font-family="Nunito,sans-serif">raw Claude Code logs</text>
         <text x="137" y="270" text-anchor="middle" font-size="10" fill="#9a9a9a" font-family="Nunito,sans-serif">(already on disk)</text>
 
         <!-- optional inputs -->
         <rect x="24" y="44" width="226" height="50" rx="10" fill="#fff" stroke="#9a9a9a" stroke-dasharray="5 4"/>
-        <text x="137" y="66" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1a1a" font-family="Nunito,sans-serif">--coach-dir / --overview</text>
+        <text x="137" y="66" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">--coach-dir / --overview</text>
         <text x="137" y="83" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">markdown to embed (optional)</text>
 
         <!-- A -> tool -->
@@ -171,7 +171,7 @@
 
         <!-- TOOL -->
         <rect x="364" y="184" width="244" height="96" rx="10" fill="rgba(51,127,249,0.08)" stroke="#337FF9"/>
-        <text x="486" y="214" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1a1a" font-family="Nunito,sans-serif">session_timeline.py</text>
+        <text x="486" y="214" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">session_timeline.py</text>
         <text x="486" y="234" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">parse &middot; bucket area &middot; pack rows</text>
         <text x="486" y="250" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">infer handoffs &middot; find idle gaps</text>
         <text x="486" y="266" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">peak-context per session</text>
@@ -182,13 +182,13 @@
 
         <!-- output: sessions.json -->
         <rect x="724" y="108" width="252" height="78" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
-        <text x="850" y="138" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">sessions.json</text>
+        <text x="850" y="138" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a1a" font-family="JetBrains Mono,monospace">sessions.json</text>
         <text x="850" y="158" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">parsed data &middot; one row per session</text>
         <text x="850" y="174" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">re-usable by other tools</text>
 
         <!-- output: timeline.html -->
         <rect x="724" y="292" width="252" height="78" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
-        <text x="850" y="322" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">timeline.html</text>
+        <text x="850" y="322" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a1a" font-family="JetBrains Mono,monospace">timeline.html</text>
         <text x="850" y="342" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">self-contained &middot; open in a browser</text>
         <text x="850" y="358" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">no server, no CDN, no fonts</text>
       </svg>
@@ -206,7 +206,7 @@
         <tr><td><strong>Gantt swimlane</strong></td><td>One bar per session. Width is duration, colour is the <strong>functional area</strong> (the top-level dir most touched), and bars are packed into rows so overlapping sessions stack rather than collide. Read-only / research sessions are drawn <strong>hatched</strong>.</td></tr>
         <tr><td><strong>Concurrency strip</strong></td><td>A band across the top counting how many sessions ran <strong>simultaneously</strong> at each moment &mdash; the awow fan-out / contract rhythm made visible.</td></tr>
         <tr><td><strong>Handoff arrows</strong></td><td>An arrow from an earlier session to a later one when the later session continued the earlier one's files (inferred per-file last-writer).</td></tr>
-        <tr><td><strong>Idle gaps</strong></td><td>Pink bands where <strong>no session logged any event</strong> &mdash; the true gaps between activity, separating active time from elapsed time.</td></tr>
+        <tr><td><strong>Idle gaps</strong></td><td>Neutral grey bands where <strong>no session logged any event</strong> &mdash; the true gaps between activity, separating active time from elapsed time.</td></tr>
         <tr><td><strong>Peak context</strong></td><td>Per session, the input + cache tokens at its fullest turn, plus output tokens, with a bar. Sessions past the standard 200K window are flagged.</td></tr>
         <tr><td><strong>Detail panel</strong></td><td>Click any bar to open a panel for that session; it can embed a coach review and the project overview sits there by default.</td></tr>
       </tbody>
@@ -227,15 +227,29 @@
     </div>
   </div>
 
+  <!-- MULTI-DAY -->
+  <div class="pad">
+    <h2>One evening, or many days</h2>
+    <p>The swimlane above is the view of a <strong>single day</strong>. When a project's sessions span more than one day &mdash; common for trace exports that cover weeks or months &mdash; the page switches automatically to <strong>calendar mode</strong>:</p>
+    <ul>
+      <li><strong>A day-navigator strip</strong> runs along the top, one cell per <em>active</em> day, its height scaled to that day's session count. Long empty stretches between active days are <strong>collapsed</strong> to a small <code>// 12d</code> marker, so a four-month project stays a few screens wide instead of hundreds.</li>
+      <li><strong>Click a day, or press &larr;/&rarr;</strong>, to load that day's full detail below &mdash; the same swimlane + concurrency strip + idle gaps, scoped to that day's hours. The selected day is marked in the brand accent.</li>
+      <li><strong>Sessions resumed across days</strong> (a session id that keeps living for a week) are placed on their start day and clipped at midnight with a <code>&rarr; +Nd</code> marker, so one long-lived id never stretches the whole axis.</li>
+    </ul>
+    <div class="callout">
+      <strong>Whole-project shape up top, hour-level detail below.</strong> The navigator is the overview &mdash; sparse weeks vs. crunch days at a glance &mdash; while each day still renders at full resolution when you open it.
+    </div>
+  </div>
+
   <!-- HANDOFFS + IDLE -->
   <div class="pad">
     <h2>Handoffs and idle gaps</h2>
     <h3>Handoff arrows</h3>
     <p>The tool tracks, per file, which session last wrote it. When a later session edits a file an earlier session had touched, it draws an arrow from the earlier bar to the later one &mdash; an inferred <strong>handoff</strong>. Across a project this surfaces the threads of continuity: which session picked up where another left off, even when they were days apart and never shared a transcript.</p>
     <h3>Idle gaps</h3>
-    <p>Idle bands are computed from <strong>event spacing</strong>, not from session open/close times. A gap is idle when <em>no session logged any event</em> during it. This is deliberate: a session left open while the human is away is <strong>not</strong> counted as active just because it is technically running &mdash; if nothing was logged, the band is pink. The contrast between the coloured bars and the pink bands is the difference between <strong>active time</strong> and <strong>elapsed time</strong>.</p>
+    <p>Idle bands are computed from <strong>event spacing</strong>, not from session open/close times. A gap is idle when <em>no session logged any event</em> during it. This is deliberate: a session left open while the human is away is <strong>not</strong> counted as active just because it is technically running &mdash; if nothing was logged, the band is grey. The contrast between the coloured bars and the grey bands is the difference between <strong>active time</strong> and <strong>elapsed time</strong>.</p>
     <div class="callout callout-warn">
-      <strong>Read idle gaps as questions, not waste.</strong> A pink band might be a coffee break, a meeting, or a long human review &mdash; the timeline tells you <em>where</em> the day went, not whether that was good or bad.
+      <strong>Read idle gaps as questions, not waste.</strong> A grey band might be a coffee break, a meeting, or a long human review &mdash; the timeline tells you <em>where</em> the day went, not whether that was good or bad.
     </div>
   </div>
 
@@ -281,6 +295,8 @@
       <thead><tr><th style="width:24%">Flag</th><th>Purpose</th></tr></thead>
       <tbody>
         <tr><td><code>--project-path</code></td><td>The repo whose sessions to render; used to locate the encoded log dir under <code>~/.claude/projects/</code>.</td></tr>
+        <tr><td><code>--mlflow-export</code></td><td><em>Alternative source.</em> An <code>mlflow_export/</code> dir of Databricks traces (from <code>mlflow-export</code>) instead of local logs. Supports multiple users.</td></tr>
+        <tr><td><code>--user</code></td><td><em>Optional.</em> Scope an MLflow export to one user (matches <code>mlflow.user</code>, local-part or email).</td></tr>
         <tr><td><code>--transcripts</code></td><td>An export directory of the session JSONL to read.</td></tr>
         <tr><td><code>--coach-dir</code></td><td><em>Optional.</em> Directory of per-session coach reviews (markdown) to embed in panels.</td></tr>
         <tr><td><code>--overview</code></td><td><em>Optional.</em> A project overview / meta-analysis markdown to use as the default panel.</td></tr>
@@ -288,6 +304,12 @@
         <tr><td><code>--out</code></td><td>Where to write <code>sessions.json</code> and <code>timeline.html</code>.</td></tr>
       </tbody>
     </table>
+    <p>To read Databricks traces instead of local logs, swap the source flag:</p>
+    <pre>python tools/session_timeline.py \
+    --mlflow-export ./mlflow_export/&lt;experiment&gt; \
+    --user casper \
+    --tz-offset 2 \
+    --out coach_reviews/&lt;repo&gt;-retrospective</pre>
     <div class="callout callout-ok">
       <strong>Then just open it.</strong> <code>timeline.html</code> is self-contained &mdash; double-click it. No build step, no local server, no network. <code>sessions.json</code> stays next to it for any other tool that wants the parsed data.
     </div>
@@ -300,13 +322,13 @@
     <table class="data">
       <thead><tr><th style="width:30%">Tool</th><th>Role</th></tr></thead>
       <tbody>
-        <tr><td><strong>session timeline</strong> (this)</td><td>The picture. Reads raw Claude Code JSONL, renders the interactive timeline. No tracing infrastructure needed.</td></tr>
+        <tr><td><strong>session timeline</strong> (this)</td><td>The picture. Reads raw Claude Code JSONL <em>or</em> an MLflow trace export, renders the interactive timeline. No tracing infrastructure needed for the local-log path.</td></tr>
         <tr><td><strong>session correlation</strong></td><td>The board&harr;trace plumbing &mdash; how a board entry gets linked to a recorded trace. Different concern; this tool does not touch it.</td></tr>
-        <tr><td><strong>awow-usage-coach</strong></td><td>Trace-driven <em>prose</em> coaching. Its markdown can be embedded here via <code>--coach-dir</code>, but it is a separate, deeper read.</td></tr>
+        <tr><td><strong>awow-usage-coach</strong> / <strong>prompt-skill-analysis</strong></td><td>Trace-driven <em>prose</em> coaching and prompt-craft scoring. Embed coach markdown here via <code>--coach-dir</code>; for a deep read, defer to those skills.</td></tr>
       </tbody>
     </table>
     <div class="callout callout-warn">
-      <strong>Claude Code only.</strong> This tool reads Claude Code's JSONL format directly, so it works only for Claude Code sessions. Copilot teams &mdash; and anyone wanting the trace-correlated, board-linked reports &mdash; stay on the MLflow path described in <code>guide-trace-analysis.html</code>.
+      <strong>Two sources, different fidelity.</strong> The local-log path (Claude Code only) carries the most detail &mdash; file edits, per-turn context, handoff arrows. The MLflow path works for any traced harness and supports multiple users, but traces carry no file paths (bars colour by working directory) and no per-turn context. Copilot teams use the MLflow path.
     </div>
   </div>
 

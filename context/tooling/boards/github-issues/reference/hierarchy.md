@@ -11,6 +11,8 @@ GitHub's hierarchy is lighter than the other three boards. Discipline comes from
 
 The agent treats Issues linked from a tracking-issue's checkbox list as **children** of the tracker. Sub-issues are not native to GitHub; the tracker pattern is the workaround.
 
+> **Planning vocabulary.** Quarter planning speaks tool-agnostically in **outcome → epic → feature → story** — and names who sets each level — in `context/quarterly/README.md` and `/refinement-prep`. GitHub has no native Epic or Feature type, so those planning concepts are carried by Project boards / Milestones (outcome, epic) and tracking issues (feature); map them onto the primitives above with the team rather than assuming a shared meaning.
+
 ## Wizard responsibilities
 
 **Mode A.** Recommend Projects-v2 for L1 and tracking-issues for L2.

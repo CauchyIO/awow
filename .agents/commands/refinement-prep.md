@@ -12,6 +12,19 @@ You prepare a feature for an upcoming refinement session. The output is a draft 
 
 One person can do this alone. The value shows up immediately in their own work, and the output is visible to the whole team at the next refinement. This is typically the first prompt a team adopts.
 
+## What refinement decides — the *how*, never the *what*
+
+Refinement works out **how** to deliver work that has already been chosen. It does not decide *what* to build or *why* — that is set upstream in quarter planning, where the program board and PO define the outcomes (OKRs), the PO breaks each outcome into epics, and the PO with the tech lead breaks an epic into the **features** that enter refinement. A feature arrives already mapped to an outcome; refinement turns it into board-ready, right-sized stories and never re-opens the decision to build it. If a feature's *what* or *why* is still open, that is a planning gap — surface it; do not resolve it by drafting stories. The planning chain lives in `context/quarterly/`; how outcome → epic → feature → story map onto board primitives lives in the board hierarchy reference under `context/tooling/boards/`.
+
+Populating the board is not one ceremony. Which route you take depends on team size, the kind of work, and cadence:
+
+- **Feature-level refinement** — a feature becomes 3–7 stories, reviewed in a session. This command's default, and what the template below produces.
+- **User-story refinement** — a smaller team skips the feature wrapper and refines stories directly. Run this command from a thin brief and emit the stories without a heavyweight feature layer.
+- **Continuous / BAU / operations** — no session. A PO or analyst spins up individual stories as operational work arrives. The same right-sizing and duplicate rules apply; there is simply no feature to wrap.
+- **Solution design** — when the feature carries a real design decision, refine it through `/solution-design-flow` instead: it locks the design and decomposes it into a work-item tree with stated edges.
+
+This command covers the first three. Reach for `/solution-design-flow` when the open questions are architectural, not just scoping.
+
 ## Inputs
 
 The user provides one of:
@@ -84,7 +97,7 @@ The feature wrapper:
 
 ## Dependencies
 
-<Stories that block other stories. Cross-team dependencies named (with neighbouring-team links if applicable). One line per dependency.>
+<State as edges, one per line: `Story A → Story B` (A blocks B). Name cross-team dependencies with neighbouring-team links. Note the likely critical path if one is visible. These edges feed forward — /project-plan formalises them into the dependency graph — so capture them as relations, not prose.>
 
 ## Open questions
 

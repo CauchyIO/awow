@@ -131,15 +131,15 @@
   <!-- LOOP DIAGRAM -->
   <div class="pad">
     <h2>The loop</h2>
-    <p>Two rhythms, not one line. Through the day the Seed commands repeat &mdash; <code>/refinement-prep</code> drafts stories and <code>/process-workitem</code> takes them to PR, each running as often as the work demands. At the end of the day <code>/daily-checkin</code> reads that activity and proposes board updates. The check-in caps the day; it feeds the board, not the code.</p>
+    <p>Two rhythms, not one line. The sequence repeats per feature &mdash; <code>/refinement-prep</code> drafts the stories, the team agrees them in refinement, <code>/project-plan</code> sequences them into a dependency graph and creates the board items in order, and then <code>/process-workitem</code> takes each story to PR, cycling once per story. At the end of the day <code>/daily-checkin</code> reads that activity and proposes board updates. The check-in caps the day; it feeds the board, not the code.</p>
     <div class="diagram">
       <div class="legend" style="margin-bottom:6px;">
         <span><i style="background:#1a1a1a;border-color:#1a1a1a;"></i> Board / PR &mdash; the durable surface</span>
-        <span><i style="background:rgba(242,75,55,0.10);border-color:rgba(242,75,55,0.55);"></i> Seed command</span>
+        <span><i style="background:rgba(242,75,55,0.10);border-color:rgba(242,75,55,0.55);"></i> Command you run in the loop</span>
         <span><i style="background:rgba(51,127,249,0.10);border-color:rgba(51,127,249,0.55);"></i> Standardise companion</span>
       </div>
 
-      <svg viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The core delivery loop">
+      <svg viewBox="0 0 1200 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The core delivery loop">
         <defs>
           <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M0,0 L10,5 L0,10 z" fill="#6b6b6b"/>
@@ -149,75 +149,88 @@
           </marker>
         </defs>
 
-        <!-- repeat loop: the intraday commands run again and again, not once -->
-        <path d="M766,86 C766,42 320,42 320,86" fill="none" stroke="#f24b37" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#arr)"/>
-        <text x="543" y="34" text-anchor="middle" font-size="11" font-weight="700" fill="#f24b37" font-family="Nunito,sans-serif">repeats through the day &mdash; not a one-off sequence</text>
+        <!-- repeat loop: the sequence runs again and again per feature, not once -->
+        <path d="M953,82 C953,38 289,38 289,82" fill="none" stroke="#f24b37" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#arr)"/>
+        <text x="621" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="#f24b37" font-family="Nunito,sans-serif">repeats per feature &mdash; refine, plan, then ship each story</text>
 
         <!-- A: brief -->
-        <rect x="24" y="96" width="150" height="64" rx="10" fill="#fff" stroke="#9a9a9a" stroke-dasharray="5 4"/>
-        <text x="99" y="124" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1a1a" font-family="Nunito,sans-serif">Brief / deck</text>
-        <text x="99" y="143" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">issue URL / transcript</text>
+        <rect x="20" y="96" width="132" height="64" rx="10" fill="#fff" stroke="#9a9a9a" stroke-dasharray="5 4"/>
+        <text x="86" y="124" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1a1a" font-family="Nunito,sans-serif">Brief / deck</text>
+        <text x="86" y="143" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">issue URL / transcript</text>
 
         <!-- A -> B -->
-        <path d="M174,128 L208,128" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+        <path d="M152,128 L184,128" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
 
         <!-- B: refinement-prep -->
-        <rect x="210" y="86" width="220" height="84" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
-        <text x="320" y="114" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">/refinement-prep</text>
-        <text x="320" y="133" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">draft, right-sized stories</text>
-        <text x="320" y="150" text-anchor="middle" font-size="10" fill="#f24b37" font-family="JetBrains Mono,monospace">proposals/refinement/&lt;slug&gt;.md</text>
+        <rect x="186" y="86" width="206" height="84" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
+        <text x="289" y="114" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">/refinement-prep</text>
+        <text x="289" y="133" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">draft, right-sized stories</text>
+        <text x="289" y="150" text-anchor="middle" font-size="10" fill="#f24b37" font-family="JetBrains Mono,monospace">proposals/refinement/&lt;slug&gt;.md</text>
 
         <!-- B -> C: refinement session -->
-        <path d="M430,128 L470,128" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+        <path d="M392,128 L424,128" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
 
         <!-- C: refinement (human) -->
-        <rect x="472" y="92" width="142" height="72" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
-        <text x="543" y="120" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff" font-family="Nunito,sans-serif">Refinement</text>
-        <text x="543" y="139" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="Nunito,sans-serif">team reviews draft</text>
-        <text x="543" y="154" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="Nunito,sans-serif">&rarr; stories on board</text>
+        <rect x="426" y="92" width="150" height="72" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
+        <text x="501" y="118" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff" font-family="Nunito,sans-serif">Refinement</text>
+        <text x="501" y="137" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="Nunito,sans-serif">live or via /process-transcript</text>
+        <text x="501" y="152" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="Nunito,sans-serif">team agrees the draft</text>
 
         <!-- C -> D -->
-        <path d="M614,128 L654,128" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+        <path d="M576,128 L608,128" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
 
-        <!-- D: process-workitem -->
-        <rect x="656" y="86" width="220" height="84" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
-        <text x="766" y="114" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">/process-workitem</text>
-        <text x="766" y="133" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">load &rarr; plan &rarr; apply &rarr; verify</text>
-        <text x="766" y="150" text-anchor="middle" font-size="10" fill="#f24b37" font-family="JetBrains Mono,monospace">proposals/&lt;id&gt;.md</text>
+        <!-- D: project-plan -->
+        <rect x="610" y="86" width="206" height="84" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
+        <text x="713" y="114" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">/project-plan</text>
+        <text x="713" y="133" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">sequence: dependency graph</text>
+        <text x="713" y="150" text-anchor="middle" font-size="10" fill="#f24b37" font-family="Nunito,sans-serif">&rarr; board items, in order</text>
 
-        <!-- E: PR -->
-        <rect x="824" y="220" width="152" height="64" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
-        <text x="900" y="248" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="Nunito,sans-serif">PR + board</text>
-        <text x="900" y="267" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="Nunito,sans-serif">state advanced</text>
+        <!-- D -> E -->
+        <path d="M816,128 L848,128" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
 
-        <!-- D out and down to PR — one continuous connector, single arrowhead -->
-        <path d="M876,128 L924,128 C950,128 962,165 962,210" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+        <!-- E: process-workitem -->
+        <rect x="850" y="86" width="206" height="84" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
+        <text x="953" y="114" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">/process-workitem</text>
+        <text x="953" y="133" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">load &rarr; plan &rarr; apply &rarr; verify</text>
+        <text x="953" y="150" text-anchor="middle" font-size="10" fill="#f24b37" font-family="JetBrains Mono,monospace">proposals/&lt;id&gt;.md</text>
 
-        <!-- end-of-day divider: separates the intraday loop from the once-a-day cap -->
-        <line x1="40" y1="352" x2="960" y2="352" stroke="#c9c8c6" stroke-width="1" stroke-dasharray="4 5"/>
-        <text x="50" y="345" font-size="10.5" font-weight="700" fill="#9a9a9a" font-family="Nunito,sans-serif" letter-spacing="1">&uarr; THROUGH THE DAY &middot; repeats</text>
-        <text x="960" y="345" text-anchor="end" font-size="10.5" font-weight="700" fill="#337FF9" font-family="Nunito,sans-serif" letter-spacing="1">END OF DAY &middot; once &darr;</text>
+        <!-- per-story cycle on process-workitem -->
+        <path d="M1056,106 C1098,96 1098,160 1056,150" fill="none" stroke="#f24b37" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+        <text x="1104" y="132" font-size="9.5" font-weight="700" fill="#f24b37" font-family="Nunito,sans-serif">each story</text>
 
-        <!-- F: daily-checkin (standardise) -->
-        <rect x="290" y="372" width="420" height="92" rx="10" fill="rgba(51,127,249,0.08)" stroke="#337FF9"/>
-        <text x="500" y="402" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">/daily-checkin</text>
-        <text x="500" y="422" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">capture the day from account + code + board activity</text>
-        <text x="500" y="440" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">advance tracked work; a new issue is the exception</text>
-        <text x="500" y="457" text-anchor="middle" font-size="10" fill="#337FF9" font-family="Nunito,sans-serif">read-only until an explicit approval gate</text>
+        <!-- F: PR -->
+        <rect x="978" y="224" width="152" height="64" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
+        <text x="1054" y="252" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="Nunito,sans-serif">PR + board</text>
+        <text x="1054" y="271" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="Nunito,sans-serif">state advanced</text>
+
+        <!-- E out and down to PR — one continuous connector, single arrowhead -->
+        <path d="M953,170 L953,206 C953,232 962,256 976,256" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <!-- end-of-day divider: separates the through-the-cycle loop from the once-a-day cap -->
+        <line x1="40" y1="356" x2="1160" y2="356" stroke="#c9c8c6" stroke-width="1" stroke-dasharray="4 5"/>
+        <text x="50" y="349" font-size="10.5" font-weight="700" fill="#9a9a9a" font-family="Nunito,sans-serif" letter-spacing="1">&uarr; THROUGH THE CYCLE &middot; repeats</text>
+        <text x="1160" y="349" text-anchor="end" font-size="10.5" font-weight="700" fill="#337FF9" font-family="Nunito,sans-serif" letter-spacing="1">END OF DAY &middot; once &darr;</text>
+
+        <!-- G: daily-checkin (standardise) -->
+        <rect x="380" y="376" width="440" height="92" rx="10" fill="rgba(51,127,249,0.08)" stroke="#337FF9"/>
+        <text x="600" y="406" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">/daily-checkin</text>
+        <text x="600" y="426" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">capture the day from account + code + board activity</text>
+        <text x="600" y="444" text-anchor="middle" font-size="10.5" fill="#6b6b6b" font-family="Nunito,sans-serif">advance tracked work; a new issue is the exception</text>
+        <text x="600" y="461" text-anchor="middle" font-size="10" fill="#337FF9" font-family="Nunito,sans-serif">read-only until an explicit approval gate</text>
 
         <!-- code/PR feeds checkin -->
-        <path d="M900,284 C900,400 760,418 712,418" fill="none" stroke="#337FF9" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrb)"/>
+        <path d="M1054,288 C1054,402 900,422 824,422" fill="none" stroke="#337FF9" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrb)"/>
         <!-- checkin feeds back to board -->
-        <path d="M345,372 C300,300 380,200 470,150" fill="none" stroke="#337FF9" stroke-width="1.5" marker-end="url(#arrb)"/>
-        <text x="300" y="270" text-anchor="middle" font-size="9.5" font-weight="600" fill="#337FF9" font-family="Nunito,sans-serif">proposes board updates</text>
+        <path d="M435,376 C370,300 300,228 293,172" fill="none" stroke="#337FF9" stroke-width="1.5" marker-end="url(#arrb)"/>
+        <text x="318" y="274" text-anchor="middle" font-size="9.5" font-weight="600" fill="#337FF9" font-family="Nunito,sans-serif">proposes board updates</text>
       </svg>
     </div>
-    <p style="font-size:0.82rem;color:var(--text-3);margin:0;">Dashed inputs are optional: the brief can be a paragraph, a deck, an issue URL, or <code>/process-transcript</code> output; the daily check-in works from board and code activity alone when there is no written account.</p>
+    <p style="font-size:0.82rem;color:var(--text-3);margin:0;">Dashed inputs are optional: the brief can be a paragraph, a deck, an issue URL, or <code>/process-transcript</code> output; the daily check-in works from board and code activity alone when there is no written account. <code>/project-plan</code> is the bridge step once refinement yields several dependent stories &mdash; for a single throwaway story you can skip it and go straight to <code>/process-workitem</code>.</p>
   </div>
 
   <!-- AT A GLANCE TABLE -->
   <div class="pad">
-    <h2>The three commands at a glance</h2>
+    <h2>The day-to-day commands at a glance</h2>
     <table class="data">
       <thead><tr><th style="width:22%">Command</th><th style="width:16%">Stage</th><th>What it produces</th><th style="width:26%">The gate</th></tr></thead>
       <tbody>
@@ -266,6 +279,20 @@
     </div>
 
     <p>Two boundaries worth stating plainly: design decisions the team hasn&rsquo;t made become <em>open questions</em>, not story bodies; and the command <strong>co-authors, it never ghost-writes</strong> &mdash; it iterates until the feature owner would put their name on the draft in the session. A &ldquo;kitchen-sink&rdquo; story (&ldquo;implement X, add tests, update docs, refactor Y&rdquo;) is always split.</p>
+
+    <h3>Refinement decides the <em>how</em> &mdash; and it has more than one route</h3>
+    <p>A distinction worth making explicit: refinement never decides <em>what</em> to build or <em>why</em>. That is set upstream in <strong>quarter planning</strong>, where the program board and PO define the outcomes (OKRs), the PO breaks each outcome into epics, and the PO with the tech lead breaks an epic into the <strong>features</strong> that enter refinement. A feature arrives already chosen and mapped to an outcome; refinement turns it into right-sized stories and works out the <em>how</em>. If a feature&rsquo;s <em>what</em> is still open, that is a planning gap to close upstream &mdash; not something refinement should paper over by inventing stories.</p>
+    <p>And populating the board is not a single ceremony. The diagram above shows the default route; which one fits depends on team size, the kind of work, and cadence.</p>
+    <table class="data">
+      <thead><tr><th style="width:26%">Route</th><th>When you take it</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Feature-level refinement</strong></td><td>A feature becomes 3&ndash;7 stories, reviewed in a session. The default &mdash; what <code>/refinement-prep</code> produces and the template below describes.</td></tr>
+        <tr><td><strong>User-story refinement</strong></td><td>A smaller team skips the feature wrapper and refines stories directly from a thin brief.</td></tr>
+        <tr><td><strong>Continuous / BAU / operations</strong></td><td>No session &mdash; a PO or analyst spins up individual stories as operational work arrives. Same right-sizing and duplicate rules; there is just no feature to wrap.</td></tr>
+        <tr><td><strong>Solution design</strong></td><td>When the feature carries a real architectural decision, refine it through <code>/solution-design-flow</code> instead &mdash; it locks the design and decomposes it into a work-item tree with stated edges.</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.82rem;color:var(--text-3);margin:0;">The first three are this command; reach for <code>/solution-design-flow</code> when the open questions are architectural, not just scoping. How outcome &rarr; epic &rarr; feature &rarr; story map onto your board&rsquo;s primitives &mdash; and the fact that &ldquo;epic&rdquo; sits at a different level on each board &mdash; lives in the board hierarchy reference.</p>
   </div>
 
   <!-- 2. PROCESS-WORKITEM -->
@@ -327,6 +354,45 @@
     <p>The output is deliberately short: a 2&ndash;4 sentence summary, one line per concrete thing that moved (tied to its board issue and commit/PR on the <em>same</em> line), a clearly-marked <em>not yet executed</em> list of proposed updates, and genuine gaps only &mdash; &ldquo;no gaps today&rdquo; is a fine and common outcome.</p>
   </div>
 
+  <!-- BEYOND THE SEED LOOP -->
+  <div class="pad">
+    <h2>Where this loop plugs into design and coordination</h2>
+    <p>The loop above already includes <code>/project-plan</code> &mdash; the bridge that turns the agreed stories into a sequenced, board-ready graph. Two further commands bracket that loop when a team is delivering something larger than a single story &mdash; a feature with many moving parts, owned by several people: <code>/solution-design-flow</code> upstream, when a feature carries a real design decision, and <code>/project-manager</code> alongside, to coordinate delivery. All of it turns on one shared artefact: a <strong>stated dependency graph</strong>. A design becomes a sequenced plan, the plan becomes board items that know what blocks what, and delivery is coordinated against that graph rather than against a flat list of tickets.</p>
+
+    <div class="diagram" style="padding-top:14px;">
+      <table class="data" style="margin:0;">
+        <thead><tr><th style="width:22%">Command</th><th style="width:14%">Stage</th><th>What it adds to the loop</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>/solution-design-flow</strong></td>
+            <td><span class="badge badge-accent" style="font-size:0.62rem">spread</span></td>
+            <td>Turns a design conversation (live or a transcript) into a locked design plus a <strong>decomposed work-item tree with stated edges</strong> &mdash; each child names what blocks it. It lands the design; it no longer creates the board items itself.</td>
+          </tr>
+          <tr>
+            <td><strong>/project-plan</strong></td>
+            <td><span class="badge badge-accent" style="font-size:0.62rem">spread</span></td>
+            <td>The bridge. Takes that tree and <strong>states the dependency graph</strong> &mdash; nodes, edges, sequence vs parallel layers, and the critical path &mdash; then translates it into board items created in order with their blocked-by links, and publishes a durable plan at <code>proposals/plans/&lt;slug&gt;.md</code>.</td>
+          </tr>
+          <tr>
+            <td><strong>/process-workitem</strong></td>
+            <td><span class="badge badge-accent" style="font-size:0.62rem">seed</span></td>
+            <td>The same seven-step loop &mdash; now it checks the graph before starting, and won&rsquo;t silently begin an item whose blockers are still open.</td>
+          </tr>
+          <tr>
+            <td><strong>/project-manager</strong></td>
+            <td><span class="badge" style="font-size:0.62rem">standardise</span></td>
+            <td>Coordinates delivery <em>against the published plan</em>: checks in with people to unblock them, fires ready handoffs, reconciles the plan against the work actually done, keeps the graph correct, and rolls up a weekly report for management.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="legend" style="padding-top:10px;"><span style="color:var(--text-3)">/solution-design-flow &rarr; /project-plan &rarr; /process-workitem (&times; many) &rarr; /project-manager</span></div>
+    </div>
+
+    <div class="callout">
+      <strong>The dependency graph is the connective tissue.</strong> It is <em>stated</em> by <code>/project-plan</code>, <em>honoured</em> by <code>/process-workitem</code> (which respects blocked-by), and <em>steered on</em> by <code>/project-manager</code> (which watches the critical path and escalates the bottlenecks only management can clear). Earlier, <code>/refinement-prep</code> already captures dependencies as edges so they feed forward. Without the graph stated somewhere true, coordination has nothing to read &mdash; which is exactly why it is a first-class deliverable, not a footnote in the design.
+    </div>
+  </div>
+
   <!-- THE SPINE -->
   <div class="pad">
     <h2>The spine that runs through all three</h2>
@@ -347,7 +413,7 @@
 
   <!-- FOOTER -->
   <div class="pad" style="border-bottom:none;">
-    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Sources of truth: <code>.agents/commands/refinement-prep.md</code>, <code>.agents/commands/process-workitem.md</code>, <code>.agents/commands/daily-checkin.md</code>, with the spine rules in <code>.agents/AGENTS.md</code> and the archetype handlers under <code>.agents/commands/_workitem-archetypes/</code>. Companion guides: <code>guide-session-correlation.html</code> and <code>guide-trace-analysis.html</code>. This guide is self-contained &mdash; no external resources.</p>
+    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Sources of truth: <code>.agents/commands/refinement-prep.md</code>, <code>.agents/commands/process-workitem.md</code>, <code>.agents/commands/daily-checkin.md</code>, and for the design-and-coordination layer <code>.agents/commands/solution-design-flow.md</code>, <code>.agents/commands/project-plan.md</code>, and <code>.agents/commands/project-manager.md</code> &mdash; with the spine rules in <code>.agents/AGENTS.md</code> and the archetype handlers under <code>.agents/commands/_workitem-archetypes/</code>. Companion guides: <code>guide-session-correlation.html</code> and <code>guide-trace-analysis.html</code>. This guide is self-contained &mdash; no external resources.</p>
   </div>
 
 </div>

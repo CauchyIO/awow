@@ -31,6 +31,8 @@ Resolve the ID via the team's board surface (per `context/tooling/board.md`), or
 
 Confirm to the user: title, state, number of children, the archetype you plan to route to.
 
+**Check the dependency graph.** If the item carries `Blocked by` edges (native board links, a body `Blocked by:` line, or the `/project-plan` plan artefact), verify those predecessors are done before starting. If a blocker is open, surface it and ask whether to proceed anyway or pick an unblocked item — do not silently start work the plan says is gated.
+
 **Stop condition.** If the story doesn't fit the template — vague title, missing tags, body that doesn't say what changes and why — stop. The fix is to repair the story against `user-story-template.md`, not to infer scope.
 
 ### 2. Classify and route

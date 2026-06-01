@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coordinating delivery &mdash; the forward, operational view of the board</title>
+<!--
+  AWOW GUIDE — coordinating delivery (/project-manager)
+  The forward, operational view of delivery. /project-manager walks the dependency graph
+  the loop has already built — checking in to unblock people, reconciling plan against
+  reality, keeping the graph honest, and surfacing the blocks only management can clear;
+  its --report mode is the weekly MT roll-up. Bounded on purpose: it coordinates a graph,
+  it does not conjure one, and it is read-only until an explicit gate. Self-contained: no
+  external fonts/links by design.
+-->
+<style>
+  :root {
+    --bg: #f6f5f3;
+    --surface: #ffffff;
+    --surface-alt: #f0efed;
+    --text-1: #1a1a1a;
+    --text-2: #6b6b6b;
+    --text-3: #9a9a9a;
+    --border: #e0dfdd;
+    --border-subtle: #ebeae8;
+    --accent: #f24b37;
+    --link: #337FF9;
+    --ok: #2e7d4f;
+    --warn: #c97a1b;
+    --risk: #b53a2a;
+  }
+  body { margin:0; padding:0; width:100%; font-family:'Nunito',system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text-1); line-height:1.6; }
+  .wrap { max-width:1040px; margin:0 auto; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .pad { padding:28px 40px; border-bottom:1px solid var(--border-subtle); }
+  .pad-tight { padding:20px 40px; border-bottom:1px solid var(--border-subtle); }
+  h1 { font-size:1.9rem; font-weight:700; margin:0; letter-spacing:-0.02em; }
+  h2 { font-size:1.35rem; font-weight:600; margin:0 0 16px; letter-spacing:-0.01em; }
+  h3 { font-size:1.05rem; font-weight:600; margin:24px 0 10px; letter-spacing:-0.01em; }
+  p  { font-size:0.92rem; color:var(--text-2); margin:0 0 12px; line-height:1.7; }
+  ul, ol { font-size:0.92rem; color:var(--text-2); line-height:1.7; padding-left:22px; margin:0 0 14px; }
+  li { margin:4px 0; }
+  strong { color:var(--text-1); font-weight:600; }
+  em { color:var(--text-1); font-style:italic; }
+  code { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.85em; background:var(--surface-alt); padding:1px 6px; border-radius:3px; border:1px solid var(--border-subtle); }
+  pre { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.82rem; background:var(--surface-alt); padding:14px 18px; border-radius:8px; border:1px solid var(--border-subtle); overflow-x:auto; line-height:1.55; color:var(--text-1); }
+  pre .c { color:var(--text-3); }
+  table.data { border-collapse:collapse; width:100%; font-size:0.85rem; margin:0 0 16px; }
+  table.data th { text-align:left; font-weight:600; padding:8px 10px; border-bottom:2px solid var(--border); background:var(--surface-alt); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; }
+  table.data td { padding:9px 10px; border-bottom:1px solid var(--border-subtle); color:var(--text-2); vertical-align:top; line-height:1.5; }
+  table.data tr:last-child td { border-bottom:none; }
+  table.data td strong { color:var(--text-1); }
+  .kicker { font-size:0.72rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin:0 0 8px; }
+  .badge { display:inline-block; font-size:0.7rem; font-weight:600; padding:3px 10px; border-radius:4px; border:1px solid var(--border); color:var(--text-1); background:var(--surface); }
+  .badge-accent { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .badge-ok { background:rgba(46,125,79,0.08); color:var(--ok); border-color:rgba(46,125,79,0.25); }
+  .badge-warn { background:rgba(201,122,27,0.08); color:var(--warn); border-color:rgba(201,122,27,0.25); }
+  .badge-muted { background:var(--surface-alt); color:var(--text-3); border-color:var(--border-subtle); border-style:dashed; }
+  .badges { display:flex; gap:6px; flex-wrap:wrap; }
+  .callout { background:var(--surface-alt); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 16px; font-size:0.88rem; color:var(--text-2); line-height:1.65; }
+  .callout strong { color:var(--text-1); }
+  .callout-warn { border-left-color:var(--warn); }
+  .callout-ok { border-left-color:var(--ok); }
+  .callout-risk { border-left-color:var(--risk); }
+  .diagram { background:var(--surface-alt); border:1px solid var(--border-subtle); border-radius:10px; padding:18px 16px 12px; margin:0 0 18px; }
+  .diagram svg { display:block; max-width:100%; height:auto; margin:0 auto; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:0.78rem; color:var(--text-2); padding:8px 8px 0; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .legend i { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid var(--border); }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
+  .card .card-label { font-size:0.7rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; }
+  .card h3 { margin-top:0; }
+  @media (max-width: 760px) {
+    .pad, .pad-tight { padding-left:22px; padding-right:22px; }
+    .grid-3, .grid-2 { grid-template-columns:1fr; }
+  }
+  @media print {
+    body { background:#fff; }
+    .wrap { border:none; border-radius:0; max-width:100%; }
+  }
+
+  /* ===== LEFT INDEX (auto-built from section headings) ===== */
+  .guide-toc { position:fixed; top:0; left:0; width:232px; height:100vh; background:var(--surface); border-right:1px solid var(--border); z-index:60; display:flex; flex-direction:column; overflow-y:auto; padding:20px 0; }
+  .guide-toc .toc-brand { display:flex; align-items:center; gap:8px; padding:0 20px 18px; border-bottom:1px solid var(--border-subtle); margin-bottom:10px; flex-shrink:0; }
+  .guide-toc .toc-brand svg { width:18px; height:18px; flex:none; }
+  .guide-toc .toc-brand span { font-size:12px; font-weight:700; letter-spacing:0.06em; color:var(--text-2); text-transform:uppercase; }
+  .guide-toc a.toc-item { display:flex; align-items:flex-start; gap:10px; padding:8px 20px; text-decoration:none; color:var(--text-2); font-size:12px; font-weight:500; line-height:1.45; border-left:3px solid transparent; transition:background 0.12s, color 0.12s; }
+  .guide-toc a.toc-item:hover { background:var(--surface-alt); color:var(--text-1); }
+  .guide-toc a.toc-item.active { background:var(--surface-alt); color:var(--text-1); font-weight:700; border-left-color:var(--accent); }
+  .guide-toc .toc-num { font-size:10px; font-weight:700; color:var(--accent); min-width:16px; opacity:0.5; padding-top:1px; flex:none; }
+  .guide-toc a.toc-item.active .toc-num { opacity:1; }
+  @media (min-width:1024px) { body { padding-left:232px; } }
+  @media (max-width:1023px) { .guide-toc { display:none; } }
+  @media print { .guide-toc { display:none !important; } body { padding-left:0 !important; } }
+</style>
+</head>
+<body>
+
+<nav class="guide-toc" id="guideToc" aria-label="Contents">
+  <a class="toc-brand" href="index.html" style="text-decoration:none;"><svg viewBox="0 0 500 500" fill="none"><path d="M250 50C139.543 50 50 139.543 50 250C50 360.457 139.543 450 250 450C360.457 450 450 360.457 450 250C450 214.612 440.841 181.387 424.664 152.664L353.033 224.295C356.229 232.471 358 241.473 358 250C358 309.647 309.647 358 250 358C190.353 358 142 309.647 142 250C142 190.353 190.353 142 250 142C275.948 142 299.727 151.424 318.295 166.967L389.926 95.336C348.387 66.159 297.388 50 250 50Z" fill="#f24b37"/></svg><span>awow &middot; guides</span></a>
+  <!-- items injected by script below -->
+</nav>
+
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="pad" style="padding-top:36px;padding-bottom:24px;">
+    <p style="font-size:13px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin:0 0 10px;">Way of Working &middot; Guide</p>
+    <h1>Coordinating delivery</h1>
+    <p style="font-size:1rem;color:var(--text-2);margin:6px 0 0;font-weight:500;">The forward, operational view of the board &mdash; the part of awow that <em>steers</em> on the work rather than feeding, wiring, or reading it.</p>
+    <p style="font-size:0.85rem;color:var(--text-3);margin:8px 0 0;"><code>/project-manager</code> walks the dependency graph the delivery loop has already built: it checks in with the people doing the work and offers to clear their path, keeps the graph correct, reconciles the plan against what is actually happening, and names the few blocks only management can clear. Its <code>--report</code> mode is the weekly roll-up for the management team. Reporting is the by-product, not the job.</p>
+    <div class="badges" style="margin-top:16px;">
+      <span class="badge">standardise command</span>
+      <span class="badge badge-warn">needs a graph first</span>
+      <span class="badge">read-only until a gate</span>
+    </div>
+  </div>
+
+  <!-- TL;DR -->
+  <div class="pad-tight">
+    <p class="kicker">TL;DR</p>
+    <p>The delivery loop ships stories; this is what coordinates them once more than one person is working shared, dependent work. <code>/project-manager</code> loads the delivery graph from the board, <strong>checks in with the people behind in-flight and stalled items</strong> to unblock them, cross-references the plan against real code and board activity, and re-groups everything into <strong>coordination buckets</strong> &mdash; handoffs ready to fire, blocked/waiting, stale/idling, scarce-resource bottlenecks, and the critical path at risk. It proposes the check-ins, graph corrections, and escalations it <em>could</em> make, and does none of them without explicit approval. Run weekly with <code>--report</code>, the same agent produces the deliberately-simplified management roll-up. It is a <strong>project manager, not a project reporter</strong>.</p>
+  </div>
+
+  <!-- THROUGH-LINE -->
+  <div class="pad-tight">
+    <div class="callout">
+      <strong>Be a project manager, not a project reporter.</strong> The difference is action: you check in and offer help, you correct the graph, and you reconcile plan against reality &mdash; reporting falls out of that as a by-product. A run that only summarises the board and proposes nothing actionable has missed the brief. The dependency graph is the thing you steer on, and it never tells the whole story, so keeping it correct is part of the work &mdash; not a footnote.
+    </div>
+  </div>
+
+  <!-- WHERE IT SITS -->
+  <div class="pad">
+    <h2>Where it sits among its neighbours</h2>
+    <p>Four commands touch the same board from different directions. <code>/project-manager</code> is the only one that looks <em>forward</em> across the whole team to coordinate delivery; the others are personal or retrospective. Reaching for the wrong one is the most common confusion, so the boundary is worth stating plainly.</p>
+    <table class="data">
+      <thead><tr><th style="width:24%">Command</th><th style="width:24%">Direction</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><strong>/my-work</strong></td><td>inbound &middot; personal</td><td>What the board is asking of <em>one person</em> &mdash; their queue, surfaced and prioritised.</td></tr>
+        <tr><td><strong>/daily-checkin</strong></td><td>outbound &middot; personal</td><td>Someone narrates their own day; the agent reconciles it onto the board.</td></tr>
+        <tr><td><strong>/daily-digest &middot; /weekly-digest</strong></td><td>retrospective &middot; team-wide</td><td>What the team already shipped, synthesised at rising altitudes.</td></tr>
+        <tr><td><strong>/project-manager</strong></td><td>forward &middot; delivery</td><td>Checks in across the team to unblock people, keeps the graph true, and surfaces what only management can clear.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- WHAT IT NEEDS FIRST -->
+  <div class="pad">
+    <h2>What it needs before it can run</h2>
+    <p>This command is bounded on purpose. It does not start cold and it is not a substitute for the work, the design, or the people doing it. It presupposes three things, and the first is the one that matters most.</p>
+    <ol>
+      <li><strong>A delivery graph already exists.</strong> Work has been decomposed into dependent tasks &mdash; designed by <code>/solution-design-flow</code>, sequenced into a stated dependency graph by <code>/project-plan</code>, and shipped item-by-item through <code>/process-workitem</code> &mdash; and is reflected on the board. Where the board carries no formal dependency edges, the command reconstructs them from the solution-design artefacts and the issue content, and <strong>marks every inferred edge as inferred</strong>.</li>
+      <li><strong>The agent can read and write the board</strong> (Step 0 of <code>/setup-awow</code> complete), through the surface named in <code>context/tooling/board.md</code>.</li>
+      <li><strong>More than one person or team is coordinating on shared work.</strong> For a single person on independent stories, <code>/my-work</code> is the right tool; coordination only earns its keep once handoffs and contended resources exist.</li>
+    </ol>
+    <div class="callout callout-risk">
+      <strong>It coordinates a graph &mdash; it cannot conjure one.</strong> <code>/project-manager</code> <em>surfaces</em> blocks and handoffs and keeps the graph honest. It does not do the work, define the services, or fix adoption &mdash; people, the retro loop, and a leadership mandate do that. Run it against an empty or untended board and it has nothing to steer; the answer then is to run the delivery loop first, not to run this harder.
+    </div>
+  </div>
+
+  <!-- DIAGRAM -->
+  <div class="pad">
+    <h2>The coordination loop</h2>
+    <p>Two rhythms, like the delivery loop it wraps. The <strong>operational loop</strong> runs at a daily-to-sprint cadence: load the graph, check in with people, reconcile, compute the coordination read, and stop at a gate &mdash; then repeat, without re-nudging work that only just moved. Once a week the same agent, in <code>--report</code> mode, rolls the picture <em>up</em> to the management team.</p>
+    <div class="diagram">
+      <div class="legend" style="margin-bottom:6px;">
+        <span><i style="background:#1a1a1a;border-color:#1a1a1a;"></i> Board / graph / human &mdash; durable</span>
+        <span><i style="background:rgba(242,75,55,0.10);border-color:rgba(242,75,55,0.55);"></i> Operational loop (daily &middot; sprint)</span>
+        <span><i style="background:rgba(51,127,249,0.10);border-color:rgba(51,127,249,0.55);"></i> Weekly roll-up (upward)</span>
+        <span><i style="background:var(--surface);border-color:#9a9a9a;border-style:dashed;"></i> Read / artefact</span>
+      </div>
+
+      <svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The delivery coordination loop">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#6b6b6b"/>
+          </marker>
+          <marker id="arrb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#337FF9"/>
+          </marker>
+        </defs>
+
+        <!-- repeat loop along the top -->
+        <path d="M817,94 C817,46 332,46 332,86" fill="none" stroke="#f24b37" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#arr)"/>
+        <text x="574" y="36" text-anchor="middle" font-size="11" font-weight="700" fill="#f24b37" font-family="Nunito,sans-serif">daily &middot; sprint &mdash; re-run the loop; don&rsquo;t re-nudge work that just moved</text>
+
+        <!-- A: graph -->
+        <rect x="24" y="100" width="156" height="64" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
+        <text x="102" y="128" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff" font-family="Nunito,sans-serif">Delivery graph</text>
+        <text x="102" y="147" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="Nunito,sans-serif">pulled from the board</text>
+
+        <!-- A -> B -->
+        <path d="M180,132 L208,132" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <!-- B: project-manager -->
+        <rect x="210" y="86" width="244" height="92" rx="10" fill="rgba(242,75,55,0.08)" stroke="#f24b37"/>
+        <text x="332" y="113" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">/project-manager</text>
+        <text x="332" y="132" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">check in &middot; reconcile</text>
+        <text x="332" y="149" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">keep the graph true</text>
+        <text x="332" y="166" text-anchor="middle" font-size="10" fill="#f24b37" font-family="Nunito,sans-serif">help &amp; unblock, not chase</text>
+
+        <!-- B -> C -->
+        <path d="M454,132 L500,132" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <!-- C: coordination read -->
+        <rect x="502" y="98" width="200" height="68" rx="10" fill="#fff" stroke="#9a9a9a" stroke-dasharray="5 4"/>
+        <text x="602" y="124" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1a1a" font-family="Nunito,sans-serif">Coordination read</text>
+        <text x="602" y="142" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">handoffs &middot; blocks</text>
+        <text x="602" y="157" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">stale &middot; escalations</text>
+
+        <!-- C -> D -->
+        <path d="M702,132 L740,132" fill="none" stroke="#6b6b6b" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <!-- D: gate -->
+        <rect x="742" y="100" width="150" height="64" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
+        <text x="817" y="125" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff" font-family="Nunito,sans-serif">You approve</text>
+        <text x="817" y="144" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="Nunito,sans-serif">nothing acts silently</text>
+
+        <!-- divider -->
+        <line x1="40" y1="346" x2="960" y2="346" stroke="#c9c8c6" stroke-width="1" stroke-dasharray="4 5"/>
+        <text x="50" y="339" font-size="10.5" font-weight="700" fill="#9a9a9a" font-family="Nunito,sans-serif" letter-spacing="1">&uarr; OPERATIONAL &middot; daily &middot; sprint</text>
+        <text x="960" y="339" text-anchor="end" font-size="10.5" font-weight="700" fill="#337FF9" font-family="Nunito,sans-serif" letter-spacing="1">WEEKLY &middot; upward &darr;</text>
+
+        <!-- E: project-manager --report -->
+        <rect x="232" y="372" width="270" height="86" rx="10" fill="rgba(51,127,249,0.08)" stroke="#337FF9"/>
+        <text x="367" y="402" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">/project-manager --report</text>
+        <text x="367" y="421" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">the same agent, reporting up</text>
+        <text x="367" y="438" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">deliberately simplified, week-on-week</text>
+
+        <!-- E -> F -->
+        <path d="M502,415 L540,415" fill="none" stroke="#337FF9" stroke-width="1.5" marker-end="url(#arrb)"/>
+
+        <!-- F: MT report -->
+        <rect x="542" y="372" width="250" height="86" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
+        <text x="667" y="399" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff" font-family="Nunito,sans-serif">Weekly MT report</text>
+        <text x="667" y="418" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="Nunito,sans-serif">on track? &middot; still worth it?</text>
+        <text x="667" y="434" text-anchor="middle" font-size="10" fill="#e0dfdd" font-family="Nunito,sans-serif">has the signal shifted?</text>
+
+        <!-- graph feeds the weekly read -->
+        <path d="M102,164 C102,300 180,415 230,415" fill="none" stroke="#337FF9" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrb)"/>
+      </svg>
+    </div>
+    <p style="font-size:0.82rem;color:var(--text-3);margin:0;">The graph feeds both rhythms: the operational loop steers on it daily, and the weekly roll-up reads the same graph at a higher altitude. The gate sits between every proposal and any board write &mdash; check-ins, graph corrections, and escalations alike.</p>
+  </div>
+
+  <!-- HOW A RUN GOES -->
+  <div class="pad">
+    <h2>How a run goes, step by step</h2>
+    <p>A single operational run moves through seven steps. The first four gather and reconcile; the fifth turns that into a decision-shaped read; the last two keep the graph honest and stop at the gate.</p>
+    <div class="diagram" style="padding-top:14px;">
+      <table class="data" style="margin:0;">
+        <thead><tr><th style="width:20%">Step</th><th>What happens</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1 &middot; Resolve scope &amp; cadence</strong></td><td>Decide which delivery graph to load &mdash; a project, a team, or all active work &mdash; and respect cadence. Coordination has a cost; rebalancing too often burns the team the way frequent trades burn returns in fees. Run the operational loop daily-to-sprint, the roll-up weekly, and don&rsquo;t re-check work that moved hours ago.</td></tr>
+          <tr><td><strong>2 &middot; Load the delivery graph</strong></td><td>Pull the items in scope and the edges between them &mdash; state, assignee, blocked flag, last-update time, parent, acceptance criteria, dependency links. Where edges are missing, infer them from design artefacts and issue content and <em>mark them inferred</em>. Sanity-check thin results before trusting them: an empty graph on work you know is active usually means a mistyped scope or stale credentials.</td></tr>
+          <tr><td><strong>3 &middot; Check in with the people</strong></td><td>Reach out to the owners of in-flight and stalled items rather than only reading their tickets. Keep each check-in to three questions at most &mdash; where the work stands, whether anything is blocking, and what would help. The aim is to help and unblock, never to chase. Skip anyone whose work already moved today.</td></tr>
+          <tr><td><strong>4 &middot; Reconcile plan against actual</strong></td><td>The graph is the plan, and it drifts the moment work starts. Cross-reference planned sequence, ownership, estimates, and states against real code activity, board movement, and the check-in answers. Where plan and reality diverge, the plan is usually the stale one &mdash; propose realigning it.</td></tr>
+          <tr><td><strong>5 &middot; Compute the coordination read</strong></td><td>Don&rsquo;t dump a status list. Re-group everything into coordination buckets (next section), deciding what each item <em>needs now</em>.</td></tr>
+          <tr><td><strong>6 &middot; Maintain the dependency graph</strong></td><td>Expect the graph to be incomplete; keeping it correct is the job. Where it is missing or wrong, propose the fix &mdash; a ticket for a component the design named but the board never captured, a real dependency edge, an owner for an unassigned item, acceptance criteria for an item that will stall without them.</td></tr>
+          <tr><td><strong>7 &middot; Propose and act &mdash; at the gate</strong></td><td>End with concrete follow-ups grouped by type, and take none without explicit approval (covered below).</td></tr>
+        </tbody>
+      </table>
+      <div class="legend" style="padding-top:10px;"><span style="color:var(--text-3)">Scope &rarr; Load &rarr; Check in &rarr; Reconcile &rarr; Coordination read &rarr; Maintain graph &rarr; Gate</span></div>
+    </div>
+  </div>
+
+  <!-- THE COORDINATION READ -->
+  <div class="pad">
+    <h2>The coordination read</h2>
+    <p>This is the output that makes the command worth running. Instead of echoing every open issue, the work is re-grouped by what each item <em>needs</em> &mdash; so the read is a set of decisions, not a status board. The critical path is surfaced first.</p>
+    <div class="grid-2">
+      <div class="card">
+        <p class="card-label" style="color:var(--risk)">surface first</p>
+        <h3>Critical path at risk</h3>
+        <p style="margin-bottom:0;">Items on the critical path that are slow or blocked threaten the <em>whole</em> delivery, not just their own branch. They lead the read.</p>
+      </div>
+      <div class="card">
+        <p class="card-label" style="color:var(--ok)">momentum</p>
+        <h3>Handoffs ready to fire</h3>
+        <p style="margin-bottom:0;">A predecessor just completed and its dependents are now unblocked. Name the finished item, the newly-ready successor, and its owner &mdash; these move the moment someone is told.</p>
+      </div>
+      <div class="card">
+        <p class="card-label" style="color:var(--warn)">waiting</p>
+        <h3>Blocked / waiting</h3>
+        <p style="margin-bottom:0;">Name the single person or dependency each item waits on, and split <strong>team-resolvable</strong> (the team can clear it) from <strong>escalation-only</strong> (only management can).</p>
+      </div>
+      <div class="card">
+        <p class="card-label" style="color:var(--text-3)">flow signal</p>
+        <h3>Stale / idling</h3>
+        <p style="margin-bottom:0;">In progress with no movement in N working days (default 3), or people idling because an upstream dependency is stuck. Idling is a flow signal about the graph &mdash; not a judgement about people.</p>
+      </div>
+    </div>
+    <div class="callout callout-warn" style="margin-top:16px;">
+      <strong>Scarce-resource bottlenecks are the escalation candidate.</strong> When several items queue behind one contended resource &mdash; a single security reviewer, a shared environment, one architect &mdash; the teams cannot solve it themselves. This is exactly what management exists to decide: who gets the resource, or whether it can be replicated. (It is the contended-resource case the resource-steering picture is built around.)
+    </div>
+  </div>
+
+  <!-- THE GATE -->
+  <div class="pad">
+    <h2>The gate &mdash; propose, never act silently</h2>
+    <p>Everything up to this point is read-only. The command ends by showing concrete follow-ups it <em>could</em> take, grouped by type, and waits. Each is shown so the user can approve it before anything touches a person or the board.</p>
+    <ul>
+      <li><strong>Check-ins to send</strong> &mdash; the per-person messages, shown <em>verbatim</em> so the wording can be approved before any go out.</li>
+      <li><strong>Graph corrections</strong> &mdash; missing tickets, dependency edges, owners, acceptance criteria, and any board state that drifted from reality &mdash; each following the team&rsquo;s board-output rules, kept to minimum-useful text.</li>
+      <li><strong>Nudges / board actions</strong> &mdash; a comment recording a blocker, a move for an item whose real state has drifted.</li>
+      <li><strong>Escalations</strong> &mdash; the items only management can unblock, each stated as <em>the decision needed</em>, not just the problem.</li>
+    </ul>
+    <div class="callout">
+      <strong>Approve, then execute exactly what was approved.</strong> The command asks one question &mdash; <em>&ldquo;Should I send the check-ins, apply the graph corrections and board actions, raise the escalations?&rdquo;</em> &mdash; re-verifies each match before touching it, and if ambiguity surfaces mid-execution, stops and asks. No silent changes, and inferred dependency edges are never written as if confirmed.
+    </div>
+  </div>
+
+  <!-- WEEKLY ROLL-UP -->
+  <div class="pad">
+    <h2>The weekly MT roll-up <span style="font-size:0.8rem;font-weight:600;color:var(--text-3);">&mdash; <code>--report</code> mode</span></h2>
+    <p>The same agent, reporting upward. Information gets more abstract the higher it goes, so the management team cannot absorb item-level detail &mdash; this is deliberately simplified and week-on-week. It is read-only: written to <code>reports/mt/YYYY-Www.md</code>, and never shared without explicit approval. It answers the three things a management team actually decides on.</p>
+    <table class="data">
+      <thead><tr><th style="width:30%">Question</th><th>What the report says &mdash; and its honesty rule</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1 &middot; On track?</strong></td><td>Per active project: on track / blocked / slowing. Names only the blockers <strong>management</strong> can clear &mdash; the decisions waiting on them, not the ones teams are handling themselves.</td></tr>
+        <tr><td><strong>2 &middot; Still delivering the expected value?</strong></td><td>Whether each project is still worth what it was scoped to deliver. This is the question that surfaces sunk cost &mdash; it flags a project whose value has eroded <em>even if it is &ldquo;on track&rdquo;</em>.</td></tr>
+        <tr><td><strong>3 &middot; Has the external signal shifted?</strong></td><td>Market or external changes that alter the premise a project was started on &mdash; a reason to pivot or kill. Grounded in supplied material only: <strong>no fabricated market signals, and no external links without approval</strong>. Where a scan would help but there is no grounded source, it says so rather than inventing one.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-ok">
+      <strong>The roll-up answers question 1 today.</strong> On-track and management-only blockers read straight off the board. Question 2 leans on a value-measurement instrument the team has to put in place; question 3 needs an outside-in feed the board does not source. The honest report shows what it has and flags what it doesn&rsquo;t &mdash; it does not colour an unknown green.
+    </div>
+  </div>
+
+  <!-- ANTI-PATTERNS -->
+  <div class="pad">
+    <h2>Anti-patterns &mdash; how it stays trustworthy</h2>
+    <p>The command is defined as much by what it refuses to do. These guardrails are why a coordination loop helps rather than becoming overhead or surveillance.</p>
+    <table class="data">
+      <thead><tr><th style="width:30%">Don&rsquo;t</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Don&rsquo;t just report</strong></td><td>A run that only summarises and proposes nothing actionable has missed the brief. Check in, offer help, correct the graph, reconcile.</td></tr>
+        <tr><td><strong>Don&rsquo;t interrogate</strong></td><td>Check-ins offer help and clear blockers &mdash; never frame them as chasing. The question is &ldquo;what would help&rdquo;, not &ldquo;why isn&rsquo;t this done&rdquo;.</td></tr>
+        <tr><td><strong>Don&rsquo;t echo the board</strong></td><td>A flat list of every open issue is the problem this command solves, not its output. If you&rsquo;re not re-grouping by coordination action, you&rsquo;re not done.</td></tr>
+        <tr><td><strong>Don&rsquo;t let plan and graph drift</strong></td><td>When code activity and check-ins contradict the board, reconcile. A graph that no longer matches reality is worse than none, because people steer on it.</td></tr>
+        <tr><td><strong>Don&rsquo;t over-coordinate</strong></td><td>Re-running the loop and re-nudging the same people every few hours is overhead that burns the team. Respect cadence; let people work.</td></tr>
+        <tr><td><strong>Don&rsquo;t act silently</strong></td><td>Read-only until the gate. Surface drafted check-ins, graph corrections, board actions, and escalations, and wait for the go-ahead.</td></tr>
+        <tr><td><strong>Don&rsquo;t invent dependencies</strong></td><td>Mark inferred edges as inferred; never present a reconstructed dependency as confirmed.</td></tr>
+        <tr><td><strong>Don&rsquo;t escalate everything</strong></td><td>Escalation is for what the team genuinely cannot resolve &mdash; a contended resource, a cross-team priority call. Routine blockers are not management material.</td></tr>
+        <tr><td><strong>Don&rsquo;t evaluate people</strong></td><td>Idling and stale items are flow signals about the graph, not judgements about individuals. Check-ins exist to help, not to assess.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- WHERE IT PLUGS IN -->
+  <div class="pad">
+    <h2>Where it plugs into the rest of awow</h2>
+    <p>Coordination is the last link in a chain that all turns on one shared artefact: a <strong>stated dependency graph</strong>. A design becomes a sequenced plan, the plan becomes board items that know what blocks what, items ship one by one, and delivery is steered against the graph rather than a flat list of tickets.</p>
+    <div class="diagram" style="padding-top:14px;">
+      <table class="data" style="margin:0;">
+        <thead><tr><th style="width:24%">Command</th><th>Its role in the chain</th></tr></thead>
+        <tbody>
+          <tr><td><strong>/solution-design-flow</strong></td><td>Turns a design conversation into a locked design plus a decomposed work-item tree whose children name what blocks them.</td></tr>
+          <tr><td><strong>/project-plan</strong></td><td>The bridge &mdash; states the dependency graph (nodes, edges, sequence vs parallel, critical path), creates the board items in order with blocked-by links, and publishes a durable plan.</td></tr>
+          <tr><td><strong>/process-workitem</strong></td><td>Ships each item through the seven-step loop, respecting blocked-by so nothing starts before its dependencies clear.</td></tr>
+          <tr><td><strong>/project-manager</strong></td><td>Steers on the published graph &mdash; checks in, fires handoffs, reconciles, keeps the graph correct, and rolls up to management.</td></tr>
+        </tbody>
+      </table>
+      <div class="legend" style="padding-top:10px;"><span style="color:var(--text-3)">/solution-design-flow &rarr; /project-plan &rarr; /process-workitem (&times; many) &rarr; /project-manager</span></div>
+    </div>
+    <div class="callout">
+      <strong>The dependency graph is the connective tissue.</strong> It is <em>stated</em> by <code>/project-plan</code>, <em>honoured</em> by <code>/process-workitem</code>, and <em>steered on</em> by <code>/project-manager</code>. Without the graph stated somewhere true, coordination has nothing to read &mdash; which is why it is a first-class deliverable, not a by-product of reconciliation.
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="pad" style="border-bottom:none;">
+    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Source of truth: <code>.agents/commands/project-manager.md</code> &mdash; with the upstream chain in <code>.agents/commands/solution-design-flow.md</code>, <code>.agents/commands/project-plan.md</code>, and <code>.agents/commands/process-workitem.md</code>, the board surface in <code>context/tooling/board.md</code>, and the spine rules in <code>.agents/CLAUDE.md</code>. Companion guide: <code>guide-core-delivery-loop.html</code>. This guide is self-contained &mdash; no external resources.</p>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var toc=document.getElementById('guideToc'); if(!toc) return;
+  var heads=[].slice.call(document.querySelectorAll('.wrap h2')); if(!heads.length) return;
+  var pad2=function(n){return n<10?'0'+n:''+n;};
+  var slug=function(t){return t.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'sec';};
+  var top=function(el){return el.getBoundingClientRect().top+window.scrollY;};
+  var items=[];
+  heads.forEach(function(h){
+    var label=h.textContent.trim().replace(/^\s*\d+[.)]\s*/,'');
+    if(!label) return;
+    var target=h.closest('.pad,.pad-tight,.part-header,section')||h;
+    if(!target.id) target.id='sec-'+(items.length+1)+'-'+slug(label);
+    var a=document.createElement('a'); a.className='toc-item'; a.href='#'+target.id;
+    var num=document.createElement('span'); num.className='toc-num'; num.textContent=pad2(items.length+1);
+    var lab=document.createElement('span'); lab.className='toc-label'; lab.textContent=label;
+    a.appendChild(num); a.appendChild(lab);
+    a.addEventListener('click',function(e){e.preventDefault(); target.scrollIntoView({behavior:'smooth',block:'start'}); history.replaceState(null,'','#'+target.id);});
+    toc.appendChild(a); items.push({t:target,a:a});
+  });
+  var spy=function(){
+    var y=window.scrollY+130, cur=items[0];
+    for(var i=0;i<items.length;i++){ if(top(items[i].t)<=y) cur=items[i]; }
+    items.forEach(function(it){ it.a.classList.toggle('active', it===cur); });
+  };
+  window.addEventListener('scroll',spy,{passive:true});
+  window.addEventListener('resize',spy); spy();
+})();
+</script>
+</body>
+</html>

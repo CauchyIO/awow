@@ -3,12 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Prompt taxonomy &mdash; one entry, many specialists</title>
+<title>Prompt taxonomy &mdash; name what you&rsquo;re doing before you ask</title>
 <!--
   AWOW GUIDE — prompt taxonomy
-  How /process-transcript routes work to specialists.
+  Individual-tier guide. An eight-intent vocabulary (investigate / plan / propose /
+  implement / refine / verify / document / inform) used both as a prompting discipline
+  (name what you're doing before you ask) and as the lens /awow-usage-coach reads
+  sessions back through. Leads with the closed loop (forward discipline ⇄ backward
+  lens, one shared vocabulary) so the relevance and the tie to the other Individual-tier
+  guides is established up front, not buried — the forward prompting mechanics follow.
+  Replaces an earlier file at this path that was about the transcript router — now
+  superseded by guide-transcript-router.html.
+  Self-contained: no external fonts/links by design.
 -->
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #f6f5f3;
@@ -25,7 +32,7 @@
     --warn: #c97a1b;
     --risk: #b53a2a;
   }
-  body { margin:0; padding:0; width:100%; font-family:'Nunito',system-ui,sans-serif; background:var(--bg); color:var(--text-1); line-height:1.6; }
+  body { margin:0; padding:0; width:100%; font-family:'Nunito',system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text-1); line-height:1.6; }
   .wrap { max-width:1040px; margin:0 auto; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
   .pad { padding:28px 40px; border-bottom:1px solid var(--border-subtle); }
   .pad-tight { padding:20px 40px; border-bottom:1px solid var(--border-subtle); }
@@ -34,275 +41,234 @@
   h3 { font-size:1.05rem; font-weight:600; margin:24px 0 10px; letter-spacing:-0.01em; }
   p  { font-size:0.92rem; color:var(--text-2); margin:0 0 12px; line-height:1.7; }
   ul, ol { font-size:0.92rem; color:var(--text-2); line-height:1.7; padding-left:22px; margin:0 0 14px; }
-  li { margin:4px 0; }
+  li { margin:6px 0; }
   strong { color:var(--text-1); font-weight:600; }
   em { color:var(--text-1); font-style:italic; }
-  a { color:var(--link); text-decoration:none; }
-  a:hover { text-decoration:underline; }
-  code { font-family:'JetBrains Mono',ui-monospace,monospace; font-size:0.85em; background:var(--surface-alt); padding:1px 6px; border-radius:3px; border:1px solid var(--border-subtle); }
-  pre { font-family:'JetBrains Mono',ui-monospace,monospace; font-size:0.82rem; background:var(--surface-alt); padding:14px 18px; border-radius:8px; border:1px solid var(--border-subtle); overflow-x:auto; line-height:1.55; color:var(--text-1); }
-  table.data { border-collapse:collapse; width:100%; font-size:0.85rem; margin:0 0 16px; }
-  table.data th { text-align:left; font-weight:600; padding:8px 10px; border-bottom:2px solid var(--border); background:var(--surface-alt); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; }
-  table.data td { padding:8px 10px; border-bottom:1px solid var(--border-subtle); color:var(--text-2); vertical-align:top; line-height:1.5; }
+  code { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.85em; background:var(--surface-alt); padding:1px 6px; border-radius:3px; border:1px solid var(--border-subtle); }
+  pre { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.82rem; background:var(--surface-alt); padding:14px 18px; border-radius:8px; border:1px solid var(--border-subtle); overflow-x:auto; line-height:1.55; color:var(--text-1); }
+  table.data { border-collapse:collapse; width:100%; font-size:0.85rem; margin:0 0 4px; }
+  table.data th { text-align:left; font-weight:600; padding:8px 12px; border-bottom:2px solid var(--border); background:var(--surface-alt); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; }
+  table.data td { padding:9px 12px; border-bottom:1px solid var(--border-subtle); color:var(--text-2); vertical-align:top; line-height:1.5; }
   table.data tr:last-child td { border-bottom:none; }
   table.data td strong { color:var(--text-1); }
+  table.data td.intent { font-family:'JetBrains Mono',ui-monospace,monospace; color:var(--link); font-weight:700; font-size:0.82rem; }
   .kicker { font-size:0.72rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin:0 0 8px; }
+  .lede { font-size:1rem; color:var(--text-2); margin:6px 0 0; font-weight:500; line-height:1.6; }
   .badge { display:inline-block; font-size:0.7rem; font-weight:600; padding:3px 10px; border-radius:4px; border:1px solid var(--border); color:var(--text-1); background:var(--surface); }
-  .badge-accent { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .badge-link { background:rgba(51,127,249,0.08); color:var(--link); border-color:rgba(51,127,249,0.30); }
   .badge-ok { background:rgba(46,125,79,0.08); color:var(--ok); border-color:rgba(46,125,79,0.25); }
-  .badge-warn { background:rgba(201,122,27,0.08); color:var(--warn); border-color:rgba(201,122,27,0.25); }
-  .badge-muted { background:var(--surface-alt); color:var(--text-3); border-color:var(--border-subtle); border-style:dashed; }
   .badges { display:flex; gap:6px; flex-wrap:wrap; }
-  .callout { background:var(--surface-alt); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 16px; font-size:0.88rem; color:var(--text-2); line-height:1.65; }
+  .callout { background:var(--surface-alt); border-left:3px solid var(--link); border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 16px; font-size:0.9rem; color:var(--text-2); line-height:1.65; }
+  .callout:last-child { margin-bottom:0; }
   .callout strong { color:var(--text-1); }
   .callout-warn { border-left-color:var(--warn); }
   .callout-ok { border-left-color:var(--ok); }
-  .diagram { background:var(--surface-alt); border:1px solid var(--border-subtle); border-radius:10px; padding:18px 16px 12px; margin:0 0 18px; }
-  .diagram svg { display:block; max-width:100%; height:auto; margin:0 auto; }
-  .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:0.78rem; color:var(--text-2); padding:8px 8px 0; }
-  .legend span { display:inline-flex; align-items:center; gap:6px; }
-  .legend i { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid var(--border); }
+  .callout-risk { border-left-color:var(--risk); }
   .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
   .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
+  .card.alt { background:var(--surface-alt); }
   .card .card-label { font-size:0.7rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; }
-  @media (max-width: 720px) {
+  .card h3 { margin-top:0; }
+  .card ul { margin:6px 0 0; }
+  .compare { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .compare .pre-label { font-size:0.66rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-3); margin:0 0 6px; }
+  .compare pre { margin:0; }
+  .bad .pre-label { color:var(--risk); }
+  .good .pre-label { color:var(--ok); }
+  @media (max-width: 760px) {
     .pad, .pad-tight { padding-left:22px; padding-right:22px; }
-    .grid-2 { grid-template-columns:1fr; }
+    .grid-2, .compare { grid-template-columns:1fr; }
   }
   @media print {
     body { background:#fff; }
     .wrap { border:none; border-radius:0; max-width:100%; }
-    a { color:var(--text-1); }
   }
+
+  /* ===== LEFT INDEX (auto-built from section headings) ===== */
+  .guide-toc { position:fixed; top:0; left:0; width:232px; height:100vh; background:var(--surface); border-right:1px solid var(--border); z-index:60; display:flex; flex-direction:column; overflow-y:auto; padding:20px 0; }
+  .guide-toc .toc-brand { display:flex; align-items:center; gap:8px; padding:0 20px 18px; border-bottom:1px solid var(--border-subtle); margin-bottom:10px; flex-shrink:0; }
+  .guide-toc .toc-brand svg { width:18px; height:18px; flex:none; }
+  .guide-toc .toc-brand span { font-size:12px; font-weight:700; letter-spacing:0.06em; color:var(--text-2); text-transform:uppercase; }
+  .guide-toc a.toc-item { display:flex; align-items:flex-start; gap:10px; padding:8px 20px; text-decoration:none; color:var(--text-2); font-size:12px; font-weight:500; line-height:1.45; border-left:3px solid transparent; transition:background 0.12s, color 0.12s; }
+  .guide-toc a.toc-item:hover { background:var(--surface-alt); color:var(--text-1); }
+  .guide-toc a.toc-item.active { background:var(--surface-alt); color:var(--text-1); font-weight:700; border-left-color:var(--link); }
+  .guide-toc .toc-num { font-size:10px; font-weight:700; color:var(--link); min-width:16px; opacity:0.5; padding-top:1px; flex:none; }
+  .guide-toc a.toc-item.active .toc-num { opacity:1; }
+  @media (min-width:1024px) { body { padding-left:232px; } }
+  @media (max-width:1023px) { .guide-toc { display:none; } }
+  @media print { .guide-toc { display:none !important; } body { padding-left:0 !important; } }
 </style>
 </head>
 <body>
+
+<nav class="guide-toc" id="guideToc" aria-label="Contents">
+  <a class="toc-brand" href="index.html" style="text-decoration:none;"><svg viewBox="0 0 500 500" fill="none"><path d="M250 50C139.543 50 50 139.543 50 250C50 360.457 139.543 450 250 450C360.457 450 450 360.457 450 250C450 214.612 440.841 181.387 424.664 152.664L353.033 224.295C356.229 232.471 358 241.473 358 250C358 309.647 309.647 358 250 358C190.353 358 142 309.647 142 250C142 190.353 190.353 142 250 142C275.948 142 299.727 151.424 318.295 166.967L389.926 95.336C348.387 66.159 297.388 50 250 50Z" fill="#f24b37"/></svg><span>awow &middot; guides</span></a>
+</nav>
 
 <div class="wrap">
 
   <!-- HEADER -->
   <div class="pad" style="padding-top:36px;padding-bottom:24px;">
-    <p style="font-size:13px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin:0 0 10px;">Way of Working &middot; Guide</p>
+    <p style="font-size:13px;font-weight:600;color:var(--link);letter-spacing:2px;text-transform:uppercase;margin:0 0 10px;">Way of Working &middot; Guide</p>
     <h1>Prompt taxonomy</h1>
-    <p style="font-size:1rem;color:var(--text-2);margin:6px 0 0;font-weight:500;">One entry point. The router recommends; the user types one command.</p>
+    <p class="lede">One vocabulary, two directions: eight intent labels you prompt <em>with</em>, and the same eight that <code>/awow-usage-coach</code> reads your sessions back <em>through</em>. Naming the move forward is what lets the coaching land backward.</p>
+    <p style="font-size:0.85rem;color:var(--text-3);margin:8px 0 0;">This is the shared language under the Individual tier &mdash; the thing that ties writing a prompt to seeing yourself in <code>/awow-usage-coach</code>, the digests, and the session timeline.</p>
     <div class="badges" style="margin-top:16px;">
-      <span class="badge">router pattern</span>
-      <span class="badge">recommender behaviour</span>
-      <span class="badge badge-accent">single entry, many specialists</span>
+      <span class="badge badge-link">Individual tier</span>
+      <span class="badge">8 intents</span>
+      <span class="badge badge-ok">vocabulary-agnostic</span>
     </div>
   </div>
 
   <!-- TL;DR -->
   <div class="pad-tight">
     <p class="kicker">TL;DR</p>
-    <p>As your team adopts more transcript-driven prompts (<code>/process-retro</code>, <code>/coaching-review</code>, <code>/design-review</code>&hellip;), the user shouldn&rsquo;t have to know which one to invoke. <strong>One command</strong> &mdash; <code>/process-transcript</code> &mdash; reads the transcript, identifies what kind of session it is (or which segments of which kinds), recommends one or more specialists with a one-line rationale, and waits for confirmation. The specialists stay focused; the user gets a single front door.</p>
+    <p>awow can read your sessions back to you &mdash; <code>/awow-usage-coach</code> classifies every prompt you wrote and reports the patterns. This is the vocabulary it uses, and the trick is that <em>you use the same vocabulary forward</em>: every prompt is doing one of eight things (<code>investigate</code>, <code>plan</code>, <code>propose</code>, <code>implement</code>, <code>refine</code>, <code>verify</code>, <code>document</code>, <code>inform</code>). Name which one <em>before</em> you type and two things happen at once &mdash; the prompt gets sharper now, and the reflection later is in a language you recognise. One vocabulary, both directions, is the whole idea.</p>
   </div>
 
-  <!-- DIAGRAM -->
+  <!-- THE LOOP (the spine — why this guide exists) -->
   <div class="pad">
-    <h2>The shape</h2>
-
-    <div class="diagram">
-      <div class="legend" style="margin-bottom:8px;">
-        <span><i style="background:#1a1a1a;border-color:#1a1a1a;"></i> Router / recommender</span>
-        <span><i style="background:rgba(46,125,79,0.12);border-color:rgba(46,125,79,0.5);"></i> Existing specialist</span>
-        <span><i style="background:rgba(242,75,55,0.10);border-color:rgba(242,75,55,0.45);"></i> Proposed / in flight</span>
-        <span><i style="background:#fff;border-style:dashed;border-color:var(--text-3);"></i> Future placeholder</span>
-      </div>
-
-      <svg viewBox="0 0 1000 760" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Prompt taxonomy diagram">
-        <defs>
-          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M0,0 L10,5 L0,10 z" fill="#6b6b6b"/>
-          </marker>
-        </defs>
-
-        <!-- Router -->
-        <g>
-          <rect x="320" y="20" width="360" height="100" rx="10" fill="#1a1a1a" stroke="#1a1a1a"/>
-          <text x="500" y="50" text-anchor="middle" font-size="17" font-weight="700" fill="#ffffff" font-family="Nunito,sans-serif">/process-transcript</text>
-          <text x="500" y="72" text-anchor="middle" font-size="12" fill="#f24b37" font-family="Nunito,sans-serif">Recommender &middot; not just dispatcher</text>
-          <text x="500" y="94" text-anchor="middle" font-size="11" fill="#e0dfdd" font-family="Nunito,sans-serif">Reads transcript &#8594; identifies segments &#8594;</text>
-          <text x="500" y="110" text-anchor="middle" font-size="11" fill="#e0dfdd" font-family="Nunito,sans-serif">recommends one or more specialists, with rationale</text>
-        </g>
-
-        <!-- Trunk -->
-        <line x1="500" y1="120" x2="500" y2="160" stroke="#6b6b6b" stroke-width="1.5"/>
-        <line x1="140" y1="160" x2="860" y2="160" stroke="#6b6b6b" stroke-width="1.5"/>
-
-        <!-- Categories -->
-        <g>
-          <line x1="140" y1="160" x2="140" y2="200" stroke="#6b6b6b" stroke-width="1.5"/>
-          <rect x="20" y="200" width="240" height="56" rx="8" fill="#ffffff" stroke="#e0dfdd" stroke-width="1.5"/>
-          <text x="140" y="223" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">Action-output</text>
-          <text x="140" y="242" text-anchor="middle" font-size="11" fill="#6b6b6b" font-family="Nunito,sans-serif">What should we DO based on this?</text>
-        </g>
-        <g>
-          <line x1="500" y1="160" x2="500" y2="200" stroke="#6b6b6b" stroke-width="1.5"/>
-          <rect x="380" y="200" width="240" height="56" rx="8" fill="#ffffff" stroke="#e0dfdd" stroke-width="1.5"/>
-          <text x="500" y="223" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">Pattern-output</text>
-          <text x="500" y="242" text-anchor="middle" font-size="11" fill="#6b6b6b" font-family="Nunito,sans-serif">How did this session GO?</text>
-        </g>
-        <g>
-          <line x1="860" y1="160" x2="860" y2="200" stroke="#6b6b6b" stroke-width="1.5"/>
-          <rect x="740" y="200" width="240" height="56" rx="8" fill="#ffffff" stroke="#e0dfdd" stroke-width="1.5"/>
-          <text x="860" y="223" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">Specialized signal</text>
-          <text x="860" y="242" text-anchor="middle" font-size="11" fill="#6b6b6b" font-family="Nunito,sans-serif">What does this specifically tell us?</text>
-        </g>
-
-        <!-- Action-output leaf: /process-transcript fallback -->
-        <line x1="140" y1="256" x2="140" y2="290" stroke="#6b6b6b" stroke-width="1.5"/>
-        <g>
-          <rect x="20" y="290" width="240" height="86" rx="8" fill="rgba(46,125,79,0.08)" stroke="rgba(46,125,79,0.45)" stroke-width="1.5"/>
-          <text x="140" y="313" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/process-transcript (fallback)</text>
-          <text x="140" y="332" text-anchor="middle" font-size="10" fill="#2e7d4f" font-family="Nunito,sans-serif">existing</text>
-          <text x="140" y="350" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Templated extraction &#8594;</text>
-          <text x="140" y="364" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">actions, owners, follow-ups</text>
-        </g>
-
-        <!-- Pattern-output leaves: process-retro + coaching-review -->
-        <line x1="500" y1="256" x2="500" y2="290" stroke="#6b6b6b" stroke-width="1.5"/>
-        <line x1="380" y1="290" x2="620" y2="290" stroke="#6b6b6b" stroke-width="1.5"/>
-
-        <g>
-          <line x1="380" y1="290" x2="380" y2="330" stroke="#6b6b6b" stroke-width="1.5"/>
-          <rect x="280" y="330" width="200" height="86" rx="8" fill="rgba(242,75,55,0.10)" stroke="rgba(242,75,55,0.45)" stroke-width="1.5"/>
-          <text x="380" y="353" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/process-retro</text>
-          <text x="380" y="372" text-anchor="middle" font-size="10" fill="#f24b37" font-family="Nunito,sans-serif">proposed</text>
-          <text x="380" y="390" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Retrospective &#8594;</text>
-          <text x="380" y="404" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">actions + anti-patterns + diffs</text>
-        </g>
-
-        <g>
-          <line x1="620" y1="290" x2="620" y2="330" stroke="#6b6b6b" stroke-width="1.5"/>
-          <rect x="520" y="330" width="200" height="86" rx="8" fill="rgba(242,75,55,0.10)" stroke="rgba(242,75,55,0.45)" stroke-width="1.5"/>
-          <text x="620" y="353" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/coaching-review</text>
-          <text x="620" y="372" text-anchor="middle" font-size="10" fill="#f24b37" font-family="Nunito,sans-serif">proposed</text>
-          <text x="620" y="390" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Teacher/learner session &#8594;</text>
-          <text x="620" y="404" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">interpersonal feedback</text>
-        </g>
-
-        <!-- Specialized signal leaves: design-review + futures -->
-        <line x1="860" y1="256" x2="860" y2="290" stroke="#6b6b6b" stroke-width="1.5"/>
-        <line x1="780" y1="290" x2="940" y2="290" stroke="#6b6b6b" stroke-width="1.5"/>
-
-        <g>
-          <line x1="780" y1="290" x2="780" y2="330" stroke="#6b6b6b" stroke-width="1.5"/>
-          <rect x="680" y="330" width="200" height="86" rx="8" fill="rgba(242,75,55,0.10)" stroke="rgba(242,75,55,0.45)" stroke-width="1.5"/>
-          <text x="780" y="353" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/design-review</text>
-          <text x="780" y="372" text-anchor="middle" font-size="10" fill="#f24b37" font-family="Nunito,sans-serif">proposed</text>
-          <text x="780" y="390" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Solution-design session &#8594;</text>
-          <text x="780" y="404" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">design artefact + rationale</text>
-        </g>
-
-        <g>
-          <line x1="940" y1="290" x2="940" y2="330" stroke="#6b6b6b" stroke-width="1.5"/>
-          <rect x="840" y="330" width="140" height="86" rx="8" fill="#ffffff" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="4 3"/>
-          <text x="910" y="353" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/course-review</text>
-          <text x="910" y="372" text-anchor="middle" font-size="10" fill="#9a9a9a" font-family="Nunito,sans-serif">future</text>
-          <text x="910" y="390" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Lecture / cohort &#8594;</text>
-          <text x="910" y="404" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">delivery feedback</text>
-        </g>
-
-        <!-- Second future row -->
-        <g>
-          <rect x="680" y="440" width="200" height="86" rx="8" fill="#ffffff" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="4 3"/>
-          <text x="780" y="463" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/discovery-review</text>
-          <text x="780" y="482" text-anchor="middle" font-size="10" fill="#9a9a9a" font-family="Nunito,sans-serif">future</text>
-          <text x="780" y="500" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Sales / user research &#8594;</text>
-          <text x="780" y="514" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">customer signals</text>
-        </g>
-        <g>
-          <rect x="840" y="440" width="140" height="86" rx="8" fill="#ffffff" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="4 3"/>
-          <text x="910" y="463" text-anchor="middle" font-size="12" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">/interview-review</text>
-          <text x="910" y="482" text-anchor="middle" font-size="10" fill="#9a9a9a" font-family="Nunito,sans-serif">future</text>
-          <text x="910" y="500" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">Hiring interview &#8594;</text>
-          <text x="910" y="514" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">candidate signals</text>
-        </g>
-
-        <!-- Recommender behaviour panel -->
-        <g>
-          <rect x="20" y="570" width="960" height="170" rx="10" fill="rgba(242,75,55,0.06)" stroke="rgba(242,75,55,0.35)" stroke-width="1.5"/>
-          <text x="40" y="598" font-size="13" font-weight="700" fill="#1a1a1a" font-family="Nunito,sans-serif">Recommender behaviour &mdash; mandatory</text>
-          <text x="40" y="620" font-size="11" fill="#6b6b6b" font-family="Nunito,sans-serif">The router never silently dispatches. It shows what it heard, names the segments, recommends specialists with rationale, waits for the user.</text>
-          <text x="40" y="652" font-size="11" font-weight="600" fill="#1a1a1a" font-family="Nunito,sans-serif">Example output for a 60-min mixed meeting:</text>
-          <text x="40" y="672" font-size="11" fill="#6b6b6b" font-family="JetBrains Mono,ui-monospace,monospace">  Detected two segments. 00:00&ndash;00:32 reads as a team retrospective.</text>
-          <text x="40" y="688" font-size="11" fill="#6b6b6b" font-family="JetBrains Mono,ui-monospace,monospace">  00:32&ndash;01:01 reads as a solution-design discussion.</text>
-          <text x="40" y="708" font-size="11" fill="#6b6b6b" font-family="JetBrains Mono,ui-monospace,monospace">  Recommended: /process-retro on segment 1, /design-review on segment 2.</text>
-          <text x="40" y="724" font-size="11" fill="#6b6b6b" font-family="JetBrains Mono,ui-monospace,monospace">  Confirm to proceed, or override with --as=&lt;skill&gt;.</text>
-        </g>
-      </svg>
-    </div>
-  </div>
-
-  <!-- WHY THIS MATTERS -->
-  <div class="pad">
-    <h2>Why a router and not separate commands?</h2>
-    <p>Cognitive load. The more specialists a team adopts, the harder it gets to remember which one to type. <code>/coaching-review</code>? <code>/process-retro</code>? <code>/design-review</code>? When the answer depends on what kind of session you just had, the router should answer it for you.</p>
-
-    <div class="grid-2">
+    <h2>The loop this closes</h2>
+    <p>This guide is one vocabulary running in two directions. Forward, it&rsquo;s a prompting discipline you apply in the moment. Backward, it&rsquo;s the lens the awow tooling uses to reflect your work to you. The value isn&rsquo;t either half alone &mdash; it&rsquo;s that they&rsquo;re the <em>same eight words</em>, so the loop closes.</p>
+    <div class="grid-2" style="align-items:start;">
       <div class="card">
-        <p class="card-label">Without a router</p>
-        <p style="font-size:0.88rem;margin:0;">User has to know the catalogue. New specialists added &rarr; team has to learn them. Wrong choice &rarr; wrong output. The catalogue grows faster than the team&rsquo;s memory.</p>
+        <p class="card-label">Forward &mdash; you, prompting</p>
+        <p style="margin:0;">Name the intent in your first line. If you can&rsquo;t name it, default to <code>investigate</code>. Two minutes of clarity here saves twenty of meander.</p>
       </div>
-      <div class="card">
-        <p class="card-label">With a router</p>
-        <p style="font-size:0.88rem;margin:0;">User types one command. Router reads the transcript, names what it saw, recommends specialists. Adding a new specialist is a registry entry, not a re-training event.</p>
+      <div class="card alt">
+        <p class="card-label">Backward &mdash; the agent, reflecting</p>
+        <p style="margin:0;"><code>/awow-usage-coach</code> classifies every prompt in your traces into the same eight, then reports the sequence and edit patterns. Self-coach mode does this for you alone; team-nudge does it across the team.</p>
       </div>
     </div>
+    <div class="callout callout-ok" style="margin-top:14px;"><strong>Why one vocabulary both ways matters.</strong> If the discipline you prompt with and the report you read back use different words, the feedback loop never closes &mdash; you can&rsquo;t recognise yourself in the analysis. One vocabulary, both directions, is what makes the reflection actually land.</div>
+    <p style="margin-top:14px;">That also places this guide in the wider set. It sits in the <strong>Individual tier</strong> &mdash; the craft of one session, before any board exists &mdash; alongside the <strong>session timeline</strong> and <strong>trace analysis</strong> guides. Those show you <em>what</em> a session looked like; this names the <em>moves</em> inside it. None of the three touch the team&rsquo;s board directly: they earn their place by making the person doing the work sharper.</p>
   </div>
 
-  <!-- TWO RULES -->
+  <!-- WHY (the forward half, in depth) -->
   <div class="pad">
-    <h2>Two rules the router obeys</h2>
+    <h2>Why name the move at all</h2>
+    <p>A vague prompt produces a vague session. The cheapest move that fixes this is also the smallest: in your first line, say <em>what kind of move you&rsquo;re making</em>. The intent name primes the agent&rsquo;s disposition (<code>verify</code> primes test-running; <code>propose</code> primes drafting-not-applying) and forces you to commit to a posture instead of letting the session drift.</p>
+    <div class="compare">
+      <div class="bad">
+        <p class="pre-label">Drifting</p>
+<pre>can you look at the auth module
+and tell me what's going on
+maybe also suggest a fix?</pre>
+      </div>
+      <div class="good">
+        <p class="pre-label">Named intent</p>
+<pre><span style="color:var(--link)">investigate:</span> auth module &mdash; list every
+caller of verifyToken() and note any
+that skip the expiry check.
 
-    <div class="callout">
-      <strong>Honest routing.</strong> Always say what was detected and what was recommended, in one line at the top of the output. Silent dispatching creates "why did it do that?" debugging.
+(then I&rsquo;ll <span style="color:var(--link)">plan</span> the fix.)</pre>
+      </div>
     </div>
-
-    <div class="callout">
-      <strong>Always overridable.</strong> <code>--as=&lt;skill&gt;</code> forces a specific specialist. The router gets it wrong sometimes; the user gets the last word.
-    </div>
+    <div class="callout"><strong>The diagnostic.</strong> If you can&rsquo;t pick a label for what you&rsquo;re about to ask, default to <code>investigate</code> &mdash; the inability to name the move <em>is</em> the signal that you don&rsquo;t yet know enough to plan.</div>
   </div>
 
-  <!-- SUB-MODES -->
+  <!-- THE EIGHT -->
   <div class="pad">
-    <h2>Sub-modes live inside leaves</h2>
-    <p>Some session types have variants that share a pattern library. <code>/coaching-review</code> is the clean example: the same prompt handles both <strong>1:1 coaching</strong> (pairing, demo, onboarding) and <strong>1:many teaching</strong> (course, lecture, cohort). The teacher / learner dynamic is the same; the patterns to watch for differ slightly.</p>
-    <p>This is a deliberate choice over splitting into separate skills. Two reasons:</p>
-    <ul>
-      <li>The shared core (parsing, relationship detection, phase breakdown) lives in one place. No duplication.</li>
-      <li>Adopters learn one skill, not five. The variant gets detected, not declared.</li>
-    </ul>
-    <p>Apply the same idea as new skill types differentiate. When in doubt: sub-mode first, sibling skill only if the work diverges enough that the shared core is no longer shared.</p>
-  </div>
-
-  <!-- FALLBACK -->
-  <div class="pad">
-    <h2>Fallback &mdash; when no specialist fits</h2>
-    <p>When inference is ambiguous, or the transcript doesn&rsquo;t match any specialist&rsquo;s shape, the router stays in <code>/process-transcript</code> and produces its existing templated output (actions, owners, follow-ups). No specialist = no surprise output. The router degrades gracefully into the behaviour the team already knew.</p>
-  </div>
-
-  <!-- ADDING -->
-  <div class="pad" style="border-bottom:none;">
-    <h2>Adding a new specialist</h2>
-    <p>Each new leaf needs five things:</p>
+    <h2>The eight intents</h2>
+    <p>Eight labels, plus an <code>other</code> bucket for prompts that don&rsquo;t fit. The labels are vocabulary-agnostic &mdash; they work whether or not the team uses any awow slash-commands.</p>
     <table class="data">
-      <thead>
-        <tr><th>Artefact</th><th>Where</th><th>Purpose</th></tr>
-      </thead>
+      <thead><tr><th style="width:120px;">Intent</th><th>What you&rsquo;re doing</th><th>Opening that fits</th></tr></thead>
       <tbody>
-        <tr><td><code>&lt;skill&gt;.md</code></td><td><code>.agents/commands/&lt;phase&gt;/</code></td><td>The full prompt</td></tr>
-        <tr><td>Mirror files</td><td><code>.claude/commands/</code> and <code>.github/prompts/</code></td><td>Auto-generated by <code>tools/gather.py</code></td></tr>
-        <tr><td>Grounding context</td><td><code>context/&lt;domain&gt;/</code></td><td>Canon + anti-patterns the prompt reads at Phase 0</td></tr>
-        <tr><td>Guide HTML</td><td>repo root (<code>guide-&lt;workflow&gt;.html</code>)</td><td>Slide-based onboarding for first-time adopters</td></tr>
-        <tr><td>Registry entry</td><td>router&rsquo;s registry (when shipped)</td><td>How the router knows the specialist exists and when to recommend it</td></tr>
+        <tr><td class="intent">investigate</td><td>Gathering information; reading code; mapping the terrain.</td><td><em>&ldquo;find every place we call X / explain how Y is wired&rdquo;</em></td></tr>
+        <tr><td class="intent">plan</td><td>Sketching what you&rsquo;d do, without committing to a change.</td><td><em>&ldquo;what would it take to add Y? list the steps&rdquo;</em></td></tr>
+        <tr><td class="intent">propose</td><td>Drafting the change to <em>review</em> before doing it &mdash; the awow staple.</td><td><em>&ldquo;draft a proposal in <code>proposals/Y.md</code>&rdquo;</em></td></tr>
+        <tr><td class="intent">implement</td><td>Making the change in the canonical files.</td><td><em>&ldquo;apply that proposal to <code>Y.ts</code>&rdquo;</em></td></tr>
+        <tr><td class="intent">refine</td><td>Iterating on something just made &mdash; tightening, polishing, narrowing.</td><td><em>&ldquo;tighten the error message; keep the API the same&rdquo;</em></td></tr>
+        <tr><td class="intent">verify</td><td>Checking it works &mdash; tests, types, the real app, a screenshot.</td><td><em>&ldquo;run the tests / open it and confirm Z renders&rdquo;</em></td></tr>
+        <tr><td class="intent">document</td><td>Recording the <em>why</em>, for the future reader (often you).</td><td><em>&ldquo;add a why-comment / write a <code>context/knowledge-base/</code> entry&rdquo;</em></td></tr>
+        <tr><td class="intent">inform</td><td>Telling the agent something &mdash; a status, decision, observation.</td><td><em>&ldquo;FYI Linear says X is in-progress; don&rsquo;t recreate the ticket&rdquo;</em></td></tr>
       </tbody>
     </table>
-    <p style="margin-top:14px;">After landing the source, run <code>python tools/gather.py</code> to refresh the mirrors. Then update <code>.agents/commands/&lt;phase&gt;/README.md</code> to list the new command.</p>
+    <p style="margin-top:14px;">The labels are deliberately coarse. They&rsquo;re posture, not procedure: a single <code>implement</code> can edit twenty files; a single <code>investigate</code> can read fifty. The point isn&rsquo;t classification accuracy &mdash; it&rsquo;s self-awareness about what kind of move you&rsquo;re making.</p>
+  </div>
+
+  <!-- SEQUENCES -->
+  <div class="pad">
+    <h2>The rhythms that recur</h2>
+    <p>Intent <em>sequences</em> &mdash; pairs and triples of intents through a session &mdash; tell you more than any single label. A few patterns recur enough to be worth naming:</p>
+    <div class="grid-2" style="align-items:start;">
+      <div class="card">
+        <p class="card-label">Healthy rhythms</p>
+        <ul>
+          <li><strong><code>plan &rarr; propose &rarr; implement</code></strong> &mdash; the textbook awow rhythm. Cheap iteration in markdown, then apply once it&rsquo;s right.</li>
+          <li><strong><code>implement &rarr; verify &rarr; refine</code></strong> &mdash; TDD-shaped. Healthy when the change actually lands.</li>
+          <li><strong><code>investigate &rarr; plan</code></strong> &mdash; you read the terrain, then commit to a route.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <p class="card-label">Worth nudging on</p>
+        <ul>
+          <li><strong><code>implement &rarr; implement &rarr; implement</code></strong> with no <code>verify</code> &mdash; execution without checks. Tends to correlate with <code>refine</code> later (rework).</li>
+          <li><strong><code>investigate &times; 3+</code></strong> &mdash; deep exploration. Fine on unfamiliar code; expensive when the answer was already in <code>context/knowledge-base/</code>.</li>
+          <li><strong><code>inform</code>-heavy</strong> &mdash; you&rsquo;re talking <em>to</em> the agent rather than directing it. Common in pair-style work; reactive when there&rsquo;s no <code>plan</code> to anchor it.</li>
+          <li><strong><code>other &gt; 30%</code></strong> &mdash; the taxonomy is under-capturing how you actually talk. The gap itself is the signal.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE RITUAL -->
+  <div class="pad">
+    <h2>The small ritual</h2>
+    <p>Open every session with a one-liner that names the intent. Two examples that cost nothing and change everything:</p>
+<pre><span style="color:var(--link)">plan</span>: what would it take to add cancel-on-blur to the
+search input &mdash; list the touch points, no code yet.</pre>
+<pre><span style="color:var(--link)">verify</span>: run the auth tests and tell me which fail
+on the new token-expiry branch.</pre>
+    <p>That&rsquo;s the whole craft. The label is for <em>you</em> first (it forces clarity); the agent picks it up second (and adjusts posture); the coach reads it back third (and the loop closes).</p>
+  </div>
+
+  <!-- WHEN OTHER DOMINATES -->
+  <div class="pad">
+    <h2>When &ldquo;other&rdquo; takes over</h2>
+    <p>If a sizable fraction of your prompts don&rsquo;t map cleanly to the eight, the taxonomy isn&rsquo;t broken &mdash; <em>your style isn&rsquo;t the median style the taxonomy was tuned for</em>, and that&rsquo;s also signal. Two responses both work:</p>
+    <ul>
+      <li><strong>Let it be visible.</strong> The coach reports it honestly (<em>&ldquo;other &gt; 30% &mdash; the taxonomy under-captures&rdquo;</em>) and quotes a handful of those prompts. You decide whether to nudge your phrasing or accept it.</li>
+      <li><strong>Don&rsquo;t over-classify.</strong> Some prompts genuinely don&rsquo;t fit (very short follow-ups, conversational acknowledgements). Misclassifying them just makes the report wrong.</li>
+    </ul>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="pad-tight" style="border-bottom:none;">
+    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Used by: <code>/awow-usage-coach</code> (forward-lens reflection), <code>/weekly-digest</code> and <code>/daily-digest</code> (intent-tagged synthesis). The canonical definitions live in <code>.agents/skills/awow-usage-coach/SKILL.md</code>; this guide is the human-facing companion.</p>
   </div>
 
 </div>
+
+<script>
+(function(){
+  var toc=document.getElementById('guideToc'); if(!toc) return;
+  var heads=[].slice.call(document.querySelectorAll('.wrap h2')); if(!heads.length) return;
+  var pad2=function(n){return n<10?'0'+n:''+n;};
+  var slug=function(t){return t.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'sec';};
+  var top=function(el){return el.getBoundingClientRect().top+window.scrollY;};
+  var items=[];
+  heads.forEach(function(h){
+    var label=h.textContent.trim().replace(/^\s*\d+[.)]\s*/,'');
+    if(!label) return;
+    var target=h.closest('.pad,.pad-tight,section')||h;
+    if(!target.id) target.id='sec-'+(items.length+1)+'-'+slug(label);
+    var a=document.createElement('a'); a.className='toc-item'; a.href='#'+target.id;
+    var num=document.createElement('span'); num.className='toc-num'; num.textContent=pad2(items.length+1);
+    var lab=document.createElement('span'); lab.className='toc-label'; lab.textContent=label;
+    a.appendChild(num); a.appendChild(lab);
+    a.addEventListener('click',function(e){e.preventDefault(); target.scrollIntoView({behavior:'smooth',block:'start'}); history.replaceState(null,'','#'+target.id);});
+    toc.appendChild(a); items.push({t:target,a:a});
+  });
+  var spy=function(){
+    var y=window.scrollY+130, cur=items[0];
+    for(var i=0;i<items.length;i++){ if(top(items[i].t)<=y) cur=items[i]; }
+    items.forEach(function(it){ it.a.classList.toggle('active', it===cur); });
+  };
+  window.addEventListener('scroll',spy,{passive:true});
+  window.addEventListener('resize',spy); spy();
+})();
+</script>
 
 </body>
 </html>

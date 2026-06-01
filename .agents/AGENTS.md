@@ -80,7 +80,7 @@ Linking those traces back to the board — a `_session: <id>_` footer on issues 
 
 This repository is **public**. Reports and exports derived from agent session traces carry customer/session data — real names, private issue IDs, infra topology, cost figures, and secrets users pasted into prompts. They must never be committed here.
 
-- **Never write session-derived output to a tracked path** (`proposals/`, `context/`, the knowledge base, anywhere git tracks). The `mlflow-export`, `awow-usage-coach`, `prompt-skill-analysis`, and `/project-retrospective` skills produce this kind of output — route it to the gitignored `coach_reviews/` (or `mlflow_export/`) only.
+- **Never write session-derived output to a tracked path** (`proposals/`, `context/`, the knowledge base, anywhere git tracks). The `mlflow-export`, `awow-usage-coach`, `prompt-skill-analysis`, and `project-timeline` skills produce this kind of output — route it to the gitignored `coach_reviews/` (or `mlflow_export/`) only.
 - `proposals/` is for drafting *awow's own* artefacts (stories, features). It is **not** a scratchpad for analysis of real team sessions.
 - A `pre-push` leak scan (`tools/hooks/pre-push`) backstops this. Install it with `cp tools/hooks/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push`. It is a backstop, not a guarantee — keeping the data untracked is the first line of defence.
 - If you spot session-derived or otherwise private content already tracked, stop and flag it to the user before pushing.

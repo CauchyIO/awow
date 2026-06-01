@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>awow &mdash; Program portfolio view</title>
+<!--
+  PROGRAM PORTFOLIO VIEW — a dashboard mockup for the manager-of-managers.
+  The team tier solves COORDINATION (the board clears the fog). One tier up, the program
+  solves ALLOCATION UNDER CONSTRAINT: a ranked portfolio of initiatives against finite
+  specialist capacity. Center of gravity = the portfolio (initiatives × teams × capacity),
+  not a board. The rule that places it in the process: PRIORITY routes DOWN, SIZE rolls UP.
+  The program owns what/priority/who/sequence; teams own how-big (sizing) and how. This view
+  is a LENS over the team boards, not a second source of truth.
+
+  Palette discipline: neutral structure; functional RAG (green=on track, amber=at risk);
+  coral accent reserved for "needs the program" — over-capacity alarms and the action queue,
+  so the manager's eye lands exactly where a decision is required. Self-contained: no external
+  fonts, links, or scripts.
+-->
+<style>
+  :root {
+    --bg: #f6f5f3;
+    --surface: #ffffff;
+    --surface-alt: #f0efed;
+    --text-1: #1a1a1a;
+    --text-2: #6b6b6b;
+    --text-3: #9a9a9a;
+    --border: #e0dfdd;
+    --border-subtle: #ebeae8;
+    --accent: #f24b37;
+    --link: #337FF9;
+    --ok: #2e7d4f;
+    --warn: #c97a1b;
+    --ok-tint: rgba(46,125,79,0.10);
+    --warn-tint: rgba(201,122,27,0.12);
+    --accent-tint: rgba(242,75,55,0.09);
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:24px 16px; font-family:'Nunito',system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text-1); line-height:1.6; }
+  .wrap { max-width:1140px; margin:0 auto; background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+  code { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.84em; background:var(--surface-alt); padding:1px 6px; border-radius:3px; border:1px solid var(--border-subtle); }
+  .kicker { font-size:0.72rem; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:0.12em; margin:0 0 10px; }
+  .mono { font-family:'JetBrains Mono',ui-monospace,monospace; }
+
+  /* ======== HERO ======== */
+  .hero { background:var(--text-1); color:#fff; padding:40px 40px 34px; }
+  .hero .kicker { color:rgba(255,255,255,0.45); }
+  .hero h1 { font-size:2.1rem; font-weight:800; margin:0; letter-spacing:-0.025em; color:#fff; }
+  .hero .lead { font-size:1.02rem; color:rgba(255,255,255,0.82); margin:13px 0 0; font-weight:500; max-width:760px; line-height:1.6; }
+  .hero .lead strong { color:#fff; font-weight:800; }
+  .hero .period { display:inline-block; font-size:0.68rem; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; color:rgba(255,255,255,0.8); background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16); border-radius:20px; padding:4px 12px; margin:0 0 16px; }
+
+  .kpis { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin:26px 0 0; }
+  .kpi { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:13px 15px; }
+  .kpi .kn { font-size:1.7rem; font-weight:800; letter-spacing:-0.02em; line-height:1; }
+  .kpi .kl { font-size:0.7rem; font-weight:700; color:rgba(255,255,255,0.6); margin:7px 0 0; line-height:1.3; }
+  .kpi.alarm { background:rgba(242,75,55,0.16); border-color:rgba(242,75,55,0.5); }
+  .kpi.alarm .kn { color:#ff8a78; }
+  .kpi.alarm .kl { color:rgba(255,255,255,0.78); }
+
+  /* ======== MODEL STRIP (priority down / size up) ======== */
+  .model { display:grid; grid-template-columns:1fr 1fr; gap:0; border-bottom:1px solid var(--border-subtle); }
+  .model-half { padding:18px 40px; display:flex; align-items:center; gap:14px; }
+  .model-half:first-child { border-right:1px solid var(--border-subtle); }
+  .model-arrow { font-size:1.5rem; font-weight:800; line-height:1; flex:none; }
+  .model-half.down .model-arrow { color:var(--accent); }
+  .model-half.up .model-arrow { color:var(--ok); }
+  .model-half .mt { font-size:0.82rem; color:var(--text-2); line-height:1.5; }
+  .model-half .mt b { color:var(--text-1); font-weight:800; }
+
+  /* ======== SECTION CHROME ======== */
+  .section { padding:28px 40px 30px; border-bottom:1px solid var(--border-subtle); }
+  .sec-head { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin:0 0 4px; }
+  .sec-head h2 { font-size:1.3rem; font-weight:800; margin:0; letter-spacing:-0.02em; }
+  .sec-head .tag { font-size:0.64rem; font-weight:800; text-transform:uppercase; letter-spacing:0.07em; padding:3px 9px; border-radius:20px; }
+  .tag.alarm { color:var(--accent); background:var(--accent-tint); border:1px solid rgba(242,75,55,0.32); }
+  .sec-sub { font-size:0.88rem; color:var(--text-2); margin:0 0 18px; max-width:820px; line-height:1.6; }
+  .sec-sub strong { color:var(--text-1); }
+
+  /* ======== CAPACITY MATRIX ======== */
+  .matrix { display:grid; grid-template-columns:188px repeat(7, minmax(0,1fr)) 150px; border:1px solid var(--border); border-radius:11px; overflow:hidden; }
+  .mh { background:var(--surface-alt); border-bottom:1px solid var(--border); padding:9px 6px; text-align:center; }
+  .mh.corner { text-align:left; padding-left:15px; font-size:0.66rem; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-3); display:flex; align-items:center; }
+  .mh.load { font-size:0.66rem; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-3); display:flex; align-items:center; justify-content:center; }
+  .mh .ic { font-family:'JetBrains Mono',ui-monospace,monospace; font-size:0.74rem; font-weight:800; color:var(--text-1); }
+  .mh .istat { display:inline-block; width:7px; height:7px; border-radius:50%; margin-left:4px; vertical-align:middle; }
+  .mh .irank { display:block; font-size:0.58rem; font-weight:700; color:var(--text-3); margin-top:2px; }
+
+  .tcell { padding:11px 6px 11px 15px; border-bottom:1px solid var(--border-subtle); border-right:1px solid var(--border-subtle); display:flex; flex-direction:column; justify-content:center; background:var(--surface); }
+  .tcell .tn { font-size:0.86rem; font-weight:800; color:var(--text-1); letter-spacing:-0.01em; }
+  .tcell .tr { font-size:0.66rem; color:var(--text-3); margin-top:1px; }
+  .cell { border-bottom:1px solid var(--border-subtle); border-right:1px solid var(--border-subtle); display:flex; align-items:center; justify-content:center; min-height:52px; background:var(--surface); }
+  .chip { width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:0.62rem; font-weight:800; }
+  .chip.lead { background:var(--text-1); color:#fff; }
+  .chip.contrib { background:var(--surface-alt); border:1.5px solid var(--border); color:var(--text-2); }
+  .chip.none { color:var(--text-3); opacity:0.4; font-weight:700; }
+  .row-over .cell, .row-over .tcell { background:var(--accent-tint); }
+
+  .load { border-bottom:1px solid var(--border-subtle); padding:10px 15px; display:flex; flex-direction:column; justify-content:center; gap:5px; background:var(--surface); }
+  .load .ltop { display:flex; align-items:baseline; justify-content:space-between; }
+  .load .lpct { font-size:0.92rem; font-weight:800; }
+  .load .lcount { font-size:0.62rem; color:var(--text-3); font-weight:700; }
+  .load .lbar { height:7px; border-radius:4px; background:var(--surface-alt); overflow:hidden; position:relative; }
+  .load .lfill { height:100%; border-radius:4px; }
+  .load .lcap { position:absolute; top:-2px; bottom:-2px; left:75.7%; width:1.5px; background:var(--text-3); } /* 100% marker at 100/132 of track scaled below */
+  .ok  { color:var(--ok); }  .warn { color:var(--warn); }  .over { color:var(--accent); }
+  .f-ok  { background:var(--ok); }  .f-warn { background:var(--warn); }  .f-over { background:var(--accent); }
+  .d-ok  { background:var(--ok); }  .d-warn { background:var(--warn); }  .d-block { background:var(--accent); }  .d-idle { background:var(--text-3); }
+
+  .legend { display:flex; gap:18px; flex-wrap:wrap; font-size:0.74rem; color:var(--text-2); margin:16px 0 0; }
+  .legend span { display:inline-flex; align-items:center; gap:7px; }
+  .legend .sw { width:22px; height:16px; border-radius:5px; flex:none; display:inline-flex; align-items:center; justify-content:center; font-size:0.56rem; font-weight:800; }
+
+  /* ======== PORTFOLIO LIST ======== */
+  .pf { display:flex; flex-direction:column; gap:11px; }
+  .pf-row { border:1px solid var(--border); border-left:4px solid var(--rc); border-radius:11px; background:var(--surface); overflow:hidden; }
+  .pf-row > summary { list-style:none; cursor:pointer; outline:none; }
+  .pf-row > summary::-webkit-details-marker { display:none; }
+  .pf-row > summary:focus-visible { box-shadow:inset 0 0 0 2px var(--link); border-radius:8px; }
+  .pf-sum { display:grid; grid-template-columns:54px 1fr 280px; transition:background 0.12s; }
+  .pf-row:hover .pf-sum { background:rgba(26,26,26,0.015); }
+  .pf-rank { display:flex; flex-direction:column; align-items:center; justify-content:center; background:var(--surface-alt); border-right:1px solid var(--border-subtle); padding:12px 0; }
+  .pf-rank .pr { font-size:1.25rem; font-weight:800; color:var(--text-1); line-height:1; }
+  .pf-rank .pl { font-size:0.54rem; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-3); margin-top:3px; }
+  .pf-body { padding:13px 17px; }
+  .pf-title { display:flex; align-items:baseline; gap:10px; }
+  .pf-title .ic { font-family:'JetBrains Mono',ui-monospace,monospace; font-size:0.72rem; font-weight:800; color:var(--text-3); }
+  .pf-title .nm { font-size:1.02rem; font-weight:800; letter-spacing:-0.01em; }
+  .pf-teams { display:flex; flex-wrap:wrap; gap:6px; margin:9px 0 0; }
+  .tm { font-size:0.68rem; font-weight:700; padding:2px 9px; border-radius:20px; background:var(--surface-alt); border:1px solid var(--border); color:var(--text-2); }
+  .tm.lead { background:var(--text-1); color:#fff; border-color:var(--text-1); }
+  .pf-dep { font-size:0.78rem; color:var(--text-2); margin:10px 0 0; line-height:1.45; }
+  .pf-dep.block { color:var(--accent); font-weight:700; }
+  .pf-dep .dl { font-weight:800; text-transform:uppercase; font-size:0.6rem; letter-spacing:0.06em; margin-right:6px; color:var(--text-3); }
+  .pf-meta { border-left:1px solid var(--border-subtle); padding:13px 17px; display:flex; flex-direction:column; gap:10px; justify-content:center; }
+  .meta-row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .meta-l { font-size:0.66rem; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-3); }
+  .rag { font-size:0.68rem; font-weight:800; padding:3px 10px; border-radius:20px; }
+  .rag.ok { color:var(--ok); background:var(--ok-tint); }
+  .rag.warn { color:var(--warn); background:var(--warn-tint); }
+  .rag.block { color:#fff; background:var(--accent); }
+  .rag.idle { color:var(--text-2); background:var(--surface-alt); border:1px solid var(--border); }
+  .size { font-size:0.7rem; font-weight:700; color:var(--text-2); }
+  .size .dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:5px; vertical-align:middle; }
+  .prog { height:7px; border-radius:4px; background:var(--surface-alt); overflow:hidden; flex:1; }
+  .prog .pfll { height:100%; border-radius:4px; }
+  .score { font-family:'JetBrains Mono',ui-monospace,monospace; font-size:0.78rem; font-weight:800; }
+
+  /* board glyph (data-URI, self-contained) — ties everything to the board motif */
+  .bglyph { display:inline-block; width:15px; height:12px; flex:none; background-repeat:no-repeat; background-position:center; background-size:contain;
+    background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='15' height='12' viewBox='0 0 15 12'><g fill='none' stroke='%239a9a9a' stroke-width='1'><rect x='0.5' y='0.5' width='4' height='11' rx='1'/><rect x='5.5' y='0.5' width='4' height='11' rx='1'/><rect x='10.5' y='0.5' width='4' height='11' rx='1'/></g><g fill='%239a9a9a'><rect x='1.4' y='1.9' width='2.2' height='1.3' rx='0.5'/><rect x='6.4' y='1.9' width='2.2' height='1.3' rx='0.5'/><rect x='6.4' y='4' width='2.2' height='1.3' rx='0.5'/><rect x='11.4' y='1.9' width='2.2' height='1.3' rx='0.5'/></g></svg>"); }
+
+  /* provenance hint above the portfolio */
+  .prov { display:flex; align-items:center; gap:10px; font-size:0.8rem; color:var(--text-2); margin:0 0 16px; padding:10px 14px; background:var(--surface-alt); border:1px solid var(--border-subtle); border-radius:9px; }
+  .prov b { color:var(--text-1); font-weight:800; }
+  .prov .bglyph { width:17px; height:14px; }
+
+  /* per-row source affordance + caret */
+  .pf-source { display:flex; align-items:center; gap:8px; margin:11px 0 0; padding-top:10px; border-top:1px dashed var(--border); font-size:0.74rem; font-weight:700; color:var(--text-3); }
+  .pf-source .scount b { color:var(--text-2); font-weight:800; }
+  .pf-source .pf-caret { margin-left:auto; font-size:1rem; color:var(--text-3); transition:transform 0.15s, color 0.15s; font-weight:800; }
+  .pf-row[open] .pf-source { color:var(--text-2); }
+  .pf-row[open] .pf-source .pf-caret { transform:rotate(90deg); color:var(--text-1); }
+  .pf-row:hover .pf-source .pf-caret { color:var(--text-1); }
+
+  /* drill-down panel — the board items behind the roll-up */
+  .pf-drill { padding:14px 17px 16px 58px; background:var(--surface-alt); border-top:1px solid var(--border); }
+  .drill-note { display:flex; align-items:center; gap:9px; font-size:0.77rem; color:var(--text-2); margin:0 0 12px; line-height:1.45; }
+  .drill-note b { color:var(--text-1); }
+  .drill-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:11px; }
+  .db { background:var(--surface); border:1px solid var(--border); border-radius:9px; padding:9px 12px 6px; }
+  .db-h { display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin:0 0 6px; padding-bottom:6px; border-bottom:1px solid var(--border-subtle); }
+  .db-team { font-size:0.78rem; font-weight:800; color:var(--text-1); }
+  .db-src { font-family:'JetBrains Mono',ui-monospace,monospace; font-size:0.58rem; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:0.04em; }
+  .bi { display:flex; align-items:center; gap:8px; padding:5px 0; }
+  .bi + .bi { border-top:1px solid var(--border-subtle); }
+  .bid { font-family:'JetBrains Mono',ui-monospace,monospace; font-size:0.64rem; font-weight:700; color:var(--text-2); flex:none; }
+  .bt { font-size:0.74rem; color:var(--text-1); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .bs { font-size:0.56rem; font-weight:800; text-transform:uppercase; letter-spacing:0.03em; padding:2px 7px; border-radius:20px; flex:none; }
+  .bs.prog { color:var(--warn); background:var(--warn-tint); }
+  .bs.rev { color:var(--link); background:rgba(51,127,249,0.10); }
+  .bs.done { color:var(--ok); background:var(--ok-tint); }
+  .bs.ready { color:var(--text-2); background:var(--surface-alt); border:1px solid var(--border); }
+  .bs.back { color:var(--text-3); background:var(--surface-alt); border:1px dashed var(--border); }
+  .bs.block { color:#fff; background:var(--accent); }
+  .db.pending { border-style:dashed; background:transparent; display:flex; align-items:center; justify-content:center; text-align:center; color:var(--text-3); font-size:0.71rem; font-weight:700; line-height:1.4; padding:12px; }
+
+  /* ======== ACTION QUEUE ======== */
+  .actions { display:flex; flex-direction:column; gap:11px; }
+  .act { display:flex; gap:14px; border:1px solid var(--ac-bd); border-left:4px solid var(--ac); border-radius:11px; padding:14px 17px; background:var(--ac-tint); }
+  .act .an { font-family:'JetBrains Mono',ui-monospace,monospace; font-size:0.78rem; font-weight:800; color:var(--ac); flex:none; padding-top:1px; }
+  .act .ab { flex:1; }
+  .act .at { font-size:0.92rem; font-weight:800; color:var(--text-1); letter-spacing:-0.01em; }
+  .act .ad { font-size:0.82rem; color:var(--text-2); margin:4px 0 0; line-height:1.5; }
+  .act .ad b { color:var(--text-1); }
+  .act .amove { font-size:0.78rem; margin:8px 0 0; color:var(--ac); font-weight:700; }
+  .act .amove .ml { font-size:0.6rem; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-3); margin-right:6px; }
+
+  /* ======== FOOTER ======== */
+  .foot { padding:24px 40px 28px; }
+  .foot .callout { background:var(--surface-alt); border-left:3px solid var(--text-1); border-radius:0 9px 9px 0; padding:15px 18px; font-size:0.86rem; color:var(--text-2); line-height:1.65; }
+  .foot .callout strong { color:var(--text-1); }
+  .foot .src { font-size:0.74rem; color:var(--text-3); margin:14px 0 0; line-height:1.6; }
+
+  @media (max-width: 920px) {
+    .hero, .section, .foot { padding-left:22px; padding-right:22px; }
+    .model-half { padding-left:22px; padding-right:22px; }
+    .kpis { grid-template-columns:repeat(2,1fr); }
+    .model { grid-template-columns:1fr; }
+    .model-half:first-child { border-right:none; border-bottom:1px solid var(--border-subtle); }
+    .matrix { display:block; overflow-x:auto; white-space:nowrap; }
+    .matrix { grid-template-columns:none; }
+    .pf-sum { grid-template-columns:46px 1fr; }
+    .pf-meta { grid-column:1 / -1; border-left:none; border-top:1px solid var(--border-subtle); }
+    .pf-drill { padding-left:17px; }
+    .drill-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ===== HERO ===== -->
+  <div class="hero">
+    <p class="kicker">Cauchy &middot; awow &middot; Program tier</p>
+    <span class="period">Planning increment 3 &middot; live</span>
+    <h1>Program portfolio</h1>
+    <p class="lead">One tier above the team boards. The team tier clears the fog of <em>what&rsquo;s happening</em>; up here the job is <strong>allocation under constraint</strong> &mdash; a ranked portfolio of initiatives against finite specialist capacity. The board isn&rsquo;t the center of gravity any more; <strong>the portfolio</strong> is. This view exists so a manager-of-managers can see where capacity is contended and rebalance.</p>
+    <div class="kpis">
+      <div class="kpi"><div class="kn">7</div><div class="kl">initiatives in flight</div></div>
+      <div class="kpi"><div class="kn">6</div><div class="kl">specialist teams</div></div>
+      <div class="kpi alarm"><div class="kn">2</div><div class="kl">teams over capacity</div></div>
+      <div class="kpi alarm"><div class="kn">4</div><div class="kl">actions only the program can take</div></div>
+      <div class="kpi"><div class="kn">5/7</div><div class="kl">sized (rolled up from teams)</div></div>
+    </div>
+  </div>
+
+  <!-- ===== MODEL STRIP ===== -->
+  <div class="model">
+    <div class="model-half down">
+      <span class="model-arrow">&darr;</span>
+      <span class="mt"><b>Priority routes down.</b> The program owns <b>what</b>, <b>priority</b>, <b>who</b> and <b>sequence</b> &mdash; initiatives drop onto team boards as stories.</span>
+    </div>
+    <div class="model-half up">
+      <span class="model-arrow">&uarr;</span>
+      <span class="mt"><b>Size rolls up.</b> Teams own <b>how big</b> (sizing) and <b>how</b>. Their sizes and progress roll back up &mdash; that read-back is the resource management.</span>
+    </div>
+  </div>
+
+  <!-- ===== CAPACITY & CONTENTION ===== -->
+  <section class="section">
+    <div class="sec-head">
+      <h2>Capacity &amp; contention</h2>
+      <span class="tag alarm">2 teams over capacity</span>
+    </div>
+    <p class="sec-sub">Who is on what, and whether they can carry it. Every column is an initiative (ranked left&rarr;right by priority); every row is a team. <strong>Platform</strong> and <strong>Security</strong> sit on the critical path of almost everything &mdash; they&rsquo;re the constraint, and no team-level fix clears it. Only the program can re-sequence or re-staff.</p>
+
+    <div class="matrix">
+      <!-- header -->
+      <div class="mh corner">Team &darr; &nbsp;/&nbsp; Initiative &rarr;</div>
+      <div class="mh"><span class="ic">I1</span><span class="istat" style="background:var(--warn)"></span><span class="irank">#1</span></div>
+      <div class="mh"><span class="ic">I2</span><span class="istat" style="background:var(--ok)"></span><span class="irank">#2</span></div>
+      <div class="mh"><span class="ic">I3</span><span class="istat" style="background:var(--accent)"></span><span class="irank">#3</span></div>
+      <div class="mh"><span class="ic">I4</span><span class="istat" style="background:var(--ok)"></span><span class="irank">#4</span></div>
+      <div class="mh"><span class="ic">I5</span><span class="istat" style="background:var(--warn)"></span><span class="irank">#5</span></div>
+      <div class="mh"><span class="ic">I6</span><span class="istat" style="background:var(--ok)"></span><span class="irank">#6</span></div>
+      <div class="mh"><span class="ic">I7</span><span class="istat" style="background:var(--text-3)"></span><span class="irank">#7</span></div>
+      <div class="mh load">Load vs cap</div>
+
+      <!-- Infrastructure -->
+      <div class="tcell"><span class="tn">Infrastructure</span><span class="tr">leads 2</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="cell"><span class="chip lead" title="Lead">L</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="cell"><span class="chip lead" title="Lead">L</span></div>
+      <div class="load"><div class="ltop"><span class="lpct ok">78%</span><span class="lcount">2 init</span></div><div class="lbar"><div class="lfill f-ok" style="width:59%"></div><div class="lcap"></div></div></div>
+
+      <!-- Architecture -->
+      <div class="tcell"><span class="tn">Architecture</span><span class="tr">contributes 2</span></div>
+      <div class="cell"><span class="chip contrib" title="Contributes">C</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="cell"><span class="chip contrib" title="Contributes">C</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="load"><div class="ltop"><span class="lpct warn">95%</span><span class="lcount">2 init</span></div><div class="lbar"><div class="lfill f-warn" style="width:72%"></div><div class="lcap"></div></div></div>
+
+      <!-- Data Governance -->
+      <div class="tcell"><span class="tn">Data Governance</span><span class="tr">leads 2 &middot; contrib 1</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="cell"><span class="chip lead" title="Lead">L</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="cell"><span class="chip contrib" title="Contributes">C</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="cell"><span class="chip lead" title="Lead">L</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="load"><div class="ltop"><span class="lpct warn">88%</span><span class="lcount">3 init</span></div><div class="lbar"><div class="lfill f-warn" style="width:67%"></div><div class="lcap"></div></div></div>
+
+      <!-- BI & Analytics -->
+      <div class="tcell"><span class="tn">BI &amp; Analytics</span><span class="tr">leads 1 &middot; contrib 2</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="cell"><span class="chip contrib" title="Contributes">C</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="cell"><span class="chip lead" title="Lead">L</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="cell"><span class="chip contrib" title="Contributes">C</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="load"><div class="ltop"><span class="lpct ok">70%</span><span class="lcount">3 init</span></div><div class="lbar"><div class="lfill f-ok" style="width:53%"></div><div class="lcap"></div></div></div>
+
+      <!-- Platform -->
+      <div class="tcell"><span class="tn">Platform</span><span class="tr">leads 1 &middot; contrib 5</span></div>
+      <div class="cell"><span class="chip contrib" title="Contributes">C</span></div>
+      <div class="cell"><span class="chip contrib" title="Contributes">C</span></div>
+      <div class="cell"><span class="chip contrib" title="Contributes">C</span></div>
+      <div class="cell"><span class="chip contrib" title="Contributes">C</span></div>
+      <div class="cell"><span class="chip lead" title="Lead">L</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="cell"><span class="chip contrib" title="Contributes">C</span></div>
+      <div class="load"><div class="ltop"><span class="lpct over">132%</span><span class="lcount">6 init</span></div><div class="lbar"><div class="lfill f-over" style="width:100%"></div><div class="lcap"></div></div></div>
+
+      <!-- Security -->
+      <div class="tcell"><span class="tn">Security</span><span class="tr">leads 1 &middot; contrib 4</span></div>
+      <div class="cell"><span class="chip lead" title="Lead">L</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="cell"><span class="chip contrib" title="Contributes">C</span></div>
+      <div class="cell"><span class="chip none">&middot;</span></div>
+      <div class="cell"><span class="chip contrib" title="Contributes">C</span></div>
+      <div class="cell"><span class="chip contrib" title="Contributes">C</span></div>
+      <div class="cell"><span class="chip contrib" title="Contributes">C</span></div>
+      <div class="load"><div class="ltop"><span class="lpct over">115%</span><span class="lcount">5 init</span></div><div class="lbar"><div class="lfill f-over" style="width:87%"></div><div class="lcap"></div></div></div>
+    </div>
+
+    <div class="legend">
+      <span><i class="sw chip lead" style="width:22px;height:16px">L</i> leads the initiative</span>
+      <span><i class="sw" style="background:var(--surface-alt);border:1.5px solid var(--border);color:var(--text-2)">C</i> contributes</span>
+      <span><i class="sw f-ok"></i> within capacity</span>
+      <span><i class="sw f-warn"></i> near capacity</span>
+      <span><i class="sw f-over"></i> over capacity &mdash; program action</span>
+      <span>&#9474; vertical mark = 100% capacity line</span>
+    </div>
+  </section>
+
+  <!-- ===== THE PORTFOLIO ===== -->
+  <section class="section">
+    <div class="sec-head">
+      <h2>The portfolio</h2>
+      <span class="tag" style="color:var(--text-2);background:var(--surface-alt);border:1px solid var(--border)">ranked by priority</span>
+    </div>
+    <p class="sec-sub">Initiatives the program has scored and allocated &mdash; priority and owning teams set <strong>here</strong>; sizing done by the teams and rolled back up. An <strong>unsized</strong> initiative can&rsquo;t be forecast yet: it&rsquo;s waiting on a team refinement.</p>
+    <p class="prov"><span class="bglyph"></span>Every figure here rolls up from the team boards. <b>Click any initiative</b> to drop into the board items behind it.</p>
+
+    <div class="pf">
+
+      <!-- I1 -->
+      <details class="pf-row" style="--rc:var(--warn)">
+        <summary class="pf-sum">
+          <div class="pf-rank"><span class="pr">1</span><span class="pl">prio</span></div>
+          <div class="pf-body">
+            <div class="pf-title"><span class="ic">I1</span><span class="nm">Identity &amp; SSO federation</span></div>
+            <div class="pf-teams"><span class="tm lead">Security</span><span class="tm">Platform</span><span class="tm">Architecture</span></div>
+            <div class="pf-dep"><span class="dl">at risk</span>Platform at capacity &mdash; sized and moving, but delivery date is exposed.</div>
+            <div class="pf-source"><span class="bglyph"></span><span class="scount"><b>4</b> work items &middot; <b>3</b> boards</span><span class="pf-caret">&rsaquo;</span></div>
+          </div>
+          <div class="pf-meta">
+            <div class="meta-row"><span class="meta-l">Priority score</span><span class="score warn">9.2</span></div>
+            <div class="meta-row"><span class="rag warn">At risk</span><span class="size"><span class="dot d-ok"></span>Sized</span></div>
+            <div class="meta-row"><span class="meta-l">60%</span><div class="prog"><div class="pfll f-warn" style="width:60%"></div></div></div>
+          </div>
+        </summary>
+        <div class="pf-drill">
+          <div class="drill-note"><span class="bglyph"></span>The <b>60%</b> is these live board items &mdash; rolled up, not re-keyed.</div>
+          <div class="drill-grid">
+            <div class="db">
+              <div class="db-h"><span class="db-team">Security</span><span class="db-src">Jira</span></div>
+              <div class="bi"><span class="bid">SEC-142</span><span class="bt">OIDC provider integration</span><span class="bs prog">In progress</span></div>
+              <div class="bi"><span class="bid">SEC-148</span><span class="bt">Token &amp; session lifecycle</span><span class="bs rev">In review</span></div>
+            </div>
+            <div class="db">
+              <div class="db-h"><span class="db-team">Platform</span><span class="db-src">Linear</span></div>
+              <div class="bi"><span class="bid">PLT-310</span><span class="bt">Gateway auth filter</span><span class="bs prog">In progress</span></div>
+            </div>
+            <div class="db">
+              <div class="db-h"><span class="db-team">Architecture</span><span class="db-src">Azure DevOps</span></div>
+              <div class="bi"><span class="bid">ARC-77</span><span class="bt">Federation design</span><span class="bs done">Done</span></div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- I2 -->
+      <details class="pf-row" style="--rc:var(--ok)">
+        <summary class="pf-sum">
+          <div class="pf-rank"><span class="pr">2</span><span class="pl">prio</span></div>
+          <div class="pf-body">
+            <div class="pf-title"><span class="ic">I2</span><span class="nm">Data governance &amp; lineage</span></div>
+            <div class="pf-teams"><span class="tm lead">Data Governance</span><span class="tm">Platform</span><span class="tm">BI &amp; Analytics</span></div>
+            <div class="pf-dep"><span class="dl">on track</span>Foundation for I4 &mdash; sequenced first on purpose.</div>
+            <div class="pf-source"><span class="bglyph"></span><span class="scount"><b>4</b> work items &middot; <b>3</b> boards</span><span class="pf-caret">&rsaquo;</span></div>
+          </div>
+          <div class="pf-meta">
+            <div class="meta-row"><span class="meta-l">Priority score</span><span class="score ok">8.7</span></div>
+            <div class="meta-row"><span class="rag ok">On track</span><span class="size"><span class="dot d-ok"></span>Sized</span></div>
+            <div class="meta-row"><span class="meta-l">40%</span><div class="prog"><div class="pfll f-ok" style="width:40%"></div></div></div>
+          </div>
+        </summary>
+        <div class="pf-drill">
+          <div class="drill-note"><span class="bglyph"></span>The <b>40%</b> is these board items &mdash; the foundation I4 is waiting on.</div>
+          <div class="drill-grid">
+            <div class="db">
+              <div class="db-h"><span class="db-team">Data Governance</span><span class="db-src">Linear</span></div>
+              <div class="bi"><span class="bid">DG-205</span><span class="bt">Lineage capture service</span><span class="bs prog">In progress</span></div>
+              <div class="bi"><span class="bid">DG-211</span><span class="bt">Catalog schema</span><span class="bs ready">Ready</span></div>
+            </div>
+            <div class="db">
+              <div class="db-h"><span class="db-team">Platform</span><span class="db-src">Linear</span></div>
+              <div class="bi"><span class="bid">PLT-322</span><span class="bt">Metadata store provisioning</span><span class="bs prog">In progress</span></div>
+            </div>
+            <div class="db">
+              <div class="db-h"><span class="db-team">BI &amp; Analytics</span><span class="db-src">Jira</span></div>
+              <div class="bi"><span class="bid">BI-48</span><span class="bt">Lineage consumers</span><span class="bs back">Backlog</span></div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- I3 -->
+      <details class="pf-row" style="--rc:var(--accent)">
+        <summary class="pf-sum">
+          <div class="pf-rank"><span class="pr">3</span><span class="pl">prio</span></div>
+          <div class="pf-body">
+            <div class="pf-title"><span class="ic">I3</span><span class="nm">Cloud landing zone</span></div>
+            <div class="pf-teams"><span class="tm lead">Infrastructure</span><span class="tm">Security</span><span class="tm">Platform</span></div>
+            <div class="pf-dep block"><span class="dl">blocked</span>Needs Security sign-off &mdash; but Security is committed to I1. Sequencing conflict the program owns.</div>
+            <div class="pf-source"><span class="bglyph"></span><span class="scount"><b>3</b> work items &middot; <b>3</b> boards</span><span class="pf-caret">&rsaquo;</span></div>
+          </div>
+          <div class="pf-meta">
+            <div class="meta-row"><span class="meta-l">Priority score</span><span class="score over">8.1</span></div>
+            <div class="meta-row"><span class="rag block">Blocked</span><span class="size"><span class="dot d-ok"></span>Sized</span></div>
+            <div class="meta-row"><span class="meta-l">25%</span><div class="prog"><div class="pfll f-over" style="width:25%"></div></div></div>
+          </div>
+        </summary>
+        <div class="pf-drill">
+          <div class="drill-note"><span class="bglyph"></span>The <b>Blocked</b> flag is one board card &mdash; <b>SEC-160</b>. Everything else is moving.</div>
+          <div class="drill-grid">
+            <div class="db">
+              <div class="db-h"><span class="db-team">Infrastructure</span><span class="db-src">Azure DevOps</span></div>
+              <div class="bi"><span class="bid">INF-88</span><span class="bt">Network landing zone</span><span class="bs prog">In progress</span></div>
+            </div>
+            <div class="db">
+              <div class="db-h"><span class="db-team">Security</span><span class="db-src">Jira</span></div>
+              <div class="bi"><span class="bid">SEC-160</span><span class="bt">Guardrail policy sign-off</span><span class="bs block">Blocked</span></div>
+            </div>
+            <div class="db">
+              <div class="db-h"><span class="db-team">Platform</span><span class="db-src">Linear</span></div>
+              <div class="bi"><span class="bid">PLT-318</span><span class="bt">Subnet automation</span><span class="bs ready">Ready</span></div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- I4 -->
+      <details class="pf-row" style="--rc:var(--ok)">
+        <summary class="pf-sum">
+          <div class="pf-rank"><span class="pr">4</span><span class="pl">prio</span></div>
+          <div class="pf-body">
+            <div class="pf-title"><span class="ic">I4</span><span class="nm">Self-service BI layer</span></div>
+            <div class="pf-teams"><span class="tm lead">BI &amp; Analytics</span><span class="tm">Data Governance</span><span class="tm">Platform</span></div>
+            <div class="pf-dep"><span class="dl">depends</span>Waiting on I2 lineage before it can fully size &mdash; cross-initiative dependency.</div>
+            <div class="pf-source"><span class="bglyph"></span><span class="scount"><b>3</b> work items &middot; <b>3</b> boards</span><span class="pf-caret">&rsaquo;</span></div>
+          </div>
+          <div class="pf-meta">
+            <div class="meta-row"><span class="meta-l">Priority score</span><span class="score ok">6.9</span></div>
+            <div class="meta-row"><span class="rag ok">On track</span><span class="size"><span class="dot d-warn"></span>Partly sized</span></div>
+            <div class="meta-row"><span class="meta-l">15%</span><div class="prog"><div class="pfll f-ok" style="width:15%"></div></div></div>
+          </div>
+        </summary>
+        <div class="pf-drill">
+          <div class="drill-note"><span class="bglyph"></span><b>Partly sized</b> because PLT-326 is still in the backlog, unestimated.</div>
+          <div class="drill-grid">
+            <div class="db">
+              <div class="db-h"><span class="db-team">BI &amp; Analytics</span><span class="db-src">Jira</span></div>
+              <div class="bi"><span class="bid">BI-54</span><span class="bt">Semantic model</span><span class="bs prog">In progress</span></div>
+            </div>
+            <div class="db">
+              <div class="db-h"><span class="db-team">Data Governance</span><span class="db-src">Linear</span></div>
+              <div class="bi"><span class="bid">DG-218</span><span class="bt">Certified dataset policy</span><span class="bs ready">Ready</span></div>
+            </div>
+            <div class="db">
+              <div class="db-h"><span class="db-team">Platform</span><span class="db-src">Linear</span></div>
+              <div class="bi"><span class="bid">PLT-326</span><span class="bt">Workspace provisioning</span><span class="bs back">Backlog</span></div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- I5 -->
+      <details class="pf-row" style="--rc:var(--warn)">
+        <summary class="pf-sum">
+          <div class="pf-rank"><span class="pr">5</span><span class="pl">prio</span></div>
+          <div class="pf-body">
+            <div class="pf-title"><span class="ic">I5</span><span class="nm">API &amp; integration mesh</span></div>
+            <div class="pf-teams"><span class="tm lead">Platform</span><span class="tm">Architecture</span><span class="tm">Security</span></div>
+            <div class="pf-dep"><span class="dl">at risk</span>Architecture single-threaded across design reviews &mdash; a staffing call, not a team fix.</div>
+            <div class="pf-source"><span class="bglyph"></span><span class="scount"><b>3</b> work items &middot; <b>3</b> boards</span><span class="pf-caret">&rsaquo;</span></div>
+          </div>
+          <div class="pf-meta">
+            <div class="meta-row"><span class="meta-l">Priority score</span><span class="score warn">6.4</span></div>
+            <div class="meta-row"><span class="rag warn">At risk</span><span class="size"><span class="dot d-ok"></span>Sized</span></div>
+            <div class="meta-row"><span class="meta-l">30%</span><div class="prog"><div class="pfll f-warn" style="width:30%"></div></div></div>
+          </div>
+        </summary>
+        <div class="pf-drill">
+          <div class="drill-note"><span class="bglyph"></span>The risk is one card &mdash; <b>ARC-82</b> stuck In review on the only reviewer.</div>
+          <div class="drill-grid">
+            <div class="db">
+              <div class="db-h"><span class="db-team">Platform</span><span class="db-src">Linear</span></div>
+              <div class="bi"><span class="bid">PLT-330</span><span class="bt">Mesh control plane</span><span class="bs prog">In progress</span></div>
+            </div>
+            <div class="db">
+              <div class="db-h"><span class="db-team">Architecture</span><span class="db-src">Azure DevOps</span></div>
+              <div class="bi"><span class="bid">ARC-82</span><span class="bt">API design review</span><span class="bs rev">In review</span></div>
+            </div>
+            <div class="db">
+              <div class="db-h"><span class="db-team">Security</span><span class="db-src">Jira</span></div>
+              <div class="bi"><span class="bid">SEC-165</span><span class="bt">mTLS rollout</span><span class="bs ready">Ready</span></div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- I6 -->
+      <details class="pf-row" style="--rc:var(--text-3)">
+        <summary class="pf-sum">
+          <div class="pf-rank"><span class="pr">6</span><span class="pl">prio</span></div>
+          <div class="pf-body">
+            <div class="pf-title"><span class="ic">I6</span><span class="nm">Regulatory reporting</span></div>
+            <div class="pf-teams"><span class="tm lead">Data Governance</span><span class="tm">BI &amp; Analytics</span><span class="tm">Security</span></div>
+            <div class="pf-dep"><span class="dl">unsized</span>Allocated and prioritised &mdash; awaiting team sizing in the next refinement before it can be forecast.</div>
+            <div class="pf-source"><span class="bglyph"></span><span class="scount"><b>2</b> work items &middot; <b>2</b> boards &middot; sizing pending</span><span class="pf-caret">&rsaquo;</span></div>
+          </div>
+          <div class="pf-meta">
+            <div class="meta-row"><span class="meta-l">Priority score</span><span class="score" style="color:var(--text-2)">5.8</span></div>
+            <div class="meta-row"><span class="rag idle">Not started</span><span class="size"><span class="dot d-idle"></span>Unsized</span></div>
+            <div class="meta-row"><span class="meta-l">0%</span><div class="prog"><div class="pfll d-idle" style="width:2%"></div></div></div>
+          </div>
+        </summary>
+        <div class="pf-drill">
+          <div class="drill-note"><span class="bglyph"></span><b>Unsized</b> = only backlog cards exist, nothing estimated &mdash; that&rsquo;s why it can&rsquo;t be forecast.</div>
+          <div class="drill-grid">
+            <div class="db">
+              <div class="db-h"><span class="db-team">Data Governance</span><span class="db-src">Linear</span></div>
+              <div class="bi"><span class="bid">DG-224</span><span class="bt">Reporting requirements</span><span class="bs ready">Ready</span></div>
+            </div>
+            <div class="db">
+              <div class="db-h"><span class="db-team">BI &amp; Analytics</span><span class="db-src">Jira</span></div>
+              <div class="bi"><span class="bid">BI-63</span><span class="bt">Report templates</span><span class="bs back">Backlog</span></div>
+            </div>
+            <div class="db pending">Security scope not on the board yet &mdash; lands at sizing</div>
+          </div>
+        </div>
+      </details>
+
+      <!-- I7 -->
+      <details class="pf-row" style="--rc:var(--text-3)">
+        <summary class="pf-sum">
+          <div class="pf-rank"><span class="pr">7</span><span class="pl">prio</span></div>
+          <div class="pf-body">
+            <div class="pf-title"><span class="ic">I7</span><span class="nm">DR &amp; resilience</span></div>
+            <div class="pf-teams"><span class="tm lead">Infrastructure</span><span class="tm">Platform</span><span class="tm">Security</span></div>
+            <div class="pf-dep"><span class="dl">candidate to defer</span>Lowest priority, and its teams are the contended ones &mdash; proposed move to the next increment to free Platform.</div>
+            <div class="pf-source"><span class="bglyph"></span><span class="scount"><b>2</b> work items &middot; <b>2</b> boards &middot; proposed defer</span><span class="pf-caret">&rsaquo;</span></div>
+          </div>
+          <div class="pf-meta">
+            <div class="meta-row"><span class="meta-l">Priority score</span><span class="score" style="color:var(--text-2)">4.9</span></div>
+            <div class="meta-row"><span class="rag idle">Not started</span><span class="size"><span class="dot d-idle"></span>Unsized</span></div>
+            <div class="meta-row"><span class="meta-l">0%</span><div class="prog"><div class="pfll d-idle" style="width:2%"></div></div></div>
+          </div>
+        </summary>
+        <div class="pf-drill">
+          <div class="drill-note"><span class="bglyph"></span>Two backlog cards, nothing sized &mdash; the case for deferring is right here on the boards.</div>
+          <div class="drill-grid">
+            <div class="db">
+              <div class="db-h"><span class="db-team">Infrastructure</span><span class="db-src">Azure DevOps</span></div>
+              <div class="bi"><span class="bid">INF-95</span><span class="bt">DR runbook</span><span class="bs back">Backlog</span></div>
+            </div>
+            <div class="db">
+              <div class="db-h"><span class="db-team">Platform</span><span class="db-src">Linear</span></div>
+              <div class="bi"><span class="bid">PLT-340</span><span class="bt">Multi-region failover</span><span class="bs back">Backlog</span></div>
+            </div>
+            <div class="db pending">Security scope pending &mdash; not pulled in this increment</div>
+          </div>
+        </div>
+      </details>
+
+    </div>
+  </section>
+
+  <!-- ===== ACTION QUEUE ===== -->
+  <section class="section" style="--ac:var(--accent); --ac-bd:rgba(242,75,55,0.32); --ac-tint:var(--accent-tint);">
+    <div class="sec-head">
+      <h2>Only the program can clear these</h2>
+      <span class="tag alarm">4 open</span>
+    </div>
+    <p class="sec-sub">The whole point of the tier. These aren&rsquo;t bugs or stories &mdash; no team can fix them from inside its own board. They&rsquo;re <strong>allocation decisions</strong>: re-sequence, re-staff, or cut scope. Each names the move it unlocks.</p>
+
+    <div class="actions">
+      <div class="act">
+        <span class="an">A1</span>
+        <div class="ab">
+          <div class="at">Platform is at 132% &mdash; six initiatives funnel through it</div>
+          <div class="ad">Every high-priority initiative needs Platform. It&rsquo;s the program&rsquo;s true constraint; the ranking is meaningless until its load is under 100%.</div>
+          <div class="amove"><span class="ml">move</span>Defer <b>I7 (DR &amp; resilience)</b> to the next increment &rarr; Platform drops to ~108%; then re-time I5 to land under capacity.</div>
+        </div>
+      </div>
+      <div class="act">
+        <span class="an">A2</span>
+        <div class="ab">
+          <div class="at">I3 blocked on Security sign-off &mdash; Security is committed to I1</div>
+          <div class="ad">Two of the top three initiatives (<b>I1</b>, <b>I3</b>) compete for the same Security capacity in the same window. A team can&rsquo;t resolve a cross-initiative priority clash.</div>
+          <div class="amove"><span class="ml">move</span>Sequence I1&rsquo;s sign-off ahead of I3, or pull in external Security review for I3.</div>
+        </div>
+      </div>
+      <div class="act">
+        <span class="an">A3</span>
+        <div class="ab">
+          <div class="at">Architecture is single-threaded across I1 and I5 design reviews</div>
+          <div class="ad">One reviewer is the bottleneck for two initiatives&rsquo; design gates. This is a <b>staffing</b> decision, not something the Architecture team can absorb.</div>
+          <div class="amove"><span class="ml">move</span>Add a second reviewer for the increment, or stagger the two design gates two weeks apart.</div>
+        </div>
+      </div>
+      <div class="act" style="--ac:var(--warn); --ac-bd:rgba(201,122,27,0.32); --ac-tint:var(--warn-tint);">
+        <span class="an">A4</span>
+        <div class="ab">
+          <div class="at">I4 can&rsquo;t fully size until I2 delivers lineage</div>
+          <div class="ad">A forecast gap, not a block: <b>I4</b>&rsquo;s sizing depends on <b>I2</b>. Fine as sequenced &mdash; flag it so the dependency isn&rsquo;t mistaken for a stalled team.</div>
+          <div class="amove"><span class="ml">watch</span>Hold I4&rsquo;s commit until I2 hits 60%; revisit at the next plenary.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <div class="foot">
+    <div class="callout">
+      <strong>This is a lens, not a board.</strong> There&rsquo;s no second source of truth up here. Initiatives route <strong>down</strong> to the team boards as stories; sizes and progress roll <strong>up</strong> from them. The program owns priority and allocation; the teams own sizing and delivery. They meet at the plenary &mdash; where teams see the ranked, allocated portfolio and commit. Run this view on teams that aren&rsquo;t on awow boards and it has nothing to roll up.
+    </div>
+    <p class="src">Mockup &mdash; illustrative data. Fed by per-team roll-ups (the planned <code>/cross-team-view</code> and <code>/project-manager --report</code>). Self-contained: no external fonts, links, or scripts.</p>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -327,6 +327,45 @@
     <p>The output is deliberately short: a 2&ndash;4 sentence summary, one line per concrete thing that moved (tied to its board issue and commit/PR on the <em>same</em> line), a clearly-marked <em>not yet executed</em> list of proposed updates, and genuine gaps only &mdash; &ldquo;no gaps today&rdquo; is a fine and common outcome.</p>
   </div>
 
+  <!-- BEYOND THE SEED LOOP -->
+  <div class="pad">
+    <h2>Where this loop plugs into design and coordination</h2>
+    <p>The seed loop above is what one person runs to ship a story. When a team is delivering something larger than a single story &mdash; a feature with many moving parts, owned by several people &mdash; three later-stage commands wrap around it. They all turn on one shared artefact: a <strong>stated dependency graph</strong>. A design becomes a sequenced plan, the plan becomes board items that know what blocks what, and delivery is coordinated against that graph rather than against a flat list of tickets.</p>
+
+    <div class="diagram" style="padding-top:14px;">
+      <table class="data" style="margin:0;">
+        <thead><tr><th style="width:22%">Command</th><th style="width:14%">Stage</th><th>What it adds to the loop</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>/solution-design-flow</strong></td>
+            <td><span class="badge badge-accent" style="font-size:0.62rem">spread</span></td>
+            <td>Turns a design conversation (live or a transcript) into a locked design plus a <strong>decomposed work-item tree with stated edges</strong> &mdash; each child names what blocks it. It lands the design; it no longer creates the board items itself.</td>
+          </tr>
+          <tr>
+            <td><strong>/project-plan</strong></td>
+            <td><span class="badge badge-accent" style="font-size:0.62rem">spread</span></td>
+            <td>The bridge. Takes that tree and <strong>states the dependency graph</strong> &mdash; nodes, edges, sequence vs parallel layers, and the critical path &mdash; then translates it into board items created in order with their blocked-by links, and publishes a durable plan at <code>proposals/plans/&lt;slug&gt;.md</code>.</td>
+          </tr>
+          <tr>
+            <td><strong>/process-workitem</strong></td>
+            <td><span class="badge badge-accent" style="font-size:0.62rem">seed</span></td>
+            <td>The same seven-step loop &mdash; now it checks the graph before starting, and won&rsquo;t silently begin an item whose blockers are still open.</td>
+          </tr>
+          <tr>
+            <td><strong>/project-manager</strong></td>
+            <td><span class="badge" style="font-size:0.62rem">standardise</span></td>
+            <td>Coordinates delivery <em>against the published plan</em>: checks in with people to unblock them, fires ready handoffs, reconciles the plan against the work actually done, keeps the graph correct, and rolls up a weekly report for management.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="legend" style="padding-top:10px;"><span style="color:var(--text-3)">/solution-design-flow &rarr; /project-plan &rarr; /process-workitem (&times; many) &rarr; /project-manager</span></div>
+    </div>
+
+    <div class="callout">
+      <strong>The dependency graph is the connective tissue.</strong> It is <em>stated</em> by <code>/project-plan</code>, <em>honoured</em> by <code>/process-workitem</code> (which respects blocked-by), and <em>steered on</em> by <code>/project-manager</code> (which watches the critical path and escalates the bottlenecks only management can clear). Earlier, <code>/refinement-prep</code> already captures dependencies as edges so they feed forward. Without the graph stated somewhere true, coordination has nothing to read &mdash; which is exactly why it is a first-class deliverable, not a footnote in the design.
+    </div>
+  </div>
+
   <!-- THE SPINE -->
   <div class="pad">
     <h2>The spine that runs through all three</h2>
@@ -347,7 +386,7 @@
 
   <!-- FOOTER -->
   <div class="pad" style="border-bottom:none;">
-    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Sources of truth: <code>.agents/commands/refinement-prep.md</code>, <code>.agents/commands/process-workitem.md</code>, <code>.agents/commands/daily-checkin.md</code>, with the spine rules in <code>.agents/CLAUDE.md</code> and the archetype handlers under <code>.agents/commands/_workitem-archetypes/</code>. Companion guides: <code>guide-session-correlation.html</code> and <code>guide-trace-analysis.html</code>. This guide is self-contained &mdash; no external resources.</p>
+    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Sources of truth: <code>.agents/commands/refinement-prep.md</code>, <code>.agents/commands/process-workitem.md</code>, <code>.agents/commands/daily-checkin.md</code>, and for the design-and-coordination layer <code>.agents/commands/solution-design-flow.md</code>, <code>.agents/commands/project-plan.md</code>, and <code>.agents/commands/project-manager.md</code> &mdash; with the spine rules in <code>.agents/CLAUDE.md</code> and the archetype handlers under <code>.agents/commands/_workitem-archetypes/</code>. Companion guides: <code>guide-session-correlation.html</code> and <code>guide-trace-analysis.html</code>. This guide is self-contained &mdash; no external resources.</p>
   </div>
 
 </div>

@@ -84,7 +84,7 @@ The feature wrapper:
 
 ## Dependencies
 
-<Stories that block other stories. Cross-team dependencies named (with neighbouring-team links if applicable). One line per dependency.>
+<State as edges, one per line: `Story A → Story B` (A blocks B). Name cross-team dependencies with neighbouring-team links. Note the likely critical path if one is visible. These edges feed forward — /project-plan formalises them into the dependency graph — so capture them as relations, not prose.>
 
 ## Open questions
 

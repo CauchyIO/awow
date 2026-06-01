@@ -11,6 +11,8 @@ Jira's hierarchy depends on the project type and whether Advanced Roadmaps is in
 
 Jira's "Story" is overloaded — clarify with the team which level it represents before mapping. Some teams use Story for L2 and Task for L3.
 
+> **Planning vocabulary.** Quarter planning speaks tool-agnostically in **outcome → epic → feature → story** — and names who sets each level — in `context/quarterly/README.md` and `/refinement-prep`. The same word sits at a different level on each board (here "Epic" is L2, and Jira carries no distinct "Feature" type), so map those concepts onto the primitives above with the team rather than assuming a shared meaning.
+
 ## Wizard responsibilities
 
 **Mode A.** Confirm the team's L2 (Epic vs. Initiative) and L3 (Story vs. Task) primitives.

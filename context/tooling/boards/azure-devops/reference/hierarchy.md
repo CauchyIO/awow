@@ -11,6 +11,8 @@ ADO enforces a strict four-level hierarchy through its work-item-type schema.
 
 ADO is the most opinionated of the supported boards — the hierarchy is enforced by the schema, not by convention.
 
+> **Planning vocabulary.** Quarter planning speaks tool-agnostically in **outcome → epic → feature → story** — and names who sets each level — in `context/quarterly/README.md` and `/refinement-prep`. The same word sits at a different level on each board (here "Epic" is L1 and "Feature" is L2, so the planning "epic" and "feature" land one level higher than on Linear), so map those concepts onto the primitives above with the team rather than assuming a shared meaning.
+
 ## Rules
 
 - Tasks **cannot** be promoted to standalone User Stories. If a Task is growing acceptance criteria, the agent proposes splitting it into a sibling User Story under the parent Feature.

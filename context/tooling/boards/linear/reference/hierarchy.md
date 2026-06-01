@@ -11,6 +11,19 @@ Linear is flat by design. The four-level hierarchy from `input/PROPOSAL.md` is r
 
 Linear's `Sub-issue` is more flexible than ADO's `Task` — sub-issues can be **promoted to standalone issues** if scope grows. The agent should propose promotion rather than letting a sub-issue accrete acceptance criteria of its own.
 
+## Planning vocabulary → primitives
+
+Quarter planning and refinement speak in **outcome → epic → feature → story** (tool-agnostic; see `context/quarterly/README.md` and `/refinement-prep`). Those concepts land on the levels above:
+
+| Planning concept | Set by | Level | Linear primitive |
+|---|---|---|---|
+| OKR / outcome | Program board, PO | L1 | Initiative |
+| Epic | PO | L2 | Project |
+| Feature (enters refinement) | PO + tech lead | L2–L3 | a parent Issue grouping its stories — or its own Project when large |
+| Story (agent-pickable) | refinement | L3 | Issue |
+
+Linear has no dedicated **Feature** primitive. A feature is realised as a parent Issue whose sub-issues are its stories, or — when it is large enough to warrant its own lead and horizon — as a Project of its own. The `/refinement-prep` "feature wrapper" is exactly this grouping; its stories are the L3 Issues the agent picks up. Keep the feature thin: if it starts accruing acceptance criteria of its own, it wanted to be a Project.
+
 ## Rules
 
 - **Initiatives** are not agent-pickable. The agent never moves work directly under an Initiative; it always lives under a Project.

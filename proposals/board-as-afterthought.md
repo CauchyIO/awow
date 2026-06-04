@@ -66,6 +66,17 @@ A new opt-in `board-state` capability, built as a sibling of `session-correlatio
 
 Only if Stage-1 discipline proves leaky in real sessions (the agent forgets to link mid-flow): a `UserPromptSubmit` hook that fires per message and injects a small deterministic nudge **only** when the message carries an initiative signal — or, if it literally contains a board key (`AWOW-\d+`), enriches *that one item* JIT. This is reinforcement of Stage 1, not a replacement, and it is Claude-Code-specific. Do not build it day-one; let observed behaviour justify it.
 
+### Stage 3b — Skill-invocation reinforcement via PreToolUse (built; reinforces Stage 1 at the lifecycle seam)
+
+`UserPromptSubmit` (Stage 3) fires on *every* message and must *guess* whether an initiative is present. When the repo also runs an inner-loop engine (superpowers, spec-kit — see [[superpowers-integration-plan]]), there is a strictly sharper trigger: the engine's lifecycle skills. A `PreToolUse` hook matching the `Skill` tool fires at a **precise, deterministic, semantic moment** — `brainstorming` (work starting), `verification-before-completion` and `finishing-a-development-branch` ("something is done") — with no guessing and no per-message firehose. This is the "when planning/spec is made; when something is done" seam made concrete.
+
+- **Script:** `hooks/board-linkage-check.py` (+ `hooks/board-linkage-check` bash wrapper), registered as `PreToolUse` with `matcher: "Skill"`. Maps each engine lifecycle skill to its board transition (the crosswalk lives in the `board-aware-development` skill) and injects a one-line reminder via `hookSpecificOutput.additionalContext`.
+- **Non-blocking, by construction.** It emits context only and never denies the call — honouring the rollback lesson from [[archetypes-board-anchoring]]: reinforce at the *completion* edge (verify / review / finish), stay whisper-thin at the *start* edge. No hard gate on any skill.
+- **Scoped to adopted repos.** Silent unless `.agents/AGENTS.md` exists under `CLAUDE_PROJECT_DIR`, so enabling the plugin in a non-awow repo injects nothing.
+- **Fails visible, never silent.** A malformed payload is logged to stderr with context, then the hook exits 0 so the tool call is unaffected.
+
+Why this is better than Stage 3 here: it does not pay the per-message cost, it cannot misfire on non-initiative chatter, and it is tied to the exact lifecycle event awow wants to hook. Stage 3 (UserPromptSubmit) remains the fallback for repos with **no** engine, where there is no skill invocation to key on. Validate the same way: keep it if the board moves from these moments without the user naming a ticket; cut it if traces show the reminders ignored as noise.
+
 ## Cross-cutting constraints
 
 - **Public-repo safety (REQUIRED).** The Stage-2 query returns private issue IDs/titles. The hook must never write to a tracked path — cache only to gitignored `.awow/`. The `pre-push` leak scan backstops, but untracked-by-construction is the first line of defence. (Per `.agents/CLAUDE.md` → *"private session data must never be committed"*.)

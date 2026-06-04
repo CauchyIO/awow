@@ -11,6 +11,7 @@ Scoped to repos that have adopted awow (a .agents/AGENTS.md exists under
 CLAUDE_PROJECT_DIR); silent everywhere else.
 """
 
+import glob
 import json
 import os
 import sys
@@ -41,6 +42,19 @@ SEAM = {
 }
 
 
+def superpowers_installed(project_dir):
+    """True if the superpowers plugin is present (marketplace cache, user, or
+    project scope). Soft-dependency check: keeps the seam explicit even though a
+    superpowers skill could not be invoked unless it were installed."""
+    home = os.path.expanduser("~")
+    patterns = (
+        os.path.join(home, ".claude", "plugins", "cache", "*", "superpowers"),
+        os.path.join(home, ".claude", "plugins", "*", "superpowers"),
+        os.path.join(project_dir, ".claude", "plugins", "*", "superpowers"),
+    )
+    return any(glob.glob(p) for p in patterns)
+
+
 def main():
     raw = sys.stdin.read()
     if not raw.strip():
@@ -62,6 +76,10 @@ def main():
     # Only nudge inside repos that have adopted awow.
     project_dir = os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
     if not os.path.isfile(os.path.join(project_dir, ".agents", "AGENTS.md")):
+        return
+
+    # No build engine -> no seam to reinforce. Explicit soft-dependency guard.
+    if not superpowers_installed(project_dir):
         return
 
     tool_input = data.get("tool_input") or {}

@@ -218,6 +218,15 @@ Read the commands in `.agents/commands/` whose frontmatter declares `phase: spre
 
 Record the answer (and any configured `path:`) in `setup-progress.md`.
 
+**Build engine (detect, then suggest).** awow owns the outer loop (board, planning, landing) and hands the *build* step to an optional inner-loop engine. Detect whether one is installed by checking for a `superpowers` directory under `~/.claude/plugins/cache/*/`, `~/.claude/plugins/*/`, or this repo's `.claude/plugins/*/`.
+
+- **Found** — an engine is configured; name it and move on. The `board-aware-development` seam (skill + PreToolUse reminder) is already active.
+- **Not found** — recommend it as **optional**: *"awow hands the build step to an inner-loop engine. superpowers adds TDD-gated build → review and lights up the board-aware-development seam. Install it with `/plugin` from the `claude-plugins-official` marketplace. This is optional — awow runs on its baseline build guidance without it."* Do not install it for the user, and never make it required. Note that spec-kit is an alternative engine (spec-first rather than test-first) for teams who prefer it.
+
+This is a soft dependency by design — see `proposals/superpowers-integration-plan.md`. Do not add it to the plugin manifest's `dependencies`; that would force-install it on every adopter and couple awow across marketplaces.
+
+Record the choice (engine name, or "none — declined") in `setup-progress.md`.
+
 Update `setup-progress.md` to mark all steps surfaced.
 
 ## Step 9 — Skills review (keep / customise / drop)

@@ -32,6 +32,6 @@ This crosswalk fires only for *initiatives* — the same `using-awow` gate. A `b
 
 ## When NOT to apply this
 
-- No inner-loop engine is installed — `using-awow` alone governs; there is no seam to bind.
+- No inner-loop engine is installed — `using-awow` alone governs; there is no seam to bind. superpowers is the recommended optional engine; offer it via `/setup-awow` (Step 8, surface the extras), never force it.
 - The work is not an initiative — skip the board entirely.
 - You are inside `/process-workitem` — that command already owns the seam; do not double-link.

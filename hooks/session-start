@@ -26,6 +26,27 @@ if [ ! -f "${REPO_DIR}/.agents/AGENTS.md" ] && [ ! -f "${REPO_DIR}/.awow/no-setu
     nudge_message="\n\n<important-reminder>This repo has the awow plugin enabled but has not adopted awow yet (no .agents/AGENTS.md). IN YOUR FIRST REPLY, offer once to run /setup-awow to bring the board-linked way of working into this repo. If the user declines, create an empty file at .awow/no-setup-prompt so this nudge stops, and do not ask again this session.</important-reminder>"
 fi
 
+# Detect an inner-loop build engine (superpowers). Globs that do not match expand
+# to the literal pattern, which `-d` then rejects — so this is safe with nullglob
+# off. Covers the marketplace cache layout, user scope, and project scope.
+engine_installed() {
+    local p
+    for p in "${HOME}/.claude/plugins/cache/"*/superpowers \
+             "${HOME}/.claude/plugins/"*/superpowers \
+             "${REPO_DIR}/.claude/plugins/"*/superpowers; do
+        [ -d "$p" ] && return 0
+    done
+    return 1
+}
+
+# Soft-dependency nudge: an adopted awow repo with no build engine. Mutually
+# exclusive with the setup nudge above (that one needs AGENTS.md absent; this one
+# needs it present), so the two never stack. Opt out with .awow/no-engine-prompt.
+engine_nudge=""
+if [ -f "${REPO_DIR}/.agents/AGENTS.md" ] && ! engine_installed && [ ! -f "${REPO_DIR}/.awow/no-engine-prompt" ]; then
+    engine_nudge="\n\n<important-reminder>This awow repo has no inner-loop build engine installed. superpowers is the recommended optional engine for the build step (TDD-gated build then review), and the board-aware-development seam lights up when it is present. IN YOUR FIRST REPLY, mention once that it is available and can be added via /setup-awow (Step 8 — surface the extras); awow runs on its baseline without it, so keep it light. If the user is not interested, create an empty file at .awow/no-engine-prompt so this stops, and do not raise it again this session.</important-reminder>"
+fi
+
 # Escape a string for embedding in a JSON string value. Each ${s//old/new} is a
 # single C-level pass — far faster than a character loop.
 escape_for_json() {
@@ -40,7 +61,8 @@ escape_for_json() {
 
 bootstrap_escaped=$(escape_for_json "$bootstrap_content")
 nudge_escaped=$(escape_for_json "$nudge_message")
-session_context="<EXTREMELY_IMPORTANT>\nYou are working in a repo governed by awow — the Agentic Way of Working.\n\n**Below is your 'awow:using-awow' reflex — how awow expects you to work. For the team's full conventions read .agents/AGENTS.md; for any other awow command or skill, use the 'Skill' tool or the slash command.**\n\n${bootstrap_escaped}\n\n${nudge_escaped}\n</EXTREMELY_IMPORTANT>"
+engine_escaped=$(escape_for_json "$engine_nudge")
+session_context="<EXTREMELY_IMPORTANT>\nYou are working in a repo governed by awow — the Agentic Way of Working.\n\n**Below is your 'awow:using-awow' reflex — how awow expects you to work. For the team's full conventions read .agents/AGENTS.md; for any other awow command or skill, use the 'Skill' tool or the slash command.**\n\n${bootstrap_escaped}\n\n${nudge_escaped}\n\n${engine_escaped}\n</EXTREMELY_IMPORTANT>"
 
 # Emit context injection as JSON. Each platform reads a different field:
 #   Cursor          → additional_context (top-level, snake_case)

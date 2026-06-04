@@ -39,3 +39,7 @@ awow ships the loop as commands and skills — prefer them over improvising:
 - `/project-plan` — turn a locked design into a published plan.
 
 Invoke the relevant one before hand-rolling the same workflow. The full catalog is in `.agents/commands/`.
+
+## When an inner-loop engine is present
+
+If a build engine (superpowers, spec-kit) is installed, its lifecycle skills *are* your board cues: `brainstorming` is a board moment, `verification-before-completion` gates In Review/Done, `finishing-a-development-branch` closes the ticket. Bind each transition to the skill that already fires at it — see `board-aware-development` for the full crosswalk. Working directly (outside `/process-workitem`), keep the board current as you fire those skills; the PreToolUse hook reminds you, but the discipline is yours.

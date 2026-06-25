@@ -59,10 +59,74 @@ escape_for_json() {
     printf '%s' "$s"
 }
 
+# ---------- overlay reflexes (generic seam) ----------
+# Repos can register local "reflex" fragments that ride INSIDE the awow reflex
+# block — the same mechanism using-awow uses, extended to repo-local content.
+# Fragments live under .agents/reflex.d/ (shared, ships with the open pack) and
+# .agents-overrides/reflex.d/ (private overlay, never published upstream). Each
+# fragment's body is injected as a standing disposition; an optional frontmatter
+# key `activate_when_env: VAR` gates it on that env var being set & non-empty.
+# This seam is deliberately generic: it carries no knowledge of any particular
+# lens or capability — those register themselves by dropping a fragment.
+
+# Emit a single fragment's body iff it is active. awk owns the decision so the
+# env gate is evaluated against ENVIRON in one pass. Exit codes:
+#   0 active   → body on stdout      1 gated-off → nothing (silent, expected)
+#   2 malformed (frontmatter opened, never closed) → caller logs and skips.
+_emit_reflex_if_active() {
+    awk '
+        NR==1 && $0=="---" { fm=1; next }
+        NR==1              { body=$0 ORS; next }          # no frontmatter
+        fm && !closed && $0=="---" { closed=1; next }
+        fm && !closed {
+            if ($0 ~ /^[[:space:]]*activate_when_env[[:space:]]*:/) {
+                g=$0
+                sub(/^[[:space:]]*activate_when_env[[:space:]]*:[[:space:]]*/,"",g)
+                sub(/[[:space:]]+$/,"",g)
+                gate=g
+            }
+            next
+        }
+        { body=body $0 ORS }
+        END {
+            if (fm && !closed) exit 2                     # unterminated frontmatter
+            if (gate != "" && ENVIRON[gate]=="") exit 1   # gated but env unset/empty
+            printf "%s", body
+        }
+    ' "$1"
+}
+
+# Walk the reflex dirs (shared first, then overlay), inject every active fragment.
+# Globs that do not match expand to the literal pattern, guarded by `-e`.
+collect_overlay_reflexes() {
+    local dir frag body rc
+    for dir in "${REPO_DIR}/.agents/reflex.d" "${REPO_DIR}/.agents-overrides/reflex.d"; do
+        [ -d "$dir" ] || continue
+        for frag in "$dir"/*.md; do
+            [ -e "$frag" ] || continue
+            if body=$(_emit_reflex_if_active "$frag"); then
+                [ -n "$body" ] && printf '%s\n' "$body"
+            else
+                rc=$?
+                if [ "$rc" = 2 ]; then
+                    printf 'awow session-start: skipping malformed overlay reflex (unterminated frontmatter): %s\n' "$frag" >&2
+                fi
+            fi
+        done
+    done
+}
+
+overlay_reflexes=$(collect_overlay_reflexes)
+overlay_block=""
+if [ -n "$overlay_reflexes" ]; then
+    overlay_block=$(printf '\n\n**Active overlay reflexes for this repo (treat as standing dispositions alongside using-awow):**\n\n%s' "$overlay_reflexes")
+fi
+
 bootstrap_escaped=$(escape_for_json "$bootstrap_content")
+overlay_escaped=$(escape_for_json "$overlay_block")
 nudge_escaped=$(escape_for_json "$nudge_message")
 engine_escaped=$(escape_for_json "$engine_nudge")
-session_context="<EXTREMELY_IMPORTANT>\nYou are working in a repo governed by awow — the Agentic Way of Working.\n\n**Below is your 'awow:using-awow' reflex — how awow expects you to work. For the team's full conventions read .agents/AGENTS.md; for any other awow command or skill, use the 'Skill' tool or the slash command.**\n\n${bootstrap_escaped}\n\n${nudge_escaped}\n\n${engine_escaped}\n</EXTREMELY_IMPORTANT>"
+session_context="<EXTREMELY_IMPORTANT>\nYou are working in a repo governed by awow — the Agentic Way of Working.\n\n**Below is your 'awow:using-awow' reflex — how awow expects you to work. For the team's full conventions read .agents/AGENTS.md; for any other awow command or skill, use the 'Skill' tool or the slash command.**\n\n${bootstrap_escaped}${overlay_escaped}\n\n${nudge_escaped}\n\n${engine_escaped}\n</EXTREMELY_IMPORTANT>"
 
 # Emit context injection as JSON. Each platform reads a different field:
 #   Cursor          → additional_context (top-level, snake_case)

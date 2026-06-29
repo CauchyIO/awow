@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# PreToolUse hook (matcher: Skill) for the awow plugin — lifecycle seam reminders.
+#
+# When an inner-loop engine's lifecycle skill is invoked, inject one-line
+# reminders so the board (and, when an architecture plane is configured, the
+# architecture plane) stay current as a byproduct of the work. Non-blocking by
+# design: emits additionalContext only, NEVER denies the tool call. Scoped to
+# adopted repos (.agents/AGENTS.md present). Crosswalks live in
+# .agents/skills/board-aware-development/SKILL.md and
+# .agents/skills/architecture-aware-development/SKILL.md.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+exec python3 "${SCRIPT_DIR}/lifecycle-seam-check.py"

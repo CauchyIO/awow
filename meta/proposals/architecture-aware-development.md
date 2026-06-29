@@ -3,7 +3,7 @@
 **Status:** Proposed (v2 — incorporates an adversarial design review; see "Design review" at the end)
 **Stacks on:** `feat/engine-soft-dependency` (`b51aa1f`) — extends the same PreToolUse hook, `using-awow`,
 and `/setup-awow` Step 8. Lands after that PR; diff kept additive to ease the rebase.
-**Tracking:** Cauchy (CAU) Linear issue — created from this proposal.
+**Tracking:** CAU-1153 (Cauchyio · Way of Working).
 
 ## The gap
 

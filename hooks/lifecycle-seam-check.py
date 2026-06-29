@@ -41,6 +41,36 @@ SEAM = {
     ),
 }
 
+# Engine lifecycle skill -> the architecture-plane action riveted to that moment.
+# Mirrors SEAM; emitted only when context/tooling/architecture.md exists.
+_ARCH_EXEC = (
+    "Re-check the plan's architecture-flagged tasks against their governing "
+    "ADRs/patterns before building them."
+)
+ARCH_SEAM = {
+    "brainstorming": (
+        "Architecture moment — before designing, ask your KB agent whether an "
+        "ADR/pattern already covers this; reuse or extend it rather than reinventing."
+    ),
+    "writing-plans": (
+        "Align this plan with the architecture plane: query the governing "
+        "ADRs/patterns for its scope, flag the tasks that touch them, "
+        "stop-and-surface on conflict, and cite what you checked."
+    ),
+    "executing-plans": _ARCH_EXEC,
+    "subagent-driven-development": _ARCH_EXEC,
+    "test-driven-development": _ARCH_EXEC,
+}
+
+
+def architecture_plane_present(project_dir):
+    """True if this repo declares an architecture plane (the opt-in pointer).
+    The hook stays a dumb nudge: it only checks the pointer exists; the skill
+    handles whether a KB agent is actually reachable."""
+    return os.path.isfile(
+        os.path.join(project_dir, "context", "tooling", "architecture.md")
+    )
+
 
 def superpowers_installed(project_dir):
     """True if the superpowers plugin is present (marketplace cache, user, or
@@ -85,14 +115,22 @@ def main():
     tool_input = data.get("tool_input") or {}
     skill = str(tool_input.get("skill", ""))
     bare = skill.split(":")[-1].strip()
-    reminder = SEAM.get(bare)
-    if not reminder:
+
+    lines = []
+    board = SEAM.get(bare)
+    if board:
+        lines.append(f"[awow board-linkage] {board}")
+    if architecture_plane_present(project_dir):
+        arch = ARCH_SEAM.get(bare)
+        if arch:
+            lines.append(f"[awow architecture] {arch}")
+    if not lines:
         return
 
     out = {
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
-            "additionalContext": f"[awow board-linkage] {reminder}",
+            "additionalContext": "\n".join(lines),
         }
     }
     print(json.dumps(out))

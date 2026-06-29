@@ -7,8 +7,10 @@ CLAUDE_PROJECT_DIR and stdin payload, and asserts on stdout. Run:
 Exits 0 if all pass, 1 otherwise.
 """
 
+import atexit
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -21,6 +23,7 @@ failures = []
 def _project(adopted=True, engine=True, plane=False):
     """Build a temp project dir with the requested gates satisfied; return its path."""
     d = tempfile.mkdtemp()
+    atexit.register(lambda p=d: shutil.rmtree(p, ignore_errors=True))
     if adopted:
         os.makedirs(os.path.join(d, ".agents"), exist_ok=True)
         open(os.path.join(d, ".agents", "AGENTS.md"), "w").close()
@@ -32,12 +35,14 @@ def _project(adopted=True, engine=True, plane=False):
     return d
 
 
-def _run(skill, project_dir, raw=None):
+def _run(skill, project_dir, raw=None, extra_env=None):
     """Invoke the hook; return stdout string."""
     payload = raw if raw is not None else json.dumps(
         {"tool_name": "Skill", "tool_input": {"skill": skill}}
     )
     env = dict(os.environ, CLAUDE_PROJECT_DIR=project_dir)
+    if extra_env:
+        env.update(extra_env)
     p = subprocess.run(
         [sys.executable, HOOK], input=payload, capture_output=True, text=True, env=env
     )
@@ -70,6 +75,15 @@ d = _project(plane=True)
 out = _run("writing-plans", d)
 check("board line present for writing-plans", "[awow board-linkage]" in out)
 check("co-emit both lines for writing-plans", "[awow board-linkage]" in out and "[awow architecture]" in out)
+
+# Negative gates: missing AGENTS.md or missing superpowers marker suppress output.
+d = _project(adopted=False, plane=True)
+check("missing AGENTS.md -> no output", _run("writing-plans", d) == "")
+d = _project(engine=False, plane=True)
+# Isolate HOME so the hook's global superpowers glob patterns also resolve
+# inside the temp dir and find nothing (the project has engine=False, so no
+# .claude/plugins/*/superpowers exists there either).
+check("missing superpowers -> no output", _run("writing-plans", d, extra_env={"HOME": d}) == "")
 
 # Malformed and empty stdin: exit 0, no output.
 d = _project(plane=True)

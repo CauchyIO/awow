@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PreToolUse(Skill) -> board-linkage reminder.
+"""PreToolUse(Skill) -> lifecycle-seam reminders (board + architecture).
 
 Reads the PreToolUse payload on stdin. When the tool being invoked is the
 `Skill` tool and the skill is one of the inner-loop engine's lifecycle skills,
@@ -65,7 +65,7 @@ def main():
     except json.JSONDecodeError as exc:
         # Fail visible (logged with context), then fall through without blocking.
         sys.stderr.write(
-            f"awow board-linkage-check: could not parse PreToolUse payload "
+            f"awow lifecycle-seam-check: could not parse PreToolUse payload "
             f"({exc}); first 200 chars: {raw[:200]!r}\n"
         )
         return

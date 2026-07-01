@@ -24,6 +24,11 @@ as synthesis evolves.
 only), this command *does* write into `context/knowledge-base/`. It never does so without
 explicit approval: it presents the full drain plan and waits.
 
+**Paths.** The KB `inbox` and `kb_root` locations resolve via
+`context/tooling/knowledge-base.md` (defaults `context/kb-inbox/`,
+`context/knowledge-base/`). `synthesis.md` honours the same config, so this command
+inherits any relocation automatically.
+
 ---
 
 ## Pipeline overview

@@ -16,6 +16,11 @@ and never re-queries a source.
 (`context/knowledge-base/synthesis.md`), and it is approval-gated (see *Output* and
 *Handoff to synthesis*).
 
+**Paths.** The `inbox` and `kb_root` locations resolve via
+`context/tooling/knowledge-base.md`. The literals below (`context/kb-inbox/`,
+`context/knowledge-base/`) are the defaults; if that config declares different
+locations, use those.
+
 ---
 
 ## Input

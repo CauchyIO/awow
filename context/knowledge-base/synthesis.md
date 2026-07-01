@@ -9,6 +9,11 @@ This is a **contract, not an autonomous routine.** An opt-in unattended mode (a 
 drain that pushes to a branch) is deliberately *not* part of this contract — see
 *Autonomous mode* at the end.
 
+**Paths.** The `inbox` and `kb_root` locations resolve via
+`context/tooling/knowledge-base.md`. The literals below (`context/kb-inbox/`,
+`context/knowledge-base/`) are the defaults; if that config declares different
+locations, use those.
+
 ---
 
 ## Input

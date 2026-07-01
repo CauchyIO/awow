@@ -2,6 +2,10 @@
 
 Durable reference. The answer to "stories aren't a wiki."
 
+> **Location.** This folder (`kb_root`) and the staging `inbox` are configurable — their
+> paths are declared in `context/tooling/knowledge-base.md` (defaults `context/knowledge-base/`
+> and `context/kb-inbox/`). Relocate them there, not by editing the contracts.
+
 ## What lives here
 
 - **`architecture/`** — system shape: decisions, diagrams, integration patterns. One file per concern.

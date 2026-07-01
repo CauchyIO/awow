@@ -83,6 +83,9 @@ gate** — never send without explicit approval.
 
 ## Phase 3 — KB candidates (deep projection)
 
+KB paths (`inbox`, `kb_root`) resolve via `context/tooling/knowledge-base.md`; the
+literals below are the defaults.
+
 Mine the same snapshot for durable knowledge, per `context/knowledge-base/mining.md`:
 read each item's deep `payload`, apply the selectivity bar (tuned by
 `context/knowledge-base/mining-policy.md`), route each survivor to its

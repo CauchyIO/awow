@@ -207,7 +207,9 @@ Walk the user through `context/knowledge-base/README.md` — what lives there vs
 - **Tune.** What mining keeps is governed by `context/knowledge-base/mining-policy.md`. Show its frontmatter dials (`selectivity`, `categories`, the two caps). It ships strict (`selectivity: 2`); ask whether the team wants to start more generous, and adjust the one value if so. This is the only knob they need to touch.
 - **Synthesize.** Draining the inbox into the durable KB is `/kb-synthesize` (per `context/knowledge-base/synthesis.md`) — **human-gated by default** (novel → write, matches → annotate, covered → no-op, thin → drop). Make clear no autonomous write path ships; unattended nightly drain is opt-in and out of the box.
 
-Nothing to configure beyond the optional `selectivity` tweak — the spine works on its defaults. Record in `setup-progress.md` whether the default policy was kept or adjusted.
+**Locations (optional).** The two KB folders — `kb_root` (default `context/knowledge-base/`) and `inbox` (default `context/kb-inbox/`) — are declared in `context/tooling/knowledge-base.md`. Ask whether the team wants them elsewhere (e.g. a top-level `docs/kb/`, or an existing wiki/vault path). If **yes**: update the two paths in that config **and move the folders to match** (`git mv` the existing `context/knowledge-base/` and `context/kb-inbox/` contents). The contracts and commands resolve locations from the config, so nothing else needs editing. If **no**, leave the defaults. Keep the two folders distinct — the drain moves files from `inbox` into `kb_root`.
+
+Nothing is required here — the spine works on its defaults. The only optional knobs are the `selectivity` dial and these two paths. Record in `setup-progress.md` whether the default policy and locations were kept or adjusted.
 
 ## Step 7 — Neighbouring teams
 

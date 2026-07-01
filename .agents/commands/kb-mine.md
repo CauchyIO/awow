@@ -24,6 +24,11 @@ it stays correct as the mining contract evolves.
 knowledge base or the board without explicit approval. The mining contract's
 promotion gate stands.
 
+**Paths.** The KB `inbox` and `kb_root` locations resolve via
+`context/tooling/knowledge-base.md` (defaults `context/kb-inbox/`,
+`context/knowledge-base/`). `mining.md` honours the same config, so this command
+inherits any relocation automatically.
+
 ---
 
 ## Pipeline overview

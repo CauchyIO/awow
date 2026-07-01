@@ -10,6 +10,9 @@ tracked in git. A mined insight that isn't promoted the same day must survive un
 is drained — the inbox is a durable backlog, not day-scratch. The drain reads the
 *committed* state, so a candidate has to be committed to be seen.
 
+**Location.** This folder (`inbox`) is configurable — its path is declared in
+`context/tooling/knowledge-base.md` (default `context/kb-inbox/`). Relocate it there.
+
 **One concept per file.** Each candidate is a single durable insight, so it can be
 promoted, deferred, or dropped on its own.
 

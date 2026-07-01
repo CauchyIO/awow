@@ -60,9 +60,10 @@ committed staging layer rather than inline:
 
 1. **Capture** — the mining lens (`mining.md`, tuned by `mining-policy.md`) stages each
    candidate as one committed file in `context/kb-inbox/`.
-2. **Synthesize** — the drain (`synthesis.md`) reads the inbox and, **on explicit
-   approval**, applies the disposition (novel → write, matches → annotate, covered →
-   no-op, thin → drop), leaves the board pointer, logs provenance, and clears the file.
+2. **Synthesize** — the drain (`/kb-synthesize`, per `synthesis.md`) reads the inbox
+   and, **on explicit approval**, applies the disposition (novel → write, matches →
+   annotate, covered → no-op, thin → drop), leaves the board pointer, logs provenance,
+   and clears the file.
 
 Both paths land content here the same way and obey the link discipline below.
 

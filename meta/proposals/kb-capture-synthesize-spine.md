@@ -134,6 +134,7 @@ untouched.**
 | **`context/kb-inbox/`** (new) | Committed intake surface. `README.md` (lifecycle + file format + frontmatter schema), `_synthesis-log.md` (append-only provenance), and `YYYY-MM-DD-<source>-<slug>.md` candidate files. Committed on purpose — the drain reads committed state. |
 | **`context/knowledge-base/mining-policy.md`** (new) | Tunable extraction policy: frontmatter dials (`selectivity`, `categories`, caps) + the keep/drop rubric + examples, lifted out of `mining.md`. |
 | **`context/knowledge-base/synthesis.md`** (new) | The drain contract: per-candidate disposition (novel/matches/covered/thin), reconcile, provenance-log, remove drained file. Human-gated. The promotion ritual in `knowledge-base/README.md` points to it. |
+| **`/kb-synthesize`** (new command) | The invokable wrapper over `synthesis.md` — loads the inbox, plans dispositions, runs the approval gate, applies. The drain's entry point, mirroring how `/kb-mine` wraps `mining.md`. |
 | `context/knowledge-base/mining.md` | Reads `mining-policy.md` for the selectivity bar/caps instead of hardcoding them; emits **one committed file per candidate into `context/kb-inbox/`** instead of one gitignored `kb-candidates/<date>.md`. |
 | `/daily-routine` (Phase 3) | Deep projection now emits into `context/kb-inbox/`; the promotion gate points at `synthesis.md`. Behaviour-preserving otherwise. |
 | `context/knowledge-base/README.md` | Promotion-ritual section references `synthesis.md` (the case-complete drain) and the inbox as the staging layer. |
@@ -161,9 +162,10 @@ untouched.**
 2. **Lift the selectivity bar into `mining-policy.md`;** have `mining.md` read it. No
    behaviour change at default dial values — this is a refactor of where the knob lives.
    *(Done.)*
-3. **Write `synthesis.md`** (the case-complete, human-gated drain), re-point the
-   promotion ritual in `knowledge-base/README.md` at it, and weave the spine into
-   `/setup-awow` Step 6. *(Done.)*
+3. **Write `synthesis.md`** (the case-complete, human-gated drain) and its invokable
+   wrapper **`/kb-synthesize`**, re-point the promotion ritual in
+   `knowledge-base/README.md` at it, and weave the spine into `/setup-awow` Step 6.
+   *(Done.)*
 4. **(Later, separate proposal) Unify the other feeders** (`/process-workitem`,
    `/process-transcript`) on the inbox, and/or an **opt-in autonomous drain mode** and
    a **yield-log + tuning** loop over `mining-policy.md`. Out of scope here.

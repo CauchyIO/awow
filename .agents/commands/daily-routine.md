@@ -91,10 +91,10 @@ survivor as one committed file in `context/kb-inbox/`.
 
 This projection **proposes only**. Do not write into `context/knowledge-base/` and do
 not touch the board. Present the candidate summary (count, targets, duplicates
-dropped, cap status) and stop — promotion is the synthesis drain
-(`context/knowledge-base/synthesis.md`), which runs the **approval gate** before any
-candidate lands in the durable KB. You may offer to run that drain now, or leave the
-candidates staged in the inbox for a later `/kb-mine`-or-drain pass.
+dropped, cap status) and stop — promotion is the synthesis drain (`/kb-synthesize`, per
+`context/knowledge-base/synthesis.md`), which runs the **approval gate** before any
+candidate lands in the durable KB. You may offer to run `/kb-synthesize` now, or leave
+the candidates staged in the inbox for a later drain.
 
 If mining fails, say so and finish — the overview is already produced. The two
 projections do not depend on each other.

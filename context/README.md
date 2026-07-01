@@ -7,7 +7,8 @@ Everything the agent needs to know about *this team* in *this place*. The agent 
 | Subfolder | Purpose |
 |---|---|
 | `team/` | The team's own surfaces — mission, members, style, conventions |
-| `knowledge-base/` | Durable reference — patterns, decisions, runbooks, glossary |
+| `knowledge-base/` | Durable reference — patterns, decisions, runbooks, glossary. Mining is tuned by `mining-policy.md`; the inbox is drained into here by `synthesis.md`. Default location; relocatable via `tooling/knowledge-base.md` |
+| `kb-inbox/` | Committed staging for durable-knowledge candidates awaiting promotion (the capture→synthesize spine). Default location; relocatable via `tooling/knowledge-base.md` |
 | `company/` | Stakeholders, neighbouring teams, RACI |
 | `quarterly/` | Quarterly-cycle inputs — slidedecks, OKRs, planning artefacts |
 | `tooling/` | Board, harness, and MCP choices for this team |

@@ -201,6 +201,14 @@ Critically: ask the user to populate the `## Do not propose` block. Surface scop
 
 Walk the user through `context/knowledge-base/README.md` — what lives there vs. on the board. Offer to seed `glossary.md` from any glossary they already have. Stub the architecture/patterns/runbooks/decisions subfolders with one example each if useful.
 
+**The capture → synthesize spine.** Explain how durable knowledge gets *in*, so the KB isn't a folder nobody fills:
+
+- **Capture.** Mining a day's activity (`/kb-mine`, or `/daily-routine` Phase 3) stages candidates as committed files in `context/kb-inbox/` — one durable insight per file. Point the user at `context/kb-inbox/README.md`.
+- **Tune.** What mining keeps is governed by `context/knowledge-base/mining-policy.md`. Show its frontmatter dials (`selectivity`, `categories`, the two caps). It ships strict (`selectivity: 2`); ask whether the team wants to start more generous, and adjust the one value if so. This is the only knob they need to touch.
+- **Synthesize.** Draining the inbox into the durable KB is `context/knowledge-base/synthesis.md` — **human-gated by default** (novel → write, matches → annotate, covered → no-op, thin → drop). Make clear no autonomous write path ships; unattended nightly drain is opt-in and out of the box.
+
+Nothing to configure beyond the optional `selectivity` tweak — the spine works on its defaults. Record in `setup-progress.md` whether the default policy was kept or adjusted.
+
 ## Step 7 — Neighbouring teams
 
 Ask for the 1° teams (teams whose work the user's team depends on or supplies into). Generate empty stubs at `context/company/neighbouring-teams.md`. Tell the user each neighbouring team is expected to write its own; the stubs are placeholders.

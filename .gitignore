@@ -29,6 +29,13 @@ mlruns/
 
 # Regression suite — run files now live at /tmp/awow-test-runs/, not in-repo
 
+# Daily-routine working artefacts — ephemeral scratch, not durable records.
+# The day snapshot feeds the projections; the durable outputs are digests/ (overview)
+# and whatever synthesis promotes into context/knowledge-base/.
+# NOTE: KB candidates are NOT ignored — they now stage in context/kb-inbox/, which is
+# committed on purpose (the synthesis drain reads committed state).
+activity/
+
 # Private session-derived data — NEVER commit to this PUBLIC repo.
 # Raw exports and the reports/timelines built from them carry real names,
 # private issue IDs, infra topology, and cost figures. The pre-push leak scan

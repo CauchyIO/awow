@@ -16,6 +16,9 @@ The one lever over **what the mining lens keeps**. `context/knowledge-base/minin
 reads this file and applies the dials above plus the rubric below; it does not hardcode
 the bar. Tune here, in one place — the mining contract is unchanged.
 
+> **Paths.** The `inbox` and `kb_root` locations referenced below resolve via
+> `context/tooling/knowledge-base.md`; the literals are the defaults.
+
 The dials live in the frontmatter so they are cheap to read and edit:
 
 | Dial | Meaning |

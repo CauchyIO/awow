@@ -253,3 +253,17 @@ shared dependency — keep it to one.
 6. Add the guide to `index.html` under the correct flow grouping, with a card whose copy does not merely
    restate the phase-frame above it (see the index's own grouping comments).
 7. New shared component? Add its canonical CSS to §3 in the same change.
+
+---
+
+## 8. Source of truth & knowledge extractability
+
+The HTML file **is** the canonical source of a guide — there is no markdown twin to keep in sync.
+Downstream consumers (the docs site and the knowledge-base agent) work from generated projections:
+a deterministic strip step extracts headings, prose, list/table text, `figcaption`/`.legend` text,
+and code blocks at publish time (see `linear/context/knowledge-base/patterns/guide-source-of-truth.md`).
+
+That places one hard rule on authoring: **all knowledge in a guide must be extractable text in the
+DOM.** Prose, tables, and code carry themselves. A diagram's *meaning* must live in its `.legend`
+and caption text (§6 already requires these) — never only in SVG geometry, colour, or placement.
+If removing every visual would lose a fact, that fact is missing from the text; add it.

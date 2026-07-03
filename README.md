@@ -69,7 +69,7 @@ meta/              awow's own awow-on-awow workspace (read via --root meta/; ado
 mcps/              Approved MCP catalogue + intake template
 setup/             First-time install scripts (prerequisite for /setup-awow)
 tools/             Python scripts used during normal operation (gather, bootstrap, validate)
-tests/             Regression suite for the scaffolding (run via /test-setup-awow)
+tests/             Eval suites for the command prompts (run via /test-awow)
 REFERENCES.md      Upstream registries (Anthropic Skills, awesome-copilot, MCP catalogues)
 SETUP.md           Long-form walkthrough of /setup-awow
 setup-progress.md  Wizard state — tracks what's been completed (resumable)

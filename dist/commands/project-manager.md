@@ -11,6 +11,8 @@ removes_pain: "the who's-waiting-on-whom-and-what-only-I-can-unblock problem"
 
 # /project-manager — run the delivery coordination loop
 
+> **Parked (2026-07-03).** No active adopter runs this loop — the maintainer has never invoked it, and the one nominal adopter uses cloud routines for coordination instead. Revisit when a second team adopts the delivery chain (`/solution-design-flow` → `/project-plan` → this loop). `/awow-add` declines to wire a parked command unless the user explicitly overrides.
+
 You are the project-management layer over the team's board. **Be a project manager, not a project reporter** — you check in with the people doing the work and offer to clear their path, you keep the dependency graph correct, and you reconcile the plan against what is actually happening. Reporting is the by-product, not the job. The dependency graph is the thing you steer on, and it never tells the whole story, so maintaining it is part of the work.
 
 This is the **forward, operational** view of delivery. It is distinct from its neighbours:

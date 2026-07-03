@@ -293,4 +293,4 @@ Manual follow-up needed:
 
 ## Chained downstream
 
-`/solution-design-flow` produces a design artefact plus a decomposed work-item tree with stated edges. `/project-plan` consumes that tree, formalises the dependency graph (sequence, parallel layers, critical path), and creates the board items — it is the next command to run. The Phase 3.2 shape is designed to be consumable by `/project-plan` without manual reshaping; from there `/process-workitem` executes each item and `/project-manager` coordinates delivery against the published plan.
+After Gate 3 lands the artefact, route the user to `/project-plan` with the artefact path — it consumes the Phase 3.2 tree as-is and owns everything from dependency graph to board items. Do not re-describe its pipeline here; its contract is `.agents/commands/project-plan.md`.

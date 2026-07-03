@@ -2,6 +2,10 @@
 
 Durable reference. The answer to "stories aren't a wiki."
 
+> **Location.** This folder (`kb_root`) and the staging `inbox` are configurable — their
+> paths are declared in `context/tooling/knowledge-base.md` (defaults `context/knowledge-base/`
+> and `context/kb-inbox/`). Relocate them there, not by editing the contracts.
+
 ## What lives here
 
 - **`architecture/`** — system shape: decisions, diagrams, integration patterns. One file per concern.
@@ -52,6 +56,20 @@ When a story comment turns out to contain durable content:
 3. The original comment becomes a pointer; the content is now durable and findable.
 
 `/process-workitem` and `/process-transcript` perform this routing explicitly.
+
+### The capture → synthesize spine
+
+For durable knowledge surfaced by mining a day's activity, promotion runs through a
+committed staging layer rather than inline:
+
+1. **Capture** — the mining lens (`mining.md`, tuned by `mining-policy.md`) stages each
+   candidate as one committed file in `context/kb-inbox/`.
+2. **Synthesize** — the drain (`/kb-synthesize`, per `synthesis.md`) reads the inbox
+   and, **on explicit approval**, applies the disposition (novel → write, matches →
+   annotate, covered → no-op, thin → drop), leaves the board pointer, logs provenance,
+   and clears the file.
+
+Both paths land content here the same way and obey the link discipline below.
 
 ## Staleness
 

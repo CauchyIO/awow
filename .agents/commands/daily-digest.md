@@ -49,39 +49,27 @@ If a digest already exists for today (`digests/YYYY-MM-DD.md`), ask the user whe
 
 ## Phase 1 — Data collection
 
-Collect all available signals before producing any output.
+Collect the day's activity once, via the shared collection step, then project the shallow view this digest needs.
 
-### A. Board activity (today)
+### Run the shared collection step
 
-Pull all issue updates from today via the team's board surface (per `context/tooling/board.md`). For each updated issue:
+Follow `context/tooling/activity-collection.md`: **reuse `activity/YYYY-MM-DD.json` if it already exists for the day, otherwise produce it.** That step owns the board / code / chat queries (all keyed off `context/tooling/board.md`), the normalised snapshot schema, and the private-team gate — so you do not re-query per lens, and the private-team exclusion is already applied.
 
-- Who updated it (assignee / commenter)
-- What changed (state transition, new comments, new issues created)
-- Which project / area it belongs to
+If the snapshot cannot be produced (no `context/tooling/board.md`, or a fatal auth failure on a source), stop and surface it — do not synthesise from a half-snapshot.
 
-If your board has a "private team" concept (e.g. a leadership-only board), apply the rule from `context/team/conventions/REQUIRED/labels.md`: data from private surfaces does not flow into shared digests. Pull it internally only to inform per-person sections (Phase 2.C), and explicitly exclude it from any shared rendering.
+### Project the digest's shallow view
 
-Sanity-check empty results. If a team-filtered query returns zero issues on a day you know was active, the query is probably wrong (mistyped team name, stale credentials) — investigate before treating the empty result as truth.
+Read from the snapshot only what synthesis needs: for each item its `kind`, `ref`, `actor`, `title`, and `activity` (state transitions, comments, creations). **Do not load `payload.diff`** — the digest narrates what moved, not code contents. Map code activity to board issues via the refs the snapshot already carries.
 
-### B. Code activity (today)
+Honour each source's `status`: reflect any `error` / degraded source honestly in the Data Sources table (Phase 3) — never invent data for a failed source. If every chat channel failed, surface the banner: "⚠ No chat data available today — all channels failed." Sanity-check a zero-issue board result on a day you know was active before trusting it.
 
-Pull commits, PRs, and review events from today via the team's code-hosting surface. For each repo with activity, capture commits, PRs opened / merged, contributors. Map code activity to board issues where possible (linked branches, mentioned issue IDs in commit messages, PR descriptions).
+### Private-team, per-person exception
 
-### C. Chat / channel messages (today, optional)
-
-If the team has wired a chat integration and a channel-to-project mapping (e.g. `config/chat-to-project.yaml`), pull the day's channel messages.
-
-**Always exclude meeting transcripts from automatic ingestion.** Transcripts may contain personal data; they are processed separately by `/process-transcript` with explicit approval. The digest only pulls channel messages.
-
-Interpret the sync result:
-
-- **Hard failure** (process exits non-zero with a traceback) — auth or config issue. Stop, tell the user, wait for confirmation before retrying.
-- **Partial failure** (sync ran, some channels failed) — normal. Note failed channels under Structural Observations (mapping drift / permission changes); proceed with what returned. If *every* channel failed, surface a banner in the digest: "⚠ No chat data available today — all channels failed."
-- **Clean run** — proceed normally.
+The shared gate keeps private-team data out of the snapshot, hence out of every shared section. The one place the digest may use private data is per-person takeaways (Phase 2.C) for a team member who has access — pull that internally and exclude it from any shared rendering. It never enters the snapshot.
 
 ### Escape hatch
 
-If the user says "skip chat" or "skip code", honour it. The digest still produces from whatever sources returned.
+If the user says "skip chat" or "skip code", honour it — collect (or project) only the remaining sources. The digest still produces from whatever returned.
 
 ---
 

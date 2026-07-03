@@ -42,11 +42,14 @@ EOF
   exit 1
 fi
 
-echo "[1/2] Syncing project (installs Python $PYTHON_VERSION, creates .venv, installs deps)..."
+echo "[1/3] Syncing project (installs Python $PYTHON_VERSION, creates .venv, installs deps)..."
 uv sync --python "$PYTHON_VERSION" --quiet
 
-echo "[2/2] Running initial pointer-stub gather..."
+echo "[2/3] Running initial pointer-stub gather..."
 uv run python tools/gather.py
+
+echo "[3/3] Recording the awow version baseline (tools/awow.lock.json)..."
+uv run python tools/awow_lock.py backfill
 
 cat <<'EOF'
 

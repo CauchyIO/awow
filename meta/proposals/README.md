@@ -22,7 +22,8 @@ When a proposal's state changes, update its `**Status:**` line *and* the row bel
 | [meta-workspace-and-fixture-decoupling](meta-workspace-and-fixture-decoupling.md) | **Landed** | `dogfood/` → `meta/`, test fixtures decoupled (`feature/dry_run_awow`). |
 | [session-board-correlation](session-board-correlation.md) | **Landed** | `session-correlation` skill + footer rule + `tools/session_footer_hook.py`. |
 | [setup-awow-regression-tests](setup-awow-regression-tests.md) | **Landed** | `tests/setup-awow/` suite + `/test-setup-awow`. |
-| [plugin-distribution](plugin-distribution.md) | **Draft** | Second adoption path (Claude Code plugin). Awaiting review. |
+| [plugin-distribution](plugin-distribution.md) | **Draft** | Second adoption path (Claude Code plugin). Awaiting review — candidate for **Superseded** by hub-and-spoke-adoption. |
+| [hub-and-spoke-adoption](hub-and-spoke-adoption.md) | **Draft** (WI-1 in build) | Adopt Martijn's two-path hub-and-spoke model: plugin machinery + hub context, connector per project. Work items WI-0..4 + decisions D1–D6 await review. |
 | [board-noise-pruning](board-noise-pruning.md) | **Draft** (solutioning) | Comparison-mode; pick an approach before writing the issue. |
 | [superpowers-integration-shape](superpowers-integration-shape.md) | **Draft** | Ready to file as a GitHub issue once the AC is confirmed. |
 | [shared-activity-collection-lenses](shared-activity-collection-lenses.md) | **Draft** (built, awaiting review) | Shared gather (`activity-collection.md`) + `/daily-routine` (one gather → overview + KB candidates) + `/daily-digest` & `/kb-mine` standalone lenses. |

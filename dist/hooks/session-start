@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# SessionStart hook for the awow plugin.
+# Injects the `using-awow` operating reflex into every session, and — when the
+# plugin is enabled in a repo that has NOT adopted awow yet — adds a one-time
+# nudge to run /setup-awow. Mirrors the superpowers session-start mechanism so
+# the two plugins coexist (every harness concatenates SessionStart context).
+
+set -euo pipefail
+
+# Plugin root: derived from this script's location, so it is correct regardless
+# of which env var the harness sets.
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# The repo the user is actually working in (NOT the plugin dir).
+REPO_DIR="${CLAUDE_PROJECT_DIR:-${PWD}}"
+
+# Read the using-awow bootstrap from the plugin payload.
+bootstrap_content=$(cat "${PLUGIN_ROOT}/.agents/skills/using-awow/SKILL.md" 2>&1 || echo "Error reading using-awow skill")
+
+# One-time setup nudge: fire only when this repo has not adopted awow
+# (no .agents/AGENTS.md) AND the user has not opted out (no skip flag).
+# A repo mid-setup or already set up has .agents/AGENTS.md and is never nagged.
+nudge_message=""
+if [ ! -f "${REPO_DIR}/.agents/AGENTS.md" ] && [ ! -f "${REPO_DIR}/.awow/no-setup-prompt" ]; then
+    nudge_message="\n\n<important-reminder>This repo has the awow plugin enabled but has not adopted awow yet (no .agents/AGENTS.md). IN YOUR FIRST REPLY, offer once to run /setup-awow to bring the board-linked way of working into this repo. If the user declines, create an empty file at .awow/no-setup-prompt so this nudge stops, and do not ask again this session.</important-reminder>"
+fi
+
+# Detect an inner-loop build engine (superpowers). Globs that do not match expand
+# to the literal pattern, which `-d` then rejects — so this is safe with nullglob
+# off. Covers the marketplace cache layout, user scope, and project scope.
+engine_installed() {
+    local p
+    for p in "${HOME}/.claude/plugins/cache/"*/superpowers \
+             "${HOME}/.claude/plugins/"*/superpowers \
+             "${REPO_DIR}/.claude/plugins/"*/superpowers; do
+        [ -d "$p" ] && return 0
+    done
+    return 1
+}
+
+# Soft-dependency nudge: an adopted awow repo with no build engine. Mutually
+# exclusive with the setup nudge above (that one needs AGENTS.md absent; this one
+# needs it present), so the two never stack. Opt out with .awow/no-engine-prompt.
+engine_nudge=""
+if [ -f "${REPO_DIR}/.agents/AGENTS.md" ] && ! engine_installed && [ ! -f "${REPO_DIR}/.awow/no-engine-prompt" ]; then
+    engine_nudge="\n\n<important-reminder>This awow repo has no inner-loop build engine installed. superpowers is the recommended optional engine for the build step (TDD-gated build then review), and the board-aware-development seam lights up when it is present. IN YOUR FIRST REPLY, mention once that it is available and can be added via /setup-awow (Step 8 — surface the extras); awow runs on its baseline without it, so keep it light. If the user is not interested, create an empty file at .awow/no-engine-prompt so this stops, and do not raise it again this session.</important-reminder>"
+fi
+
+# Escape a string for embedding in a JSON string value. Each ${s//old/new} is a
+# single C-level pass — far faster than a character loop.
+escape_for_json() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    s="${s//$'\n'/\\n}"
+    s="${s//$'\r'/\\r}"
+    s="${s//$'\t'/\\t}"
+    printf '%s' "$s"
+}
+
+bootstrap_escaped=$(escape_for_json "$bootstrap_content")
+nudge_escaped=$(escape_for_json "$nudge_message")
+engine_escaped=$(escape_for_json "$engine_nudge")
+session_context="<EXTREMELY_IMPORTANT>\nYou are working in a repo governed by awow — the Agentic Way of Working.\n\n**Below is your 'awow:using-awow' reflex — how awow expects you to work. For the team's full conventions read .agents/AGENTS.md; for any other awow command or skill, use the 'Skill' tool or the slash command.**\n\n${bootstrap_escaped}\n\n${nudge_escaped}\n\n${engine_escaped}\n</EXTREMELY_IMPORTANT>"
+
+# Emit context injection as JSON. Each platform reads a different field:
+#   Cursor          → additional_context (top-level, snake_case)
+#   Claude Code     → hookSpecificOutput.additionalContext (nested)
+#   Copilot CLI / SDK standard → additionalContext (top-level)
+# Claude Code reads BOTH additional_context and hookSpecificOutput without
+# deduplication, so emit only the field the current platform consumes.
+# printf (not heredoc) avoids the bash 5.3+ heredoc hang.
+if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then
+  printf '{\n  "additional_context": "%s"\n}\n' "$session_context"
+elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -z "${COPILOT_CLI:-}" ]; then
+  printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$session_context"
+else
+  printf '{\n  "additionalContext": "%s"\n}\n' "$session_context"
+fi
+
+exit 0

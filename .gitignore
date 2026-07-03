@@ -39,3 +39,7 @@ coach_reviews/
 **/coach_reviews/
 sessions.json
 timeline.html
+
+# Fixture .venv markers are test data, not real virtualenvs — re-include them.
+!tests/*/fixtures/**/.venv/
+!tests/*/fixtures/**/.venv/**

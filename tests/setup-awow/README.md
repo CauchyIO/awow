@@ -2,29 +2,33 @@
 
 Maintainer-only. Adopters who templated this repo can delete this directory.
 
-**Principle.** Fixtures are self-contained snapshots of a clean installation at a given step — standalone test data, not derived from any live workspace. The suite copies a fixture into a scratch dir, runs the real command prompts against it, and grades the result, so `/test-setup-awow` re-proves the wizard end-to-end as an adopter's installation would experience it. Design rationale: [`meta/proposals/setup-awow-regression-tests.md`](../../meta/proposals/setup-awow-regression-tests.md) and [`meta/proposals/meta-workspace-and-fixture-decoupling.md`](../../meta/proposals/meta-workspace-and-fixture-decoupling.md). Execution mechanics: [`.agents/commands/test-setup-awow.md`](../../.agents/commands/test-setup-awow.md).
+**Principle.** Fixtures are self-contained snapshots of a clean installation at a given step — standalone test data, not derived from any live workspace. The suite copies a fixture into a scratch dir, runs the real command prompts against it, and grades the result with two independent witnesses (deterministic checks + a blind judge), so `/test-awow setup-awow` re-proves the wizard end-to-end as an adopter's installation would experience it. Design rationale: [`meta/proposals/setup-awow-regression-tests.md`](../../meta/proposals/setup-awow-regression-tests.md), [`meta/proposals/meta-workspace-and-fixture-decoupling.md`](../../meta/proposals/meta-workspace-and-fixture-decoupling.md), and [`meta/proposals/eval-baseline-and-prompt-cleanup.md`](../../meta/proposals/eval-baseline-and-prompt-cleanup.md). Execution mechanics: [`.agents/commands/test-awow.md`](../../.agents/commands/test-awow.md); suite-wide conventions: [`../README.md`](../README.md).
 
 ## Running
 
 ```
-> /test-setup-awow              # all scenarios with a script + rubric
-> /test-setup-awow clean-clone  # one scenario
-> /test-setup-awow --keep       # leave scratch dirs after the run
+> /test-awow setup-awow               # all scenarios with a script + rubric
+> /test-awow setup-awow clean-clone   # one scenario
+> /test-awow setup-awow --keep        # leave scratch dirs after the run
 ```
 
-Outcomes: `PASS` (zero `no`), `FAIL` (≥1 `no`), `ABORTED` (Phase 2 didn't actually run). Run files: `/tmp/awow-test-runs/<scenario>-<ts>.json`.
+(`/test-setup-awow` remains as a deprecated alias.)
+
+Outcomes: `pass` (judge has zero `no` AND every post-check passed), `fail` (either witness objects), `indeterminate` (the run could not be graded: broken fixture, broken check, no actual execution, or no judge verdict — the run file's `stage` names which). Run files: `/tmp/awow-test-runs/<suite>-<scenario>-<ts>.json` (schema 2).
 
 ## Layout
 
 ```
 tests/setup-awow/
+├── suite.md               # command: setup-awow — what /test-awow executes
 ├── fixtures/<scenario>/   # workspace state copied into scratch at run start
 ├── scripts/<scenario>.txt # scripted user replies, one per non-blank/non-comment line
 ├── rubrics/<scenario>.md  # yes/no questions tagged with the invariant they grade
+├── checks/<scenario>.sh   # pre() fixture gate + post() deterministic assertions
 └── README.md
 ```
 
-Scenarios are discovered by intersecting `scripts/*.txt` with `rubrics/*.md`; a fixture at `fixtures/<name>/` is then required.
+Scenarios are discovered by intersecting `scripts/*.txt` with `rubrics/*.md`; a fixture at `fixtures/<name>/` and a checks file at `checks/<name>.sh` are then required (`tools/validate-evals.py` enforces this statically).
 
 ## Scenarios
 
@@ -43,16 +47,17 @@ Per-step scenarios give finer-grained failure signal; the walkthrough is the end
 
 ## Fixture conventions
 
-- `.venv/.gitkeep` + populated `.claude/commands/setup-awow.md` and `.github/prompts/setup-awow.prompt.md` stubs = "Step 0 inherited" (the Step 0 §1 detection fires on these).
+- `.venv/.gitkeep` + populated `.claude/commands/setup-awow.md` and `.github/prompts/setup-awow.prompt.md` stubs = "Step 0 inherited" (the Step 0 §1 detection fires on these). The `.venv/` markers are explicitly re-included in `.gitignore` — they are test data, not real virtualenvs; if `pre()` fails on a fresh clone, check that re-include first.
 - `setup-progress.md` signals which step the scenario starts from.
 - `context/tooling/board.md` / `context/team/mission.md` are pre-seeded sample state for scenarios past Step 1 or 2 — frozen, standalone (see the principle above).
 
-If a fixture mis-represents the starting state, update the fixture, not the script.
+If a fixture mis-represents the starting state, update the fixture, not the script — the scenario's `pre()` gate is the contract for what "represents" means.
 
 ## Adding a scenario
 
 1. `fixtures/<scenario>/` — starting workspace state.
 2. `scripts/<scenario>.txt` — user replies (`#`-prefixed and blank lines skipped).
 3. `rubrics/<scenario>.md` — yes/no questions, each tagged with its invariant.
+4. `checks/<scenario>.sh` — `pre()` asserting the fixture, `post()` mirroring the rubric's mechanical facts (belt-and-braces).
 
-`/test-setup-awow` picks the scenario up automatically.
+Run `python tools/validate-evals.py` to confirm the wiring; `/test-awow setup-awow <scenario>` picks it up automatically.

@@ -130,7 +130,7 @@ Copilot reads the marketplace from `.claude-plugin/marketplace.json` and the plu
 
 **Contributing improvements back to awow.** Today the path is manual: in a fresh clone of upstream awow, recreate your change against starter-owned files only, and open a PR. The split above makes this easy — anything outside the team-owned rows is fair game. If demand emerges, a `tools/propose-upstream.py` helper in a later release could diff starter-owned paths against the upstream tip and prep a PR branch automatically.
 
-**Pulling later improvements from awow.** Also manual today: watch the awow upstream, and cherry-pick changes from starter-owned paths into your repo when they look worth picking up. Most teams will not need to do this often — the scaffolding is small and the team-owned surface is what grows.
+**Pulling later improvements from awow.** Run `/update-awow`. It refreshes the awow plugin (or an upstream checkout you point it at), then does a 3-way compare — the baseline recorded in `tools/awow.lock.json` vs. your local file vs. upstream — so files you have edited are never silently overwritten and only genuine both-sides changes surface as conflicts (saved as `<file>.awow` to merge). It touches only starter-owned paths; `context/team/`, `setup-progress.md`, and a bootstrapped `AGENTS.md` are left alone. `/awow-status` reports how current the scaffolding is and which starter files you have locally modified. Repos set up before the lockfile existed get seeded on the first `/update-awow` run.
 
 ## Status
 

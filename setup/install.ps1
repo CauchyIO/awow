@@ -45,14 +45,17 @@ See https://docs.astral.sh/uv/getting-started/installation/ for alternatives.
     exit 1
 }
 
-Write-Host "[1/3] Ensuring Python $PythonVersion is available via uv..."
+Write-Host "[1/4] Ensuring Python $PythonVersion is available via uv..."
 uv python install $PythonVersion --quiet
 
-Write-Host "[2/3] Creating .venv ..."
+Write-Host "[2/4] Creating .venv ..."
 uv venv --python $PythonVersion --quiet
 
-Write-Host "[3/3] Running initial pointer-stub gather..."
+Write-Host "[3/4] Running initial pointer-stub gather..."
 uv run --no-project python tools/gather.py
+
+Write-Host "[4/4] Recording the awow version baseline (tools\awow.lock.json)..."
+uv run --no-project python tools/awow_lock.py backfill
 
 Write-Host @'
 

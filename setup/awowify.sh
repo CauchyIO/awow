@@ -148,6 +148,7 @@ __pycache__/
 .claude/settings.local.json
 .claude/mlflow/
 mlruns/
+tools/.awow-vendor-stamp
 # <<< awow <<<
 EOF
 
@@ -162,6 +163,23 @@ if [[ -f "$gi" ]]; then
 else
   gitignore_action="created"
   [[ "$DRY_RUN" -eq 0 ]] && printf '%s\n' "$AWOW_IGNORES" > "$gi"
+fi
+
+# Vendor stamp — awowify'd repos carry no plugin.json, so record the awow
+# version, source commit, and mode here. tools/awow_lock.py backfill (run by
+# setup/install.sh next) reads this to seed tools/awow.lock.json, then deletes
+# it. Template adopters skip this: they read the version from their plugin.json.
+if [[ "$DRY_RUN" -eq 0 ]]; then
+  awow_version="$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$SOURCE/.claude-plugin/plugin.json" 2>/dev/null | head -1)"
+  source_commit="$(git -C "$SOURCE" rev-parse --short HEAD 2>/dev/null || true)"
+  mkdir -p "$TARGET/tools"
+  {
+    echo "# awow vendor stamp — consumed by tools/awow_lock.py backfill at install."
+    echo "awow_version=${awow_version}"
+    echo "source_commit=${source_commit}"
+    echo "board=${BOARD}"
+    echo "solo=${SOLO}"
+  } > "$TARGET/tools/.awow-vendor-stamp"
 fi
 
 echo

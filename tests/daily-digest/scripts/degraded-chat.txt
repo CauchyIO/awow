@@ -1,0 +1,4 @@
+# /daily-digest with no email arguments: markdown-only mode. The pre-seeded
+# snapshot satisfies the reuse check, so the only ask-the-user point is the
+# post-delivery "share specific sections?" question. Decline it.
+no

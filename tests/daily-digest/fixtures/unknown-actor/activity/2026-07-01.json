@@ -1,0 +1,43 @@
+{
+  "date": "2026-07-01",
+  "sources": {
+    "board": {
+      "status": "ok",
+      "scope": "SampleOrg project 1 — issues touched 2026-07-01",
+      "items": [
+        {
+          "kind": "board.issue",
+          "ref": "AWOW-401",
+          "actor": "Zursk Vantell",
+          "title": "Gateway TLS cert rotation",
+          "activity": ["2026-07-01: In Progress → In Review"],
+          "payload": {
+            "description": "Rotate the gateway certs and automate the renewal. (Contractor task — actor is not on the team page.)",
+            "comments": ["renewal automation drafted"]
+          }
+        },
+        {
+          "kind": "board.issue",
+          "ref": "AWOW-402",
+          "actor": "Asha Patel",
+          "title": "Gateway redesign — auth slice",
+          "activity": ["2026-07-01: comment by Asha Patel"],
+          "payload": {
+            "description": "Auth slice of the redesign.",
+            "comments": ["depends on the cert rotation landing first"]
+          }
+        }
+      ]
+    },
+    "code": {
+      "status": "ok",
+      "scope": "SampleOrg/gateway, SampleOrg/pipelines",
+      "items": []
+    },
+    "chat": {
+      "status": "absent",
+      "scope": "no config/chat-to-project.yaml wired",
+      "items": []
+    }
+  }
+}

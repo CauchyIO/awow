@@ -32,6 +32,8 @@ cp -R tests/<suite>/fixtures/<scenario>/. "$SCRATCH/"
 
 Confirm via `ls -la "$SCRATCH"` that the fixture's contents are present.
 
+If `tests/<suite>/setup/<scenario>.sh` exists, run it as `tests/<suite>/setup/<scenario>.sh "$SCRATCH"` — it finishes the fixture build (e.g. re-dating a frozen activity snapshot to today). A non-zero exit means the fixture could not be built: set `final: indeterminate`, `stage: setup`, and skip to Phase 7.
+
 ### Phase 2 — Pre-checks (fixture gate)
 
 Print exactly: `=== Phase 2: pre-checks ===`
@@ -119,12 +121,13 @@ Print exactly: `=== Phase 7: compose ===`
 
 Count the `--- AGENT TURN <N> ---` blocks you produced in Phase 3 and print the count. Then resolve `final` by the first matching rule — this order is load-bearing:
 
-1. Phase 2 exited 1 → `indeterminate`, `stage: pre-checks`.
-2. Phase 2 or Phase 5 exited 127 → `indeterminate`, `stage: checks-broken`.
-3. AGENT TURN count is 0 (or the Phase 3 markers are missing) → `indeterminate`, `stage: execution`.
-4. No parsable judge verdict → `indeterminate`, `stage: judge`.
-5. Judge has zero `no` AND Phase 5 exited 0 → `pass`.
-6. Otherwise → `fail`.
+1. The Phase 1 setup hook exited non-zero → `indeterminate`, `stage: setup`.
+2. Phase 2 exited 1 → `indeterminate`, `stage: pre-checks`.
+3. Phase 2 or Phase 5 exited 127 → `indeterminate`, `stage: checks-broken`.
+4. AGENT TURN count is 0 (or the Phase 3 markers are missing) → `indeterminate`, `stage: execution`.
+5. No parsable judge verdict → `indeterminate`, `stage: judge`.
+6. Judge has zero `no` AND Phase 5 exited 0 → `pass`.
+7. Otherwise → `fail`.
 
 An `indeterminate` is not a graded failure — it means this run could not measure the prompt. Never soften a rule-6 `fail` into `indeterminate` because the failure "looks environmental"; that reclassification is the maintainer's, made from the run file.
 

@@ -21,10 +21,11 @@ tests/
     ├── scripts/<scenario>.txt
     ├── rubrics/<scenario>.md
     ├── checks/<scenario>.sh # pre() + post() only (not executable — sourced)
+    ├── setup/<scenario>.sh  # optional fixture finisher (executable — spawned), e.g. re-date a frozen snapshot
     └── README.md
 ```
 
-The exec-bit asymmetry is load-bearing and validated. Driver exit codes: `0` all checks passed, `1` assertion failed (a graded result), `127` broken check (never graded as a fail — it composes to `indeterminate`).
+The exec-bit asymmetry is load-bearing and validated: spawned files (`run-checks.sh`, `setup/*.sh`) are executable, sourced files (`checks-prelude.sh`, `checks/*.sh`) are not. Driver exit codes: `0` all checks passed, `1` assertion failed (a graded result), `127` broken check (never graded as a fail — it composes to `indeterminate`). A failing setup hook composes to `indeterminate` (`stage: setup`).
 
 ## Running
 

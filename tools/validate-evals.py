@@ -10,6 +10,9 @@ Checks, per suite (a directory tests/<suite>/ containing suite.md):
 Shared machinery:
   - tests/run-checks.sh exists, IS executable, passes `bash -n`
   - tests/checks-prelude.sh exists, is NOT executable, passes `bash -n`
+  - no fixture file is matched by .gitignore (a swallowed fixture ships broken
+    scenarios in every fresh clone — this has happened twice: .venv/ markers
+    and activity/ snapshots)
 
 The exec-bit asymmetry is load-bearing: the driver is spawned, everything else
 is sourced. Reports findings; does not fix. Exit 1 if anything is wrong, so CI
@@ -111,6 +114,29 @@ def check_rubric(suite: str, name: str, findings: list[str]) -> None:
             findings.append(f"{rel} has malformed invariant tag: (invariant {tag})")
 
 
+def check_fixture_gitignore(suite_dir: Path, findings: list[str]) -> None:
+    fixture_files = [
+        str(p.relative_to(REPO_ROOT))
+        for p in (suite_dir / "fixtures").rglob("*")
+        if p.is_file()
+    ]
+    if not fixture_files:
+        return
+    result = subprocess.run(
+        ["git", "-C", str(REPO_ROOT), "check-ignore", "--stdin"],
+        input="\n".join(fixture_files),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    # exit 0 = some paths ignored, 1 = none ignored, 128 = error
+    if result.returncode == 128:
+        findings.append(f"git check-ignore failed for {suite_dir.name}: {result.stderr.strip()}")
+        return
+    for path in result.stdout.splitlines():
+        findings.append(f"{path} is matched by .gitignore — fixture files must be committable")
+
+
 def check_suite(suite_md: Path, findings: list[str]) -> int:
     suite_dir = suite_md.parent
     suite = suite_dir.name
@@ -130,6 +156,8 @@ def check_suite(suite_md: Path, findings: list[str]) -> int:
     for orphan in sorted(rubrics - scripts):
         findings.append(f"{suite}: rubric `{orphan}` has no script — scenario will never run")
 
+    check_fixture_gitignore(suite_dir, findings)
+
     scenarios = sorted(scripts & rubrics)
     if not scenarios:
         findings.append(f"{suite}: no runnable scenarios (scripts ∩ rubrics is empty)")
@@ -138,6 +166,14 @@ def check_suite(suite_md: Path, findings: list[str]) -> int:
             findings.append(f"{suite}/{name}: missing fixture dir fixtures/{name}/")
         check_checks_file(suite, name, findings)
         check_rubric(suite, name, findings)
+        setup = suite_dir / "setup" / f"{name}.sh"
+        if setup.is_file():
+            rel = setup.relative_to(REPO_ROOT)
+            if not is_executable(setup):
+                findings.append(f"{rel} must be executable (setup hooks are spawned)")
+            ok, err = bash_syntax_ok(setup)
+            if not ok:
+                findings.append(f"{rel} fails bash -n: {err}")
     return len(scenarios)
 
 

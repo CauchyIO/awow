@@ -8,7 +8,7 @@
   AWOW GUIDE — standardise reporting
   The read-only synthesis layer: /daily-digest aggregates a day into a team-wide
   synthesis; /weekly-digest does the same at a weekly altitude; /cross-team-view
-  (planned, v0.3 — not yet built) is the third altitude. None of these mutate the
+  (planned — not yet built, no command file) is the third altitude. None of these mutate the
   board or code. Self-contained: no external fonts/links by design.
 -->
 <style>
@@ -106,19 +106,19 @@
     <p style="font-size:13px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin:0 0 10px;">Way of Working &middot; Guide</p>
     <h1>Standardise reporting</h1>
     <p style="font-size:1rem;color:var(--text-2);margin:6px 0 0;font-weight:500;">The read-only synthesis layer: a day, then a week, then the neighbouring teams &mdash; each a different altitude on the same activity.</p>
-    <p style="font-size:0.85rem;color:var(--text-3);margin:8px 0 0;">Three commands in the <em>Standardise</em> layer. <code>/daily-digest</code> and <code>/weekly-digest</code> are live; <code>/cross-team-view</code> is documented but <strong>not yet built</strong> (planned for v0.3). All three only read &mdash; they never touch the board or the code.</p>
+    <p style="font-size:0.85rem;color:var(--text-3);margin:8px 0 0;">Three commands in the <em>Standardise</em> layer. <code>/daily-digest</code> and <code>/weekly-digest</code> are live; <code>/cross-team-view</code> is a planned altitude, <strong>not yet built</strong>. All three only read &mdash; they never touch the board or the code.</p>
     <div class="badges" style="margin-top:16px;">
       <span class="badge">standardise</span>
       <span class="badge">read-only synthesis</span>
       <span class="badge badge-accent">day &rarr; week &rarr; cross-team</span>
-      <span class="badge badge-muted">cross-team-view: v0.3</span>
+      <span class="badge badge-muted">cross-team-view: planned</span>
     </div>
   </div>
 
   <!-- TL;DR -->
   <div class="pad-tight">
     <p class="kicker">TL;DR</p>
-    <p>Once a team is past the Seed stage and most people are committing, the board <em>lists</em> what changed but nobody can see the shape of it. The Standardise reporting layer answers the harder question &mdash; <strong>what actually happened, where is it heading, what connects, and what should someone know that they don&rsquo;t?</strong> <code>/daily-digest</code> does this for one day and writes <code>digests/YYYY-MM-DD.md</code>; <code>/weekly-digest</code> does it for a Mon&ndash;Fri window at a higher altitude and writes <code>digests/weekly/YYYY-Www.md</code>; <code>/cross-team-view</code> is the planned third altitude for neighbouring teams &mdash; a stub today, real in v0.3. None of them mutate anything.</p>
+    <p>Once a team is past the Seed stage and most people are committing, the board <em>lists</em> what changed but nobody can see the shape of it. The Standardise reporting layer answers the harder question &mdash; <strong>what actually happened, where is it heading, what connects, and what should someone know that they don&rsquo;t?</strong> <code>/daily-digest</code> does this for one day and writes <code>digests/YYYY-MM-DD.md</code>; <code>/weekly-digest</code> does it for a Mon&ndash;Fri window at a higher altitude and writes <code>digests/weekly/YYYY-Www.md</code>; <code>/cross-team-view</code> is the planned third altitude for neighbouring teams &mdash; designed, not yet built. None of them mutate anything.</p>
   </div>
 
   <!-- PREREQUISITES -->
@@ -137,7 +137,7 @@
       <div class="legend" style="margin-bottom:6px;">
         <span><i style="background:#1a1a1a;border-color:#1a1a1a;"></i> Shared inputs &amp; outputs</span>
         <span><i style="background:rgba(242,75,55,0.10);border-color:rgba(242,75,55,0.55);"></i> Live command</span>
-        <span><i style="background:rgba(51,127,249,0.10);border-color:rgba(51,127,249,0.55);"></i> Planned (v0.3)</span>
+        <span><i style="background:rgba(51,127,249,0.10);border-color:rgba(51,127,249,0.55);"></i> Planned</span>
       </div>
 
       <svg viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Daily to weekly to cross-team altitude progression">
@@ -187,7 +187,7 @@
         <text x="892" y="232" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">/cross-</text>
         <text x="892" y="248" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1a1a" font-family="JetBrains Mono,monospace">team-view</text>
         <text x="892" y="268" text-anchor="middle" font-size="10" fill="#6b6b6b" font-family="Nunito,sans-serif">altitude: teams</text>
-        <text x="892" y="290" text-anchor="middle" font-size="10" fill="#337FF9" font-family="Nunito,sans-serif">planned &middot; v0.3</text>
+        <text x="892" y="290" text-anchor="middle" font-size="10" fill="#337FF9" font-family="Nunito,sans-serif">planned</text>
         <text x="892" y="305" text-anchor="middle" font-size="9.5" fill="#9a9a9a" font-family="Nunito,sans-serif">not yet built</text>
 
         <!-- WEEKLY compares to last week -->
@@ -274,13 +274,12 @@
   <div class="pad">
     <h2><code>/cross-team-view</code> &mdash; the planned third altitude</h2>
     <div class="badges" style="margin-bottom:14px;">
-      <span class="badge badge-muted">stub &mdash; documented, not implemented</span>
-      <span class="badge badge-muted">ships in v0.3</span>
+      <span class="badge badge-muted">planned &mdash; no command file yet</span>
     </div>
     <div class="callout callout-warn">
-      <strong>Not yet built.</strong> <code>/cross-team-view</code> is a <em>stub</em>. It is documented as the next altitude &mdash; neighbouring-team visibility, the &ldquo;the team next door shipped <em>what?</em>&rdquo; problem &mdash; but the working version ships in <strong>v0.3</strong>. Today it has no behaviour to describe, and this guide deliberately doesn&rsquo;t invent any.
+      <strong>Not yet built.</strong> <code>/cross-team-view</code> is a <em>planned altitude</em>, not a command. It is documented as the next altitude &mdash; neighbouring-team visibility, the &ldquo;the team next door shipped <em>what?</em>&rdquo; problem &mdash; but no command file exists (the earlier placeholder stub was removed; see <code>meta/backlog.md</code>). Today it has no behaviour to describe, and this guide deliberately doesn&rsquo;t invent any.
     </div>
-    <p>What exists today is the opt-in path, not the command. Running <code>/awow-add cross-team-view</code> reports the command&rsquo;s prerequisites (the same Standardise gate: three Seed cycles shipped, most of the team committing, board read/write working). Once those are met <em>and</em> the command is real in v0.3, the stub file becomes the prompt the agent actually runs &mdash; the same pattern the digests already follow. Until then it is a placeholder marking where the third altitude will sit.</p>
+    <p>What exists today is the design intent, not the command. The altitude is designed against <code>context/company/neighbouring-teams.md</code> and the digest lenses; it gets built when a team actually asks for it, following the same pattern the digests already follow. Until then this section marks where the third altitude will sit.</p>
   </div>
 
   <!-- COMPARISON TABLE -->
@@ -305,7 +304,7 @@
           <td><strong><code>/cross-team-view</code></strong></td>
           <td>Neighbouring teams</td>
           <td><span style="color:var(--text-3);">not defined yet</span></td>
-          <td><span class="badge badge-muted">planned &mdash; not yet built (v0.3)</span></td>
+          <td><span class="badge badge-muted">planned &mdash; not yet built</span></td>
         </tr>
       </tbody>
     </table>
@@ -333,7 +332,7 @@
 
   <!-- FOOTER -->
   <div class="pad" style="border-bottom:none;">
-    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Sources of truth: <code>.agents/commands/daily-digest.md</code>, <code>.agents/commands/weekly-digest.md</code>, <code>.agents/commands/cross-team-view.md</code>. Opt into the Standardise commands via <code>/awow-add</code>. Companion guides: <code>guide-session-correlation.html</code> and <code>guide-trace-analysis.html</code>. This guide is self-contained &mdash; no external resources.</p>
+    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Sources of truth: <code>.agents/commands/daily-digest.md</code>, <code>.agents/commands/weekly-digest.md</code> (<code>/cross-team-view</code> has no command file yet). Opt into the Standardise commands via <code>/awow-add</code>. Companion guides: <code>guide-session-correlation.html</code> and <code>guide-trace-analysis.html</code>. This guide is self-contained &mdash; no external resources.</p>
   </div>
 
 </div>

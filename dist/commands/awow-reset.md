@@ -3,6 +3,7 @@ description: "reset adopter state for prompt iteration"
 phase: meta
 prerequisites: []
 removes_pain: "the I-want-to-iterate-on-the-prompts-and-re-run-the-walkthrough problem"
+channel: vendored
 ---
 
 # /awow-reset — reset adopter state for prompt iteration

@@ -59,10 +59,10 @@ If the transcript quality is poor (garbled tech terms, multilingual speech-to-te
 
 Read enough to ground your reading:
 
-- `context/team/mission.md` — what the team is for
-- `context/team/members.md` — names, roles, who teaches what
-- `context/knowledge-base/patterns/` — any existing patterns about adoption, coaching, onboarding
-- `context/tooling/board.md` — for any work-tracking conventions the session references
+- `{HUB}/context/team/mission.md` — what the team is for
+- `{HUB}/context/team/members.md` — names, roles, who teaches what
+- `{HUB}/context/knowledge-base/patterns/` — any existing patterns about adoption, coaching, onboarding
+- `{HUB}/context/tooling/board.md` — for any work-tracking conventions the session references
 
 Absence improves nothing; it does not block the pipeline. Proceed.
 

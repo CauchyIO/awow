@@ -27,7 +27,7 @@ The canonical reference is the five-phase model from Esther Derby & Diana Larsen
 | 4. Decide What to Do | **You** | Report §§ 6, 11 |
 | 5. Close | Team | Out of scope; you don't write it |
 
-The full grounding lives at `context/retros/canon.md`. Read it.
+The full grounding lives at `{HUB}/context/retros/canon.md`. Read it.
 
 ---
 
@@ -67,13 +67,13 @@ If something is genuinely ambiguous (e.g. two VTT files plausibly match), ask on
 
 Before touching the transcript, read what's available:
 
-- `context/retros/canon.md` — the canonical grounding (Prime Directive, five-phase model, format taxonomy, what "good" looks like). This file is **load-bearing** — read it every run.
-- `context/retros/anti-patterns.md` — the maintained library of named issues to probe for. Two sections (general retro patterns; agentic-AI patterns). If absent, fall back to the embedded list in Phase 1.5.
-- `context/team/mission.md` — what the team is for.
-- `context/team/members.md` — names, roles. Critical for speaker attribution and for the sentiment-and-safety section.
-- `context/team/conventions/REQUIRED/*.md` — naming, labels, output discipline.
-- `context/knowledge-base/glossary.md` — domain terms (helps disambiguate transcription).
-- `context/tooling/board.md` — board family, MCP wiring. Used for closure verification.
+- `{HUB}/context/retros/canon.md` — the canonical grounding (Prime Directive, five-phase model, format taxonomy, what "good" looks like). This file is **load-bearing** — read it every run.
+- `{HUB}/context/retros/anti-patterns.md` — the maintained library of named issues to probe for. Two sections (general retro patterns; agentic-AI patterns). If absent, fall back to the embedded list in Phase 1.5.
+- `{HUB}/context/team/mission.md` — what the team is for.
+- `{HUB}/context/team/members.md` — names, roles. Critical for speaker attribution and for the sentiment-and-safety section.
+- `{HUB}/context/team/conventions/REQUIRED/*.md` — naming, labels, output discipline.
+- `{HUB}/context/knowledge-base/glossary.md` — domain terms (helps disambiguate transcription).
+- `{HUB}/context/tooling/board.md` — board family, MCP wiring. Used for closure verification.
 - `retro-reports/<team>/` (optional) — prior retro outputs. Enables trajectory analysis. Discover the team name from filename, prose, or `members.md`.
 - A reachable agent-activity / token-spend log (optional) — enables cost analysis. Don't fabricate; if it's not there, omit the section.
 
@@ -166,7 +166,7 @@ Track the discard fraction. >50% noise is itself a signal — surface it in the 
 
 ### 1.5 Probe for anti-patterns
 
-Read `context/retros/anti-patterns.md` — it has two sections:
+Read `{HUB}/context/retros/anti-patterns.md` — it has two sections:
 
 - **Section A — general retro anti-patterns** (documented in the literature): `venting-ritual`, `conversational-dominance`, `action-list-inflation`, `action-orphan`, `hijacked-agenda`, `premature-solutioning`, `blameless-violation`, `template-stagnation`, `feedback-asymmetry`.
 - **Section B — agentic-AI anti-patterns** (AWOW-original, no prior canon): `duplicate-creation`, `attribution-gap`, `ghost-edit`, `prompt-drift`, `instruction-bypass`, `manual-override`, `blame-the-agent`, `context-bleed`, `board-zombie`, `silent-fail`, `acoustic-prioritisation`.
@@ -202,7 +202,7 @@ In **solo mode**, skip this section cleanly (don't apply person-by-person analys
 
 ### 1.8 Closure check (if board reachable)
 
-If `context/tooling/board.md` is present and prior retros exist, look up the previous retro's actions and classify each as:
+If `{HUB}/context/tooling/board.md` is present and prior retros exist, look up the previous retro's actions and classify each as:
 
 - ✅ Closed (visible in board / in the work).
 - ⏳ In progress (referenced this retro).

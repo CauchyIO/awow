@@ -2,6 +2,7 @@
 phase: meta
 prerequisites: ["Step 1 of /setup-awow complete"]
 removes_pain: "the where-am-I-in-the-rollout problem"
+channel: vendored
 ---
 
 # /awow-status — report current phase and readiness signals

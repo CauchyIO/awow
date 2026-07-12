@@ -3,6 +3,7 @@ description: "incremental, resumable bootstrap"
 phase: kickoff
 prerequisites: []
 removes_pain: "the I-cloned-the-repo-now-what-do-I-do problem"
+channel: vendored
 ---
 
 # /setup-awow — incremental, resumable bootstrap

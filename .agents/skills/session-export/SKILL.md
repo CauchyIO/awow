@@ -16,8 +16,10 @@ dump and not leak secrets. The script (`scripts/export_sessions.py`, stdlib only
 does the discovery, rendering, and secret scanning; it never decides scope on its
 own.
 
+`<skill-dir>` below is this skill's base directory, announced when the skill loads.
+
 Run everything from the repo root. The script lives at
-`.agents/skills/session-export/scripts/export_sessions.py`.
+`<skill-dir>/scripts/export_sessions.py`.
 
 > **This skill is Claude-Code-only.** It reads local `~/.claude/projects` logs. If
 > the user instead has an **MLflow trace export** (from awow's `mlflow-export`
@@ -33,7 +35,7 @@ Do **not** dump everything blindly. Go step by step:
 If the user named a project path, use it. Otherwise list what's available:
 
 ```bash
-python3 .agents/skills/session-export/scripts/export_sessions.py list-projects
+python3 <skill-dir>/scripts/export_sessions.py list-projects
 ```
 
 This prints each project's session directory, session count, and date range.
@@ -42,7 +44,7 @@ prefer the actual repo path they give you). You'll pass it as `--project-path`.
 
 ### 2. Show the session menu and scope it
 ```bash
-python3 .agents/skills/session-export/scripts/export_sessions.py list-sessions \
+python3 <skill-dir>/scripts/export_sessions.py list-sessions \
     --project-path <path> [--since YYYY-MM-DD] [--until YYYY-MM-DD]
 ```
 
@@ -71,7 +73,7 @@ Export with the scanner on. Default to `--redact` unless the user wants to revie
 the raw secrets first:
 
 ```bash
-python3 .agents/skills/session-export/scripts/export_sessions.py export \
+python3 <skill-dir>/scripts/export_sessions.py export \
     --project-path <path> \
     --out transcripts/<project-slug> \
     [--since …] [--until …] [--exclude …] \
@@ -88,7 +90,7 @@ python3 .agents/skills/session-export/scripts/export_sessions.py export \
 To re-check or scrub an existing dump without re-exporting:
 
 ```bash
-python3 .agents/skills/session-export/scripts/export_sessions.py scan transcripts/<slug> [--redact]
+python3 <skill-dir>/scripts/export_sessions.py scan transcripts/<slug> [--redact]
 ```
 
 ## Output

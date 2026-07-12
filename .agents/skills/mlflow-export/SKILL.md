@@ -9,7 +9,7 @@ description: "Export all traces and grouped chat sessions from a Databricks MLfl
 
 Exports every trace in a Databricks MLflow experiment, including full spans, plus a per-session view that groups traces by their `mlflow.trace.session` metadata (this is what powers the "Chat sessions" tab in the Databricks MLflow UI).
 
-> **The export is private session data — never commit it.** Traces contain verbatim prompts, real names, private issue IDs, infra details, and secrets users pasted. The default output dir `mlflow_export/` is gitignored; keep it that way. Do not move the export, or any report derived from it, into a tracked path (`proposals/`, `context/`, …) — if the repo is public, that leaks customer data.
+> **The export is private session data — never commit it.** Traces contain verbatim prompts, real names, private issue IDs, infra details, and secrets users pasted. The default output dir `mlflow_export/` is gitignored; keep it that way. Do not move the export, or any report derived from it, into a tracked path (`{PROJECT}/proposals/`, `{HUB}/context/`, …) — if the repo is public, that leaks customer data.
 
 ## Inputs to collect from the user
 
@@ -33,8 +33,10 @@ If any are missing and not obvious from context, ask the user before running.
 
 The script lives next to this skill at `scripts/mlflow_export.py`. Invoke it with the chosen Python interpreter:
 
+`<skill-dir>` below is this skill's base directory, announced when the skill loads.
+
 ```bash
-.venv/bin/python .agents/skills/mlflow-export/scripts/mlflow_export.py \
+.venv/bin/python <skill-dir>/scripts/mlflow_export.py \
     --experiment-id <ID> \
     --profile <PROFILE> \
     --out ./mlflow_export
@@ -43,7 +45,7 @@ The script lives next to this skill at `scripts/mlflow_export.py`. Invoke it wit
 Or with a URL:
 
 ```bash
-.venv/bin/python .agents/skills/mlflow-export/scripts/mlflow_export.py \
+.venv/bin/python <skill-dir>/scripts/mlflow_export.py \
     --url 'https://adb-XYZ.azuredatabricks.net/ml/experiments/<ID>/chat-sessions?...' \
     --profile <PROFILE>
 ```

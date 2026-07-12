@@ -1,6 +1,7 @@
 ---
 name: awow-usage-coach
 description: "Analyse how a team or an individual works through agent sessions in the awow repo (or a sibling repo as stand-in) and produce one of two markdown reports: (a) team-nudge — proposed additions to .agents/AGENTS.md / copilot-instructions based on recurring sequence + editing patterns, or (b) self-coach — imperative, encouraging coaching for one developer compared against the team baseline. Uses an intent taxonomy (investigate/plan/propose/implement/refine/verify/document/inform) plus files-modified analysis so it works regardless of whether the team uses awow's exact vocabulary. Use when the user asks for awow usage feedback, adoption review, nudges for CLAUDE.md, or wants to see how they're using the project vs. teammates. Input: an mlflow_export directory (or equivalent — see below)."
+channel: vendored
 ---
 
 # awow Usage Coach

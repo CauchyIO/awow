@@ -8,7 +8,7 @@ removes_pain: "the every-story-is-treated-the-same-regardless-of-type problem"
 
 # /process-workitem — take a board work item from refinement to PR
 
-You load a board work item, validate its inputs, plan the change, apply it, verify the result, and report back. The work-specific rules (what to validate, what to check at the end) live in the archetype handlers under `.agents/commands/_workitem-archetypes/`. This file is the generic frame that wraps every archetype.
+You load a board work item, validate its inputs, plan the change, apply it, verify the result, and report back. The work-specific rules (what to validate, what to check at the end) live in the archetype handlers under `.agents/commands/_workitem-archetypes/` (vendored installs; not yet shipped in the plugin payload). This file is the generic frame that wraps every archetype.
 
 This is the **seed** shipped with awow v0.1 — the flow below is a sensible default, not a contract. Edit it to fit how your team actually works.
 
@@ -18,7 +18,7 @@ This is the **seed** shipped with awow v0.1 — the flow below is a sensible def
 
 - **Iterate on plans, not on production code.** The plan is cheap to change; the codebase is not.
 - **Validate inputs before acting on them.** Assumed state is the most common cause of agent-driven bugs.
-- **Trace work back to the story.** The work item is a user story shaped by [`.agents/skills/user-story-template.md`](../../skills/user-story-template.md). Its acceptance criteria and scope boundary define what the plan must cover and where it must stop.
+- **Trace work back to the story.** The work item is a user story shaped by the `user-story-template` skill. Its acceptance criteria and scope boundary define what the plan must cover and where it must stop.
 - **Check in with the user before each irreversible step** — after validation, after planning, after verification.
 
 ---
@@ -27,7 +27,7 @@ This is the **seed** shipped with awow v0.1 — the flow below is a sensible def
 
 ### 1. Load the work item
 
-Resolve the ID via the team's board surface (per `context/tooling/board.md`), or read the local cache at `proposals/workitems/<id>.md`. Read it through the lens of `user-story-template.md`: title, body (what changes + why), tags, acceptance criteria if present, scope boundary if present, parent/children, recent comments.
+Resolve the ID via the team's board surface (per `{HUB}/context/tooling/board.md`), or read the local cache at `{PROJECT}/proposals/workitems/<id>.md`. Read it through the lens of `user-story-template.md`: title, body (what changes + why), tags, acceptance criteria if present, scope boundary if present, parent/children, recent comments.
 
 Confirm to the user: title, state, number of children, the archetype you plan to route to.
 
@@ -37,9 +37,9 @@ Confirm to the user: title, state, number of children, the archetype you plan to
 
 ### 2. Classify and route
 
-Match the story to an archetype registered in `.agents/commands/_workitem-archetypes/` (common ones: `feature`, `bugfix`, `refactor`, `doc`; teams register others as their work demands). The archetype handler carries the work-specific rules.
+Match the story to an archetype registered in the archetype registry named above (common ones: `feature`, `bugfix`, `refactor`, `doc`; teams register others as their work demands). The archetype handler carries the work-specific rules.
 
-**If the `_workitem-archetypes/` directory is empty** (apart from `README.md`), proceed generically: use the validation, planning, and verification rules from this file as-is, but tell the user no archetype was matched and suggest scaffolding one based on the work just classified. Capture the suggestion as a stub proposal at `proposals/archetypes/<name>.md` so the next cycle starts richer. Do not block on this — generic execution is the day-one fallback.
+**If the `_workitem-archetypes/` directory is empty** (apart from `README.md`), proceed generically: use the validation, planning, and verification rules from this file as-is, but tell the user no archetype was matched and suggest scaffolding one based on the work just classified. Capture the suggestion as a stub proposal at `{PROJECT}/proposals/archetypes/<name>.md` so the next cycle starts richer. Do not block on this — generic execution is the day-one fallback.
 
 **If archetypes exist but none match**, the story is either too broad — split it — or a new handler is needed. Ask the user.
 
@@ -53,7 +53,7 @@ Report findings to the user. If anything blocks, stop.
 
 ### 4. Plan
 
-Draft a plan in `proposals/<work-item-id>.md` and get user approval before touching code. A workable shape:
+Draft a plan in `{PROJECT}/proposals/<work-item-id>.md` and get user approval before touching code. A workable shape:
 
 ```markdown
 # <Work-item ID> — <title>
@@ -86,7 +86,7 @@ Iterate on the plan with the user. Do not touch code or the board until approved
 
 Execute the plan. Don't drift — if scope needs to expand, raise it and amend the plan.
 
-If your team uses output-placement tagging (story body vs. comment vs. knowledge base vs. code, per `context/team/conventions/REQUIRED/output-discipline.md`), respect it: a story is not allowed to absorb content that belongs in the knowledge base.
+If your team uses output-placement tagging (story body vs. comment vs. knowledge base vs. code, per `{HUB}/context/team/conventions/REQUIRED/output-discipline.md`), respect it: a story is not allowed to absorb content that belongs in the knowledge base.
 
 ### 6. Verify
 
@@ -106,4 +106,4 @@ Open the PR with a link to the work item, summary of changes, and verification r
 - **Never act on un-validated assumptions about state.**
 - **The plan is the cheap-to-change artefact** — iterate there, not in production.
 - **Don't gold-plate.** First story delivers the feature; observability, refactors, and docs are follow-up stories.
-- **Follow the team's conventions** in `context/team/conventions/REQUIRED/*.md` (labels, branches, output discipline).
+- **Follow the team's conventions** in `{HUB}/context/team/conventions/REQUIRED/*.md` (labels, branches, output discipline).

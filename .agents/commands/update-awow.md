@@ -2,6 +2,7 @@
 phase: meta
 prerequisites: ["Step 0 of /setup-awow complete"]
 removes_pain: "the how-do-I-pull-in-newer-awow-versions-without-clobbering-my-config problem"
+channel: vendored
 ---
 
 # /update-awow — pull newer awow into an already-set-up repo

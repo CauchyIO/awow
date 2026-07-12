@@ -1,3 +1,7 @@
+---
+channel: vendored
+---
+
 # Agent-directive voice
 
 A skill the agent reads when authoring or editing prompts in `.agents/commands/` or `.agents/skills/`. Defines the voice rules every awow rule must follow.

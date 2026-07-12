@@ -36,7 +36,7 @@ Parse the argument:
 
 - `YYYY-Www` (e.g. `2026-W12`) → use that ISO week.
 - No argument → the current ISO week.
-- Resolve to the Monday–Friday date range. If the team's working week differs, read `context/team/members.md` or `context/team/conventions/REQUIRED/labels.md` for the convention.
+- Resolve to the Monday–Friday date range. If the team's working week differs, read `{HUB}/context/team/members.md` or `{HUB}/context/team/conventions/REQUIRED/labels.md` for the convention.
 
 Every collection and synthesis step runs over this range instead of "today".
 

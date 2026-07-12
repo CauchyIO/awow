@@ -341,10 +341,30 @@ def copy_stub(target: Path, source: Path) -> Stub:
     return Stub(target, source.read_text(), source.stat().st_mode & 0o777)
 
 
+# Path tokens (see .agents/AGENTS.md "Path tokens"): {AWOW_TOOLS} resolves at
+# build time for the plugin surface — the payload knows where its tools live.
+# {HUB} and {PROJECT} ship as-is; the session reflex teaches their resolution.
+PLUGIN_TOKEN_SUBSTITUTIONS = [
+    ("{AWOW_TOOLS}", "${CLAUDE_PLUGIN_ROOT}/tools"),
+]
+
+
+def render_plugin_body(text: str) -> str:
+    for token, replacement in PLUGIN_TOKEN_SUBSTITUTIONS:
+        text = text.replace(token, replacement)
+    return text
+
+
+def is_vendored_channel(text: str) -> bool:
+    """channel: vendored files operate on the vendored install itself and are
+    excluded from the plugin payload."""
+    return parse_frontmatter(text)[0].get("channel") == "vendored"
+
+
 def plugin_command_copy(target: Path, source: Path) -> Stub:
     """Full copy, with a `description:` injected into the frontmatter when the
     source only carries it in the H1 — the plugin picker needs the field."""
-    text = source.read_text()
+    text = render_plugin_body(source.read_text())
     mode = source.stat().st_mode & 0o777
     fields, body = parse_frontmatter(text)
     if "description" in fields:
@@ -391,12 +411,12 @@ def plan_plugin() -> list[Stub]:
     ]
     commands_root = AGENTS_DIR / "commands"
     for source in sorted(commands_root.rglob("*.md")):
-        if is_skipped(source):
+        if is_skipped(source) or is_vendored_channel(source.read_text()):
             continue
         plans.append(plugin_command_copy(DIST_DIR / "commands" / source.name, source))
     if ROOT_COMMANDS_DIR.is_dir():
         for source in sorted(ROOT_COMMANDS_DIR.glob("*.md")):
-            if source.name in SKIP_FILENAMES:
+            if source.name in SKIP_FILENAMES or is_vendored_channel(source.read_text()):
                 continue
             plans.append(plugin_command_copy(DIST_DIR / "commands" / source.name, source))
     skills_root = AGENTS_DIR / "skills"
@@ -404,11 +424,19 @@ def plan_plugin() -> list[Stub]:
         if entry.name in SKIP_FILENAMES:
             continue
         if entry.is_dir() and (entry / "SKILL.md").exists():
+            if is_vendored_channel((entry / "SKILL.md").read_text()):
+                continue
             for f in sorted(entry.rglob("*")):
                 if f.is_file():
                     target = DIST_DIR / "skills" / entry.name / f.relative_to(entry)
-                    plans.append(copy_stub(target, f))
+                    if f.suffix == ".md":
+                        plans.append(Stub(target, render_plugin_body(f.read_text()),
+                                          f.stat().st_mode & 0o777))
+                    else:
+                        plans.append(copy_stub(target, f))
         elif entry.is_file() and entry.suffix == ".md":
+            if is_vendored_channel(entry.read_text()):
+                continue
             # Declarative skill: wrap the FULL body (not a pointer) in the
             # dir/SKILL.md form the plugin loader discovers.
             text = entry.read_text()
@@ -421,7 +449,7 @@ def plan_plugin() -> list[Stub]:
                 f"name: {name}\n"
                 f'description: "{desc_escaped}"\n'
                 f"---\n\n"
-                f"{body.lstrip()}"
+                f"{render_plugin_body(body.lstrip())}"
             )
             plans.append(Stub(DIST_DIR / "skills" / name / "SKILL.md", content))
     for f in sorted(HOOKS_DIR.rglob("*")):

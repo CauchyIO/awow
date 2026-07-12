@@ -23,7 +23,10 @@ def main() -> int:
             if path.name == "README.md":
                 continue
             text = path.read_text()
-            if channel(text) == "vendored":
+            # vendored: operates on the vendored install, not shipped in the
+            # plugin payload. bootstrap: shipped in the payload but *creates*
+            # the vendored tree, so its literal paths are the deliverable.
+            if channel(text) in ("vendored", "bootstrap"):
                 continue
             for n, line in enumerate(text.splitlines(), 1):
                 if BARE.search(line):

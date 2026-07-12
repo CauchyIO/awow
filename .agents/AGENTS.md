@@ -23,7 +23,7 @@ Prompt bodies never hardcode where context or tools live. Three tokens, resolved
 
 **In this repo (and any vendored install): `{HUB}` and `{PROJECT}` are the repo root, `{AWOW_TOOLS}` is `tools/`.** So `{HUB}/context/tooling/board.md` means `context/tooling/board.md` here. In a hub-connected spoke, the session reflex tells you where `{HUB}` resolves instead; if it is not resolvable, stop and say so — never guess a location or improvise conventions.
 
-Command/skill frontmatter may carry `channel: vendored` — such files operate on the vendored install itself (gather, setup, update) and are excluded from the plugin payload.
+Command/skill frontmatter may carry a `channel:` field: `vendored` files operate on the vendored install itself (gather, tests, adopter state) and are excluded from the plugin payload; `bootstrap` files ship in the payload but *create or update* the vendored tree (`/setup-awow`, `/update-awow`), so their literal repo paths are the deliverable and exempt from the token lint.
 
 ## Before starting a new initiative
 

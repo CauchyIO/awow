@@ -15,9 +15,15 @@ Why pointers (not copies, not symlinks):
 
 Layout produced
 ---------------
-    .agents/AGENTS.md                    → .claude/CLAUDE.md
+    .agents/AGENTS.md                    → AGENTS.md          (repo root)
+                                         → .claude/CLAUDE.md
                                          → .github/copilot-instructions.md
                                          → .github/AGENTS.md
+
+The repo-root `AGENTS.md` is the cross-vendor instruction-file standard: a
+harness that reads it natively from the root (Codex among them) is steered to
+`.agents/AGENTS.md` with no install step. It is emitted for every in-repo
+surface but not for the `dist/` plugin payload.
     .agents/commands/<name>.md           → .claude/commands/<name>.md
                                          → .github/prompts/<name>.prompt.md
 
@@ -258,6 +264,30 @@ def gen_top_level_instructions(stub_target: Path, harness_label: str) -> str:
     )
 
 
+def gen_root_agents_stub(stub_target: Path) -> str:
+    """Repo-root `AGENTS.md` — the cross-vendor instruction-file standard.
+
+    Distinct from the per-surface top-level stubs: no harness label, neutral
+    wording, and it names AGENTS.md's cross-vendor role (a harness that reads
+    the root file natively, e.g. Codex, is steered with no install step)."""
+    source = AGENTS_DIR / "AGENTS.md"
+    link = rel_link(stub_target, source)
+    return (
+        f"{header(source)}\n\n"
+        f"# Agent instructions\n\n"
+        f"This repo uses a single source of truth for agent instructions, commands, and "
+        f"skills: the `.agents/` directory. **Before doing anything else, read "
+        f"[`.agents/AGENTS.md`]({link}) and follow its instructions.** That file is the "
+        f"canonical rule set for every agent working in this repo.\n\n"
+        f"`AGENTS.md` is the cross-vendor instruction-file standard. A harness that reads it "
+        f"natively from the repo root — Codex among them — is steered to the source above with "
+        f"no install step. Commands live under `.agents/commands/`, skills under "
+        f"`.agents/skills/`, and conventions and context under `context/`.\n\n"
+        f"This file is an auto-generated pointer produced by `tools/gather.py`; the substantive "
+        f"content lives under `.agents/`. Edits here are overwritten on the next gather.\n"
+    )
+
+
 def gen_folder_readme(stub_target: Path, source_dir: Path, harness_label: str) -> str:
     link = rel_link(stub_target, source_dir)
     return (
@@ -290,6 +320,8 @@ def plan_top_level() -> list[Stub]:
         (GITHUB_DIR / "AGENTS.md", ".github/"),
     ]:
         plans.append(Stub(target, gen_top_level_instructions(target, label)))
+    root_agents = REPO_ROOT / "AGENTS.md"
+    plans.append(Stub(root_agents, gen_root_agents_stub(root_agents)))
     return plans
 
 
@@ -494,7 +526,17 @@ SURFACE_ROOTS = {
 
 def filter_surface(plans: list[Stub], surface: str) -> list[Stub]:
     roots = SURFACE_ROOTS[surface]
-    return [p for p in plans if any(root in p.target.parents for root in roots)]
+    kept: list[Stub] = []
+    for p in plans:
+        if p.target.parent == REPO_ROOT:
+            # Repo-root instruction files (AGENTS.md) are harness-neutral: they
+            # belong to every in-repo surface but never to the dist/ payload,
+            # which owns only its own tree.
+            if surface != "plugin":
+                kept.append(p)
+        elif any(root in p.target.parents for root in roots):
+            kept.append(p)
+    return kept
 
 
 # ---------- orphan detection ----------

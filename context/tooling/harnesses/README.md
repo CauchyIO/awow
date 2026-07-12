@@ -2,20 +2,22 @@
 
 Reference instructions per agent harness. One file per supported harness.
 
-`/setup-awow` Step 0 detects which harness the user is on (from the presence of `.claude/` or `.github/` directories) and loads the matching reference.
+`/setup-awow` Step 0 detects which harness the user is on (from the presence of `.claude/` or `.github/` directories) and loads the matching reference. Codex (repo-root `AGENTS.md` / `.codex-plugin/`) and Pi (`.pi/`) detection is wired with their plugin manifests (hub-and-spoke WI-5).
 
-## Supported in v0.1
+## Supported harnesses
 
-| File | Harness |
-|---|---|
-| `claude-code.md` | Claude Code |
-| `copilot.md` | GitHub Copilot |
+| File | Harness | Delivery |
+|---|---|---|
+| `claude-code.md` | Claude Code | plugin + vendored surfaces |
+| `copilot.md` | GitHub Copilot | vendored surfaces |
+| `codex.md` | Codex | repo-root `AGENTS.md` (live) + plugin manifest (WI-5) |
+| `pi.md` | Pi | extension (WI-5) |
 
-Both ship from day one. The team can use one or both; `tools/gather.py` mirrors `.agents/` to both surfaces.
+Claude Code and GitHub Copilot ship in the vendored template channel. Codex and Pi are being added per [`pi-codex-harness-support.md`](../../../meta/proposals/pi-codex-harness-support.md), reconciled into hub-and-spoke WI-5; the repo-root `AGENTS.md` that steers Codex ships now, the rest with the manifests. `tools/gather.py` mirrors `.agents/` to each surface.
 
-## Why two
+## Why multiple
 
-Claude Code and GitHub Copilot have non-overlapping user bases. Single-harness defaults exclude one of the real audiences. Supporting both from day one keeps the starter pack usable for either.
+The supported harnesses have non-overlapping user bases. Single-harness defaults exclude real audiences; carrying one reference file per harness keeps the starter pack usable for any of them from the same `.agents/` source.
 
 ## Adding a new harness
 

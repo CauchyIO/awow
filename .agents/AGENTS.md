@@ -13,6 +13,18 @@ Until then, the rules below are the minimum the agent needs to operate inside th
 - **Tooling reference:** `context/tooling/board.md` (the team's actual board spec — single source of truth once Step 1 of `/setup-awow` has run); the per-tool `context/tooling/boards/<your-board>/reference/` is for the wizard, not for runtime use
 - **Setup state:** `setup-progress.md` at the repo root — read this if `/setup-awow` is invoked
 
+## Path tokens
+
+Prompt bodies never hardcode where context or tools live. Three tokens, resolved per channel:
+
+- `{HUB}` — shared team context root (team, company, knowledge base, retros, board config).
+- `{PROJECT}` — this project's context and drafts (mission, board-scope, do-not-propose, proposals/).
+- `{AWOW_TOOLS}` — awow's runtime tool scripts.
+
+**In this repo (and any vendored install): `{HUB}` and `{PROJECT}` are the repo root, `{AWOW_TOOLS}` is `tools/`.** So `{HUB}/context/tooling/board.md` means `context/tooling/board.md` here. In a hub-connected spoke, the session reflex tells you where `{HUB}` resolves instead; if it is not resolvable, stop and say so — never guess a location or improvise conventions.
+
+Command/skill frontmatter may carry `channel: vendored` — such files operate on the vendored install itself (gather, setup, update) and are excluded from the plugin payload.
+
 ## Before starting a new initiative
 
 Before starting work on something with a discernible outcome — a new bug, a new feature, a refactor, anything that would warrant a commit — go to the board first.

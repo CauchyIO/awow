@@ -1,6 +1,6 @@
 # Design — hub-and-spoke distribution: plugin machinery, hub context, thin spokes
 
-**Status:** Accepted design — pending MVP validation (see §8).
+**Status:** Accepted design — **MVP validated 2026-07-12, 5/5 assertions green** (see §8.1).
 **Inputs:** [hub-and-spoke-adoption.md](hub-and-spoke-adoption.md) (direction + audit findings), [pi-codex-harness-support.md](pi-codex-harness-support.md) (harness packaging, reconciled in §10), maintainer design session with Casper (2026-07-12) — all decisions below were made explicitly in that session.
 **Scope:** the concrete, buildable design for distributing awow's machinery as a versioned plugin while shared context lives in one hub repo and each project repo becomes a thin spoke. Covers spoke/hub file shapes, path resolution, the write path, harness delivery (Claude Code, Codex, Pi), an MVP validation spike, and the work-item breakdown. Supersedes nothing yet; on acceptance it is the implementation companion to hub-and-spoke-adoption.md, and `plugin-distribution.md` is marked Superseded.
 
@@ -116,6 +116,20 @@ None of the risky joints depend on the 139-reference sweep, the registry, or `/c
 5. **Phase 2, same fixture:** point Codex (`codex exec`, custom `base_url`) and Pi at the identical spoke — does root `AGENTS.md` steer them; do commands-as-skills load (resolves pi-codex open items 1–2).
 
 **Exit criteria:** all four Claude Code assertions green → the architecture is proven and the big build is mechanical execution. If the write path or plugin-cache resolution fails, we learned it for two days' work instead of after a 139-file sweep. The MVP fixture is not throwaway: it grows into the WI-8 regression suite.
+
+### 8.1 MVP results (run 2026-07-12, Claude Code 2.1.207, model haiku, headless `claude -p`)
+
+Executed same-day as the design session; the spike took ~1 hour, not the budgeted 1–2 days. One deliberate deviation: a **synthetic hub** (minimal `context/` + local bare origin) stood in for the real linear clone so the write-path test pushed to a fixture remote, not the team's hub. The resolution chain under test is identical.
+
+| # | Assertion | Result |
+|---|---|---|
+| T1 | Read path: `/awow-mvp:my-work` in a thin spoke reports `board=` from the hub and `team=/project=` from the spoke | **PASS** — exact expected output, first try |
+| T2 | Write path: `/awow-mvp:kb-mine` writes the capture into the hub clone, commits, pushes; commit verified in the bare origin's log | **PASS** |
+| T3 | Fail-loud: `AWOW_HUB` unset, no settings entry → actionable stop, no improvisation | **PASS** — and the model did *not* probe sibling dirs even though `../hub` existed |
+| T4 | Provenance + collision: commands served from `~/.claude/plugins/cache/awow-mvp-mkt/…`; repo-local `/my-work` and plugin `/awow-mvp:my-work` coexist without interference (namespacing) | **PASS** |
+| T5 | Identity check: `AWOW_HUB` pointing at a clone whose `origin` ≠ the connector's `awow-hub` → loud mismatch stop naming both | **PASS** |
+
+Notes for the build: local-path marketplaces work (`claude plugin marketplace add <dir>` + `install`), so WI-1 can be dogfooded without a GitHub release; the runs used the developer's normal auth — wiring the APIM + LiteLLM route is WI-8's job; the fixture (marketplace + hub-origin + spoke) was session-scratch — WI-8's first task is a `setup-fixture.sh` that regenerates it with machine-local absolute paths.
 
 ## 9. Work items
 

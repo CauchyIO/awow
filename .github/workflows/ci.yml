@@ -14,3 +14,5 @@ jobs:
           python-version: "3.12"
       - name: Generated surfaces in sync (.claude/, .github/, dist/)
         run: python tools/gather.py --check
+      - name: Path-token lint
+        run: python tools/lint-paths.py

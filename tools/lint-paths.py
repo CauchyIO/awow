@@ -12,7 +12,16 @@ BARE = re.compile(r"(?<![{/\w.\-])(context|tools|proposals)/")
 
 
 def channel(text: str) -> str:
-    m = re.search(r"^channel:\s*(\S+)", text[:2000], re.M)
+    """The channel declared in the leading `--- ... ---` frontmatter block
+    (default 'both'). Scoped to the frontmatter — not a whole-file scan — so a
+    body line beginning `channel:` (e.g. prose documenting the field) is not
+    mistaken for a declaration. Matches gather.is_vendored_channel."""
+    if not text.startswith("---"):
+        return "both"
+    end = text.find("\n---", 3)
+    if end == -1:
+        return "both"
+    m = re.search(r"^channel:\s*(\S+)", text[3:end], re.M)
     return m.group(1) if m else "both"
 
 

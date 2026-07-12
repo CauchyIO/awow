@@ -128,7 +128,7 @@ If `target_sessions == 0`, stop and tell the user the export contains no session
    The `Insert verbatim` block is a **single short paragraph**. No bullets, no sub-headings, no "you should" hedging. It must read as a rule the agent follows during a session.
 
 9. **Don't nudge** — patterns the data shows but that don't deserve a CLAUDE.md addition. One line each, ≤4 items.
-10. **Distribution checklist** — three lines max: edit `.agents/AGENTS.md`, run `{AWOW_TOOLS}/gather.py`, do not hand-edit mirrored files.
+10. **Distribution checklist** — three lines max: edit `.agents/AGENTS.md`, run `${CLAUDE_PLUGIN_ROOT}/tools/gather.py`, do not hand-edit mirrored files.
 
 ### How to write the `Insert verbatim` block
 
@@ -219,7 +219,7 @@ Do not restate the report in chat. The markdown file is the deliverable.
 
 ## Per-session coaching (visual timeline path)
 
-The extractor reads MLflow `mlflow_export/` traces. When the team has **no tracing wired up**, you can still coach off the raw Claude Code logs via `project-timeline`, which runs `{AWOW_TOOLS}/session_timeline.py` over `~/.claude/projects/<encoded-path>/*.jsonl` and emits `sessions.json` + an interactive `timeline.html`. Use that path when asked for a **per-session** review or a whole-project picture rather than the aggregate Mode A/B reports.
+The extractor reads MLflow `mlflow_export/` traces. When the team has **no tracing wired up**, you can still coach off the raw Claude Code logs via `project-timeline`, which runs `${CLAUDE_PLUGIN_ROOT}/tools/session_timeline.py` over `~/.claude/projects/<encoded-path>/*.jsonl` and emits `sessions.json` + an interactive `timeline.html`. Use that path when asked for a **per-session** review or a whole-project picture rather than the aggregate Mode A/B reports.
 
 When coaching per session this way, apply Mode B's voice rules unchanged (imperative, lead with strengths, every claim carries a verbatim quote, no grades) and write one `<short-id>.md` per session that the timeline embeds via `--coach-dir`. The timeline also surfaces three signals the trace extractor does not, worth reading into the coaching:
 

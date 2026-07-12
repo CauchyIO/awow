@@ -9,6 +9,10 @@ awow — the Agentic Way of Working — moves the discipline of keeping the boar
 
 This is the reflex. The team's full conventions, mission, and board spec live in the repo's agent instructions (`AGENTS.md`) and `{HUB}/context/` — read them when you need the specifics.
 
+## Where the paths point
+
+Paths here never hardcode a location — they use three tokens. **In this repo, and in any vendored or plugin install, `{HUB}` and `{PROJECT}` both resolve to the repo root and `${CLAUDE_PLUGIN_ROOT}/tools` to awow's bundled tools** — so `{HUB}/context/tooling/board.md` is the board pointer read at that path under the root. In a hub-connected spoke, a hub pointer tells you where `{HUB}` resolves instead. If `{HUB}` is ever unresolvable, stop and say so — never guess a location or improvise a convention.
+
 ## Go to the board before any initiative
 
 Before you start work with a discernible outcome — a bug, a feature, a refactor, anything that would warrant a commit — go to the board first.

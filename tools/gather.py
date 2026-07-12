@@ -361,10 +361,11 @@ def is_vendored_channel(text: str) -> bool:
     return parse_frontmatter(text)[0].get("channel") == "vendored"
 
 
-def plugin_command_copy(target: Path, source: Path) -> Stub:
+def plugin_command_copy(target: Path, source: Path, text: str | None = None) -> Stub:
     """Full copy, with a `description:` injected into the frontmatter when the
-    source only carries it in the H1 — the plugin picker needs the field."""
-    text = render_plugin_body(source.read_text())
+    source only carries it in the H1 — the plugin picker needs the field. Pass
+    `text` to reuse an already-read body and avoid a second read of `source`."""
+    text = render_plugin_body(source.read_text() if text is None else text)
     mode = source.stat().st_mode & 0o777
     fields, body = parse_frontmatter(text)
     if "description" in fields:
@@ -411,35 +412,44 @@ def plan_plugin() -> list[Stub]:
     ]
     commands_root = AGENTS_DIR / "commands"
     for source in sorted(commands_root.rglob("*.md")):
-        if is_skipped(source) or is_vendored_channel(source.read_text()):
+        if is_skipped(source):
             continue
-        plans.append(plugin_command_copy(DIST_DIR / "commands" / source.name, source))
+        text = source.read_text()
+        if is_vendored_channel(text):
+            continue
+        plans.append(plugin_command_copy(DIST_DIR / "commands" / source.name, source, text))
     if ROOT_COMMANDS_DIR.is_dir():
         for source in sorted(ROOT_COMMANDS_DIR.glob("*.md")):
-            if source.name in SKIP_FILENAMES or is_vendored_channel(source.read_text()):
+            if source.name in SKIP_FILENAMES:
                 continue
-            plans.append(plugin_command_copy(DIST_DIR / "commands" / source.name, source))
+            text = source.read_text()
+            if is_vendored_channel(text):
+                continue
+            plans.append(plugin_command_copy(DIST_DIR / "commands" / source.name, source, text))
     skills_root = AGENTS_DIR / "skills"
     for entry in sorted(skills_root.iterdir()):
         if entry.name in SKIP_FILENAMES:
             continue
         if entry.is_dir() and (entry / "SKILL.md").exists():
-            if is_vendored_channel((entry / "SKILL.md").read_text()):
+            skill_md = entry / "SKILL.md"
+            skill_text = skill_md.read_text()
+            if is_vendored_channel(skill_text):
                 continue
             for f in sorted(entry.rglob("*")):
                 if f.is_file():
                     target = DIST_DIR / "skills" / entry.name / f.relative_to(entry)
                     if f.suffix == ".md":
-                        plans.append(Stub(target, render_plugin_body(f.read_text()),
+                        body = skill_text if f == skill_md else f.read_text()
+                        plans.append(Stub(target, render_plugin_body(body),
                                           f.stat().st_mode & 0o777))
                     else:
                         plans.append(copy_stub(target, f))
         elif entry.is_file() and entry.suffix == ".md":
-            if is_vendored_channel(entry.read_text()):
-                continue
             # Declarative skill: wrap the FULL body (not a pointer) in the
             # dir/SKILL.md form the plugin loader discovers.
             text = entry.read_text()
+            if is_vendored_channel(text):
+                continue
             fields, body = parse_frontmatter(text)
             name = fields.get("name", entry.stem)
             description = fields.get("description") or first_h1(body) or ""

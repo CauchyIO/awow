@@ -1,7 +1,7 @@
 # Proposal — harness wiring test suite (Claude Code / Codex / Pi)
 
 **Status:** Draft — awaiting review. Design validated by a live transport spike (2026-07-13, §6); the claude↔deepseek path is proven working, so the build is mechanical.
-**Inputs:** Maintainer request (Casper, 2026-07-13) for a simple test per harness (Claude Code, Codex, Pi) that drives each headlessly against a cheap model and validates that the awow wiring is *set up right* — not prompt-quality regression (explicitly later). References named by the maintainer: `../superpowers` for test structure (its `tests/<harness>/` split + `docs/testing.md`), and `../linear` for the already-working APIM+OpenRouter inference config (`docs/inference-mesh/LITELLM-GATEWAY-AND-AUTH.md`, `internal_projects/local_llm/mesh/claude-code-settings.reference.json`). Builds on the deferred headless driver in `hub-and-spoke-design.md` §8/WI-8, `eval-baseline-and-prompt-cleanup.md`, and the non-headless `setup-awow-regression-tests.md` (Landed).
+**Inputs:** Maintainer request (Casper, 2026-07-13) for a simple test per harness (Claude Code, Codex, Pi) that drives each headlessly against a cheap model and validates that the awow wiring is *set up right* — not prompt-quality regression (explicitly later). References named by the maintainer: `../superpowers` for test structure (its `tests/<harness>/` split + `docs/testing.md`), and `../linear` for the APIM→LiteLLM auth model — the hub reference `context/knowledge-base/architecture/apim-litellm-gateway-auth-model.md` and the copy-paste runbook `context/knowledge-base/runbooks/call-litellm-via-apim.md` (plus `internal_projects/local_llm/mesh/claude-code-settings.reference.json` for the Claude Code `apiKeyHelper` shape). Builds on the deferred headless driver in `hub-and-spoke-design.md` §8/WI-8, `eval-baseline-and-prompt-cleanup.md`, and the non-headless `setup-awow-regression-tests.md` (Landed).
 **Scope:** a per-harness integration suite that (1) checks the generated surfaces/manifests each harness needs are wired correctly (deterministic, CI-safe) and (2) drives the real CLI headless on `deepseek-v4-flash` to prove `/setup-awow` bootstrap and the hub-spoke deployment actually work. **Out of scope:** prompt/behavioural regression (the later eval suite), multi-turn wizard branches, real board writes.
 
 ---
@@ -42,12 +42,14 @@ Follows superpowers' `tests/<harness>/` shape and awow's existing `tests/run-che
 
 **Buildable-now gating.** Claude Code runs both scenarios today (payload exists; §8.1 already proved the flow). **Codex** runs scenario 1 via the root `AGENTS.md` path now; its `.codex-plugin` deploy path **SKIPs (clear message) until hub-spoke WI-5**. **Pi** likewise — see §7 for the live finding that Pi already reads root `AGENTS.md`. SKIP, never fail, when a CLI/gateway/manifest is absent (superpowers' evals-not-in-CI posture).
 
-## 5. Transport — pluggable, direct-OpenRouter default (spike-driven, §6)
+## 5. Transport — credential-resolved; both modes reach deepseek-v4-flash (spike §6; auth model in the hub KB)
 
-`gateway.sh` resolves `(base_url, auth, model)` from environment/config, **committing nothing** (awow is public — no gateway URLs, tenant/client IDs, or keys in the tree). Two modes:
+`gateway.sh` auto-resolves `(base_url, auth, model)` by available credential, **committing nothing** — awow is public, and per the hub auth model the gateway base URL, tenant/client IDs, virtual keys, and OpenRouter key are all operator-supplied (fail-loud if unset), never in any repo. Two modes, **both yielding `deepseek-v4-flash`**:
 
-- **`openrouter` (default, proven today).** Model `deepseek/deepseek-v4-flash`, key from keychain (`security find-generic-password -l OPENROUTER_API_KEY -w`) or `$OPENROUTER_API_KEY`. codex/pi are OpenAI-compatible → point straight at `openrouter.ai`. **Claude Code needs an Anthropic `/v1/messages` endpoint**, so the suite stands up a **box-local litellm shim** (`litellm` is installed) mapping a model alias → `openrouter/deepseek/deepseek-v4-flash`, and points `claude -p` at it via `ANTHROPIC_BASE_URL` + `ANTHROPIC_AUTH_TOKEN`.
-- **`apim` (opt-in; config owned elsewhere).** The Cauchy APIM+LiteLLM gateway. Auth is an Entra token (`az account get-access-token --resource api://<client-id>`), OpenAI-compatible at `/litellm/v1`, and Claude Code uses the `apiKeyHelper` pattern from linear's `claude-code-settings.reference.json`. Gateway URL/resource/model-alias come from env/config sourced from the linear mesh docs — never committed here. **Current-state caveat (from §6): the maintainer's virtual key is allow-listed to `gemma-worker` only, and that model 500s on the Anthropic `/v1/messages` shape — so APIM cannot serve `deepseek-v4-flash` to Claude Code (or codex/pi) until the key's allow-list + the model's Anthropic-messages provider are reconciled.** That reconciliation is delegated to a separate agent/effort; this suite treats `apim` as a ready slot, not a blocker.
+- **`apim` — the Cauchy APIM→LiteLLM gateway** (auth model: linear `context/knowledge-base/architecture/apim-litellm-gateway-auth-model.md`; runbook: `.../runbooks/call-litellm-via-apim.md`). Every caller presents an Entra **v2** token (`az account get-access-token --scope "api://<client-id>/.default"` — *not* `--resource`, which mints a rejected v1 shape); APIM authorizes by the `roles` app-role claim and swaps in a virtual key. DeepSeek is the **`worker` tier alias**; reaching it needs a **`MeshService`/`NightRunner`** app-role (client-credentials SPN — as the night box does via `overnight/harness/gateway_auth.py`). A human `MeshUser` token only reaches the local `gemma-worker` MLX lane, not the cloud tiers. codex/pi consume the OpenAI-compatible `/v1/chat/completions` at the tier alias; **Pi ignores `OPENAI_BASE_URL` — it takes the gateway via its `models.json` provider block** (per the runbook), not env. Claude Code uses the `apiKeyHelper` token pattern.
+- **`openrouter` — direct** (proven today, §6). Model `deepseek/deepseek-v4-flash`, key from keychain (`security find-generic-password -l OPENROUTER_API_KEY -w`) or `$OPENROUTER_API_KEY`. codex/pi point straight at `openrouter.ai`; **Claude Code needs an Anthropic `/v1/messages` endpoint**, so the suite stands up a **box-local litellm shim** (installed) mapping an alias → `openrouter/deepseek/deepseek-v4-flash` and points `claude -p` at it via `ANTHROPIC_BASE_URL` + `ANTHROPIC_AUTH_TOKEN`.
+
+Resolution order: prefer `apim` when a `MeshService`/`NightRunner` token or SPN creds are present (the night box, a CI service identity); else `openrouter` (the maintainer laptop, where the human token is gemma-only). **Fail loud if neither resolves** — never a silent skip of the model call.
 
 **Model note:** `deepseek-v4-flash` is a *reasoning* model — responses carry a `thinking` block plus a `text` block. Drivers must budget enough `max_tokens` and assert on the `text` block, not choke on empty text under a tiny budget.
 
@@ -55,13 +57,13 @@ Follows superpowers' `tests/<harness>/` shape and awow's existing `tests/run-che
 
 | # | Check | Result |
 |---|---|---|
-| S1 | APIM reachable + Entra auth (`az` token) accepted | **PASS** — gateway responds, token valid |
-| S2 | APIM serves `deepseek-v4-flash` | **FAIL** — key allow-listed to `gemma-worker` only; `worker`/`deepseek-*` → `401 key not allowed` |
-| S3 | APIM `gemma-worker` on Anthropic `/v1/messages` | **FAIL** — `500 Anthropic messages provider config not found` (MLX/openai-backed model, no anthropic bridge) |
+| S1 | APIM reachable + Entra auth accepted | **PASS** |
+| S2 | APIM serves `deepseek-v4-flash` to the **human** identity | **FAIL — expected.** A human `MeshUser` token maps to the shared key, allow-listed to the local `gemma-worker` MLX lane only; `worker`/`deepseek-*` → `401`. DeepSeek's `worker` tier needs a `MeshService`/`NightRunner` app-role (§5) — not an APIM limitation. |
+| S3 | APIM `gemma-worker` on Anthropic `/v1/messages` | **FAIL** — `500` (MLX/openai-backed, no anthropic-messages bridge). Immaterial: Claude uses `openrouter` mode's shim; codex/pi use APIM's OpenAI route. |
 | S4 | Direct OpenRouter → local litellm Anthropic shim → `/v1/messages` | **PASS** — `200`, valid Anthropic-shape body |
 | S5 | Real `claude -p` through the shim on `deepseek-v4-flash` | **PASS** — exit 0; litellm logged `POST /v1/messages?beta=true 200`; content `"2+2 equals 4."` |
 
-**Conclusion:** direct-OpenRouter is the path that delivers `deepseek-v4-flash` to all three harnesses today; APIM is a documented, currently-gemma-only secondary.
+**Conclusion:** `openrouter` mode delivers DeepSeek to all three harnesses from any box today; `apim` mode delivers it wherever a `MeshService`/`NightRunner` credential exists. The spike's gemma-only result was the human identity, not an APIM ceiling.
 
 ## 7. Live finding — Pi reads root `AGENTS.md` (resolves pi-codex open item 2)
 
@@ -82,9 +84,9 @@ Every live run is sandboxed (Codex `-s read-only`; Pi tool-restricted via `--no-
 
 ## 10. Open items
 
-1. **APIM config reconciliation** — the maintainer's key allow-list + a deepseek Anthropic-messages provider on the gateway (§6 S2/S3). Owned by a separate effort; `apim` mode is built against it but not blocked on it.
-2. **Claude auth in `apim` mode** — static Entra token vs the `apiKeyHelper` refresh pattern (token TTL ~50 min per the reference config).
-3. **Pi provider wiring** — confirm Pi's OpenRouter provider vs a custom OpenAI base_url at build time (`--provider`/`--model`/`--api-key`).
+1. **APIM identity for the suite** — `apim` mode reaches DeepSeek only with a `MeshService`/`NightRunner` token. Which identity the run environment presents (the night-box SPN, a CI `MeshService` SPN, or none → auto-fall-back to `openrouter`) is an operator/provisioning choice, not a code change.
+2. **Claude auth in `apim` mode** — static Entra token vs the `apiKeyHelper` refresh pattern (v2 token TTL ~50 min; `az account get-access-token --scope`).
+3. **Pi provider wiring — resolved:** Pi ignores `OPENAI_BASE_URL`; point it at the gateway via its `models.json` provider block (runbook §3). Confirm the exact block shape at build.
 4. **`/setup-awow` non-interactive** — confirm `--quickstart` is headless-drivable end-to-end, or scope scenario 1 to the installer+gather+discovery+one-command slice.
 
 ## 11. Suggested sequencing

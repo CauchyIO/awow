@@ -38,3 +38,14 @@ Un-SKIP the codex/pi manifest checks in `tests/harness/*/wiring.sh` (they now as
 - **Pi extension yes/no** — decided in Stage 3 by dogfooding (lean: package-only first).
 - **Version discipline mechanism** — `.version-bump.json`+script (superpowers' shape) vs extending `awow_lock.py`; pick in Stage 4 against what awow already has.
 - **Surface duplication** — accept it (generated payload) unless it complicates the codex plugin root; revisit only if it does.
+
+## Status (as built)
+
+- **S1–S3** — done, dogfood-verified against codex 0.144 + pi 0.80.6 (isolated `CODEX_HOME` + project-local `.pi/`).
+- **S4** — done:
+  - **Version discipline** — resolved to *derive, don't duplicate*: `plan_codex`/`plan_pi` read `version` from the one canonical `.claude-plugin/plugin.json`, and `gather.py --check` (CI-enforced) fails on any drift. No `.version-bump.json` needed — nothing can ship stale.
+  - **Pi extension** — resolved *no*: S3 confirmed Pi reads root `AGENTS.md` + `.agents/skills` natively, so the package (`package.json` `pi.skills`) is the whole integration.
+  - **Marketplace publish** — `tools/sync-dist.sh` mirrors the built `dist/` → `CauchyIO/awow-dist` via a branch + PR (branch-protection-safe; dry-run by default; runs `gather --check` in preflight so a stale payload can't be published). awow's `dist/`-as-repo IS the codex marketplace, so superpowers' nested-monorepo + OpenAI-portal packager did **not** port — a single root-level mirror replaces both.
+  - **`/setup-awow` Step 1a** detects Codex (`.codex-plugin/` + root `AGENTS.md`) and Pi (`.pi/`).
+  - **Docs** — `codex.md`/`pi.md` Status flipped to shipping; `pi.md` extension→package correction + "zero-install" fix; harness `README.md` table.
+- **S5** — the codex/pi wiring-test un-SKIP lives on the harness-wiring-tests branch (PR #27); it lands there / on rebase. Manifest + version-lockstep drift is already guarded here by `gather.py --check`.

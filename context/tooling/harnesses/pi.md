@@ -1,35 +1,33 @@
 # Pi — harness reference
 
-The Pi coding agent. It has no slash-command mechanism and no `Skill` tool, so awow reaches it through an in-process extension that registers skill paths and injects a session bootstrap.
+The Pi coding agent. It reads the repo-root `AGENTS.md` and discovers `.agents/skills/` natively, so awow's conventions and skills reach it **with no extension**. A package manifest (`package.json` `pi.skills`) points Pi at the shared commands-as-skills surface, and that package is the whole integration.
 
 ## When `/setup-awow` infers Pi
 
-A `.pi/` directory (the installed extension), or the user explicitly chooses Pi. (The wizard's detection wiring lands with the extension — see Status.)
+A `.pi/` directory (Pi's per-repo config), or the user explicitly chooses Pi. `/setup-awow` Step 1a detects the `.pi/` signal.
 
 ## What it provides
 
-- No native repo-root instruction-file convention — the extension injects awow's bootstrap at session start
-- Native skill discovery via `skillPaths` registered by an in-process extension; **no `Skill` tool** — the model reads a `SKILL.md` with its `read` tool
-- **No slash commands** — awow flows are invoked by name
-- Lifecycle callbacks (`session_start`, `session_compact`, `agent_end`, `context`) in the extension's TypeScript
+- Reads a repo-root `AGENTS.md` natively as its instruction file — the cross-vendor standard. awow steers Pi **zero-install**, the same as Codex.
+- Native skill discovery: Pi finds `.agents/skills/<name>/SKILL.md` on its own, and a package's `pi.skills` paths register additional skill roots — awow uses this for the commands-as-skills surface.
+- Skills are invoked with `/skill:<name>`, which injects the matching `SKILL.md`. There is **no `Skill` tool** and no other slash-command mechanism — the flow's own body drives it.
 
 ## How `.agents/` reaches Pi
 
-- `.agents/commands/*` and `.agents/skills/*` → the shared commands-as-skills surface rendered from the `dist/` payload (`gather.py --surface pi`), registered via `skillPaths`.
-- Instructions reach Pi through the extension's injected bootstrap, not a committed file: it points at `.agents/AGENTS.md` (or, in a thin spoke, the hub) plus an awow tool mapping.
+- `.agents/commands/*` and `.agents/skills/*` → the shared commands-as-skills surface rendered from the `dist/` payload (`gather.py --surface plugin`, into `dist/agent-skills/`), registered through the package's `pi.skills` paths.
+- Instructions reach Pi through the repo-root `AGENTS.md` it reads natively — no committed extension, no injected bootstrap.
 
 The single source of truth is `.agents/`. Edits to generated surfaces are overwritten on the next `gather.py` run.
 
-## Extension notes (planned — hub-and-spoke WI-5)
+## Package notes
 
-- `.pi/extensions/awow.ts` registers `skillPaths` via `resources_discover` and injects an `<EXTREMELY_IMPORTANT>` bootstrap at `session_start`/`session_compact`, cleared on `agent_end` with a dedup guard.
-- The bootstrap carries an awow **tool mapping**: Pi's lowercase `read`/`write`/`edit`/`bash`; no `Skill` tool → read `SKILL.md`; no slash commands → invoke flows by name; subagents only if a `pi-subagents` tool is present.
-- `package.json` gains a `"pi"` field so the extension installs with `pi install`.
-- The exact extension-API surface (`resources_discover`, `context`, lifecycle events) is pinned against the installed Pi version before build (proposal open item 3).
+- `dist/package.json` carries a `"pi"` key whose `skills` array points at `./agent-skills` — the commands-as-skills surface. `pi install -l dist` (local) or an install from the published `CauchyIO/awow-dist` repo registers those skill paths.
+- The `version` is derived at gather time from the canonical `.claude-plugin/plugin.json`, so the package cannot ship a stale version — `gather.py --check` fails on drift.
+- No `.pi/extensions/*.ts`: hub-and-spoke WI-5 S3 dogfooding confirmed Pi's native `AGENTS.md` + `.agents/skills` discovery makes an in-process extension unnecessary. The earlier proposal assumed an extension; grounding against Pi 0.80.6 removed it.
 
 ## Status
 
-Planned under hub-and-spoke WI-5: the extension, the commands-as-skills surface, and `/setup-awow` detection. Pi has **no** zero-install in-repo story — unlike Codex it does not read a repo-root instruction file, so Pi support is extension-only.
+Shipping under hub-and-spoke WI-5: the `package.json` `pi` manifest, the commands-as-skills surface, and `/setup-awow` Step 1a detection. Pi needs **no** extension — it reads the repo-root `AGENTS.md` natively, so awow's instructions steer it **zero-install**; only the commands-as-skills surface needs the package (`pi install`). This corrects the earlier "Pi has no zero-install" framing: steering is zero-install, the skills surface is package-installed.
 
 ## Reference
 

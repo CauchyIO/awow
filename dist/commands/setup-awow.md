@@ -62,11 +62,13 @@ Step 1 has two parts. Step 1a wires up the read/write surface (an MCP or, for Gi
 
 ### Step 1a — Wire the read/write surface
 
-1. **Establish harness.** The starter pack ships both `.claude/` and `.github/` directories, so their presence is not a signal — do **not** infer "both harnesses in use" from directory listing alone. The real signal is which harness you (the model) are currently running inside:
-   - If you are Claude Code, the user's current harness is Claude Code.
-   - If you are GitHub Copilot, the user's current harness is Copilot.
+1. **Establish harness.** The starter pack ships both `.claude/` and `.github/` directories, so their presence is not a signal — do **not** infer which harnesses are in use from directory listing alone. The real signal is which harness you (the model) are currently running inside:
+   - If you are Claude Code, the current harness is Claude Code.
+   - If you are GitHub Copilot, the current harness is Copilot.
+   - If you are Codex, the current harness is Codex. (Corroborating on-disk signal: a repo-root `AGENTS.md` alongside a `.codex-plugin/` directory.)
+   - If you are Pi, the current harness is Pi. (Corroborating on-disk signal: a `.pi/` directory.)
 
-   Tell the user: "I can see I'm running in `<current harness>`. Does your team also use `<the other one>`, or is `<current>` the only harness to wire up?" Accept one of: *current only*, *both*. Record the choice; this drives which install snippets you surface in step 4.
+   Tell the user: "I can see I'm running in `<current harness>`. Does your team use any other supported harness (Claude Code, Copilot, Codex, Pi), or is `<current>` the only one to wire up?" Accept *current only* or a list of the additional harnesses. Record the choice; this drives which install snippets you surface in step 4.
 
 2. **Detect existing board surface.** Look for an existing MCP server entry whose name or URL references a supported board tool (`linear`, `jira`, `azure`, `github`) in:
    - `.claude/settings.json` and `.claude/settings.local.json`

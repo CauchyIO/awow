@@ -16,10 +16,17 @@ live() {
   make_template_fixture "$fx" || { _record fail "template fixture build"; return 0; }
   _record pass "template fixture built"
 
-  # `< /dev/null` because codex exec otherwise blocks reading stdin. read-only
-  # sandbox + ignore-user-config keep the run reproducible and safe.
+  # Disable codex's tool/app/plugin/exec features. codex 0.144 otherwise advertises a
+  # `namespace` tool type that deepseek-v4-flash's OpenRouter endpoints reject (verified
+  # 2026-07-13). A wiring smoke needs no tools — we assert the harness completes a turn,
+  # not that it acts. `< /dev/null` because codex exec otherwise blocks reading stdin.
+  local dis="" f
+  for f in browser_use computer_use image_generation apps multi_agent plugins tool_suggest \
+           unified_exec shell_tool code_mode_host in_app_browser tool_call_mcp_elicitation \
+           remote_plugin plugin_sharing skill_mcp_dependency_install; do dis="$dis --disable $f"; done
+
   local out; out="$(mktemp)"
-  OPENROUTER_API_KEY="$key" codex exec \
+  OPENROUTER_API_KEY="$key" codex exec $dis \
     -C "$fx" -s read-only --skip-git-repo-check --ignore-user-config --json \
     -c model_providers.awow.name=awow \
     -c "model_providers.awow.base_url=\"$base\"" \
@@ -30,9 +37,7 @@ live() {
   if grep -q '"type":"turn.completed"' "$out"; then
     _record pass "codex exec completed a turn against $TP_MODEL in the awow fixture"
   elif grep -q 'No endpoints found that support' "$out"; then
-    # codex 0.144 requires the Responses API and advertises namespace-format tools;
-    # deepseek-v4-flash's OpenRouter endpoints reject that tool type (verified 2026-07-13).
-    skip "codex 0.144 Responses-API tools incompatible with $TP_MODEL on OpenRouter; needs a tool-capable model or the APIM tier"
+    skip "codex tool format still unsupported for $TP_MODEL on OpenRouter even with tools disabled; needs a tool-capable model"
   else
     _record fail "codex exec turn failed unexpectedly (see run output)"
   fi

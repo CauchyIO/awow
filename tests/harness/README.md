@@ -29,9 +29,13 @@ The transport is resolved by available credential (`tests/harness/lib/gateway.sh
 
 ## Known limitations (verified 2026-07-13)
 
-- **Codex + deepseek-v4-flash via OpenRouter**: codex 0.144 requires the Responses API and advertises
-  `namespace`-format tools that deepseek-v4-flash's OpenRouter endpoints reject — the codex live turn
-  SKIPs with that reason. It needs a tool-capable model or the APIM `worker` tier.
+- **Codex + deepseek-v4-flash via OpenRouter**: codex 0.144 requires the Responses API and, with its
+  tool/app/plugin features on, advertises a `namespace` tool type that deepseek-v4-flash's OpenRouter
+  endpoints reject. The suite runs codex with those features **disabled** (`--disable browser_use …`),
+  which a wiring smoke does not need — the codex turn then completes. If the format changes and the
+  request is still rejected, the turn SKIPs with that reason rather than failing. (Note: the APIM
+  `worker` tier routes to the same OpenRouter deepseek endpoint, so it would hit the same wall — the
+  fix is disabling the tools, not the transport.)
 - **Hub-spoke deploy**: the Claude Code deploy scenario checks the payload + connector deterministically;
   the behavioural hub-resolution run and the codex/pi deploy paths SKIP until the hub-spoke work items
   (WI-4 `resolve_hub`, WI-5 Codex/Pi manifests) land.

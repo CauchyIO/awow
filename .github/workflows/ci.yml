@@ -16,3 +16,5 @@ jobs:
         run: python tools/gather.py --check
       - name: Path-token lint
         run: python tools/lint-paths.py
+      - name: Harness wiring checks (Layer 1, no model)
+        run: bash tests/harness/run-harness-tests.sh all

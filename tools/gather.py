@@ -104,6 +104,11 @@ DIST_DIR = REPO_ROOT / "dist"
 # for harnesses that consume skills rather than slash commands (Codex, Pi). Both
 # their manifests point here (hub-and-spoke WI-5).
 AGENT_SKILLS_DIR = DIST_DIR / "agent-skills"
+# Codex plugin + marketplace live at the dist/ root: codex git-clones the plugin
+# source, so it must be a repo root (source "./"), and dist/ published as a git repo
+# IS the codex marketplace. (Verified against codex 0.144.)
+CODEX_MANIFEST = DIST_DIR / ".codex-plugin" / "plugin.json"
+CODEX_MARKETPLACE = DIST_DIR / ".agents" / "plugins" / "marketplace.json"
 PLUGIN_MANIFEST = REPO_ROOT / ".claude-plugin" / "plugin.json"
 ROOT_COMMANDS_DIR = REPO_ROOT / "commands"
 HOOKS_DIR = REPO_ROOT / "hooks"
@@ -529,6 +534,43 @@ def plan_agent_skills() -> list[Stub]:
     return plans
 
 
+def plan_codex() -> list[Stub]:
+    """Codex plugin manifest + marketplace, into dist/. dist/ published as a git repo
+    IS the codex marketplace: the plugin sits at its root (source "./"), points
+    `skills` at the shared agent-skills surface, and carries the load-bearing empty
+    `hooks` (without it Codex auto-discovers hooks/hooks.json and re-registers Claude
+    Code's SessionStart hook; Codex needs none — root AGENTS.md is the reflex)."""
+    src = json.loads(PLUGIN_MANIFEST.read_text())
+    plugin = {
+        "name": src["name"],
+        "version": src["version"],
+        "description": src["description"],
+        "author": src.get("author", {"name": "awow maintainers"}),
+        "skills": "./agent-skills/",
+        "hooks": {},
+        "interface": {
+            "displayName": src.get("displayName", src["name"]),
+            "shortDescription": "Board-first delivery workflows for coding agents",
+            "category": "Developer Tools",
+        },
+    }
+    marketplace = {
+        "name": src["name"],
+        "plugins": [
+            {
+                "name": src["name"],
+                "source": {"source": "url", "url": "./"},
+                "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+                "category": "Developer Tools",
+            }
+        ],
+    }
+    return [
+        Stub(CODEX_MANIFEST, json.dumps(plugin, indent=2, ensure_ascii=False) + "\n"),
+        Stub(CODEX_MARKETPLACE, json.dumps(marketplace, indent=2, ensure_ascii=False) + "\n"),
+    ]
+
+
 def plan_plugin() -> list[Stub]:
     """Full-copy payload under dist/ — the installable Claude Code plugin."""
     manifest = json.loads(PLUGIN_MANIFEST.read_text())
@@ -684,6 +726,7 @@ def main() -> int:
     if DIST_DIR in surfaces:
         plans += plan_plugin()
         plans += plan_agent_skills()
+        plans += plan_codex()
     plans = filter_surface(plans, args.surface)
     planned_targets = {p.target for p in plans}
 

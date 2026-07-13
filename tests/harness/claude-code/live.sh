@@ -35,4 +35,14 @@ live() {
     _record fail "claude -p turn failed or empty"
   fi
   rm -f "$out"
+
+  # --- hub-spoke deploy wiring (deterministic; behavioural resolve awaits WI-4) ---
+  if [ ! -d "$HARNESS_REPO_ROOT/dist/commands" ]; then skip "dist/ payload absent (hub-spoke not built on this branch)"; return 0; fi
+  cmd-succeeds "dist plugin.json valid" -- python3 -c "import json; json.load(open('$HARNESS_REPO_ROOT/dist/.claude-plugin/plugin.json'))"
+  if ls "$HARNESS_REPO_ROOT"/dist/commands/*.md >/dev/null 2>&1; then _record pass "dist payload carries commands"; else _record fail "dist payload has no commands"; fi
+  local spoke; spoke="$(make_spoke_fixture "$(mktemp -d)/spoke")" || { _record fail "spoke fixture build"; return 0; }
+  # Connector resolves: the spoke's AGENTS.md names a hub dir that exists and carries board config.
+  local hubdir; hubdir="$(sed -n 's/^hub:[[:space:]]*//p' "$spoke/AGENTS.md")"
+  file-exists "$hubdir/context/tooling/board.md"
+  skip "full hub-resolution run (T1 read / T3 fail-loud) awaits hub-spoke WI-4 resolve_hub"
 }

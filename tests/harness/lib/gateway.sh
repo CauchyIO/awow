@@ -16,7 +16,7 @@ resolve_transport() {
   if [ -n "${AWOW_GATEWAY_BASE:-}" ] && { [ -n "${AWOW_GATEWAY_TOKEN:-}" ] || [ "$have_sp" = 1 ]; }; then
     TP_MODE="apim"; TP_MODEL="${AWOW_GATEWAY_TIER:-worker}"
     TP_OPENAI_BASE="${AWOW_GATEWAY_BASE%/}/v1"
-    TP_OPENAI_AUTH="${AWOW_GATEWAY_TOKEN:-}"        # SPN-mint path filled by apim_mint_token (Task 12)
+    TP_OPENAI_AUTH="$(apim_mint_token)"; [ -n "$TP_OPENAI_AUTH" ] || return 1
     return 0
   fi
   if [ -n "$(openrouter_key)" ]; then
@@ -55,10 +55,26 @@ YAML
 shim_stop() {
   # litellm forks a uvicorn worker, so killing the launcher PID alone leaves the
   # port held. Kill children + launcher, then free the port as a backstop.
-  if [ -n "${SHIM_PID:-}" ]; then pkill -P "$SHIM_PID" 2>/dev/null; kill "$SHIM_PID" 2>/dev/null; fi
+  if [ -n "${SHIM_PID:-}" ]; then
+    pkill -P "$SHIM_PID" 2>/dev/null; kill "$SHIM_PID" 2>/dev/null
+    wait "$SHIM_PID" 2>/dev/null   # reap synchronously so no async "Terminated" notice leaks
+  fi
   local port="${AWOW_SHIM_PORT:-4111}" pids
   if command -v lsof >/dev/null 2>&1; then
     pids="$(lsof -ti "tcp:$port" 2>/dev/null)"; [ -n "$pids" ] && kill $pids 2>/dev/null
   fi
   SHIM_PID=""; return 0
+}
+
+# --- apim mode: mint an Entra v2 token (MeshService/NightRunner client-credentials) ---
+# Auth model: linear context/knowledge-base/architecture/apim-litellm-gateway-auth-model.md.
+# Precedence: an explicit token, else a client-credentials mint from the SPN triple. Nothing
+# is committed — every value is env-supplied; a v2 scope uses .default, never --resource.
+apim_mint_token() {
+  if [ -n "${AWOW_GATEWAY_TOKEN:-}" ]; then printf '%s' "$AWOW_GATEWAY_TOKEN"; return 0; fi
+  [ -n "${AWOW_SP_CLIENT_ID:-}" ] && [ -n "${AWOW_SP_CLIENT_SECRET:-}" ] && [ -n "${AWOW_SP_TENANT:-}" ] && [ -n "${AWOW_GATEWAY_AUD:-}" ] || return 1
+  curl -s -X POST "https://login.microsoftonline.com/$AWOW_SP_TENANT/oauth2/v2.0/token" \
+    -d grant_type=client_credentials -d client_id="$AWOW_SP_CLIENT_ID" \
+    -d client_secret="$AWOW_SP_CLIENT_SECRET" -d scope="api://$AWOW_GATEWAY_AUD/.default" \
+    | python3 -c "import json,sys; print(json.load(sys.stdin).get('access_token',''))"
 }

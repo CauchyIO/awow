@@ -51,11 +51,16 @@ adopter's project where `.agents/` does not exist:
     commands/<name>.md  (legacy /awowify) → dist/commands/<name>.md
     .agents/skills/<name>/**             → dist/skills/<name>/**
     .agents/skills/<name>.md             → dist/skills/<name>/SKILL.md
+    (every command AND skill, as a skill) → dist/agent-skills/<name>/SKILL.md
     hooks/**                             → dist/hooks/**
     tools/<runtime allowlist>            → dist/tools/**
     .claude-plugin/plugin.json           → dist/.claude-plugin/plugin.json
                                             (metadata only; commands/skills/
                                             hooks are auto-discovered)
+
+The `agent-skills/` surface is the commands-as-skills payload for harnesses that
+consume skills rather than slash commands (Codex, Pi): every command and skill
+rendered as `<name>/SKILL.md`. Both harness manifests point at it (WI-5).
 
 `dist/` is wholly owned by this script: any file found there that is not in
 the plan is removed. Maintainer tools (gather.py itself, distribute.py, …)
@@ -95,6 +100,10 @@ AGENTS_DIR = REPO_ROOT / ".agents"
 CLAUDE_DIR = REPO_ROOT / ".claude"
 GITHUB_DIR = REPO_ROOT / ".github"
 DIST_DIR = REPO_ROOT / "dist"
+# Commands-as-skills surface: every command AND skill rendered as <name>/SKILL.md,
+# for harnesses that consume skills rather than slash commands (Codex, Pi). Both
+# their manifests point here (hub-and-spoke WI-5).
+AGENT_SKILLS_DIR = DIST_DIR / "agent-skills"
 PLUGIN_MANIFEST = REPO_ROOT / ".claude-plugin" / "plugin.json"
 ROOT_COMMANDS_DIR = REPO_ROOT / "commands"
 HOOKS_DIR = REPO_ROOT / "hooks"
@@ -387,6 +396,22 @@ def render_plugin_body(text: str) -> str:
     return text
 
 
+# The commands-as-skills surface (Codex/Pi) can't resolve ${CLAUDE_PLUGIN_ROOT}.
+# Agent Skills resolve paths relative to the skill dir, so from
+# dist/agent-skills/<name>/SKILL.md, ../../tools reaches the payload's dist/tools/.
+# (Residual literal ${CLAUDE_PLUGIN_ROOT} in a few Claude-channel command bodies —
+# awowify, using-awow — is WI-2 content-sweep debt, tracked separately.)
+AGENT_SKILLS_TOKEN_SUBSTITUTIONS = [
+    ("{AWOW_TOOLS}", "../../tools"),
+]
+
+
+def render_agent_skills_body(text: str) -> str:
+    for token, replacement in AGENT_SKILLS_TOKEN_SUBSTITUTIONS:
+        text = text.replace(token, replacement)
+    return text
+
+
 def is_vendored_channel(text: str) -> bool:
     """channel: vendored files operate on the vendored install itself and are
     excluded from the plugin payload."""
@@ -414,6 +439,94 @@ def plugin_command_copy(target: Path, source: Path, text: str | None = None) -> 
     else:
         content = f"---\n{desc_line}\n---\n\n{text}"
     return Stub(target, content, mode)
+
+
+def skill_stubs(entry: Path, dest_root: Path, render=render_plugin_body) -> list[Stub]:
+    """Render one `.agents/skills/<entry>` into `dest_root/<name>/…` as full-content
+    SKILL.md (+ any bundled files). Shared by the Claude plugin payload (dist/skills)
+    and the commands-as-skills surface (dist/agent-skills, which passes
+    render_agent_skills_body). Returns [] for vendored or non-skill entries."""
+    if entry.is_dir() and (entry / "SKILL.md").exists():
+        skill_md = entry / "SKILL.md"
+        skill_text = skill_md.read_text()
+        if is_vendored_channel(skill_text):
+            return []
+        out: list[Stub] = []
+        for f in sorted(entry.rglob("*")):
+            if not f.is_file():
+                continue
+            target = dest_root / entry.name / f.relative_to(entry)
+            if f.suffix == ".md":
+                body = skill_text if f == skill_md else f.read_text()
+                out.append(Stub(target, render(body), f.stat().st_mode & 0o777))
+            else:
+                out.append(copy_stub(target, f))
+        return out
+    if entry.is_file() and entry.suffix == ".md":
+        # Declarative skill: wrap the FULL body (not a pointer) in the dir/SKILL.md
+        # form the loader discovers.
+        text = entry.read_text()
+        if is_vendored_channel(text):
+            return []
+        fields, body = parse_frontmatter(text)
+        name = fields.get("name", entry.stem)
+        description = fields.get("description") or first_h1(body) or ""
+        desc_escaped = description.replace(chr(34), chr(92) + chr(34))
+        content = (
+            f"---\n"
+            f"name: {name}\n"
+            f'description: "{desc_escaped}"\n'
+            f"---\n\n"
+            f"{render(body.lstrip())}"
+        )
+        return [Stub(dest_root / name / "SKILL.md", content)]
+    return []
+
+
+def command_skill_stub(source: Path, dest_root: Path, render=render_plugin_body) -> Stub | None:
+    """Render a command as a `<name>/SKILL.md` — name + description frontmatter over
+    the full command body. Commands-as-skills: the harness loads it when the user
+    names the flow. None for vendored commands."""
+    text = source.read_text()
+    if is_vendored_channel(text):
+        return None
+    fields, body = parse_frontmatter(text)
+    name = source.stem
+    description = command_description(fields, body)
+    desc_escaped = description.replace(chr(34), chr(92) + chr(34))
+    content = (
+        f"---\n"
+        f"name: {name}\n"
+        f'description: "{desc_escaped}"\n'
+        f"---\n\n"
+        f"{render(body.lstrip())}"
+    )
+    return Stub(dest_root / name / "SKILL.md", content)
+
+
+def plan_agent_skills() -> list[Stub]:
+    """Commands-as-skills surface under dist/agent-skills/ — every command AND skill
+    as <name>/SKILL.md, for Codex and Pi. Full content (the payload ships where
+    `.agents/` is absent). Both harness manifests point at this one directory."""
+    plans: list[Stub] = []
+    for source in sorted((AGENTS_DIR / "commands").rglob("*.md")):
+        if is_skipped(source):
+            continue
+        stub = command_skill_stub(source, AGENT_SKILLS_DIR, render_agent_skills_body)
+        if stub is not None:
+            plans.append(stub)
+    if ROOT_COMMANDS_DIR.is_dir():
+        for source in sorted(ROOT_COMMANDS_DIR.glob("*.md")):
+            if source.name in SKIP_FILENAMES:
+                continue
+            stub = command_skill_stub(source, AGENT_SKILLS_DIR, render_agent_skills_body)
+            if stub is not None:
+                plans.append(stub)
+    for entry in sorted((AGENTS_DIR / "skills").iterdir()):
+        if entry.name in SKIP_FILENAMES:
+            continue
+        plans.extend(skill_stubs(entry, AGENT_SKILLS_DIR, render_agent_skills_body))
+    return plans
 
 
 def plan_plugin() -> list[Stub]:
@@ -462,38 +575,7 @@ def plan_plugin() -> list[Stub]:
     for entry in sorted(skills_root.iterdir()):
         if entry.name in SKIP_FILENAMES:
             continue
-        if entry.is_dir() and (entry / "SKILL.md").exists():
-            skill_md = entry / "SKILL.md"
-            skill_text = skill_md.read_text()
-            if is_vendored_channel(skill_text):
-                continue
-            for f in sorted(entry.rglob("*")):
-                if f.is_file():
-                    target = DIST_DIR / "skills" / entry.name / f.relative_to(entry)
-                    if f.suffix == ".md":
-                        body = skill_text if f == skill_md else f.read_text()
-                        plans.append(Stub(target, render_plugin_body(body),
-                                          f.stat().st_mode & 0o777))
-                    else:
-                        plans.append(copy_stub(target, f))
-        elif entry.is_file() and entry.suffix == ".md":
-            # Declarative skill: wrap the FULL body (not a pointer) in the
-            # dir/SKILL.md form the plugin loader discovers.
-            text = entry.read_text()
-            if is_vendored_channel(text):
-                continue
-            fields, body = parse_frontmatter(text)
-            name = fields.get("name", entry.stem)
-            description = fields.get("description") or first_h1(body) or ""
-            desc_escaped = description.replace(chr(34), chr(92) + chr(34))
-            content = (
-                f"---\n"
-                f"name: {name}\n"
-                f'description: "{desc_escaped}"\n'
-                f"---\n\n"
-                f"{render_plugin_body(body.lstrip())}"
-            )
-            plans.append(Stub(DIST_DIR / "skills" / name / "SKILL.md", content))
+        plans.extend(skill_stubs(entry, DIST_DIR / "skills"))
     for f in sorted(HOOKS_DIR.rglob("*")):
         if f.is_file():
             plans.append(copy_stub(DIST_DIR / "hooks" / f.relative_to(HOOKS_DIR), f))
@@ -601,6 +683,7 @@ def main() -> int:
     )
     if DIST_DIR in surfaces:
         plans += plan_plugin()
+        plans += plan_agent_skills()
     plans = filter_surface(plans, args.surface)
     planned_targets = {p.target for p in plans}
 

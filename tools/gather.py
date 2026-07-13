@@ -109,6 +109,10 @@ AGENT_SKILLS_DIR = DIST_DIR / "agent-skills"
 # IS the codex marketplace. (Verified against codex 0.144.)
 CODEX_MANIFEST = DIST_DIR / ".codex-plugin" / "plugin.json"
 CODEX_MARKETPLACE = DIST_DIR / ".agents" / "plugins" / "marketplace.json"
+# Pi package manifest at the dist/ root: `pi install` reads the `pi` key and loads the
+# commands-as-skills from pi.skills. Pi reads root AGENTS.md and .agents/skills natively,
+# so the package is the whole Pi integration — no extension needed.
+PI_MANIFEST = DIST_DIR / "package.json"
 PLUGIN_MANIFEST = REPO_ROOT / ".claude-plugin" / "plugin.json"
 ROOT_COMMANDS_DIR = REPO_ROOT / "commands"
 HOOKS_DIR = REPO_ROOT / "hooks"
@@ -571,6 +575,21 @@ def plan_codex() -> list[Stub]:
     ]
 
 
+def plan_pi() -> list[Stub]:
+    """Pi package manifest into dist/. `pi install <dist>` reads `pi.skills` and surfaces
+    the commands-as-skills. Pi discovers root AGENTS.md + the user's own .agents/skills
+    natively, so the package is the whole integration — no `.pi/extensions` needed."""
+    src = json.loads(PLUGIN_MANIFEST.read_text())
+    pkg = {
+        "name": src["name"],
+        "version": src["version"],
+        "description": src["description"],
+        "keywords": ["pi-package"],
+        "pi": {"skills": ["./agent-skills"]},
+    }
+    return [Stub(PI_MANIFEST, json.dumps(pkg, indent=2, ensure_ascii=False) + "\n")]
+
+
 def plan_plugin() -> list[Stub]:
     """Full-copy payload under dist/ — the installable Claude Code plugin."""
     manifest = json.loads(PLUGIN_MANIFEST.read_text())
@@ -727,6 +746,7 @@ def main() -> int:
         plans += plan_plugin()
         plans += plan_agent_skills()
         plans += plan_codex()
+        plans += plan_pi()
     plans = filter_surface(plans, args.surface)
     planned_targets = {p.target for p in plans}
 

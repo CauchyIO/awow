@@ -9,11 +9,11 @@ Build an interactive timeline of how a repo was actually built across its agent 
 - **Claude Code logs** under `~/.claude/projects/` (`--project-path`) — zero setup, richest detail (file edits, per-turn context, handoffs).
 - **An `mlflow_export/` dir** of Databricks traces (`--mlflow-export`) from the `mlflow-export` skill — supports **multiple users**, and is **split into one dashboard per project** (per working directory): the build emits an `index.html` landing page plus a `timeline-<slug>.html` per project. There is no cross-project aggregate.
 
-The engine is `tools/session_timeline.py` (with `session_timeline_template.html` for the view and `tools/mlflow_reader.py` — the shared, schema-validated reader also used by `awow-usage-coach`). This skill is the judgment: scope, cost-gating, reading the picture, and coaching — the script never decides scope on its own.
+The engine is `${CLAUDE_PLUGIN_ROOT}/tools/session_timeline.py` (with `session_timeline_template.html` for the view and `${CLAUDE_PLUGIN_ROOT}/tools/mlflow_reader.py` — the shared, schema-validated reader also used by `awow-usage-coach`). This skill is the judgment: scope, cost-gating, reading the picture, and coaching — the script never decides scope on its own.
 
 When sessions span **more than one day**, each dashboard switches to a **calendar mode**: a day-navigator strip (empty gaps collapsed) above a per-day detail timeline — click a day or press ←/→ to page through. When a project has **more than one user**, each dashboard carries an in-UI **user** filter that re-scopes the whole view; you usually don't need `--user`.
 
-Read [`.agents/skills/awow-usage-coach/SKILL.md`](../awow-usage-coach/SKILL.md) before coaching; it owns the intent taxonomy and the Mode B voice. Read [`guides/guide-session-timeline.html`](../../../guides/guide-session-timeline.html) if you need to explain what the view shows.
+Read the `awow-usage-coach` skill before coaching; it owns the intent taxonomy and the Mode B voice. Read [`guides/guide-session-timeline.html`](../../../guides/guide-session-timeline.html) if you need to explain what the view shows.
 
 ## Inputs
 
@@ -27,13 +27,13 @@ Read [`.agents/skills/awow-usage-coach/SKILL.md`](../awow-usage-coach/SKILL.md) 
 3. **Build the timeline.** Run the tool and report the session count (and, for MLflow, the projects it split into):
    ```
    # Claude Code logs (one repo → one timeline.html):
-   python tools/session_timeline.py --project-path <repo> --out <out-dir> --tz-offset <hours>
+   python ${CLAUDE_PLUGIN_ROOT}/tools/session_timeline.py --project-path <repo> --out <out-dir> --tz-offset <hours>
    # MLflow export (→ index.html + one timeline-<slug>.html per project; optionally pre-scope a user):
-   python tools/session_timeline.py --mlflow-export <mlflow_export-dir> --out <out-dir> --tz-offset <hours> [--user <name>]
+   python ${CLAUDE_PLUGIN_ROOT}/tools/session_timeline.py --mlflow-export <mlflow_export-dir> --out <out-dir> --tz-offset <hours> [--user <name>]
    ```
    Add `--transcripts <dir>` (Claude logs) to scope the view and link transcripts, and `--context-window <n>` if the team's window is not 200000. The build validates the emitted `sessions.json` schema and fails loud if the export format has drifted.
-4. **Read the picture, then write the overview.** Read the `sessions.json` (or per-project `sessions-<slug>.json`), not the raw logs, for the aggregate shape: session count, peak parallel/day, idle gaps, per-session peak context (Claude logs only), functional-area / working-dir mix, per-user split, token cost. For a multi-day dataset, lead with the **cadence over the calendar** (quiet stretches vs. crunch days), not a single-evening rhythm. Draft a whole-project meta-analysis to `coach_reviews/<repo>-timeline/OVERVIEW.md` first; pass it as `--overview` once approved so it renders as the default panel. The overview is **private session-derived data** — write it to `coach_reviews/` (gitignored), never to `proposals/` or any tracked path; committing it to a public repo leaks customer data.
-5. **Coach per session only if degree 3.** Follow `awow-usage-coach` Mode B per session and write one `<short-id>.md` into the gitignored `coach_reviews/` dir, then rebuild with `--coach-dir`. Reviews and the timeline outputs (`sessions.json`, `timeline.html`) are team session data — keep them out of `proposals/` and every tracked path. For deep prompt-craft scoring, defer to `prompt-skill-analysis`.
+4. **Read the picture, then write the overview.** Read the `sessions.json` (or per-project `sessions-<slug>.json`), not the raw logs, for the aggregate shape: session count, peak parallel/day, idle gaps, per-session peak context (Claude logs only), functional-area / working-dir mix, per-user split, token cost. For a multi-day dataset, lead with the **cadence over the calendar** (quiet stretches vs. crunch days), not a single-evening rhythm. Draft a whole-project meta-analysis to `coach_reviews/<repo>-timeline/OVERVIEW.md` first; pass it as `--overview` once approved so it renders as the default panel. The overview is **private session-derived data** — write it to `coach_reviews/` (gitignored), never to `{PROJECT}/proposals/` or any tracked path; committing it to a public repo leaks customer data.
+5. **Coach per session only if degree 3.** Follow `awow-usage-coach` Mode B per session and write one `<short-id>.md` into the gitignored `coach_reviews/` dir, then rebuild with `--coach-dir`. Reviews and the timeline outputs (`sessions.json`, `timeline.html`) are team session data — keep them out of `{PROJECT}/proposals/` and every tracked path. For deep prompt-craft scoring, defer to `prompt-skill-analysis`.
 6. **Open it.** Tell the user the path to open: the `index.html` for a multi-project MLflow export (it links each project's dashboard), or `timeline.html` for a single project / Claude-logs run. Everything is self-contained (open by double-clicking).
 
 ## Rules

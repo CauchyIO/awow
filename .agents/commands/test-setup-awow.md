@@ -2,6 +2,7 @@
 phase: maintenance
 prerequisites: []
 removes_pain: "wording-change-broke-the-wizard regressions caught only by manual walkthrough"
+channel: vendored
 ---
 
 # /test-setup-awow [<scenario>] — deprecated alias

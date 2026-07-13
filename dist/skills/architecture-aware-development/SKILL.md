@@ -1,6 +1,6 @@
 ---
 name: architecture-aware-development
-description: "The seam between awow's lifecycle and the architecture plane — ratified ADRs, solution-design records, and durable pattern notes, consulted through a KB agent. The sibling of board-aware-development: it rivets a KB-alignment action onto each inner-loop lifecycle moment — brainstorming → prior-art reuse, writing-plans → align + flag governed tasks, executing → re-check the flagged tasks. Opt-in and config-gated: it does nothing unless the repo declares an architecture plane in context/tooling/architecture.md. Read or invoke this when a build engine is present, that pointer exists, and you are forming a plan — so the plan reuses settled decisions and does not silently contradict a ratified ADR. The PreToolUse hook fires the matching one-line reminder automatically; this skill is the full crosswalk behind it."
+description: "The seam between awow's lifecycle and the architecture plane — ratified ADRs, solution-design records, and durable pattern notes, consulted through a KB agent. The sibling of board-aware-development: it rivets a KB-alignment action onto each inner-loop lifecycle moment — brainstorming → prior-art reuse, writing-plans → align + flag governed tasks, executing → re-check the flagged tasks. Opt-in and config-gated: it does nothing unless the repo declares an architecture plane in {PROJECT}/context/tooling/architecture.md. Read or invoke this when a build engine is present, that pointer exists, and you are forming a plan — so the plan reuses settled decisions and does not silently contradict a ratified ADR. The PreToolUse hook fires the matching one-line reminder automatically; this skill is the full crosswalk behind it."
 ---
 
 # Architecture-aware development
@@ -15,7 +15,7 @@ This is **opt-in and config-gated.** It does nothing unless the repo declares an
 
 ## Plane check first (graceful no-op)
 
-Read `context/tooling/architecture.md`. It names the plane:
+Read `{PROJECT}/context/tooling/architecture.md`. It names the plane:
 
 ```
 adr_dir:      <path to ratified decisions, may be empty>
@@ -60,7 +60,7 @@ wave through, on weak evidence.
 
 ## When NOT to apply this
 
-- No `context/tooling/architecture.md` pointer — there is no plane to consult; stay silent.
+- No `{PROJECT}/context/tooling/architecture.md` pointer — there is no plane to consult; stay silent.
 - No inner-loop engine installed — there is no lifecycle seam to bind.
 - The work is not an initiative — skip it, like the board check.
 - You are inside `/process-workitem` — that command owns the seam; do not double-apply.

@@ -4,7 +4,7 @@ phase: standardise
 prerequisites:
   - "Step 0 of /setup-awow complete (the agent can read and write the board)"
   - "/daily-digest producing a clean overview"
-  - "context/knowledge-base/ set up (the promotion ritual is understood)"
+  - "{HUB}/context/knowledge-base/ set up (the promotion ritual is understood)"
 removes_pain: "gathering the same day twice — once to summarise it, once to mine it"
 ---
 
@@ -32,7 +32,7 @@ promotion gate both still apply).
 Phase 0 ─ Input & mode detection
 Phase 1 ─ Gather once           ──→ activity/YYYY-MM-DD.json   (the day snapshot)
 Phase 2 ─ Overview  (shallow projection)  ──→ digests/YYYY-MM-DD.md
-Phase 3 ─ KB candidates (deep projection) ──→ context/kb-inbox/*.md   ──→ synthesis.md GATE (promotion)
+Phase 3 ─ KB candidates (deep projection) ──→ {HUB}/context/kb-inbox/*.md   ──→ synthesis.md GATE (promotion)
 ```
 
 Phases 2 and 3 are **independent projections of the same snapshot** — not a chain.
@@ -46,7 +46,7 @@ If one fails, the other still stands; report the failure and proceed.
 - **Email mode (optional).** If the user passes recipient emails, forward them to the
   overview projection (Phase 2) exactly as `/daily-digest` handles them — HTML render
   + manual send gate. No emails → markdown overview only.
-- **Reuse check.** If `digests/<date>.md` already exists, or `context/kb-inbox/`
+- **Reuse check.** If `digests/<date>.md` already exists, or `{HUB}/context/kb-inbox/`
   already holds `<date>-mine-*.md` candidates, ask whether to regenerate or reuse each,
   independently.
 
@@ -54,12 +54,12 @@ If one fails, the other still stands; report the failure and proceed.
 
 ## Phase 1 — Gather once
 
-Run the shared collection step, `context/tooling/activity-collection.md`: produce
+Run the shared collection step, `{HUB}/context/tooling/activity-collection.md`: produce
 `activity/YYYY-MM-DD.json` (or reuse it if present). That step owns the board / code /
-chat queries (keyed off `context/tooling/board.md`), the normalised snapshot schema,
+chat queries (keyed off `{HUB}/context/tooling/board.md`), the normalised snapshot schema,
 and the private-team gate.
 
-If the snapshot cannot be produced — no `context/tooling/board.md`, or a fatal auth
+If the snapshot cannot be produced — no `{HUB}/context/tooling/board.md`, or a fatal auth
 failure on a source — stop here. Do not run either projection against a half-snapshot.
 
 Both projections below **reuse this one snapshot**. Do not collect again.
@@ -84,19 +84,19 @@ gate** — never send without explicit approval.
 
 ## Phase 3 — KB candidates (deep projection)
 
-KB paths (`inbox`, `kb_root`) resolve via `context/tooling/knowledge-base.md`; the
+KB paths (`inbox`, `kb_root`) resolve via `{HUB}/context/tooling/knowledge-base.md`; the
 literals below are the defaults.
 
-Mine the same snapshot for durable knowledge, per `context/knowledge-base/mining.md`:
+Mine the same snapshot for durable knowledge, per `{HUB}/context/knowledge-base/mining.md`:
 read each item's deep `payload`, apply the selectivity bar (tuned by
-`context/knowledge-base/mining-policy.md`), route each survivor to its
-`context/knowledge-base/` destination, dedup against the existing KB, and stage each
-survivor as one committed file in `context/kb-inbox/`.
+`{HUB}/context/knowledge-base/mining-policy.md`), route each survivor to its
+`{HUB}/context/knowledge-base/` destination, dedup against the existing KB, and stage each
+survivor as one committed file in `{HUB}/context/kb-inbox/`.
 
-This projection **proposes only**. Do not write into `context/knowledge-base/` and do
+This projection **proposes only**. Do not write into `{HUB}/context/knowledge-base/` and do
 not touch the board. Present the candidate summary (count, targets, duplicates
 dropped, cap status) and stop — promotion is the synthesis drain (`/kb-synthesize`, per
-`context/knowledge-base/synthesis.md`), which runs the **approval gate** before any
+`{HUB}/context/knowledge-base/synthesis.md`), which runs the **approval gate** before any
 candidate lands in the durable KB. You may offer to run `/kb-synthesize` now, or leave
 the candidates staged in the inbox for a later drain.
 

@@ -20,7 +20,7 @@ Read-only by default. You triage; you do not silently mutate the board.
 
 ## Inputs
 
-- Optional: a person (name or board handle) to run it for. Default: the current user, resolved from `context/tooling/board.md` (board identity) or the git identity.
+- Optional: a person (name or board handle) to run it for. Default: the current user, resolved from `{HUB}/context/tooling/board.md` (board identity) or the git identity.
 - Optional: a scope — a single project/team. Default: everything assigned to you.
 
 ## Flow
@@ -31,7 +31,7 @@ Determine whose work to pull. If the board identity is ambiguous, ask once; do n
 
 ### 2. Pull assigned work
 
-Query the board (surface per `context/tooling/board.md`) for items assigned to that person across all states. Pull enough to triage: title, state, priority, due date, last-update time, parent, and whether the item is blocked or in review.
+Query the board (surface per `{HUB}/context/tooling/board.md`) for items assigned to that person across all states. Pull enough to triage: title, state, priority, due date, last-update time, parent, and whether the item is blocked or in review.
 
 ### 3. Group by what it needs from you — not by raw status
 

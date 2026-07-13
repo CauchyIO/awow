@@ -2,6 +2,7 @@
 phase: maintenance
 prerequisites: []
 removes_pain: "wording-change-broke-the-prompt regressions caught only by manual walkthrough; grading noise from self-attestation and broken fixtures"
+channel: vendored
 ---
 
 # /test-awow [<suite>] [<scenario>] [--keep] — execute an eval suite

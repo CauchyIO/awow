@@ -2,7 +2,7 @@
   "name": "awow",
   "displayName": "awow — Agentic Way of Working",
   "description": "Set up or extend awow in any repo, new or existing. /awowify adds the files Claude Code or GitHub Copilot need to follow your issue board (Linear, Jira, GitHub Issues, Azure DevOps) and conventions — without overwriting what's already there — then walks you through configuring it.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "commands": "./commands/",
   "author": {
     "name": "awow maintainers"

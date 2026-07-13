@@ -21,7 +21,7 @@ This prompt runs as a pipeline with **three gates**. You stop at each gate, pres
 
 You are the entry point for the transcript-prompt family. When a transcript contains a session another skill handles better (`/coaching-review`, `/solution-design-flow`, future leaves), recommend dispatch with rationale and let the user confirm before invoking the specialist. When no specialist fits, stay here and run the templated pipeline below.
 
-**The filesystem is the registry.** Glob `.agents/commands/**/*.md` for the source-of-truth set; in repos that only ship the mirror, glob `.claude/commands/*.md`. Filter to entries whose frontmatter declares `consumes: transcript`. Read each match's `when-to-use` and `when-not-to-use` fields and match against the segments you detect in Phase 1. Skip `README.md` and any path under `_workitem-archetypes/`.
+**The filesystem is the registry.** Enumerate the awow command catalog: `.agents/commands/**/*.md` in vendored repos, `.claude/commands/*.md` in mirror-only repos, or the awow plugin's `commands/` directory (under the plugin root) when awow is installed as a plugin. Filter to entries whose frontmatter declares `consumes: transcript`. Read each match's `when-to-use` and `when-not-to-use` fields and match against the segments you detect in Phase 1. Skip `README.md` and any path under `_workitem-archetypes/`.
 
 **Mode flags** from `$ARGUMENTS`:
 
@@ -50,13 +50,13 @@ When every segment dispatches to a specialist, Phases 3 and 4 are skipped — ea
 
 Before touching the transcription, read:
 
-- `context/team/mission.md` — what the team is for
-- `context/team/members.md` — names, roles, focus areas (critical for speaker disambiguation and attribution)
-- `context/team/conventions/REQUIRED/*.md` — naming, labels, output discipline
-- `context/team/style/*.md` — writing modes
-- `context/knowledge-base/glossary.md` — domain terms and abbreviations (helps disambiguate transcription errors)
-- `context/company/neighbouring-teams.md` — needed for cross-team blocker detection
-- `context/tooling/board.md` — board family, MCP wiring
+- `{HUB}/context/team/mission.md` — what the team is for
+- `{HUB}/context/team/members.md` — names, roles, focus areas (critical for speaker disambiguation and attribution)
+- `{HUB}/context/team/conventions/REQUIRED/*.md` — naming, labels, output discipline
+- `{HUB}/context/team/style/*.md` — writing modes
+- `{HUB}/context/knowledge-base/glossary.md` — domain terms and abbreviations (helps disambiguate transcription errors)
+- `{HUB}/context/company/neighbouring-teams.md` — needed for cross-team blocker detection
+- `{HUB}/context/tooling/board.md` — board family, MCP wiring
 
 ### Context validation
 
@@ -110,7 +110,7 @@ Voice-to-text is unreliable. Expect homophones, missing punctuation, and garbled
 Protocol:
 
 1. Read the full transcript before interpreting anything.
-2. Cross-reference all proper nouns against `context/team/members.md`, `neighbouring-teams.md`, the glossary, and the team's active features. These are your primary disambiguation source.
+2. Cross-reference all proper nouns against `{HUB}/context/team/members.md`, `neighbouring-teams.md`, the glossary, and the team's active features. These are your primary disambiguation source.
 3. When a word doesn't match a known entity but sounds similar to one, assume the known entity.
 4. Collect ALL ambiguous terms — do not guess silently.
 
@@ -140,7 +140,7 @@ For each segment, classify the primary type from the list below. Real meetings a
 
 ### 1.5 Match segments against the specialist registry
 
-Enumerate every transcript-consumer skill: glob `.agents/commands/**/*.md` (or `.claude/commands/*.md` in mirror repos), filter to frontmatter that declares `consumes: transcript`. For each segment, judge it against each specialist's `when-to-use` and `when-not-to-use`. A match is when `when-to-use` describes the segment and `when-not-to-use` does not.
+Enumerate every transcript-consumer skill from the awow command catalog (as in Phase 1: vendored `.agents/commands/`, mirror `.claude/commands/`, or the plugin's `commands/` directory), filter to frontmatter that declares `consumes: transcript`. For each segment, judge it against each specialist's `when-to-use` and `when-not-to-use`. A match is when `when-to-use` describes the segment and `when-not-to-use` does not.
 
 If `--as=<skill>` is set, skip matching. Force the whole transcript to `<skill>` as one segment and proceed.
 
@@ -165,7 +165,7 @@ Use the appropriate template below. Universal rules:
 
 - **Problem statement.** What's being solved, business context, constraints.
 - **Options explored.** Per option: who proposed, arguments for/against, verdict (chosen/rejected/needs spike).
-- **Decisions made.** Decision — rationale — who confirmed. Flag significant decisions as ADR candidates (`context/knowledge-base/decisions/`).
+- **Decisions made.** Decision — rationale — who confirmed. Flag significant decisions as ADR candidates (`{HUB}/context/knowledge-base/decisions/`).
 - **Work breakdown.** Follow your board's hierarchy — Epic/Feature/Story/Task on ADO, Initiative/Project/Issue on Linear. Only as deep as warranted; a single story is fine for small work.
 - **Unknowns & spikes.** What needs investigation — who owns it.
 - **Risks.** Risk — impact — mitigation discussed.
@@ -317,7 +317,7 @@ Phase 3 runs over the action items extracted from **fallback segments only**. Sp
 
 ### 3.1 Search strategy
 
-Search the team's board (per `context/tooling/board.md`) for existing work items using:
+Search the team's board (per `{HUB}/context/tooling/board.md`) for existing work items using:
 
 1. Keywords from decisions, action items, and discussed topics
 2. People mentioned as owners — check their assigned items
@@ -331,7 +331,7 @@ Note match confidence: exact / likely related / weak signal.
 For every blocker or dependency surfaced:
 
 1. Search the team's own board first.
-2. If not found locally, search neighbouring teams' boards (per `context/company/neighbouring-teams.md`).
+2. If not found locally, search neighbouring teams' boards (per `{HUB}/context/company/neighbouring-teams.md`).
 3. For cross-team items: capture ID, title, state, owner, which team, current cycle or backlog, last updated.
 4. Blockers NOT found on any board → flag as **untracked dependency**.
 
@@ -344,7 +344,7 @@ For every blocker or dependency surfaced:
 
 ### 3.4 Propose actions
 
-Per `context/team/conventions/REQUIRED/output-discipline.md` — every section is labelled by placement (story / comment / knowledge base) before any board write.
+Per `{HUB}/context/team/conventions/REQUIRED/output-discipline.md` — every section is labelled by placement (story / comment / knowledge base) before any board write.
 
 **Updates** to existing items:
 
@@ -383,9 +383,9 @@ ESCALATE [blocker]
 **Knowledge-base promotions** (durable content extracted from the meeting):
 
 ```
-KB:decisions  Write context/knowledge-base/decisions/<x>.md: [decision + rationale]
-KB:patterns   Write context/knowledge-base/patterns/<x>.md: [pattern description]
-KB:glossary   Add term to context/knowledge-base/glossary.md: [term — definition]
+KB:decisions  Write {HUB}/context/knowledge-base/decisions/<x>.md: [decision + rationale]
+KB:patterns   Write {HUB}/context/knowledge-base/patterns/<x>.md: [pattern description]
+KB:glossary   Add term to {HUB}/context/knowledge-base/glossary.md: [term — definition]
 ```
 
 **Housekeeping** (non-urgent board hygiene): missing AC, suspected duplicates, stale items, missing links.
@@ -434,7 +434,7 @@ DONE
 Executed:
 - #[ID]: [what changed]
 - Created #[ID]: [title]
-- Wrote context/knowledge-base/<path>: [summary]
+- Wrote {HUB}/context/knowledge-base/<path>: [summary]
 
 Skipped: [list or "none"]
 Failed: [list or "none"]
@@ -454,7 +454,7 @@ Manual follow-up needed:
 - **Distinguish confidence levels.** "[Name] said use Redis" is fact. "I think they meant the caching layer" is interpretation — label it.
 - **Don't over-decompose.** A single right-sized story beats a forced hierarchy.
 - **Don't evaluate people.** Capture what was said and by whom. No performance judgements.
-- **Respect existing conventions.** Follow the team's naming patterns, labels, and project structure as defined in `context/team/conventions/`.
+- **Respect existing conventions.** Follow the team's naming patterns, labels, and project structure as defined in `{HUB}/context/team/conventions/`.
 - **Note uncovered topics where relevant.** If a refinement never mentioned testing or rollback, note it — but frame as observation, not critique. The team may have covered it elsewhere.
 - **Be succinct in reporting, thorough in work items.** Gate summaries are compact. Work-item descriptions follow `output-discipline.md` — short bodies, durable content promoted to the knowledge base.
 - **Trace the file reference, not the content.** When tracing is enabled (Stop hook wired in `.claude/settings.local.json`), the trace records the path to this transcript, not its contents. Voice memos and transcripts may contain personal data; the trace pipeline does not capture them.

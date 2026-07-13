@@ -128,13 +128,13 @@ If `target_sessions == 0`, stop and tell the user the export contains no session
    The `Insert verbatim` block is a **single short paragraph**. No bullets, no sub-headings, no "you should" hedging. It must read as a rule the agent follows during a session.
 
 9. **Don't nudge** — patterns the data shows but that don't deserve a CLAUDE.md addition. One line each, ≤4 items.
-10. **Distribution checklist** — three lines max: edit `.agents/AGENTS.md`, run `tools/gather.py`, do not hand-edit mirrored files.
+10. **Distribution checklist** — three lines max: edit `.agents/AGENTS.md`, run `{AWOW_TOOLS}/gather.py`, do not hand-edit mirrored files.
 
 ### How to write the `Insert verbatim` block
 
 This is the load-bearing part. The nudge is **a rule the agent reads at session start and follows during the session.**
 
-Follow the voice rules in [`.agents/skills/agent-directive-voice.md`](../agent-directive-voice.md) — second person, imperative, ≤2 sentences, no evidence inside the rule. That skill carries worked rewrites (human-aimed → agent-directive) you can use as templates.
+Follow awow's **agent-directive voice** — second person, imperative, ≤2 sentences, no evidence inside the rule. In a vendored install, the `agent-directive-voice` skill carries worked rewrites (human-aimed → agent-directive) you can use as templates.
 
 Nudge-specific addenda:
 - **No restating evidence in the rule.** Stats and quotes go in the `Evidence:` line, not in the rule itself.
@@ -183,8 +183,8 @@ Nudge-specific addenda:
 
    Each move must be actionable in the next session. Examples of good moves (these are illustrative, not a checklist):
    - "Open the cycle by stating the *goal* before asking Claude to act — your sessions start with `investigate` 60% of the time; opening with `plan` more often correlates with shorter sessions in the team data."
-   - "Draft your story body in `proposals/<slug>.md` first, then promote — even when the change feels small."
-   - "When you ask for context, point Claude at `context/knowledge-base/` rather than re-pasting it inline."
+   - "Draft your story body as a proposal draft first, then promote — even when the change feels small."
+   - "When you ask for context, point Claude at the knowledge base rather than re-pasting it inline."
 6. **What you're already doing that teammates aren't** — 0-3 bullets. If nothing stands out, omit the section rather than padding.
 7. **Closing line** — one sentence. No grade, no score. Something like "Pick one move and try it in your next refinement session."
 
@@ -201,8 +201,8 @@ Nudge-specific addenda:
 
 Quick guide for the model when reading bigrams and per-intent stats:
 
-- **`investigate→investigate→investigate`** — deep exploration chain. Useful in unfamiliar territory; expensive when the answer is already in `context/knowledge-base/`.
-- **`plan→propose→implement`** — the textbook awow rhythm. Reaching for `proposals/` before touching canonical paths.
+- **`investigate→investigate→investigate`** — deep exploration chain. Useful in unfamiliar territory; expensive when the answer is already in the knowledge base.
+- **`plan→propose→implement`** — the textbook awow rhythm. Reaching for a proposal draft before touching canonical paths.
 - **`implement→verify→refine`** — test-driven loop. Healthy when changes are landing.
 - **`implement→implement→implement`** without `verify` — execution without checks. Worth nudging if it correlates with `refine` later (rework).
 - **`other` > 30%** — the taxonomy under-captures this team's voice. Quote 3-5 `other` prompts and let the report acknowledge the gap rather than misclassifying.
@@ -219,7 +219,7 @@ Do not restate the report in chat. The markdown file is the deliverable.
 
 ## Per-session coaching (visual timeline path)
 
-The extractor reads MLflow `mlflow_export/` traces. When the team has **no tracing wired up**, you can still coach off the raw Claude Code logs via `project-timeline`, which runs `tools/session_timeline.py` over `~/.claude/projects/<encoded-path>/*.jsonl` and emits `sessions.json` + an interactive `timeline.html`. Use that path when asked for a **per-session** review or a whole-project picture rather than the aggregate Mode A/B reports.
+The extractor reads MLflow `mlflow_export/` traces. When the team has **no tracing wired up**, you can still coach off the raw Claude Code logs via `project-timeline`, which runs `{AWOW_TOOLS}/session_timeline.py` over `~/.claude/projects/<encoded-path>/*.jsonl` and emits `sessions.json` + an interactive `timeline.html`. Use that path when asked for a **per-session** review or a whole-project picture rather than the aggregate Mode A/B reports.
 
 When coaching per session this way, apply Mode B's voice rules unchanged (imperative, lead with strengths, every claim carries a verbatim quote, no grades) and write one `<short-id>.md` per session that the timeline embeds via `--coach-dir`. The timeline also surfaces three signals the trace extractor does not, worth reading into the coaching:
 
@@ -227,7 +227,7 @@ When coaching per session this way, apply Mode B's voice rules unchanged (impera
 - **Idle gaps** — stretches where no session logged any event (the human stepped away). Lead any "how long did this take" read with active time, not elapsed span.
 - **Peak context per session** — the fullest prompt size reached. A session crossing the standard window is a signal it was doing two or three jobs that each wanted their own fanned-out session — coach toward splitting, not bigger context.
 
-Reviews and the project overview are **private session-derived data** — real names, private issue IDs, infra topology, cost figures. Write them only to `coach_reviews/` (gitignored). **Never** write them to `proposals/`, `context/`, or any tracked path: if this repo is public, committing them leaks customer data. Never copy a secret a prompt pasted into a review or overview — flag it to the user out-of-band.
+Reviews and the project overview are **private session-derived data** — real names, private issue IDs, infra topology, cost figures. Write them only to `coach_reviews/` (gitignored). **Never** write them to any git-tracked path — not a proposal draft, not the team context, nowhere committed: if this repo is public, committing them leaks customer data. Never copy a secret a prompt pasted into a review or overview — flag it to the user out-of-band.
 
 ## Interplay with sister skills
 

@@ -7,14 +7,14 @@ description: "The seam between awow's board-linkage discipline and an inner-loop
 
 awow keeps the board current; an inner-loop engine (superpowers, spec-kit) supplies the build rigor. They overlap at the lifecycle, so bind them: each board state transition rivets onto the engine skill that *already* fires at that moment. You do not "remember to update the board" — the skill invocation is the cue.
 
-This is the **ungated path**. `/process-workitem` already owns the seam when you go through it (see `proposals/superpowers-integration-plan.md`). This skill covers the common case where you invoke an engine skill *directly* — `brainstorming`, `verification-before-completion`, `finishing-a-development-branch` — without the command. That is exactly where board tracking falls through today.
+This is the **ungated path**. `/process-workitem` already owns the seam when you go through it (see `{PROJECT}/proposals/superpowers-integration-plan.md`). This skill covers the common case where you invoke an engine skill *directly* — `brainstorming`, `verification-before-completion`, `finishing-a-development-branch` — without the command. That is exactly where board tracking falls through today.
 
 ## The crosswalk
 
 | Engine skill (the moment it fires) | Board action riveted to it |
 |---|---|
-| `brainstorming` (creative work starting) | This is your board moment. No ticket and it is an initiative → the brainstorm output is your `proposals/` draft → approve → create (`/feature`, `/bugfix`, `/spike`). Ticket exists → move it to **In Progress**. |
-| `writing-plans` (a spec exists) | Link the plan to the ticket: intent + acceptance criteria in the body, durable rationale to `context/knowledge-base/`. |
+| `brainstorming` (creative work starting) | This is your board moment. No ticket and it is an initiative → the brainstorm output is your `{PROJECT}/proposals/` draft → approve → create (`/feature`, `/bugfix`, `/spike`). Ticket exists → move it to **In Progress**. |
+| `writing-plans` (a spec exists) | Link the plan to the ticket: intent + acceptance criteria in the body, durable rationale to `{HUB}/context/knowledge-base/`. |
 | `executing-plans` / `test-driven-development` / `subagent-driven-development` | Ticket is **In Progress**; comment findings and blockers *as you go*, not at the end. |
 | `systematic-debugging` | An initiative with no ticket → open one (`/bugfix`, `/incident`); the root cause goes in a comment. |
 | `verification-before-completion` | Gate: do **not** move the ticket to In Review/Done until verification evidence exists. Paste the evidence into a comment. |
@@ -28,7 +28,7 @@ This is the **ungated path**. `/process-workitem` already owns the seam when you
 
 ## Inherit the initiative gate
 
-This crosswalk fires only for *initiatives* — the same `using-awow` gate. A `brainstorming` over a throwaway, a `systematic-debugging` of a one-line typo fix the user named: no ticket. Rule of thumb unchanged: would a teammate reasonably expect to find this on the board next week? Enforce at the completion edge (verify / review / finish); stay whisper-thin at the start edge — awow rolled back an earlier over-anchoring (`proposals/archetypes-board-anchoring.md`), so do not turn the start of work into ceremony.
+This crosswalk fires only for *initiatives* — the same `using-awow` gate. A `brainstorming` over a throwaway, a `systematic-debugging` of a one-line typo fix the user named: no ticket. Rule of thumb unchanged: would a teammate reasonably expect to find this on the board next week? Enforce at the completion edge (verify / review / finish); stay whisper-thin at the start edge — awow rolled back an earlier over-anchoring (`{PROJECT}/proposals/archetypes-board-anchoring.md`), so do not turn the start of work into ceremony.
 
 ## When NOT to apply this
 

@@ -24,6 +24,7 @@ When a proposal's state changes, update its `**Status:**` line *and* the row bel
 | [setup-awow-regression-tests](setup-awow-regression-tests.md) | **Landed** | `tests/setup-awow/` suite + `/test-setup-awow`. |
 | [plugin-distribution](plugin-distribution.md) | **Draft** | Second adoption path (Claude Code plugin). Awaiting review — candidate for **Superseded** by hub-and-spoke-adoption. |
 | [hub-and-spoke-adoption](hub-and-spoke-adoption.md) | **Draft** (WI-1 in build) | Adopt Martijn's two-path hub-and-spoke model: plugin machinery + hub context, connector per project. Work items WI-0..4 + decisions D1–D6 await review. |
+| [hub-and-spoke-design](hub-and-spoke-design.md) | **Accepted design** (MVP validated 5/5) | Concrete design from the 2026-07-12 maintainer session: linear as hub, Path A spokes (~4 committed files), identity-based hub resolution, neutral-token path sweep, hub write path, Claude Code/Codex/Pi delivery, MVP validation gate, WI-0..8. |
 | [board-noise-pruning](board-noise-pruning.md) | **Draft** (solutioning) | Comparison-mode; pick an approach before writing the issue. |
 | [superpowers-integration-shape](superpowers-integration-shape.md) | **Draft** | Ready to file as a GitHub issue once the AC is confirmed. |
 | [eval-baseline-and-prompt-cleanup](eval-baseline-and-prompt-cleanup.md) | **Draft** (Phase 1 built, awaiting review) | Dual-witness `/test-awow` runner (checks + blind judge, `indeterminate` verdicts), per-scenario `pre()`/`post()` checks, `tools/validate-evals.py`. Phases 2–4 (new suites, prompt trims, cleanup) still due. |

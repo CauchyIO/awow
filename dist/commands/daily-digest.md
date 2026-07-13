@@ -54,9 +54,9 @@ Collect the day's activity once, via the shared collection step, then project th
 
 ### Run the shared collection step
 
-Follow `context/tooling/activity-collection.md`: **reuse `activity/YYYY-MM-DD.json` if it already exists for the day, otherwise produce it.** That step owns the board / code / chat queries (all keyed off `context/tooling/board.md`), the normalised snapshot schema, and the private-team gate — so you do not re-query per lens, and the private-team exclusion is already applied.
+Follow `{HUB}/context/tooling/activity-collection.md`: **reuse `activity/YYYY-MM-DD.json` if it already exists for the day, otherwise produce it.** That step owns the board / code / chat queries (all keyed off `{HUB}/context/tooling/board.md`), the normalised snapshot schema, and the private-team gate — so you do not re-query per lens, and the private-team exclusion is already applied.
 
-If the snapshot cannot be produced (no `context/tooling/board.md`, or a fatal auth failure on a source), stop and surface it — do not synthesise from a half-snapshot.
+If the snapshot cannot be produced (no `{HUB}/context/tooling/board.md`, or a fatal auth failure on a source), stop and surface it — do not synthesise from a half-snapshot.
 
 ### Project the digest's shallow view
 
@@ -100,7 +100,7 @@ Be specific. "<Name>'s rate-limit work could inform <Name>'s gateway redesign" i
 
 ### Personalized takeaways
 
-Per team member (from `context/team/members.md`), answer:
+Per team member (from `{HUB}/context/team/members.md`), answer:
 
 - What happened today that is relevant to YOUR work specifically?
 - Decisions or deliverables from others that affect your projects?

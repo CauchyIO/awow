@@ -9,7 +9,7 @@ description: "Assess prompt-engineering quality from a Claude Code session and w
 
 Reads an agent session (or batch of sessions) and produces an honest, evidence-backed markdown assessment of how the user prompts: clarity, specificity, structure, iteration patterns, voice, and concrete suggestions for improvement.
 
-> **The report quotes verbatim prompts — treat it as private session data.** It can carry real names, private issue IDs, infra details, and secrets a prompt pasted. Write it only to a gitignored path (`coach_reviews/`), never to `proposals/` or any tracked path; committing it to a public repo leaks customer data.
+> **The report quotes verbatim prompts — treat it as private session data.** It can carry real names, private issue IDs, infra details, and secrets a prompt pasted. Write it only to a gitignored path (`coach_reviews/`), never to `{PROJECT}/proposals/` or any tracked path; committing it to a public repo leaks customer data.
 
 The skill has two parts:
 1. A small Python script (`scripts/extract_prompts.py`) that normalizes the input and computes objective stats.
@@ -33,8 +33,10 @@ If the input path is missing and not obvious from context, ask before running.
 
 The script is plain stdlib Python, so any modern interpreter works.
 
+`<skill-dir>` below is this skill's base directory, announced when the skill loads.
+
 ```bash
-python3 .agents/skills/prompt-skill-analysis/scripts/extract_prompts.py \
+python3 <skill-dir>/scripts/extract_prompts.py \
     --input <path-to-jsonl-or-mlflow_export-dir> \
     --out  <path-to-analysis.json>
 ```

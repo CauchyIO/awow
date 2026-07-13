@@ -18,7 +18,7 @@ You are not evaluating performance. You are not doing strategic forecasting. You
 
 **Bias hard against noise — this is the point of the command, not a footnote.** A daily check-in run every day is a noise machine if you let it be: duplicate tickets, verbose recaps, a new issue for every passing thought. Your default is the opposite. Advance work that is *already* tracked — comment on or move an existing issue. Treat creating a new issue as the exception that must justify itself, never the reflex. Keep every proposed board write to the minimum useful text.
 
-**The team has already written down how it works with its board — defer to it, don't reinvent it.** `context/tooling/board.md` is the mechanics: write surface, states, and the board's limitations. `.agents/AGENTS.md` carries the look-first, never-duplicate rule; `context/team/style/board-output.md` carries placement and minimum-useful discipline. Read those before proposing anything, and when in doubt, propose less.
+**The team has already written down how it works with its board — defer to it, don't reinvent it.** `{HUB}/context/tooling/board.md` is the mechanics: write surface, states, and the board's limitations. the repo's agent instructions (`AGENTS.md`) carry the look-first, never-duplicate rule; `{HUB}/context/team/style/board-output.md` carries placement and minimum-useful discipline. Read those before proposing anything, and when in doubt, propose less.
 
 **Writes to the board — but only after a gate.** Everything up to Section 5 is read-only synthesis. No issue is created, moved, or commented on until the user explicitly approves in Section 5.
 
@@ -62,7 +62,7 @@ If an account is provided, read all of it before interpreting anything. The rich
 **Disambiguation protocol (voice input only):**
 
 1. Read the full transcript before interpreting anything.
-2. Cross-reference every proper noun against known entities: projects and people from `context/team/members.md`, product and domain names from `context/team/`, and code repositories.
+2. Cross-reference every proper noun against known entities: projects and people from `{HUB}/context/team/members.md`, product and domain names from `{HUB}/context/team/`, and code repositories.
 3. When a word matches no known entity but sounds like one, assume the known entity.
 4. Collect all ambiguous terms and present them for confirmation **before** producing the summary. Do not guess silently. Group the questions efficiently ("I read X as Y and A as B — correct?").
 
@@ -116,7 +116,7 @@ Translate abstract descriptions into tangible outputs, decisions made, changes c
 
 ### C. Board discovery
 
-Search the board for project / area names, keywords, related topics, and recently updated issues, then map today's work onto existing issues. Apply the team's board doctrine here — don't re-derive it: the look-first, never-duplicate rule in `.agents/AGENTS.md`, the placement and minimum-useful rules in `context/team/style/board-output.md`, and the query/write mechanics and limitations in `context/tooling/board.md`. **Never require the user to provide issue IDs.**
+Search the board for project / area names, keywords, related topics, and recently updated issues, then map today's work onto existing issues. Apply the team's board doctrine here — don't re-derive it: the look-first, never-duplicate rule in the repo's agent instructions (`AGENTS.md`), the placement and minimum-useful rules in `{HUB}/context/team/style/board-output.md`, and the query/write mechanics and limitations in `{HUB}/context/tooling/board.md`. **Never require the user to provide issue IDs.**
 
 ### D. Code cross-reference
 
@@ -124,11 +124,11 @@ Map today's code activity to board issues (linked branches, issue IDs in commit 
 
 ### E. Structural gaps
 
-Note only genuine gaps — work a teammate would expect on the board but can't find, a real dependency or follow-up that would otherwise be lost. What counts as board-worthy is the team's call (set in `.agents/AGENTS.md` and `context/team/style/board-output.md`); apply it, don't redefine it. "No gaps today" is a fine and common outcome.
+Note only genuine gaps — work a teammate would expect on the board but can't find, a real dependency or follow-up that would otherwise be lost. What counts as board-worthy is the team's call (set in the repo's agent instructions and `{HUB}/context/team/style/board-output.md`); apply it, don't redefine it. "No gaps today" is a fine and common outcome.
 
 ### F. Knowledge discovery (implicit)
 
-Without being asked, identify reusable insights, documentation gaps, and recurring confusion, and suggest a capture location — for durable rationale that's `context/knowledge-base/` (per the placement rules in `.agents/AGENTS.md`). No speculation beyond what the sources support.
+Without being asked, identify reusable insights, documentation gaps, and recurring confusion, and suggest a capture location — for durable rationale that's `{HUB}/context/knowledge-base/` (per the placement rules in the repo's agent instructions). No speculation beyond what the sources support.
 
 ---
 
@@ -161,11 +161,11 @@ almost certainly generating noise — go back to Section 2.C and re-map.
 ## Gaps & follow-ups  *(only genuine ones — omit the section if none)*
 * Work with no ticket that truly needs one (not every passing task).
 * A repo with no corresponding board project.
-* An insight worth capturing durably → suggest `context/knowledge-base/`.
+* An insight worth capturing durably → suggest `{HUB}/context/knowledge-base/`.
 * Tomorrow's single top priority or a real blocker, if there is one.
 ```
 
-Proposed board comments follow the team's board-output rules (`context/team/style/board-output.md`). Use this shape:
+Proposed board comments follow the team's board-output rules (`{HUB}/context/team/style/board-output.md`). Use this shape:
 
 ```
 [Daily check-in — YYYY-MM-DD]
@@ -213,10 +213,10 @@ Rules:
 
 ## Section 6 — Behavioral boundaries
 
-- **Smallest board footprint wins.** Prefer commenting on or advancing an existing issue over creating a new one; prefer minimum-useful text over a recap. Do not create issues, write long comments, or surface gaps to appear thorough. Noise is the failure mode this command must actively prevent — see `context/tooling/board.md` and `context/team/style/board-output.md`.
+- **Smallest board footprint wins.** Prefer commenting on or advancing an existing issue over creating a new one; prefer minimum-useful text over a recap. Do not create issues, write long comments, or surface gaps to appear thorough. Noise is the failure mode this command must actively prevent — see `{HUB}/context/tooling/board.md` and `{HUB}/context/team/style/board-output.md`.
 - **Stay source-grounded.** Synthesize only from the user's account (if any), code activity, and processed transcript. Never fabricate activity or attribute work incorrectly — and never invent a richer day than the sources support to compensate for a sparse or missing account.
 - **No silent guessing** on garbled proper nouns — disambiguate at the gate in Section 0.A (voice input only).
 - **No performance evaluation, no strategic forecasting.** Surface structure and gaps; let the human decide.
-- **Respect private-team boundaries.** If the team has a private board surface (per `context/team/conventions/REQUIRED/labels.md`), a check-in for a private-team member may write there, but never leak private-team work into a shared surface.
+- **Respect private-team boundaries.** If the team has a private board surface (per `{HUB}/context/team/conventions/REQUIRED/labels.md`), a check-in for a private-team member may write there, but never leak private-team work into a shared surface.
 - **Read-only until Section 5.** The board is not touched until the user approves.
 - **Route transcripts through `/process-transcript`** — do not ingest raw meeting transcripts inline.

@@ -1,6 +1,7 @@
 ---
 name: session-correlation
 description: "Link agent-authored board entries (GitHub/Linear/ADO issues and PRs) back to the session trace that produced them, by stamping each entry with a session-ID footer. Use this skill to enable, wire up, or explain session-board correlation: the SessionStart accessor that exposes the harness session ID to the agent, the footer convention, and how the id joins board content to MLflow (or other backend) traces. Opt-in capability — enabling it installs an enforced footer rule into the team's conventions."
+channel: vendored
 ---
 
 # Session-board correlation

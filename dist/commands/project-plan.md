@@ -23,8 +23,8 @@ This prompt runs as a pipeline with **two gates**. Stop at each, present your wo
 
 Read `$ARGUMENTS`:
 
-- A path to a design artefact (a `proposals/<topic>.md` or decomposition from `/solution-design-flow`) → plan from its work-item tree.
-- A parent work-item ID → load the parent and its children from the board (surface per `context/tooling/board.md`).
+- A path to a design artefact (a `{PROJECT}/proposals/<topic>.md` or decomposition from `/solution-design-flow`) → plan from its work-item tree.
+- A parent work-item ID → load the parent and its children from the board (surface per `{HUB}/context/tooling/board.md`).
 - Empty → ask which design or parent to plan. Do not invent a tree.
 
 If no decomposed design exists yet, stop and route the user to `/solution-design-flow` — this command plans a design, it does not create one.
@@ -44,9 +44,9 @@ Phase 3 ─ Publish & report
 
 ## Phase 0 — Load the design and the board state
 
-Read the design artefact and its decomposed work items: parent, children, each child's scope, acceptance criteria, and any dependency notes the design already carries. Read `context/tooling/board.md` for the write surface and **whether the board supports dependency links** (a native blocked-by relation) or not — this decides how the graph is encoded in Phase 2.
+Read the design artefact and its decomposed work items: parent, children, each child's scope, acceptance criteria, and any dependency notes the design already carries. Read `{HUB}/context/tooling/board.md` for the write surface and **whether the board supports dependency links** (a native blocked-by relation) or not — this decides how the graph is encoded in Phase 2.
 
-Search the board for items that already exist for this initiative; plan against them rather than creating duplicates. Read `context/team/style/board-output.md` and the REQUIRED conventions before proposing any write.
+Search the board for items that already exist for this initiative; plan against them rather than creating duplicates. Read `{HUB}/context/team/style/board-output.md` and the REQUIRED conventions before proposing any write.
 
 ## Phase 1 — Build the dependency graph
 
@@ -96,15 +96,15 @@ Wait for user response. Apply corrections, then proceed.
 
 ## Phase 2 — Translate to board actions and assemble the plan
 
-Turn the confirmed graph into a concrete, ordered set of board actions, and assemble the publishable plan. Draft the plan to `proposals/plans/<initiative-slug>.md` first; nothing reaches the board until Gate 2.
+Turn the confirmed graph into a concrete, ordered set of board actions, and assemble the publishable plan. Draft the plan to `{PROJECT}/proposals/plans/<initiative-slug>.md` first; nothing reaches the board until Gate 2.
 
 **Board actions** — one per node and edge:
 
-- **Create or link** each node: create a new item, or link to the existing one found in Phase 0. Follow `context/team/conventions/REQUIRED/*.md` for titles, labels, and body discipline — keep each body to minimum-useful text.
+- **Create or link** each node: create a new item, or link to the existing one found in Phase 0. Follow `{HUB}/context/team/conventions/REQUIRED/*.md` for titles, labels, and body discipline — keep each body to minimum-useful text.
 - **Encode the edges.** If the board supports a native blocked-by relation, set it. If it does not, record the dependency in the item body under a `Blocked by:` line and state the full graph in the plan artefact — the graph must be recoverable even when the board cannot hold edges.
 - **Rank by the sequence** so the board ordering reflects the layers.
 
-**The project plan** (`proposals/plans/<initiative-slug>.md`) is the durable, publishable record:
+**The project plan** (`{PROJECT}/proposals/plans/<initiative-slug>.md`) is the durable, publishable record:
 
 ```markdown
 # Project plan — <initiative>
@@ -140,7 +140,7 @@ Stop here. Present:
 GATE 2 — PROPOSED WRITES
 
 Plan artefact:
-  proposals/plans/<slug>.md
+  {PROJECT}/proposals/plans/<slug>.md
 
 Board actions:
   CREATE  "[Title]"   ← blocked by: none        rank: L1
@@ -169,7 +169,7 @@ After execution, publish the plan — write the artefact, and make it visible to
 ```
 DONE
 
-Plan: proposals/plans/<slug>.md
+Plan: {PROJECT}/proposals/plans/<slug>.md
 Board:
 - Created: #[ID] [title], ...
 - Linked / set blocked-by: #[ID] ← #[ID], ...
@@ -194,5 +194,5 @@ Manual follow-up:
 - **Don't invent dependencies.** Mark inferred edges as inferred; never present a reconstructed edge as confirmed.
 - **Don't lose the graph when the board can't hold it.** If the board has no dependency field, the plan artefact still states the full graph — the graph must survive the translation.
 - **Don't design here.** This command plans a *locked* design; if the design is unsettled or undecomposed, route back to `/solution-design-flow`.
-- **Don't write before Gate 2.** Drafts to `proposals/plans/` only; the board is untouched until explicit approval.
+- **Don't write before Gate 2.** Drafts to `{PROJECT}/proposals/plans/` only; the board is untouched until explicit approval.
 - **Don't duplicate the board.** Link to existing items found in Phase 0 rather than creating parallel ones.

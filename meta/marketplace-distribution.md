@@ -29,11 +29,11 @@ Neither is a GitHub PR (the superpowers→openai-codex-plugins fork model is a c
   - An org role with **Apps Management write access**.
 - **Process:** submit → skills scanned for policy/security → OpenAI review → approve → publish from the portal → appears in the universal directory.
 
-### Claude Code — Anthropic official directory
+### Claude Code — Anthropic directory
 
-- **Where:** the **plugin directory submission form** for `anthropics/claude-plugins-official` (curated, at Anthropic's discretion).
-- Note: the in-app `/plugin` submission form adds to the **community** marketplace (`claude-community`), **not** the official directory.
-- **Process:** submit listing → reviewed against quality + security standards → inclusion at Anthropic's discretion.
+- **Where:** the plugin directory submission form — **`clau.de/plugin-directory-submission`** (or in-app: `claude.ai/admin-settings/directory/submissions/plugins/new`, needs a Team/Enterprise org + directory-management access; or Console `platform.claude.com/plugins/submit`).
+- **Important:** the fully-official `claude-plugins-official` directory is **curated by Anthropic with no public application process** — you cannot apply into it directly. The form enters the **`claude-community`** review pipeline. Passing basic automated screening lists the plugin; passing a stricter review earns the **"Anthropic Verified"** badge. That badge (not a claude-plugins-official listing) is the achievable quality signal.
+- **Process:** submit at the short link → automated screening → community listing → optional stricter review → Verified badge.
 
 ## Application kit (drafted — reusable across both portals)
 
@@ -66,6 +66,6 @@ Neither is a GitHub PR (the superpowers→openai-codex-plugins fork model is a c
 3. **Privacy policy URL + Terms URL** — both portals collect these; awow has none hosted. (Adding external links to the project needs explicit sign-off per repo policy.)
 4. **Anthropic directory submission** — locate + fill the current plugin-directory form.
 
-## Manifest enrichments (proposed — need sign-off for the links)
+## Manifest enrichments (done)
 
-The published `dist/.codex-plugin/plugin.json` carries `name`, `version`, `description`, `author`, `interface{displayName, shortDescription, category}`. The portals also read `license`, `homepage`, `repository`. Adding `"license": "MIT"` is safe; `homepage`/`repository` are external links to awow's own GitHub — add on approval.
+The canonical `.claude-plugin/plugin.json` now carries `license: "MIT"`, `homepage`, and `repository` (`https://github.com/CauchyIO/awow`); `gather.py` passes them through to the Codex manifest and Pi package. So `dist/.codex-plugin/plugin.json` and `dist/package.json` now expose `name`, `version`, `description`, `author`, `license`, `homepage`, `repository`, plus `interface{displayName, shortDescription, category}` (codex). Version stays lockstepped and `--check`-guarded.

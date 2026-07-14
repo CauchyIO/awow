@@ -550,6 +550,9 @@ def plan_codex() -> list[Stub]:
         "version": src["version"],
         "description": src["description"],
         "author": src.get("author", {"name": "awow maintainers"}),
+        "license": src.get("license", "MIT"),
+        "homepage": src.get("homepage"),
+        "repository": src.get("repository"),
         "skills": "./agent-skills/",
         "hooks": {},
         "interface": {
@@ -584,6 +587,9 @@ def plan_pi() -> list[Stub]:
         "name": src["name"],
         "version": src["version"],
         "description": src["description"],
+        "license": src.get("license", "MIT"),
+        "homepage": src.get("homepage"),
+        "repository": src.get("repository"),
         "keywords": ["pi-package"],
         "pi": {"skills": ["./agent-skills"]},
     }

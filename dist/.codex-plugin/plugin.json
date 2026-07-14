@@ -5,6 +5,9 @@
   "author": {
     "name": "awow maintainers"
   },
+  "license": "MIT",
+  "homepage": "https://github.com/CauchyIO/awow",
+  "repository": "https://github.com/CauchyIO/awow",
   "skills": "./agent-skills/",
   "hooks": {},
   "interface": {

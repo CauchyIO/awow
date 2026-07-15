@@ -1,8 +1,6 @@
 ---
-phase: kickoff
-prerequisites: []
-removes_pain: "the I-cloned-the-repo-now-what-do-I-do problem"
-channel: bootstrap
+name: setup-awow
+description: "incremental, resumable bootstrap"
 ---
 
 # /setup-awow — incremental, resumable bootstrap

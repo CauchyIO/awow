@@ -70,6 +70,7 @@ EXCLUDES=(
   setup/awowify.sh
   tools/distribute.py
   tools/reset-adopter-state.py
+  tools/sync-dist.sh
   .agents/commands/test-setup-awow.md
   .agents/commands/awow-reset.md
 )

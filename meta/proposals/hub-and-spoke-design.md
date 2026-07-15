@@ -108,7 +108,7 @@ None of the risky joints depend on the 139-reference sweep, the registry, or `/c
 1. **Micro-payload:** copy `my-work` (read-heavy) and a slimmed `kb-mine` (write path) into a scratch `dist/commands/`, hand-replace paths with the neutral tokens, add `plugin.json`. Install from local disk (`claude plugin marketplace add <path>`) — no GitHub release needed.
 2. **Fixture spoke:** scratch repo (or an `overnight` branch) carrying only the §3 files. Real linear clone as hub.
 3. **Minimal `resolve_hub()`** — env → settings → fail-loud chain, ~40 lines.
-4. **Headless assertions** via `claude -p` through the Cauchy APIM + LiteLLM route (cheap model, run repeatedly):
+4. **Headless assertions** via `claude -p` through a cheap-model gateway (run repeatedly):
    - `/awow:my-work` reads board config from the hub and scope from the spoke — the answer names the spoke's board items, not the hub repo's.
    - kb-mine writes a capture into the hub clone's `kb-inbox/` and the commit + push lands (write path, §6).
    - Unset `$AWOW_HUB` → loud actionable stop, no improvised conventions (fail-loud).
@@ -129,7 +129,7 @@ Executed same-day as the design session; the spike took ~1 hour, not the budgete
 | T4 | Provenance + collision: commands served from `~/.claude/plugins/cache/awow-mvp-mkt/…`; repo-local `/my-work` and plugin `/awow-mvp:my-work` coexist without interference (namespacing) | **PASS** |
 | T5 | Identity check: `AWOW_HUB` pointing at a clone whose `origin` ≠ the connector's `awow-hub` → loud mismatch stop naming both | **PASS** |
 
-Notes for the build: local-path marketplaces work (`claude plugin marketplace add <dir>` + `install`), so WI-1 can be dogfooded without a GitHub release; the runs used the developer's normal auth — wiring the APIM + LiteLLM route is WI-8's job; the fixture (marketplace + hub-origin + spoke) was session-scratch — WI-8's first task is a `setup-fixture.sh` that regenerates it with machine-local absolute paths.
+Notes for the build: local-path marketplaces work (`claude plugin marketplace add <dir>` + `install`), so WI-1 can be dogfooded without a GitHub release; the runs used the developer's normal auth — wiring the shared model gateway is WI-8's job; the fixture (marketplace + hub-origin + spoke) was session-scratch — WI-8's first task is a `setup-fixture.sh` that regenerates it with machine-local absolute paths.
 
 ## 9. Work items
 
@@ -143,7 +143,7 @@ Notes for the build: local-path marketplaces work (`claude plugin marketplace ad
 | WI-5 | Codex + Pi manifests, commands-as-skills surface, marketplace sync scripts (pi-codex WI-2/4/5/6, reconciled §10) | WI-1 |
 | WI-6 | Hub write-path plumbing per §6 (pull-before-write, push, failure handling) | WI-0 |
 | WI-7 | Docs: harness pages, README, mark `plugin-distribution.md` Superseded, update hub-and-spoke-adoption.md status | WI-1..6 |
-| WI-8 | Harness test suite: headless matrix (Claude Code / Codex / Pi) against APIM + LiteLLM router, grown from the MVP fixture; behavioural coverage for the three harnesses, §8 assertions as the regression floor | WI-0, WI-5 |
+| WI-8 | Harness test suite: headless matrix (Claude Code / Codex / Pi) against the shared model gateway, grown from the MVP fixture; behavioural coverage for the three harnesses, §8 assertions as the regression floor | WI-0, WI-5 |
 
 `/awowify` remains the template-channel on-ramp (S4); `/update-awow` gains "update plugin + `git pull` the hub" for hub-and-spoke installs; `/awow-add` becomes a registry capability-flag toggle for connected repos.
 

@@ -66,10 +66,10 @@ shim_stop() {
   SHIM_PID=""; return 0
 }
 
-# --- apim mode: mint an Entra v2 token (MeshService/NightRunner client-credentials) ---
-# Auth model: linear context/knowledge-base/architecture/apim-litellm-gateway-auth-model.md.
-# Precedence: an explicit token, else a client-credentials mint from the SPN triple. Nothing
-# is committed — every value is env-supplied; a v2 scope uses .default, never --resource.
+# --- gateway mode: obtain an OIDC bearer token for a self-hosted OpenAI-compatible gateway ---
+# Auth model: see your team's private gateway auth runbook.
+# Precedence: an explicit token, else an OIDC client-credentials mint from the credentials triple.
+# Nothing is committed — every value is env-supplied; the scope uses .default.
 apim_mint_token() {
   if [ -n "${AWOW_GATEWAY_TOKEN:-}" ]; then printf '%s' "$AWOW_GATEWAY_TOKEN"; return 0; fi
   [ -n "${AWOW_SP_CLIENT_ID:-}" ] && [ -n "${AWOW_SP_CLIENT_SECRET:-}" ] && [ -n "${AWOW_SP_TENANT:-}" ] && [ -n "${AWOW_GATEWAY_AUD:-}" ] || return 1

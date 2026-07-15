@@ -22,10 +22,10 @@ The transport is resolved by available credential (`tests/harness/lib/gateway.sh
   security add-generic-password -l OPENROUTER_API_KEY -a "$USER" -w <key>
   ```
   Claude Code is driven through a box-local `litellm` Anthropic shim; codex/pi point straight at OpenRouter.
-- **apim mode** (a box with a service identity): `AWOW_GATEWAY_BASE` (operator-supplied) plus either
-  `AWOW_GATEWAY_TOKEN` (a v2 Entra token carrying a `MeshService`/`NightRunner` role) or the SPN triple
-  `AWOW_SP_TENANT` / `AWOW_SP_CLIENT_ID` / `AWOW_SP_CLIENT_SECRET` + `AWOW_GATEWAY_AUD`. Auth model:
-  linear `context/knowledge-base/runbooks/call-litellm-via-apim.md`.
+- **gateway mode** (a box with a service identity): `AWOW_GATEWAY_BASE` (operator-supplied, an
+  OpenAI-compatible endpoint) plus either `AWOW_GATEWAY_TOKEN` (a pre-minted OIDC bearer token) or the
+  client-credentials triple `AWOW_SP_TENANT` / `AWOW_SP_CLIENT_ID` / `AWOW_SP_CLIENT_SECRET` +
+  `AWOW_GATEWAY_AUD`. See your team's private gateway auth runbook.
 
 ## Known limitations (verified 2026-07-13)
 
@@ -33,9 +33,9 @@ The transport is resolved by available credential (`tests/harness/lib/gateway.sh
   tool/app/plugin features on, advertises a `namespace` tool type that deepseek-v4-flash's OpenRouter
   endpoints reject. The suite runs codex with those features **disabled** (`--disable browser_use …`),
   which a wiring smoke does not need — the codex turn then completes. If the format changes and the
-  request is still rejected, the turn SKIPs with that reason rather than failing. (Note: the APIM
-  `worker` tier routes to the same OpenRouter deepseek endpoint, so it would hit the same wall — the
-  fix is disabling the tools, not the transport.)
+  request is still rejected, the turn SKIPs with that reason rather than failing. (Note: a gateway
+  tier that proxies to the same downstream model would hit the same wall — the fix is disabling the
+  tools, not the transport.)
 - **Hub-spoke deploy**: the Claude Code deploy scenario checks the payload + connector deterministically.
   The codex/pi `live` paths now install the real awow plugin/package from the built `dist/` (staged as a
   git repo, mirroring `tools/sync-dist.sh` → `CauchyIO/awow-dist`) and assert a flow is discoverable —

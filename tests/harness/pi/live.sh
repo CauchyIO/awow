@@ -23,11 +23,11 @@ _pi_install_discovery() {
   rm -f "$out"; rm -rf "$work" "$(dirname "$stage")"
 }
 
-# Model smoke (asserts a completed turn). apim mode needs a models.json provider
-# block (Pi ignores OPENAI_BASE_URL — runbook §3), so it's OpenRouter-only for now.
+# Model smoke (asserts a completed turn). gateway mode needs a models.json provider
+# block (Pi ignores OPENAI_BASE_URL — see the gateway runbook), so it's OpenRouter-only for now.
 _pi_turn_smoke() {
   resolve_transport || { skip "no transport resolved (model smoke)"; return 0; }
-  if [ "$TP_MODE" != "openrouter" ]; then skip "pi apim mode needs a models.json provider block (Task 12)"; return 0; fi
+  if [ "$TP_MODE" != "openrouter" ]; then skip "pi gateway mode needs a models.json provider block (Task 12)"; return 0; fi
 
   local fx; fx="$(mktemp -d)/repo"
   make_template_fixture "$fx" || { _record fail "template fixture build"; return 0; }

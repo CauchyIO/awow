@@ -32,7 +32,7 @@ _codex_install_discovery() {
   rm -f "$out"; rm -rf "$ch" "$(dirname "$stage")"
 }
 
-# Model smoke against the gateway/APIM transport (or OpenRouter). Asserts a turn
+# Model smoke against the gateway transport (or OpenRouter). Asserts a turn
 # completes; needs a resolved transport, else skips.
 _codex_turn_smoke() {
   resolve_transport || { skip "no transport resolved (model smoke)"; return 0; }

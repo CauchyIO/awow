@@ -9,7 +9,7 @@ removes_pain: "the team-keeps-tripping-over-the-same-things problem"
 
 # /process-retro — gated pipeline for retrospective transcripts
 
-You take a raw retrospective transcript and turn it into **structured signal that closes the loop back into the team's agent instructions** — anti-patterns named, actions owned, recurring issues escalated, and concrete diffs proposed for `CLAUDE.md` / `copilot-instructions.md`.
+You take a raw retrospective transcript and turn it into **structured signal that closes the loop back into the team's agent instructions** — anti-patterns named, actions owned, recurring issues escalated, and concrete diffs proposed for `.agents/AGENTS.md`.
 
 You operate as a **sparring partner**, not a secretary. You name what was said, what was implied, and what was conspicuously absent. Every finding is presented with reasoning and a verbatim quote so the user can correct you.
 
@@ -265,7 +265,7 @@ In order, all sections, in the transcript's original language. Every claim cites
 8. **Trajectory vs last retro** — omit if no history.
 9. **Counter-signal** — what was *absent* from the discussion that should have come up. Check against the expected-topics list: security/data-leak/IP, compliance/audit, vendor lock-in, cost, cross-team coordination, onboarding/adoption laggards, tooling fragmentation.
 10. **Closure tracker** — omit (or mark "not verified") if no board access.
-11. **Instruction-tightening proposals** — concrete diffs for `CLAUDE.md` / `copilot-instructions.md` / specific prompt files. Output as actual code-block diffs with a reason, not vague suggestions.
+11. **Instruction-tightening proposals** — concrete diffs for `.agents/AGENTS.md` (the source the harness instruction files are generated from) or for specific prompt files under `.agents/commands/`. Output as actual code-block diffs with a reason, not vague suggestions.
 12. **Three role-conditioned summaries** — team-local checklist (~10 lines, tactical), governance digest (~½ page, manager-level), sponsor one-pager (~½ page, value + cost + risks + ask). Visibly distinct, not the same content reordered.
 13. **Next-retro format recommendation** — named rule that fired (e.g. "dominance detected → silent stickies next" / "same format 3 retros → rotate" / ">50% noise → tighter agenda").
 
@@ -285,7 +285,7 @@ Stop. Present:
 - Section 12c (sponsor one-pager) — this is the artefact that travels upward.
 - Any actions with `@unassigned`.
 
-Ask: *"Land the instruction diffs in `CLAUDE.md` / `copilot-instructions.md`? Save the report to `retro-reports/<team>/`? Anything to redact from the sponsor one-pager before it goes up?"*
+Ask: *"Land the instruction diffs in `.agents/AGENTS.md`? Save the report to `retro-reports/<team>/`? Anything to redact from the sponsor one-pager before it goes up?"*
 
 Wait for the user.
 
@@ -325,11 +325,13 @@ If a report already exists for this date/team, ask whether to regenerate or appe
 
 ### 3.2 Apply approved instruction diffs
 
-For each diff approved at Gate 2, edit the target file. Show the diff inline before saving. Add a one-line provenance comment after each addition:
+For each diff approved at Gate 2, edit `.agents/AGENTS.md` (or the named prompt file under `.agents/commands/`). Show the diff inline before saving. Add a one-line provenance comment after each addition:
 
 ```markdown
 <!-- Added 2026-05-23 from retro: retro-reports/platform-team/2026-05-22-hybrid.md -->
 ```
+
+**Never edit the generated harness instruction files.** `.agents/AGENTS.md` is the source; run `${CLAUDE_PLUGIN_ROOT}/tools/gather.py` after landing a diff so the generated surfaces regenerate. A diff written straight into a generated file is destroyed by the next build, which is why every instruction diff this command landed before 2026-07-20 is gone.
 
 ### 3.3 Confirm and offer follow-ups
 

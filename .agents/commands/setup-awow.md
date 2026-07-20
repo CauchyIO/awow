@@ -1,4 +1,5 @@
 ---
+description: "Use when a repo has awow files but no board wiring or team context yet, or the user asks how to get started with awow, connect their issue board, or resume an unfinished setup."
 phase: kickoff
 prerequisites: []
 removes_pain: "the I-cloned-the-repo-now-what-do-I-do problem"

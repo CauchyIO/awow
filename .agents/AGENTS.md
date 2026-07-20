@@ -28,7 +28,9 @@ Prompt bodies never hardcode where context or tools live. Four tokens, resolved 
 
 In a hub-connected spoke, the session reflex tells you where `{{HUB}}` resolves instead; if it is not resolvable, stop and say so — never guess a location or improvise conventions.
 
-Command/skill frontmatter may carry a `channel:` field: `vendored` files operate on the vendored install itself (gather, tests, adopter state) and are excluded from the plugin payload; `bootstrap` files ship in the payload but *create or update* the vendored tree (`/setup-awow`, `/update-awow`), so their literal repo paths are the deliverable and exempt from the token lint.
+Command and skill frontmatter carries three build-time fields. `channel:` — `vendored` files operate on the vendored install itself (gather, tests, adopter state) and are excluded from the plugin payload; `bootstrap` files ship in the payload but *create or update* the vendored tree (`/setup-awow`), so their literal repo paths are the deliverable and are exempt from the token lint. `description:` — one double-quoted line naming the situation the command fires in, never the mechanism it implements; it is the picker entry and the skill trigger on every harness. Never a YAML block scalar: the parser is line-based and would store `>-` verbatim. `autofire: true` — mirror this command into the Claude skill surface as well as the `/` picker, so the model can elect it from the situation. Omit it when a misfire would be damage (consequential and hard to reverse) or noise (a trigger broad enough to fire on ordinary conversation).
+
+The three renderings of a command differ on purpose. `dist/commands/<name>.md` is a full copy and keeps the authoring frontmatter whole. `dist/skills/<name>/SKILL.md` and `dist/agent-skills/<name>/SKILL.md` synthesise a two-field frontmatter — `name` and `description` — over the body, and carry no authoring metadata. A new frontmatter key follows that rule: it survives the copy and it does not appear in either SKILL.md.
 
 ## Before starting a new initiative
 

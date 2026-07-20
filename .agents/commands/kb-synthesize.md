@@ -1,4 +1,5 @@
 ---
+description: "Use when mined knowledge candidates are piling up unpromoted, or the user asks to drain the KB inbox, review staged candidates, or fold recent learnings into the durable knowledge base."
 phase: standardise
 prerequisites:
   - "{HUB}/context/kb-inbox/ holds one or more candidate files (produced by /kb-mine)"

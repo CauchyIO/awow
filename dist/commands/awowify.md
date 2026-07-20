@@ -1,5 +1,5 @@
 ---
-description: "drop awow onto an existing repo"
+description: "Use when the user wants awow's prompts vendored into this repo as editable, git-tracked files — adding awow to an existing codebase, or customising the commands rather than using them as shipped."
 phase: kickoff
 prerequisites: []
 removes_pain: "the I-already-have-a-repo-so-Use-this-template-cannot-help problem"

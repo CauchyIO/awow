@@ -16,6 +16,8 @@ jobs:
         run: python tools/gather.py --check
       - name: Path-token lint
         run: python tools/lint-paths.py
+      - name: Command frontmatter contract
+        run: python3 tests/command-frontmatter/test_frontmatter.py
       - name: Path-token substitution
         run: python3 tests/gather-tokens/test_tokens.py
       - name: Payload classification

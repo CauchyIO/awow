@@ -1,5 +1,6 @@
 ---
-description: "turn a locked design into a published project plan with a stated dependency graph"
+description: "Use when a design is locked and decomposed but nothing says what blocks what — the user asks for build order, sequencing, a delivery plan, or a critical path, or just finished /solution-design-flow."
+autofire: true
 phase: spread
 argument-hint: "[path to a design artefact from /solution-design-flow, or a parent work-item ID] (optional — omit to be asked)"
 prerequisites:

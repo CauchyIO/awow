@@ -1,5 +1,5 @@
 ---
-description: "surface a day's durable-knowledge candidates"
+description: "Use when the user asks what's worth writing down from a day's work, wants to backfill knowledge-base candidates for a past day, or says hard-won insight is evaporating unrecorded."
 phase: standardise
 prerequisites:
   - "Step 0 of /setup-awow complete (the agent can read the board)"

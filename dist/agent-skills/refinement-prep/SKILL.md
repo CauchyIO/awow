@@ -1,6 +1,6 @@
 ---
 name: refinement-prep
-description: "draft a feature for the next refinement"
+description: "Use when the user has a feature brief, quarterly slidedeck, or board issue and wants it broken into right-sized stories before a refinement session, or asks to prep work for the next refinement."
 ---
 
 # /refinement-prep — draft a feature for the next refinement

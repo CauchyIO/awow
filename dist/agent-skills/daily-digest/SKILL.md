@@ -1,6 +1,6 @@
 ---
 name: daily-digest
-description: "aggregate a day or a week of activity into a team-wide synthesis"
+description: "Use when the user asks what the team shipped today or this week, wants a daily or weekly digest written up and raised as a PR, or says they have no idea what other people are working on."
 ---
 
 # /daily-digest — aggregate a day or a week of activity into a team-wide synthesis

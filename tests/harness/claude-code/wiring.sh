@@ -11,4 +11,37 @@ wiring() {
   else
     _record fail "gather --surface claude --check"
   fi
+
+  # SessionStart injection, exercised as a plugin install. The hook derives
+  # PLUGIN_ROOT from its own location (hooks/session-start:12-13), so only the
+  # dist/ copy takes the payload path — running the repo-root copy passes even
+  # when the payload is broken, which is why CI never caught this. `gather.py
+  # --check` cannot catch it either: it proves dist/ matches its plan, not that
+  # the plan is sufficient.
+  file-exists "$r/dist/skills/using-awow/SKILL.md"
+  local hook_out
+  hook_out="$(mktemp)"
+  ( cd "$r" && CLAUDE_PLUGIN_ROOT="$r/dist" CLAUDE_PROJECT_DIR="$r" \
+      bash dist/hooks/session-start ) >"$hook_out" 2>&1
+  file-not-contains "$hook_out" 'Error reading using-awow skill'
+  # Positive assertion: the injected text is the skill body, not just an
+  # absent error string. This H1 exists only in using-awow/SKILL.md.
+  file-contains "$hook_out" 'You are working in an awow repo'
+  rm -f "$hook_out"
+
+  # The hook must read dist/skills/, never dist/agent-skills/. The two carry
+  # different token substitutions (${CLAUDE_PLUGIN_ROOT} vs ../..), so the
+  # agent-skills body would hand a Claude session tool paths resolving nowhere.
+  #
+  # Asserted against the SOURCE, not the output, and deliberately so: using-awow
+  # is the file that documents the tokens rather than using them, so its two
+  # renderings are byte-identical today and no output check can tell them apart.
+  # Repointing the hook at agent-skills/ passes every behavioural check above.
+  # The day those bodies diverge, that regression would ship silently.
+  file-contains "$r/hooks/session-start" 'skills/using-awow/SKILL.md'
+  if grep -q 'agent-skills/using-awow' "$r/hooks/session-start"; then
+    _record fail "session-start reads agent-skills/ (must read skills/)"
+  else
+    _record pass "session-start reads skills/, not agent-skills/"
+  fi
 }

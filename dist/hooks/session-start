@@ -15,8 +15,24 @@ PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 # The repo the user is actually working in (NOT the plugin dir).
 REPO_DIR="${CLAUDE_PROJECT_DIR:-${PWD}}"
 
-# Read the using-awow bootstrap from the plugin payload.
-bootstrap_content=$(cat "${PLUGIN_ROOT}/.agents/skills/using-awow/SKILL.md" 2>&1 || echo "Error reading using-awow skill")
+# Read the using-awow bootstrap. Payload path first: a plugin install ships the
+# skill at skills/using-awow/, and dist/.agents/ carries only marketplace.json —
+# so the .agents-only read injected the literal error string into every
+# plugin-installed session. The maintainer repo has no skills/ at its root and
+# falls through to .agents/, which is why it always looked fine here.
+#
+# dist/skills/, never dist/agent-skills/: the two bodies differ by token
+# substitution (render_plugin_body vs render_agent_skills_body), and the
+# agent-skills body resolves {AWOW_TOOLS} to ../../tools — a path that means
+# nothing to a Claude session.
+bootstrap_content="Error reading using-awow skill"
+for candidate in "${PLUGIN_ROOT}/skills/using-awow/SKILL.md" \
+                 "${PLUGIN_ROOT}/.agents/skills/using-awow/SKILL.md"; do
+    if [ -r "${candidate}" ]; then
+        bootstrap_content=$(cat "${candidate}")
+        break
+    fi
+done
 
 # One-time setup nudge: fire only when this repo has not adopted awow
 # (no .agents/AGENTS.md) AND the user has not opted out (no skip flag).

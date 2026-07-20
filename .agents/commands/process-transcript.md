@@ -1,4 +1,6 @@
 ---
+description: "Use when the user hands over a meeting transcript or recording notes (.vtt, .srt, pasted text), or asks to turn a meeting, standup, refinement, or stakeholder interview into board items."
+autofire: true
 phase: seed
 prerequisites:
   - "Step 0 of /setup-awow complete (the agent can read and write the board)"

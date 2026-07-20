@@ -1,4 +1,6 @@
 ---
+description: "Use when the user recounts their day, points at a check-in note or voice memo, or wants the board to reflect today's work — end-of-day logging, standup prep, catching untracked work."
+autofire: true
 phase: standardise
 argument-hint: "[path to a written or voice account, e.g. checkins/<user>/YYYY-MM-DD.md] (optional — omit to capture live or to reconstruct from board + code)"
 prerequisites:

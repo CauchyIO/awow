@@ -1,6 +1,6 @@
 ---
 name: process-retro
-description: "gated pipeline for retrospective transcripts"
+description: "Use when the user points at or pastes a retrospective transcript or recording notes, or asks to turn a retro into named anti-patterns, owned actions, and diffs to their agent instructions."
 ---
 
 # /process-retro — gated pipeline for retrospective transcripts

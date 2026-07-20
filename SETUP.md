@@ -1,5 +1,9 @@
 # /setup-awow — long-form walkthrough
 
+`/setup-awow` is optional. Install the awow plugin and the commands work against your board with no setup at all — see the README. Run the wizard when you want the agent working from your mission, your conventions, and your board's real state machine rather than a generic one.
+
+Step 0 below is the installer, and it applies to a clone or a vendored install only. A plugin install has no `.venv/` and no pointer stubs to generate; start at Step 1.
+
 The wizard is **incremental and resumable**. Each invocation processes one or more markdown files; answers are tracked in `setup-progress.md` at the repo root. Re-invoking `/setup-awow` reads the progress file and picks up where the last session left off.
 
 On every invocation the wizard lays out its full plan — every step from 0 to 10, marked as complete / pending / untouched — so the user always sees the whole map before any individual step runs.
@@ -42,7 +46,7 @@ Re-invoking `/setup-awow` offers these in the order they pay back fastest. Any c
 
 Output: `context/team/mission.md`.
 
-The single highest-leverage sentence the team writes. Per the blog (§3 of `input/PROPOSAL.md`'s anchor), a vague mission produces vague agent behaviour across every ceremony.
+The single highest-leverage sentence the team writes. A vague mission produces vague agent behaviour across every ceremony, because every command that reads mission inherits it.
 
 The wizard asks the user for a one-sentence mission and refuses anything trivial ("be excellent", "ship software"). A useful mission names the audience, the change being made, and the constraint.
 

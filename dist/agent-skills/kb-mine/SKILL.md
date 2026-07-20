@@ -1,6 +1,6 @@
 ---
 name: kb-mine
-description: "surface a day's durable-knowledge candidates"
+description: "Use when the user asks what's worth writing down from a day's work, wants to backfill knowledge-base candidates for a past day, or says hard-won insight is evaporating unrecorded."
 ---
 
 # /kb-mine — surface a day's durable-knowledge candidates

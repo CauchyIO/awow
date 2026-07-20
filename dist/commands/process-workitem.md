@@ -1,5 +1,6 @@
 ---
-description: "take a board work item from refinement to PR"
+description: "Use when the user points at a board item — a ticket ID, issue link, or “let's pick up X” — and wants it carried from refinement through a planned code change to an opened PR."
+autofire: true
 phase: seed
 prerequisites:
   - "Step 0 of /setup-awow complete (the agent can read and write the board)"

@@ -1,4 +1,6 @@
 ---
+description: "Use when the user asks for a deck, slides, a blog post, one-pager, or report as HTML or PDF — any styled document that should follow the team's house style instead of hand-written CSS."
+autofire: true
 phase: spread
 prerequisites:
   - "Step 1 of /setup-awow complete (the agent can read and write the board)"

@@ -252,10 +252,25 @@ class Stub:
 
 _FM_DELIM = "---\n"
 
+# YAML block-scalar headers: folded (>) or literal (|), each with an optional
+# indentation indicator and an optional chomping indicator.
+_BLOCK_SCALAR = re.compile(r"^[|>][0-9]*[-+]?$")
 
-def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
-    """Return (scalar fields, body). Lists and block scalars are ignored — we
-    only need top-level strings like name, description, removes_pain."""
+
+def parse_frontmatter(
+    text: str, source: Path | None = None
+) -> tuple[dict[str, str], str]:
+    """Return (scalar fields, body). Lists are ignored — we only need top-level
+    strings like name, description, removes_pain.
+
+    Block scalars are REJECTED, not ignored. This parser is line-based, so a
+    `description: >-` would be stored as the literal two-character string '>-'
+    and would propagate to every pointer stub, plugin picker entry, and
+    agent-skill trigger built from it — with `--check` green the whole way,
+    because the build faithfully mirrors the wrong value. Descriptions are
+    single-line and double-quoted (design spec 4.5). Pass `source` so the
+    failure names the file.
+    """
     if not text.startswith(_FM_DELIM):
         return {}, text
     end = text.find("\n" + _FM_DELIM, len(_FM_DELIM))
@@ -269,6 +284,15 @@ def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
         if not m:
             continue
         key, raw = m.group(1), m.group(2).strip()
+        if _BLOCK_SCALAR.match(raw):
+            where = f"{source.relative_to(REPO_ROOT)}: " if source is not None else ""
+            raise ValueError(
+                f"{where}frontmatter field {key!r} uses the YAML block scalar "
+                f"{raw!r}. tools/gather.py parses frontmatter line by line, so "
+                f"the value would be stored as the literal string {raw!r} and "
+                f"mirrored into every stub, picker entry, and skill trigger. "
+                f"Write it as one double-quoted line instead."
+            )
         if raw == "" or raw.startswith("[") or raw.startswith("{"):
             continue
         if (raw.startswith('"') and raw.endswith('"')) or (
@@ -323,7 +347,7 @@ def command_description(fields: dict[str, str], body: str) -> str:
 
 def gen_command_stub(source: Path, stub_target: Path) -> str:
     text = source.read_text()
-    fields, body = parse_frontmatter(text)
+    fields, body = parse_frontmatter(text, source)
     desc = command_description(fields, body)
     link = rel_link(stub_target, source)
     fm_lines = ["---"]
@@ -477,13 +501,13 @@ def plan_skills() -> list[Stub]:
             if not skill_file.exists():
                 continue
             text = skill_file.read_text()
-            fields, body = parse_frontmatter(text)
+            fields, body = parse_frontmatter(text, skill_file)
             name = fields.get("name", entry.name)
             description = fields.get("description") or first_h1(body) or ""
             source = skill_file
         elif entry.is_file() and entry.suffix == ".md":
             text = entry.read_text()
-            fields, body = parse_frontmatter(text)
+            fields, body = parse_frontmatter(text, entry)
             name = fields.get("name", entry.stem)
             description = fields.get("description") or first_h1(body) or ""
             source = entry
@@ -581,13 +605,29 @@ def is_telemetry_channel(text: str) -> bool:
     return declared_channel(text) == "telemetry"
 
 
+def is_autofire(text: str) -> bool:
+    """`autofire: true` mirrors a command into dist/skills/ on top of the /
+    picker, so a Claude session can elect it from the situation the user is in
+    rather than waiting to be typed. The selection rule (design spec 4.5
+    Layer 3): a command autofires unless a misfire would be damage
+    (consequential and hard to reverse) or noise (trigger too broad) — and
+    noise is how the whole mechanism gets switched off.
+
+    Claude-surface only. plan_agent_skills emits a skill for EVERY non-vendored
+    command, so Codex, Pi, and Copilot see all of them regardless. That
+    asymmetry is accepted: suppressing there would make a command invisible to
+    three of the four harnesses' triggers.
+    """
+    return parse_frontmatter(text)[0].get("autofire") == "true"
+
+
 def plugin_command_copy(target: Path, source: Path, text: str | None = None) -> Stub:
     """Full copy, with a `description:` injected into the frontmatter when the
     source only carries it in the H1 — the plugin picker needs the field. Pass
     `text` to reuse an already-read body and avoid a second read of `source`."""
     text = render_plugin_body(source.read_text() if text is None else text)
     mode = source.stat().st_mode & 0o777
-    fields, body = parse_frontmatter(text)
+    fields, body = parse_frontmatter(text, source)
     if "description" in fields:
         return Stub(target, text, mode)
     desc = command_description(fields, body)
@@ -663,7 +703,7 @@ def command_skill_stub(source: Path, dest_root: Path, render=render_plugin_body)
     text = source.read_text()
     if is_vendored_channel(text):
         return None
-    fields, body = parse_frontmatter(text)
+    fields, body = parse_frontmatter(text, source)
     name = source.stem
     description = command_description(fields, body)
     desc_escaped = description.replace(chr(34), chr(92) + chr(34))
@@ -912,16 +952,21 @@ def plan_plugin() -> list[Stub]:
         Stub(
             DIST_DIR / "README.md",
             f"{GENERATED_MARKER} — DO NOT EDIT. -->\n\n"
-            "# dist/ — built awow plugin payload\n\n"
-            "This directory is the installable Claude Code plugin, built by "
-            "`python tools/gather.py --surface plugin` from `.agents/` (plus "
-            "`hooks/`, the legacy `commands/`, and a runtime slice of `tools/`). "
-            "`.claude-plugin/marketplace.json` points installers here so the "
-            "maintainer workspace (`meta/`, `context/`, guides, tests) never "
-            "ships to adopters.\n\n"
-            "Do not edit files in this directory — edit the source and re-run "
-            "the gather. Any file here that the build did not plan is deleted "
-            "on the next run.\n",
+            "# dist/ — the built awow payload\n\n"
+            "awow is the Agentic Way of Working: board-first delivery "
+            "workflows for coding agents. This directory is the built "
+            "plugin, and it serves four harnesses from one tree — "
+            "`commands/` and `skills/` for Claude Code, `agent-skills/` for "
+            "Codex and Pi, `.github/` for GitHub Copilot, plus `hooks/`, a "
+            "runtime slice of `tools/`, and the `context/` machinery the "
+            "commands read.\n\n"
+            "Install instructions live in the source repo's README: "
+            "https://github.com/CauchyIO/awow\n\n"
+            "Built by `python tools/gather.py --surface plugin` from "
+            "`.agents/`, so the maintainer workspace (`meta/`, guides, "
+            "tests, team context) never ships. Do not edit anything here — "
+            "edit the source and re-run the gather. Any file the build did "
+            "not plan is deleted on the next run.\n",
         ),
     ]
     commands_root = AGENTS_DIR / "commands"
@@ -932,6 +977,10 @@ def plan_plugin() -> list[Stub]:
         if is_vendored_channel(text):
             continue
         plans.append(plugin_command_copy(DIST_DIR / "commands" / source.name, source, text))
+        if is_autofire(text):
+            stub = command_skill_stub(source, DIST_DIR / "skills")
+            if stub is not None:
+                plans.append(stub)
     if ROOT_COMMANDS_DIR.is_dir():
         for source in sorted(ROOT_COMMANDS_DIR.glob("*.md")):
             if source.name in SKIP_FILENAMES:
@@ -940,6 +989,10 @@ def plan_plugin() -> list[Stub]:
             if is_vendored_channel(text):
                 continue
             plans.append(plugin_command_copy(DIST_DIR / "commands" / source.name, source, text))
+            if is_autofire(text):
+                stub = command_skill_stub(source, DIST_DIR / "skills")
+                if stub is not None:
+                    plans.append(stub)
     skills_root = AGENTS_DIR / "skills"
     for entry in sorted(skills_root.iterdir()):
         if entry.name in SKIP_FILENAMES:

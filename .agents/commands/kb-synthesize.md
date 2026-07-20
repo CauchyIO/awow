@@ -16,7 +16,8 @@ front half is `/kb-mine` (capture); this command is capture's counterpart (synth
 **One drain, one source of truth.** The disposition rules — how a candidate is judged
 (novel / matches / covered / thin), how contradictions are reconciled, what the gate
 requires, and how a drained file is cleared — are defined once in
-[`{HUB}/context/knowledge-base/synthesis.md`](../../context/knowledge-base/synthesis.md). This
+`{HUB}/context/knowledge-base/synthesis.md`, falling back to
+`{AWOW_ROOT}/context/knowledge-base/synthesis.md`. This
 command only sequences that contract; it does not restate the rules, so it stays correct
 as synthesis evolves.
 
@@ -25,7 +26,8 @@ only), this command *does* write into `{HUB}/context/knowledge-base/`. It never 
 explicit approval: it presents the full drain plan and waits.
 
 **Paths.** The KB `inbox` and `kb_root` locations resolve via
-`{HUB}/context/tooling/knowledge-base.md` (defaults `{HUB}/context/kb-inbox/`,
+`{HUB}/context/tooling/knowledge-base.md`, falling back to
+`{AWOW_ROOT}/context/tooling/knowledge-base.md` (defaults `{HUB}/context/kb-inbox/`,
 `{HUB}/context/knowledge-base/`). `synthesis.md` honours the same config, so this command
 inherits any relocation automatically.
 
@@ -58,7 +60,8 @@ subset; default is the whole inbox.
 ## Phase 1 — Plan dispositions
 
 For each loaded candidate, follow
-[`{HUB}/context/knowledge-base/synthesis.md`](../../context/knowledge-base/synthesis.md)
+`{HUB}/context/knowledge-base/synthesis.md`, falling back to
+`{AWOW_ROOT}/context/knowledge-base/synthesis.md`,
 exactly: read the KB subfolder its `suggested_target` names (and the glossary), then
 assign a disposition — **novel** (write a new note), **matches** (annotate/strengthen an
 existing note), **covered** (no-op), or **thin** (drop) — and flag any candidate that

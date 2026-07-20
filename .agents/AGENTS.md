@@ -15,13 +15,18 @@ Until then, the rules below are the minimum the agent needs to operate inside th
 
 ## Path tokens
 
-Prompt bodies never hardcode where context or tools live. Three tokens, resolved per channel:
+Prompt bodies never hardcode where context or tools live. Four tokens, resolved per channel:
 
-- `{HUB}` — shared team context root (team, company, knowledge base, retros, board config).
-- `{PROJECT}` — this project's context and drafts (mission, board-scope, do-not-propose, proposals/).
-- `{AWOW_TOOLS}` — awow's runtime tool scripts.
+- `{{HUB}}` — shared team context root (team, company, knowledge base, retros, board config).
+- `{{PROJECT}}` — this project's context and drafts (mission, board-scope, do-not-propose, proposals/).
+- `{{AWOW_TOOLS}}` — awow's runtime tool scripts.
+- `{{AWOW_ROOT}}` — awow's own bundled machinery: the board references, the collection and mining contracts, the retro canon. Shipped with the plugin, identical for every team.
 
-**In this repo (and any vendored install): `{HUB}` and `{PROJECT}` are the repo root, `{AWOW_TOOLS}` is `tools/`.** So `{HUB}/context/tooling/board.md` means `context/tooling/board.md` here. In a hub-connected spoke, the session reflex tells you where `{HUB}` resolves instead; if it is not resolvable, stop and say so — never guess a location or improvise conventions.
+**In this repo (and any vendored install): `{{HUB}}` and `{{PROJECT}}` are the repo root, `{{AWOW_TOOLS}}` is `tools/`, `{{AWOW_ROOT}}` is the repo root.** So `{HUB}/context/tooling/board.md` means `context/tooling/board.md` here. In a plugin install `{{AWOW_ROOT}}` resolves into the payload instead, which is how a command reads awow's machinery without the adopter having vendored it.
+
+**Reading machinery: `{{HUB}}` first, then `{{AWOW_ROOT}}`.** A team that has vendored and edited a contract must win over the shipped default, so read `{HUB}/context/<path>` and fall back to `{AWOW_ROOT}/context/<path>`. Team data — mission, members, conventions, style, `board.md`, `architecture.md` — is `{{HUB}}` only and has no fallback: absent means absent, and commands branch on that.
+
+In a hub-connected spoke, the session reflex tells you where `{{HUB}}` resolves instead; if it is not resolvable, stop and say so — never guess a location or improvise conventions.
 
 Command/skill frontmatter may carry a `channel:` field: `vendored` files operate on the vendored install itself (gather, tests, adopter state) and are excluded from the plugin payload; `bootstrap` files ship in the payload but *create or update* the vendored tree (`/setup-awow`, `/update-awow`), so their literal repo paths are the deliverable and exempt from the token lint.
 

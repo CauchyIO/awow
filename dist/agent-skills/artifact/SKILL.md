@@ -13,7 +13,7 @@ You run this often. It is lighter than `/design-system` (which you run once to b
 
 ## Phase 0 — Resolve the design system
 
-Read `{HUB}/context/tooling/design-system.md`.
+Read `{HUB}/context/tooling/design-system.md`, falling back to `../../context/tooling/design-system.md` (a vendored copy wins over the shipped one).
 
 - **`mode: absent`** — no design system. Offer to run `/design-system` first. If the user declines, proceed with plain, accessible defaults and say so — do not invent a house style and do not pretend one exists.
 - **`mode: in-repo` / `external`** — read the source file at `path:` now (filesystem, not MCP, when `access: local-path`). Read the matching `templates_dir` template for the artifact type. Re-read the source even if the pointer has a token cache — the cache can drift.

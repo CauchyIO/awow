@@ -16,7 +16,8 @@ backfill a past day.
 
 **One projection, one source of truth.** The extraction — what qualifies, how it
 routes, where it is written, how it is promoted — is defined once in
-[`{HUB}/context/knowledge-base/mining.md`](../../context/knowledge-base/mining.md). This
+`{HUB}/context/knowledge-base/mining.md`, falling back to
+`{AWOW_ROOT}/context/knowledge-base/mining.md`. This
 command only wires the gather to that projection; it does not restate the rules, so
 it stays correct as the mining contract evolves.
 
@@ -25,7 +26,8 @@ knowledge base or the board without explicit approval. The mining contract's
 promotion gate stands.
 
 **Paths.** The KB `inbox` and `kb_root` locations resolve via
-`{HUB}/context/tooling/knowledge-base.md` (defaults `{HUB}/context/kb-inbox/`,
+`{HUB}/context/tooling/knowledge-base.md`, falling back to
+`{AWOW_ROOT}/context/tooling/knowledge-base.md` (defaults `{HUB}/context/kb-inbox/`,
 `{HUB}/context/knowledge-base/`). `mining.md` honours the same config, so this command
 inherits any relocation automatically.
 
@@ -51,8 +53,9 @@ Phase 2 ─ Deep projection per mining.md            ──→ candidates ──
 
 ## Phase 1 — Gather once
 
-Run the shared collection step,
-[`{HUB}/context/tooling/activity-collection.md`](../../context/tooling/activity-collection.md):
+Run the shared collection step — read `{HUB}/context/tooling/activity-collection.md`,
+falling back to `{AWOW_ROOT}/context/tooling/activity-collection.md` (a vendored copy
+wins over the shipped one):
 produce `activity/YYYY-MM-DD.json`, or **reuse it** if a peer run (`/daily-digest` or
 `/daily-routine`) already produced it for the day. That step owns the board / code /
 chat queries and applies the private-team gate once.
@@ -64,15 +67,16 @@ failure on a source), stop and surface it — do not mine a half-snapshot.
 
 ## Phase 2 — Deep projection
 
-Follow [`{HUB}/context/knowledge-base/mining.md`](../../context/knowledge-base/mining.md)
+Follow `{HUB}/context/knowledge-base/mining.md`, falling back to
+`{AWOW_ROOT}/context/knowledge-base/mining.md`,
 exactly: read each snapshot item's deep `payload`, apply the selectivity bar, route
 each survivor to its `{HUB}/context/knowledge-base/` destination, dedup against the existing
 KB, and write the candidates where that contract specifies.
 
 Then stop at the contract's **promotion gate**: present the candidate summary (count,
 targets, duplicates dropped, cap status) and wait for the user to say which to
-promote. Promotion follows the ritual in
-[`{HUB}/context/knowledge-base/README.md`](../../context/knowledge-base/README.md) —
+promote. Promotion follows the ritual in `{HUB}/context/knowledge-base/README.md`,
+falling back to `{AWOW_ROOT}/context/knowledge-base/README.md` —
 approved candidates only, each with a pointer left in its source item's comment.
 
 ---

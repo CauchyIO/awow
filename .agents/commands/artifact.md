@@ -2,7 +2,7 @@
 phase: spread
 prerequisites:
   - "Step 1 of /setup-awow complete (the agent can read and write the board)"
-  - "A design system is configured ({HUB}/context/tooling/design-system.md mode is not absent) — recommended, not required"
+  - "A design system is configured ({HUB}/context/tooling/design-system.md, else {AWOW_ROOT}/context/tooling/design-system.md, mode is not absent) — recommended, not required"
 removes_pain: "the hand-styled-artifact-that-ignores-the-house-style problem"
 consumes: "a content brief plus the team's design system"
 when-to-use: "You need to produce a styled HTML artifact — a presentation, blog post, one-pager, or report — that should follow the team's design system. The frequent counterpart to /design-system."
@@ -19,7 +19,7 @@ You run this often. It is lighter than `/design-system` (which you run once to b
 
 ## Phase 0 — Resolve the design system
 
-Read `{HUB}/context/tooling/design-system.md`.
+Read `{HUB}/context/tooling/design-system.md`, falling back to `{AWOW_ROOT}/context/tooling/design-system.md` (a vendored copy wins over the shipped one).
 
 - **`mode: absent`** — no design system. Offer to run `/design-system` first. If the user declines, proceed with plain, accessible defaults and say so — do not invent a house style and do not pretend one exists.
 - **`mode: in-repo` / `external`** — read the source file at `path:` now (filesystem, not MCP, when `access: local-path`). Read the matching `templates_dir` template for the artifact type. Re-read the source even if the pointer has a token cache — the cache can drift.

@@ -43,7 +43,7 @@ Before any proposal lands, read:
 - `{HUB}/context/knowledge-base/patterns/` — established patterns the design must align with or supersede
 - `{HUB}/context/knowledge-base/architecture/` — current architecture documents
 - `{HUB}/context/tooling/board.md` — board family, MCP wiring
-- `{HUB}/context/tooling/design-system.md` — if `mode:` is not `absent`, any HTML artefact this flow produces (Phase 3.1 presentation track) must adopt it
+- `{HUB}/context/tooling/design-system.md`, falling back to `../../context/tooling/design-system.md` — if `mode:` is not `absent`, any HTML artefact this flow produces (Phase 3.1 presentation track) must adopt it
 - `{HUB}/context/company/neighbouring-teams.md` — for cross-team boundary effects
 
 If a knowledge-base subfolder is empty, note it but proceed. Absence improves nothing; it does not block the pipeline.
@@ -188,7 +188,7 @@ Choose from context. Ask only if genuinely ambiguous.
 
 - **Decision record** → `{HUB}/context/knowledge-base/decisions/<id>-<short-title>.md`. One decision per record. Use the team's decision-record template if present; otherwise fall back to: `Date / Status / Deciders / Trigger → Context → Decision → Consequences (Positive / Negative / Neutral) → Alternatives considered → Migration plan → Open questions`.
 - **Proposal** → `{PROJECT}/proposals/<topic>.md`. Multi-phase plan with named work items, related repos, acceptance per item, and a phased implementation order.
-- **Presentation** → `{PROJECT}/proposals/<topic>/` containing `questionnaire.md → background.md → slides.md → slides.html`. Question-first; never jump to slides. When `{HUB}/context/tooling/design-system.md` is not `absent`, the deck adopts the design system — read the source file at its `path:`, generate `slides.html` from the matching template, and verify/export per `/artifact` Phase 4; do not hand-style. Hand off to `/artifact` for the generate-and-render mechanics rather than duplicating them here.
+- **Presentation** → `{PROJECT}/proposals/<topic>/` containing `questionnaire.md → background.md → slides.md → slides.html`. Question-first; never jump to slides. When `{HUB}/context/tooling/design-system.md` (else `../../context/tooling/design-system.md`) is not `absent`, the deck adopts the design system — read the source file at its `path:`, generate `slides.html` from the matching template, and verify/export per `/artifact` Phase 4; do not hand-style. Hand off to `/artifact` for the generate-and-render mechanics rather than duplicating them here.
 - **Memo** → `{PROJECT}/proposals/<topic>.md` as plain prose when no decision and no decomposition is being asked for.
 
 Confirm the working directory before writing if there is any ambiguity. Repo-grep boundary, sibling repo, or wrong-folder writes are the most common silent failure here.

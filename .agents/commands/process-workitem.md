@@ -8,7 +8,7 @@ removes_pain: "the every-story-is-treated-the-same-regardless-of-type problem"
 
 # /process-workitem — take a board work item from refinement to PR
 
-You load a board work item, validate its inputs, plan the change, apply it, verify the result, and report back. The work-specific rules (what to validate, what to check at the end) live in the archetype handlers under `.agents/commands/_workitem-archetypes/` (vendored installs; not yet shipped in the plugin payload). This file is the generic frame that wraps every archetype.
+You load a board work item, validate its inputs, plan the change, apply it, verify the result, and report back. The work-specific rules (what to validate, what to check at the end) live in the archetype handlers — read `{HUB}/.agents/commands/_workitem-archetypes/` if this repo has vendored them, otherwise `{AWOW_ROOT}/commands/_workitem-archetypes/`. This file is the generic frame that wraps every archetype.
 
 This is the **seed** shipped with awow v0.1 — the flow below is a sensible default, not a contract. Edit it to fit how your team actually works.
 

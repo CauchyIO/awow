@@ -2,7 +2,7 @@
 phase: meta
 prerequisites: ["Step 0 of /setup-awow complete"]
 removes_pain: "the how-do-I-pull-in-newer-awow-versions-without-clobbering-my-config problem"
-channel: bootstrap
+channel: vendored
 ---
 
 # /update-awow — pull newer awow into an already-set-up repo
@@ -89,6 +89,15 @@ wizard and never rewrites `context/team/`, `context/company/`, `board.md`,
    If any conflicts landed, remind them the update is not "done" until each
    `.awow` is merged. Recommend reviewing the whole update as one `git diff` on
    a branch — git is the backstop for anything step 2's caution missed.
+
+   **Call out `removed-upstream` explicitly.** Files upstream has dropped are
+   left in place by design — `apply` never deletes. As of 0.6.0 that covers
+   `.agents/commands/daily-routine.md`, `weekly-digest.md`, and
+   `cross-team-view.md`: `/daily-routine` and `/weekly-digest` merged into
+   `/daily-digest` (the weekly view is now `/daily-digest --week`), and
+   `/cross-team-view` was never built. Name each one, say it is now unmaintained,
+   and offer to delete it and re-run `python tools/gather.py`. Silence here
+   leaves a team invoking a command upstream no longer supports.
 
 ## Offline check (no source)
 

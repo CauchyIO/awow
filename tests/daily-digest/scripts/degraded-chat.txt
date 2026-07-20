@@ -1,4 +1,5 @@
-# /daily-digest with no email arguments: markdown-only mode. The pre-seeded
-# snapshot satisfies the reuse check, so the only ask-the-user point is the
-# post-delivery "share specific sections?" question. Decline it.
-no
+# /daily-digest with no argument: the day window, today. The pre-seeded snapshot
+# satisfies the reuse check, so the only ask-the-user point is the Phase 4 review
+# gate. Answer "stop" — the scratch workspace has no remote, and the digest file
+# on disk is what the checks assert. A run that opens a PR here is a bug.
+stop

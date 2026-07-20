@@ -37,7 +37,7 @@ Reference files when implementing: `superpowers-evals/src/composer.ts` (7-rule v
 2. **Verdict schema with precedence.** Result JSON gains `final: pass|fail|indeterminate` + `stage` on error. Precedence, in order: runner error → indeterminate; failed `pre()` → indeterminate; zero wizard turns → indeterminate; judge pass AND zero failed `post()` → pass; else fail. Broken check (script error, not assertion failure) → indeterminate, never fail.
 3. **Judge as a blind subagent.** Phase 4 of the protocol dispatches a grading subagent that receives only the `--- WIZARD TURN ---` transcript and the `ls -laR` state dump — not the runner's context. This replaces most of the anti-self-attestation prose.
 4. **`tools/validate-evals.py`** (real, replaces validator-skeleton ambitions for `tests/`): every script has a rubric, checks and fixture; every rubric question tags an invariant that exists in the command; check scripts pass `bash -n`. Runs in CI with zero credentials.
-5. **Generalise the runner.** `/test-setup-awow` → `/test-awow [suite] [scenario]` reading `tests/<suite>/`; the six-phase protocol is already suite-agnostic except for hardcoded paths. Keep `/test-setup-awow` as an alias until the rename settles.
+5. **Generalise the runner.** *(Done.)* `/test-setup-awow` → `/test-awow [suite] [scenario]` reading `tests/<suite>/`; the six-phase protocol was already suite-agnostic except for hardcoded paths. The `/test-setup-awow` alias was kept until the rename settled, then deleted (2026-07-20).
 
 ## 4. Phase 2 — the eval set, ranked by real usage
 

@@ -21,7 +21,7 @@ When a proposal's state changes, update its `**Status:**` line *and* the row bel
 |---|---|---|
 | [meta-workspace-and-fixture-decoupling](meta-workspace-and-fixture-decoupling.md) | **Landed** | `dogfood/` → `meta/`, test fixtures decoupled (`feature/dry_run_awow`). |
 | [session-board-correlation](session-board-correlation.md) | **Landed** | `session-correlation` skill + footer rule + `tools/session_footer_hook.py`. |
-| [setup-awow-regression-tests](setup-awow-regression-tests.md) | **Landed** | `tests/setup-awow/` suite + `/test-setup-awow`. |
+| [setup-awow-regression-tests](setup-awow-regression-tests.md) | **Landed** | `tests/setup-awow/` suite, run via `/test-awow setup-awow`. |
 | [plugin-distribution](plugin-distribution.md) | **Draft** | Second adoption path (Claude Code plugin). Awaiting review — candidate for **Superseded** by hub-and-spoke-adoption. |
 | [hub-and-spoke-adoption](hub-and-spoke-adoption.md) | **Draft** (WI-1 in build) | Adopt Martijn's two-path hub-and-spoke model: plugin machinery + hub context, connector per project. Work items WI-0..4 + decisions D1–D6 await review. |
 | [hub-and-spoke-design](hub-and-spoke-design.md) | **Accepted design** (MVP validated 5/5) | Concrete design from the 2026-07-12 maintainer session: linear as hub, Path A spokes (~4 committed files), identity-based hub resolution, neutral-token path sweep, hub write path, Claude Code/Codex/Pi delivery, MVP validation gate, WI-0..8. |

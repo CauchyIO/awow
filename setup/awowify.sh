@@ -71,7 +71,6 @@ EXCLUDES=(
   tools/distribute.py
   tools/reset-adopter-state.py
   tools/sync-dist.sh
-  .agents/commands/test-setup-awow.md
   .agents/commands/awow-reset.md
 )
 # Solo mode also drops team-coordination context and commands.

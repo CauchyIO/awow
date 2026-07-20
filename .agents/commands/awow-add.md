@@ -11,7 +11,7 @@ Promote a phase-tagged command from "documented but inactive" to "wired up and r
 
 ## Inputs
 
-- The command name (e.g. `daily-digest`, `coaching-review`, `weekly-digest`)
+- The command name (e.g. `daily-digest`, `coaching-review`, `daily-checkin`)
 
 ## Steps
 

@@ -13,5 +13,7 @@ post() {
   local d; d=$(date +%F)
   file-exists "digests/$d.md"
   file-contains "digests/$d.md" 'AWOW-201'
+  # No HTML, ever — the command forbids rendering it (Behavioral boundaries).
   file-absent "digests/$d.html"
+  file-contains "digests/$d.md" 'tags:'
 }

@@ -322,7 +322,7 @@ Exempt: metadata-only changes and one-line status comments.</pre>
   <!-- DOWNSTREAM SIGNPOST -->
   <div class="pad">
     <h2>Downstream: what you do with the traces</h2>
-    <p>Correlation is the join. Acting on it is a separate pipeline of analysis skills &mdash; the <em>read</em> side. They share only one thing with this guide: they need the traces to exist. Each is covered in its own guide; in brief:</p>
+    <p>Correlation is the join. Acting on it is a separate pipeline of analysis skills &mdash; the <em>read</em> side &mdash; shipped as a separate plugin, <code>awow-telemetry</code> (<code>/plugin install awow-telemetry@awow</code>). They share only one thing with this guide: they need the traces to exist. Each is covered in its own guide; in brief:</p>
     <ul>
       <li><code>mlflow-export</code> &mdash; pulls every trace (and the per-session grouping) down to local JSON.</li>
       <li><code>prompt-skill-analysis</code> &mdash; turns a session (or an export) into a prompt-quality report.</li>

@@ -1,6 +1,7 @@
 ---
 name: awow-usage-coach
 description: "Analyse how a team or an individual works through agent sessions in the awow repo (or a sibling repo as stand-in) and produce one of two markdown reports: (a) team-nudge — proposed additions to .agents/AGENTS.md / copilot-instructions based on recurring sequence + editing patterns, or (b) self-coach — imperative, encouraging coaching for one developer compared against the team baseline. Uses an intent taxonomy (investigate/plan/propose/implement/refine/verify/document/inform) plus files-modified analysis so it works regardless of whether the team uses awow's exact vocabulary. Use when the user asks for awow usage feedback, adoption review, nudges for CLAUDE.md, or wants to see how they're using the project vs. teammates. Input: an mlflow_export directory (or equivalent — see below)."
+channel: telemetry
 ---
 
 # awow Usage Coach
@@ -128,7 +129,7 @@ If `target_sessions == 0`, stop and tell the user the export contains no session
    The `Insert verbatim` block is a **single short paragraph**. No bullets, no sub-headings, no "you should" hedging. It must read as a rule the agent follows during a session.
 
 9. **Don't nudge** — patterns the data shows but that don't deserve a CLAUDE.md addition. One line each, ≤4 items.
-10. **Distribution checklist** — three lines max: edit `.agents/AGENTS.md`, run `${CLAUDE_PLUGIN_ROOT}/tools/gather.py`, do not hand-edit mirrored files.
+10. **Distribution checklist** — three lines max: edit `.agents/AGENTS.md`, re-run the gather, do not hand-edit mirrored files.
 
 ### How to write the `Insert verbatim` block
 

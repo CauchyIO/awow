@@ -15,7 +15,9 @@ def channel(text: str) -> str:
     """The channel declared in the leading `--- ... ---` frontmatter block
     (default 'both'). Scoped to the frontmatter — not a whole-file scan — so a
     body line beginning `channel:` (e.g. prose documenting the field) is not
-    mistaken for a declaration. Matches gather.is_vendored_channel."""
+    mistaken for a declaration. Independent reimplementation of
+    gather.declared_channel; tests/telemetry-split/ asserts the two agree on
+    every file both scan."""
     if not text.startswith("---"):
         return "both"
     end = text.find("\n---", 3)
@@ -32,9 +34,11 @@ def main() -> int:
             if path.name == "README.md":
                 continue
             text = path.read_text()
-            # vendored: operates on the vendored install, not shipped in the
+            # vendored: operates on the vendored install, not shipped in any
             # plugin payload. bootstrap: shipped in the payload but *creates*
             # the vendored tree, so its literal paths are the deliverable.
+            # telemetry is NOT exempt — it ships (into dist-telemetry/) and its
+            # bodies must keep using {AWOW_TOOLS} for the substitution to work.
             if channel(text) in ("vendored", "bootstrap"):
                 continue
             for n, line in enumerate(text.splitlines(), 1):

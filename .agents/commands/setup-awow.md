@@ -259,9 +259,10 @@ For each entry in that directory (read it; a vendored install holds both declara
 4. Apply the user's answer:
    - **Keep** — no change.
    - **Customise** — open the SKILL.md and the bundled scripts. Draft the changes under `proposals/setup/step-10/<skill>/` first (full proposal-first treatment). Common customisations to surface as concrete options:
-     - **mlflow-export** — swap the exporter script for the team's tracing backend (LangSmith, Helicone, OTLP, raw JSONL). The downstream skills consume the JSON layout documented in `mlflow-export/SKILL.md`; match that shape or update the consumers too.
-     - **prompt-skill-analysis** — add a parser for the team's harness session format (Copilot, Cursor, etc.). The rubric is harness-agnostic; only the input branch needs work.
-     - **awow-usage-coach** — adjust the intent taxonomy if the team's vocabulary doesn't fit; otherwise rely on the harness-agnostic `working_directory` + `files_modified` lenses.
+     - **mlflow-export**, **prompt-skill-analysis**, **awow-usage-coach**, **project-timeline**, **session-export** — these five ship in the separate `awow-telemetry` plugin, not in `awow`. If the team has not installed it (`/plugin install awow-telemetry@awow`), say so once and move on; do not offer to customise skills that are not present. If it is installed, or the repo is vendored and carries the sources under `.agents/skills/`, the customisations worth surfacing are:
+       - **mlflow-export** — swap the exporter script for the team's tracing backend (LangSmith, Helicone, OTLP, raw JSONL). The downstream skills consume the JSON layout documented in `mlflow-export/SKILL.md`; match that shape or update the consumers too.
+       - **prompt-skill-analysis** — add a parser for the team's harness session format (Copilot, Cursor, etc.). The rubric is harness-agnostic; only the input branch needs work.
+       - **awow-usage-coach** — adjust the intent taxonomy if the team's vocabulary doesn't fit; otherwise rely on the harness-agnostic `working_directory` + `files_modified` lenses.
      - **user-story-template** — replace with the team's own template if it differs from the seeded shape.
    - **Drop** — `git rm -r` the skill directory or file. Note in `setup-progress.md` so a re-run of `/setup-awow` doesn't keep re-offering it.
 

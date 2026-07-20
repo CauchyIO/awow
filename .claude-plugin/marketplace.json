@@ -8,6 +8,11 @@
       "name": "awow",
       "source": "./dist",
       "description": "Bring the Agentic Way of Working to any repo — brand-new or already full of code. /awowify adds the files an AI coding agent needs and walks you through connecting your issue board and conventions, without changing anything you've already built."
+    },
+    {
+      "name": "awow-telemetry",
+      "source": "./dist-telemetry",
+      "description": "The evidence layer for awow. Export your agent sessions, build a visual timeline of how a project actually got built, score prompt craft, and coach a team or an individual off what the sessions show. Installs beside awow; neither requires the other."
     }
   ]
 }

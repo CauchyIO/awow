@@ -8,7 +8,7 @@ channel: vendored
 
 > **Opt-in capability.** On its own this skill changes nothing about how the agent behaves. It becomes active only when a team **opts in** — during `/setup-awow` (Step 3) or later via `/awow-add`. Opting in (a) wires the SessionStart accessor hook and (b) writes the footer rule into *that team's* conventions, at which point it is a normal, enforced rule. Teams that never opt in carry none of it: no rule, no `$CLAUDE_SESSION_ID` expectation, no error.
 
-Agent-originated board entries normally have no link back to the trace that produced them, so the downstream skills (`awow-usage-coach`, `daily-digest`, `weekly-digest`, `prompt-skill-analysis`) cannot join board content to session data. This skill closes that gap with a one-line **session footer** on every entry the agent authors.
+Agent-originated board entries normally have no link back to the trace that produced them, so the downstream consumers (`daily-digest`, plus the `awow-telemetry` skills `awow-usage-coach` and `prompt-skill-analysis`) cannot join board content to session data. This skill closes that gap with a one-line **session footer** on every entry the agent authors.
 
 ## The footer
 
@@ -76,8 +76,8 @@ If both are present, proceed to "Enabling it". If not, **stop and tell the user 
 
    Read the id from `$CLAUDE_SESSION_ID` (populated by the session-correlation
    SessionStart hook) or your harness's equivalent. The id matches the trace's
-   `mlflow.trace.session` tag, so `awow-usage-coach`, `daily-digest`, and
-   `weekly-digest` can join board content to session traces.
+   `mlflow.trace.session` tag, so `daily-digest` and the `awow-telemetry` skills
+   can join board content to session traces.
 
    **Exempt:** trivial metadata-only changes (label, state, project-add) and
    one-line status comments. The footer is required when the entry records a
@@ -103,4 +103,4 @@ The *rule* is written harness-neutrally ("your harness's session ID"). The *acce
 
 ## Relationship to tracing
 
-This skill correlates board entries to traces; it does **not** create the traces, and it does **not** configure tracing. Trace recording is the MLflow Stop hook (`MLFLOW_CLAUDE_TRACING_ENABLED=true` in `.claude/settings.local.json`); the Databricks MLflow side is provisioned by the team's `claudetracing` library (sibling repo `../claudetracing`). The footer is only useful when tracing is already on — hence the prerequisite check above. Exporting and analysing the traces is `mlflow-export` + `prompt-skill-analysis` / `awow-usage-coach`.
+This skill correlates board entries to traces; it does **not** create the traces, and it does **not** configure tracing. Trace recording is the MLflow Stop hook (`MLFLOW_CLAUDE_TRACING_ENABLED=true` in `.claude/settings.local.json`); the Databricks MLflow side is provisioned by the team's `claudetracing` library (sibling repo `../claudetracing`). The footer is only useful when tracing is already on — hence the prerequisite check above. Exporting and analysing the traces is the separate `awow-telemetry` plugin (`mlflow-export` + `prompt-skill-analysis` / `awow-usage-coach`), installed with `/plugin install awow-telemetry@awow`.

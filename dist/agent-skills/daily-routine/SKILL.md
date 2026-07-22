@@ -49,7 +49,9 @@ If one fails, the other still stands; report the failure and proceed.
 
 ## Phase 1 — Gather once
 
-Run the shared collection step, `{HUB}/context/tooling/activity-collection.md`: produce
+Run the shared collection step — read `{HUB}/context/tooling/activity-collection.md`,
+falling back to `../../context/tooling/activity-collection.md` (a vendored copy
+wins over the shipped one): produce
 `activity/YYYY-MM-DD.json` (or reuse it if present). That step owns the board / code /
 chat queries (keyed off `{HUB}/context/tooling/board.md`), the normalised snapshot schema,
 and the private-team gate.
@@ -79,19 +81,23 @@ gate** — never send without explicit approval.
 
 ## Phase 3 — KB candidates (deep projection)
 
-KB paths (`inbox`, `kb_root`) resolve via `{HUB}/context/tooling/knowledge-base.md`; the
+KB paths (`inbox`, `kb_root`) resolve via `{HUB}/context/tooling/knowledge-base.md`,
+falling back to `../../context/tooling/knowledge-base.md`; the
 literals below are the defaults.
 
-Mine the same snapshot for durable knowledge, per `{HUB}/context/knowledge-base/mining.md`:
+Mine the same snapshot for durable knowledge, per `{HUB}/context/knowledge-base/mining.md`
+(falling back to `../../context/knowledge-base/mining.md`):
 read each item's deep `payload`, apply the selectivity bar (tuned by
-`{HUB}/context/knowledge-base/mining-policy.md`), route each survivor to its
+`{HUB}/context/knowledge-base/mining-policy.md`, else
+`../../context/knowledge-base/mining-policy.md`), route each survivor to its
 `{HUB}/context/knowledge-base/` destination, dedup against the existing KB, and stage each
 survivor as one committed file in `{HUB}/context/kb-inbox/`.
 
 This projection **proposes only**. Do not write into `{HUB}/context/knowledge-base/` and do
 not touch the board. Present the candidate summary (count, targets, duplicates
 dropped, cap status) and stop — promotion is the synthesis drain (`/kb-synthesize`, per
-`{HUB}/context/knowledge-base/synthesis.md`), which runs the **approval gate** before any
+`{HUB}/context/knowledge-base/synthesis.md`, else
+`../../context/knowledge-base/synthesis.md`), which runs the **approval gate** before any
 candidate lands in the durable KB. You may offer to run `/kb-synthesize` now, or leave
 the candidates staged in the inbox for a later drain.
 

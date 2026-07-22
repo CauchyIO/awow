@@ -11,7 +11,11 @@ This is the reflex. The team's full conventions, mission, and board spec live in
 
 ## Where the paths point
 
-Paths here never hardcode a location — they use three tokens. **In this repo, and in any vendored or plugin install, `{HUB}` and `{PROJECT}` both resolve to the repo root and `../../tools` to awow's bundled tools** — so `{HUB}/context/tooling/board.md` is the board pointer read at that path under the root. In a hub-connected spoke, a hub pointer tells you where `{HUB}` resolves instead. If `{HUB}` is ever unresolvable, stop and say so — never guess a location or improvise a convention.
+Paths here never hardcode a location — they use four tokens. **In this repo, and in any vendored or plugin install, `{HUB}` and `{PROJECT}` both resolve to the repo root and `{AWOW_TOOLS}` to awow's bundled tools** — so `{HUB}/context/tooling/board.md` is the board pointer read at that path under the root. `{AWOW_ROOT}` is awow's own machinery: the repo root here, the plugin payload in a plugin install.
+
+**Machinery reads `{HUB}` first, then `{AWOW_ROOT}`** — a team that vendored and edited a contract beats the shipped default. Team data (mission, members, conventions, style, `board.md`, `architecture.md`) is `{HUB}` only.
+
+In a hub-connected spoke, a hub pointer tells you where `{HUB}` resolves instead. If `{HUB}` is ever unresolvable, stop and say so — never guess a location or improvise a convention. **An absent file is not an unresolvable `{HUB}`.** A missing `board.md` means ask once (below), not halt.
 
 ## Go to the board before any initiative
 
@@ -49,3 +53,17 @@ Invoke the relevant one before hand-rolling the same workflow. The full catalog 
 If a build engine (superpowers, spec-kit) is installed, its lifecycle skills *are* your board cues: `brainstorming` is a board moment, `verification-before-completion` gates In Review/Done, `finishing-a-development-branch` closes the ticket. Bind each transition to the skill that already fires at it — see `board-aware-development` for the full crosswalk. When the repo declares an architecture plane in `{PROJECT}/context/tooling/architecture.md`, those same lifecycle skills are also your *architecture* cues — see `architecture-aware-development` for that crosswalk. Working directly (outside `/process-workitem`), keep the board current as you fire those skills; the PreToolUse hook reminds you, but the discipline is yours.
 
 No engine installed? awow runs on its baseline board discipline alone — nothing here misfires. superpowers is the recommended optional engine for the build step; offer it via `/setup-awow` (Step 8, surface the extras), never force it.
+
+## A missing board pointer is a question, not a stop
+
+If `{HUB}/context/tooling/board.md` is absent, infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. If it cannot be inferred, ask once which board they use and how to reach it, and hold the answer for the session. Do not halt, and do not ask again. Offer `/setup-awow` Step 1 to make it durable.
+
+Do not guess a board from a GitLab, Bitbucket, or Azure DevOps remote — those map to several products; ask. If there is no remote, or `gh` is absent or unauthenticated, ask and do not offer the `gh` path.
+
+This covers an absent pointer only. A fatal auth failure on a data source still stops the run — never synthesise from a half-snapshot.
+
+## Catch the rules people say in passing
+
+When someone states how the team works — not what to do next — that is a convention with nowhere to live yet. Test it: after doing exactly what was asked, does anything remain that would change your behaviour in an unrelated session next week, and can you write it as "when X, do Y" without naming this file or this ticket? If yes to both, and they asserted it rather than floated it, and it binds the team rather than describing the world (facts belong in the knowledge base) — note it in one line inside the reply you were already writing.
+
+Do not interrupt to ask. At a completion edge — a commit, a PR, "that's it for today" — offer the batch once via `/update-context`. Once per session, never mid-task. Scoping words ("here", "for this one", "just this time") mean it is not a convention. If `/update-context` is not available in this repo, stay silent. If they decline with "stop asking", write `.awow/no-context-prompt` and stay silent for good.

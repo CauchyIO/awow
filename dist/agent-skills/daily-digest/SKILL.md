@@ -49,7 +49,7 @@ Collect the day's activity once, via the shared collection step, then project th
 
 ### Run the shared collection step
 
-Follow `{HUB}/context/tooling/activity-collection.md`: **reuse `activity/YYYY-MM-DD.json` if it already exists for the day, otherwise produce it.** That step owns the board / code / chat queries (all keyed off `{HUB}/context/tooling/board.md`), the normalised snapshot schema, and the private-team gate — so you do not re-query per lens, and the private-team exclusion is already applied.
+Follow `{HUB}/context/tooling/activity-collection.md`, falling back to `../../context/tooling/activity-collection.md` (a vendored copy wins over the shipped one): **reuse `activity/YYYY-MM-DD.json` if it already exists for the day, otherwise produce it.** That step owns the board / code / chat queries (all keyed off `{HUB}/context/tooling/board.md`), the normalised snapshot schema, and the private-team gate — so you do not re-query per lens, and the private-team exclusion is already applied.
 
 If the snapshot cannot be produced (no `{HUB}/context/tooling/board.md`, or a fatal auth failure on a source), stop and surface it — do not synthesise from a half-snapshot.
 

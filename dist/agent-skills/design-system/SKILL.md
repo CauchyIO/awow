@@ -15,7 +15,7 @@ This is rare, high-leverage work. Run it as a pipeline with **three gates**. Sto
 
 ## Mode detection
 
-Read `{HUB}/context/tooling/design-system.md` first.
+Read `{HUB}/context/tooling/design-system.md` first, falling back to `../../context/tooling/design-system.md` (a vendored copy wins over the shipped one).
 
 - If `mode:` is not `absent`, a system is already configured. Name its `path:` and ask whether the user wants to **revise** it (proceed) or **point at a different one** (start over). Do not silently overwrite.
 - If `mode: absent`, this is a fresh establish. Read `$ARGUMENTS` — a reference URL, a path to an existing style guide, or empty (ask for the source at Gate 1).
@@ -35,7 +35,7 @@ Phase 3 ─ Write system + templates + wire ──→ GATE 3 (approve writes)
 
 ## Phase 0 — Load team context
 
-Read `{HUB}/context/team/mission.md`, `{HUB}/context/team/members.md`, and `{HUB}/context/team/style/*.md` (the team's writing voice is part of the design system). Read `{HUB}/context/tooling/design-system.md` for current state.
+Read `{HUB}/context/team/mission.md`, `{HUB}/context/team/members.md`, and `{HUB}/context/team/style/*.md` (the team's writing voice is part of the design system). Read `{HUB}/context/tooling/design-system.md`, falling back to `../../context/tooling/design-system.md`, for current state.
 
 Decide **in-repo vs external** with the user:
 

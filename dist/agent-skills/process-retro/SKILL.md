@@ -25,7 +25,7 @@ The canonical reference is the five-phase model from Esther Derby & Diana Larsen
 | 4. Decide What to Do | **You** | Report §§ 6, 11 |
 | 5. Close | Team | Out of scope; you don't write it |
 
-The full grounding lives at `{HUB}/context/retros/canon.md`. Read it.
+The full grounding lives at `{HUB}/context/retros/canon.md`, falling back to `../../context/retros/canon.md` (a vendored copy wins over the shipped one). Read it.
 
 ---
 
@@ -65,8 +65,8 @@ If something is genuinely ambiguous (e.g. two VTT files plausibly match), ask on
 
 Before touching the transcript, read what's available:
 
-- `{HUB}/context/retros/canon.md` — the canonical grounding (Prime Directive, five-phase model, format taxonomy, what "good" looks like). This file is **load-bearing** — read it every run.
-- `{HUB}/context/retros/anti-patterns.md` — the maintained library of named issues to probe for. Two sections (general retro patterns; agentic-AI patterns). If absent, fall back to the embedded list in Phase 1.5.
+- `{HUB}/context/retros/canon.md`, falling back to `../../context/retros/canon.md` — the canonical grounding (Prime Directive, five-phase model, format taxonomy, what "good" looks like). This file is **load-bearing** — read it every run.
+- `{HUB}/context/retros/anti-patterns.md`, falling back to `../../context/retros/anti-patterns.md` — the maintained library of named issues to probe for. Two sections (general retro patterns; agentic-AI patterns). If absent from both, fall back to the embedded list in Phase 1.5.
 - `{HUB}/context/team/mission.md` — what the team is for.
 - `{HUB}/context/team/members.md` — names, roles. Critical for speaker attribution and for the sentiment-and-safety section.
 - `{HUB}/context/team/conventions/REQUIRED/*.md` — naming, labels, output discipline.
@@ -164,7 +164,7 @@ Track the discard fraction. >50% noise is itself a signal — surface it in the 
 
 ### 1.5 Probe for anti-patterns
 
-Read `{HUB}/context/retros/anti-patterns.md` — it has two sections:
+Read `{HUB}/context/retros/anti-patterns.md`, falling back to `../../context/retros/anti-patterns.md` — it has two sections:
 
 - **Section A — general retro anti-patterns** (documented in the literature): `venting-ritual`, `conversational-dominance`, `action-list-inflation`, `action-orphan`, `hijacked-agenda`, `premature-solutioning`, `blameless-violation`, `template-stagnation`, `feedback-asymmetry`.
 - **Section B — agentic-AI anti-patterns** (AWOW-original, no prior canon): `duplicate-creation`, `attribution-gap`, `ghost-edit`, `prompt-drift`, `instruction-bypass`, `manual-override`, `blame-the-agent`, `context-bleed`, `board-zombie`, `silent-fail`, `acoustic-prioritisation`.

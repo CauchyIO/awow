@@ -184,7 +184,7 @@ For each of the four REQUIRED conventions (`issue-titles.md`, `labels.md`, `bran
 
 Land each under `proposals/setup/step-3/<convention>.md`, get approval, move to `context/team/conventions/REQUIRED/<convention>.md`. Update `setup-progress.md`.
 
-**Session-board correlation (opt-in).** Ask whether the team wants agent-authored board entries linked back to their session traces. If **yes**, first run the `session-correlation` skill's prerequisite check: tracing must already be wired (`MLFLOW_CLAUDE_TRACING_ENABLED=true` plus the MLflow `Stop` hook in `.claude/settings.local.json`). This skill does **not** set tracing up — if it is missing, stop and point the user at the team's `claudetracing` library (`../claudetracing`) to configure tracing first, then resume. Once tracing is confirmed: install the footer rule from the skill — append its Rule 4 to `output-discipline.md` here, add its shape note to `board-output.md` in Step 4, and wire the SessionStart accessor hook per the skill's "Enabling it" steps. The rule then flows into the generated `CLAUDE.md` at Step 5 and is enforced from then on. If **no**: leave all three untouched; the skill stays available to enable later via `/awow-add`. Record the choice in `setup-progress.md`.
+**Session-board correlation (opt-in).** Ask whether the team wants agent-authored board entries linked back to their session traces. If **yes**, first run the `session-correlation` skill's prerequisite check: tracing must already be wired (`MLFLOW_CLAUDE_TRACING_ENABLED=true` plus the MLflow `Stop` hook in `.claude/settings.local.json`). This skill does **not** set tracing up — if it is missing, stop and point the user at their own tracing library to configure tracing first, then resume. Once tracing is confirmed: install the footer rule from the skill — append its Rule 4 to `output-discipline.md` here, add its shape note to `board-output.md` in Step 4, and wire the SessionStart accessor hook per the skill's "Enabling it" steps. The rule then flows into the generated `CLAUDE.md` at Step 5 and is enforced from then on. If **no**: leave all three untouched; the skill stays available to enable later via `/awow-add`. Record the choice in `setup-progress.md`.
 
 ## Step 4 — Members and style
 
@@ -218,7 +218,7 @@ Ask for the 1° teams (teams whose work the user's team depends on or supplies i
 
 ## Step 8 — Surface the extras
 
-Read the commands in `.agents/commands/` whose frontmatter declares `phase: spread` or `phase: standardise`. List each command, its phase, its prerequisites, and the pain it removes. Tell the user:
+Read the commands whose frontmatter declares `phase: spread` or `phase: standardise` — from `{HUB}/.agents/commands/` if that directory exists (a vendored install), otherwise `../../commands/`. List each command, its phase, its prerequisites, and the pain it removes. Tell the user:
 
 > These are not installed. When you are ready for one, run `/awow-add <command>`.
 
@@ -234,7 +234,7 @@ Record the answer (and any configured `path:`) in `setup-progress.md`.
 - **Found** — an engine is configured; name it and move on. The `board-aware-development` seam (skill + PreToolUse reminder) is already active. If this team also keeps an architecture plane (ADRs / design records / pattern notes) reachable by a KB agent, offer to write a `context/tooling/architecture.md` pointer (draft it to `proposals/setup/step-8/` first, approve, then land it) — that switches on the parallel `architecture-aware-development` seam. No plane → skip it; the seam stays dormant.
 - **Not found** — recommend it as **optional**: *"awow hands the build step to an inner-loop engine. superpowers adds TDD-gated build → review and lights up the board-aware-development seam (and the architecture-aware-development seam, when a `context/tooling/architecture.md` plane is present). Install it with `/plugin` from the `claude-plugins-official` marketplace. This is optional — awow runs on its baseline build guidance without it."* Do not install it for the user, and never make it required. Note that spec-kit is an alternative engine (spec-first rather than test-first) for teams who prefer it.
 
-This is a soft dependency by design — see `proposals/superpowers-integration-plan.md`. Do not add it to the plugin manifest's `dependencies`; that would force-install it on every adopter and couple awow across marketplaces.
+This is a soft dependency by design. Do not add it to the plugin manifest's `dependencies`; that would force-install it on every adopter and couple awow across marketplaces.
 
 Record the choice (engine name, or "none — declined") in `setup-progress.md`.
 
@@ -242,9 +242,9 @@ Update `setup-progress.md` to mark all steps surfaced.
 
 ## Step 9 — Skills review (keep / customise / drop)
 
-The starter pack ships several skills under `.agents/skills/`. Each is opinionated about *some* part of the stack — harness session format, tracing backend, rubric — and will not fit every team out of the box. This step walks the user through each shipped skill once they have enough context to make a call.
+The starter pack ships several skills — under `{HUB}/.agents/skills/` if that directory exists (a vendored install), otherwise `../../skills/`. Each is opinionated about *some* part of the stack — harness session format, tracing backend, rubric — and will not fit every team out of the box. This step walks the user through each shipped skill once they have enough context to make a call.
 
-For each entry in `.agents/skills/` (read the directory; both declarative `<name>.md` files and operational `<name>/SKILL.md` directories):
+For each entry in that directory (read it; a vendored install holds both declarative `<name>.md` files and operational `<name>/SKILL.md` directories, while the payload renders every skill as `<name>/SKILL.md`):
 
 1. Read the skill's frontmatter `description` and the first body paragraph. Summarise in one sentence.
 2. Identify the **specific assumption** the skill bakes in (e.g. *"assumes Databricks MLflow"*, *"reads Claude Code JSONL"*, *"uses our story template"*). The "Starter shape — adjust for ..." callout at the top of each shipped operational skill states this directly; quote it.
@@ -263,7 +263,7 @@ For each entry in `.agents/skills/` (read the directory; both declarative `<name
      - **user-story-template** — replace with the team's own template if it differs from the seeded shape.
    - **Drop** — `git rm -r` the skill directory or file. Note in `setup-progress.md` so a re-run of `/setup-awow` doesn't keep re-offering it.
 
-5. If the user wants to **add** a new skill that isn't in the starter pack, point at `.agents/skills/README.md` ("When to write a skill") and offer to scaffold one — either a declarative `<name>.md` or an operational `<name>/SKILL.md` with a `scripts/` directory.
+5. If the user wants to **add** a new skill that isn't in the starter pack, point at `{HUB}/.agents/skills/README.md` ("When to write a skill") when the vendored tree is present — the payload does not carry it — and offer to scaffold one — either a declarative `<name>.md` or an operational `<name>/SKILL.md` with a `scripts/` directory.
 
 Update `setup-progress.md` to mark Step 9 complete (record per-skill decisions inline so the next session has context).
 
@@ -275,4 +275,4 @@ If the user invokes `/setup-awow --quickstart`, do Steps 0 → 1 → 2 → 3 →
 
 ## Proposal-first
 
-Every artefact lands first under `proposals/setup/<step>/<file>.md`. The user reviews. Only after explicit approval does the wizard move the artefact to its final location. This is the proposal-first principle from `input/PROPOSAL.md` §3. Do not bypass it.
+Every artefact lands first under `proposals/setup/<step>/<file>.md`. The user reviews. Only after explicit approval does the wizard move the artefact to its final location. This is the proposal-first principle. Do not bypass it.

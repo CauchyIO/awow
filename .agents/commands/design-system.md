@@ -6,7 +6,7 @@ prerequisites:
 removes_pain: "the every-artifact-reinvents-its-own-styling problem"
 consumes: "a reference site, brand, or existing style guide"
 when-to-use: "The team produces styled HTML artifacts and has no design system yet, or has one in another repo that awow doesn't know about. First time standing up a house style, or pointing awow at an existing one."
-when-not-to-use: "A design system is already configured ({HUB}/context/tooling/design-system.md mode is not absent) and you only want to produce an artifact — use /artifact. The team ships only board items and no styled HTML."
+when-not-to-use: "A design system is already configured ({HUB}/context/tooling/design-system.md, else {AWOW_ROOT}/context/tooling/design-system.md, mode is not absent) and you only want to produce an artifact — use /artifact. The team ships only board items and no styled HTML."
 ---
 
 # /design-system — stand up or adopt a design system
@@ -21,7 +21,7 @@ This is rare, high-leverage work. Run it as a pipeline with **three gates**. Sto
 
 ## Mode detection
 
-Read `{HUB}/context/tooling/design-system.md` first.
+Read `{HUB}/context/tooling/design-system.md` first, falling back to `{AWOW_ROOT}/context/tooling/design-system.md` (a vendored copy wins over the shipped one).
 
 - If `mode:` is not `absent`, a system is already configured. Name its `path:` and ask whether the user wants to **revise** it (proceed) or **point at a different one** (start over). Do not silently overwrite.
 - If `mode: absent`, this is a fresh establish. Read `$ARGUMENTS` — a reference URL, a path to an existing style guide, or empty (ask for the source at Gate 1).
@@ -41,7 +41,7 @@ Phase 3 ─ Write system + templates + wire ──→ GATE 3 (approve writes)
 
 ## Phase 0 — Load team context
 
-Read `{HUB}/context/team/mission.md`, `{HUB}/context/team/members.md`, and `{HUB}/context/team/style/*.md` (the team's writing voice is part of the design system). Read `{HUB}/context/tooling/design-system.md` for current state.
+Read `{HUB}/context/team/mission.md`, `{HUB}/context/team/members.md`, and `{HUB}/context/team/style/*.md` (the team's writing voice is part of the design system). Read `{HUB}/context/tooling/design-system.md`, falling back to `{AWOW_ROOT}/context/tooling/design-system.md`, for current state.
 
 Decide **in-repo vs external** with the user:
 

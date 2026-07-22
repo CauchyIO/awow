@@ -1,6 +1,7 @@
 ---
 name: mlflow-export
 description: "Export all traces and grouped chat sessions from a Databricks MLflow experiment to local JSON files. This skill should be used when the user asks to export, dump, download, or back up MLflow traces, sessions, or chat-sessions from a Databricks experiment (often given as an MLflow experiment URL or numeric experiment id)."
+channel: telemetry
 ---
 
 # MLflow Experiment Export

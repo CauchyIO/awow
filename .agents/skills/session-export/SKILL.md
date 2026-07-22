@@ -1,6 +1,7 @@
 ---
 name: session-export
 description: "Export a project's Claude Code sessions into a readable transcript dump (the input the project-timeline skill needs). Walks the user through choosing the project, scoping which sessions to include (date window, excluding meta/plugin runs), and warns about secrets before writing. Use when the user wants to export, dump, collect, or back up their Claude Code sessions for a project so they can be analysed or coached. Produces <out>/<session-id>.txt transcripts + INDEX.md + manifest.json. Reads ~/.claude/projects/<encoded-path>/*.jsonl."
+channel: telemetry
 ---
 
 # Session Export

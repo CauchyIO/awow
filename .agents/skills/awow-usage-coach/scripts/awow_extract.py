@@ -50,22 +50,48 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 # Shared, canonical reader for an mlflow_export — the single source of the mlflow.*
-# field strings, used by both this extractor and tools/session_timeline.py so the two
-# consumers can't silently diverge on the trace format. Lives under the repo's tools/.
-sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "tools"))
-try:
-    import mlflow_reader as mr
-except ImportError as e:
+# field strings, used by both this extractor and session_timeline.py so the two
+# consumers can't silently diverge on the trace format.
+#
+# Two legitimate layouts, because this skill ships in the awow-telemetry plugin
+# as well as living in the maintainer repo:
+#   <plugin>/skills/awow-usage-coach/scripts/       -> parents[3] is <plugin>
+#   <repo>/.agents/skills/awow-usage-coach/scripts/ -> parents[4] is <repo>
+# Both put the reader at <root>/tools/mlflow_reader.py.
+#
+# The plugin's own root is tried FIRST, deliberately. A marketplace install puts
+# the payload at <clone>/dist-telemetry/, so parents[4] is the awow clone — which
+# also carries tools/mlflow_reader.py. Trying that first makes an installed
+# plugin load its dependency from outside its own payload whenever it happens to
+# sit inside a checkout. The two copies are identical today, which is precisely
+# why the wrong order would go unnoticed until they diverge.
+#
+# If neither holds, fail loudly naming every path tried — a missing reader means
+# the trace format is unknown, and guessing it is worse than stopping.
+_HERE = Path(__file__).resolve()
+_CANDIDATE_TOOL_DIRS = [_HERE.parents[3] / "tools", _HERE.parents[4] / "tools"]
+for _d in _CANDIDATE_TOOL_DIRS:
+    if (_d / "mlflow_reader.py").is_file():
+        sys.path.insert(0, str(_d))
+        break
+else:
     raise SystemExit(
-        "could not import the shared mlflow_reader (expected at <repo>/tools/mlflow_reader.py); "
-        f"is this script running inside the awow repo tree? ({e})")
+        "could not locate the shared mlflow_reader.py. Looked in:\n  "
+        + "\n  ".join(str(d) for d in _CANDIDATE_TOOL_DIRS)
+        + "\nExpected either the awow repo tree (<repo>/tools/) or an installed "
+          "awow-telemetry plugin (<plugin>/tools/).")
+import mlflow_reader as mr
 
 # ---------------------------------------------------------------------------
 # awow surface: what we know exists in the repo
 # ---------------------------------------------------------------------------
 
-# Commands declared under .agents/commands/. The set is enumerated so reports
-# can call out *coverage* (which exist, which are unused).
+# Commands declared under .agents/commands/.
+# The set is enumerated so reports can call out *coverage* — which commands
+# exist, which go unused. It must therefore name only commands that can still
+# be invoked: `weekly-digest` and `cross-team-view` were removed from the
+# surface, and the weekly window survives as a /daily-digest parameter rather
+# than as its own command (design spec 4.4).
 KNOWN_COMMANDS = {
     "setup-awow": "kickoff",
     "awow-add": "meta",
@@ -73,10 +99,7 @@ KNOWN_COMMANDS = {
     "refinement-prep": "seed",
     "process-workitem": "seed",
     "process-transcript": "seed",
-    "board-skill": "spread",
     "daily-digest": "standardise",
-    "weekly-digest": "standardise",
-    "cross-team-view": "standardise",
 }
 
 # Canonical paths the awow style guide treats as "expensive to change" — the

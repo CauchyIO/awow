@@ -20,5 +20,9 @@ jobs:
         run: python3 tests/gather-tokens/test_tokens.py
       - name: Payload classification
         run: python3 tests/payload-classification/test_classification.py
+      - name: Telemetry split
+        run: python3 tests/telemetry-split/test_telemetry_split.py
+      - name: Orphan detection across payload roots
+        run: python3 tests/telemetry-split/test_orphan_roots.py
       - name: Harness wiring checks (Layer 1, no model)
         run: bash tests/harness/run-harness-tests.sh all

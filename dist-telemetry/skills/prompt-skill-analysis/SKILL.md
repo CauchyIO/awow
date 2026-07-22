@@ -1,6 +1,7 @@
 ---
 name: prompt-skill-analysis
 description: "Assess prompt-engineering quality from a Claude Code session and write a markdown report. Use when the user asks for a prompt-skill review, prompting feedback, prompt-quality assessment, or wants to evaluate how well they (or someone else) prompt Claude Code. Accepts either a raw Claude Code session JSONL file (e.g. `~/.claude/projects/<id>/<session>.jsonl`) or an `mlflow_export` directory produced by the mlflow-export skill. Auto-detects single-session vs multi-session input."
+channel: telemetry
 ---
 
 # Prompt-Skill Analysis

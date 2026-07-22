@@ -1,6 +1,7 @@
 ---
 name: project-timeline
 description: "Build an interactive visual timeline + whole-project read of how a repo was built across many agent sessions — the fan-out/contract rhythm, handoffs, idle time, context load, per-user split, token cost, and optional per-session coaching. Reads raw Claude Code logs (zero setup, richest detail) or an mlflow_export of Databricks traces (multi-user; auto-split into one dashboard per project, with an in-UI user filter). Use when the user wants to see how a project actually got built across sessions, asks for a visual project/session timeline, or wants a whole-project read to base coaching on. Not for board-linked prose digests (use the digests) or deep prompt-craft scoring (use prompt-skill-analysis)."
+channel: telemetry
 ---
 
 # Project Timeline — visual timeline + meta-analysis of a project's sessions

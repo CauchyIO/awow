@@ -46,6 +46,11 @@ Read the **committed** candidate files in `{HUB}/context/kb-inbox/` (skip `READM
 `_synthesis-log.md`). If a file is present but uncommitted, warn and skip it — the drain
 operates on committed state (`synthesis.md`, *Input*).
 
+Read each candidate's `kind`. Absent means `knowledge`. Keep the two lanes separate from
+here on: they take different disposition sets and land in different trees. Report the
+split in one line (`4 knowledge, 1 guidance`) so the user knows what is about to be
+judged against what.
+
 If the inbox holds no candidates, say so and stop — there is nothing to drain. Point the
 user at `/kb-mine` to produce some.
 
@@ -64,6 +69,14 @@ assign a disposition — **novel** (write a new note), **matches** (annotate/str
 existing note), **covered** (no-op), or **thin** (drop) — and flag any candidate that
 *contradicts* an existing note for reconciliation.
 
+For `kind: guidance` candidates, follow that contract's *Guidance candidates* section
+instead: read the `suggested_target` file **and its siblings**, then assign **novel**,
+**sharpens**, **covered**, **contradicts**, **unroutable**, or **thin**. Count the rules
+in the destination first — at ten, the plan carries a merge or a replacement, never an
+eleventh append. A candidate with `suggested_target: UNROUTED`, or one naming a file
+that does not exist, is **unroutable**: it stays in the inbox and is reported. Never
+create a convention or style file to give a candidate somewhere to go.
+
 Do not write anything yet. Assemble the **drain plan**: for each candidate, its
 disposition, its target path, and (for contradictions) the conflict to resolve.
 
@@ -72,7 +85,14 @@ disposition, its target path, and (for contradictions) the conflict to resolve.
 ## Phase 2 — The gate, then apply
 
 Present the drain plan and **wait for approval** — this is the promotion gate; do not
-cross it on your own. On approval, apply per `synthesis.md`, *The gate*:
+cross it on your own.
+
+For every guidance candidate in the plan, show its `source_quote` verbatim next to the
+diff that would land. A rule the user approves without seeing the sentence it came from
+is guessed, not approved. A guidance candidate with no `source_quote` is malformed —
+report it, leave it in the inbox, and do not offer it for approval.
+
+On approval, apply per `synthesis.md`, *The gate*:
 
 1. Apply each approved disposition (write / annotate / no-op / drop).
 2. Leave a `Promoted to {HUB}/context/knowledge-base/<subfolder>/<x>.md` pointer in the source
@@ -91,6 +111,9 @@ lost. Reconcile contradictions *with* the user; never silently overwrite a note.
   this command must not diverge from them.
 - **Gated writes only.** No write into `{HUB}/context/knowledge-base/`, no board comment, and no
   inbox removal before explicit approval.
+- **Never create a convention or style file.** A guidance candidate with no existing
+  destination is *unroutable* and stays in the inbox. Promotion moves a rule into a file
+  someone already decided to keep; it never invents one.
 - **Committed state only.** Drain committed candidates; never an uncommitted file.
 - **Human-gated by default.** This command is the interactive drain. An unattended nightly
   mode is out of scope (see `synthesis.md`, *Autonomous mode*).

@@ -1,5 +1,6 @@
 ---
-description: "drive or capture a solution-design session"
+description: "Use when the user is weighing architectural or solution options, is about to lock a design decision, or points at a transcript of a design discussion — before the decision only exists in chat."
+autofire: true
 phase: spread
 prerequisites:
   - "Step 0 of /setup-awow complete (the agent can read and write the board)"

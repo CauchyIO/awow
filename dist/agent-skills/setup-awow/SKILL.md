@@ -1,6 +1,6 @@
 ---
 name: setup-awow
-description: "incremental, resumable bootstrap"
+description: "Use when a repo has awow files but no board wiring or team context yet, or the user asks how to get started with awow, connect their issue board, or resume an unfinished setup."
 ---
 
 # /setup-awow — incremental, resumable bootstrap

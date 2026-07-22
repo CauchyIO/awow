@@ -1,6 +1,6 @@
 ---
 name: design-system
-description: "stand up or adopt a design system"
+description: "Use when the user wants one house style for the HTML they generate — asks to stand up or adopt a design system, points at a site or brand to derive tokens from, or says every deck looks different."
 ---
 
 # /design-system — stand up or adopt a design system

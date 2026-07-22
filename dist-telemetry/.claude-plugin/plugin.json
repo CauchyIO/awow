@@ -4,7 +4,7 @@
   "description": "Session analysis for awow: export agent traces, build a visual project timeline, score prompt craft, and coach a team or an individual off what the sessions actually show. Installs beside awow@awow; neither requires the other.",
   "version": "0.6.0",
   "author": {
-    "name": "awow maintainers"
+    "name": "Casper Lubbers"
   },
   "license": "MIT",
   "homepage": "https://github.com/CauchyIO/awow",

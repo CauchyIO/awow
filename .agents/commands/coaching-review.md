@@ -1,4 +1,6 @@
 ---
+description: "Use when the user shares a transcript or recording of a coaching, pairing, mentoring, demo, or onboarding session and wants feedback on how the teaching went, not on what was decided."
+autofire: true
 phase: spread
 prerequisites:
   - "Step 0 of /setup-awow complete (the agent can read and write the board)"

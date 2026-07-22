@@ -1,6 +1,6 @@
 ---
 name: solution-design-flow
-description: "drive or capture a solution-design session"
+description: "Use when the user is weighing architectural or solution options, is about to lock a design decision, or points at a transcript of a design discussion — before the decision only exists in chat."
 ---
 
 # /solution-design-flow — drive or capture a solution-design session

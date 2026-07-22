@@ -1,4 +1,5 @@
 ---
+description: "Use when the user asks what they should work on, what is pending or waiting on them, or says they have lost track of the board and want to get oriented before starting a block of work."
 phase: spread
 prerequisites:
   - "Step 1 of /setup-awow complete (the agent can read the board)"

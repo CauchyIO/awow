@@ -1,5 +1,5 @@
 ---
-description: "stand up or adopt a design system"
+description: "Use when the user wants one house style for the HTML they generate — asks to stand up or adopt a design system, points at a site or brand to derive tokens from, or says every deck looks different."
 phase: spread
 prerequisites:
   - "Step 1 of /setup-awow complete (the agent can read and write the board)"

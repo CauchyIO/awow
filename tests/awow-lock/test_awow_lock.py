@@ -144,5 +144,91 @@ class AwowLockThreeWay(unittest.TestCase):
         self.assertNotIn("conflict", verdicts)
 
 
+class AwowLockRetrofitBaseline(unittest.TestCase):
+    """A repo that vendored awow *before* the lockfile machinery existed.
+
+    The working tree already carries local customizations, so a plain
+    `backfill` (which hashes the working tree) would record them as the
+    baseline and the next `apply` would clobber them as clean "update"s.
+    Both retrofit modes must instead classify them as conflicts:
+
+        backfill --baseline-ref <ref>   hash the target repo at the commit
+                                        where awow was originally vendored
+        backfill --source <clone>       match each local file against every
+                                        content version in upstream history;
+                                        no match means locally modified
+    """
+
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        base = Path(self._tmp.name)
+        self.src = base / "src"
+        self.tgt = base / "tgt"
+        self.src.mkdir()
+        self.tgt.mkdir()
+
+        # Upstream 0.1.0, then 0.2.0 changes a.md and b.md.
+        _seed_repo(self.src, "0.1.0")
+        _write(self.src / ".claude-plugin" / "plugin.json",
+               json.dumps({"name": "awow", "version": "0.2.0"}) + "\n")
+        _write(self.src / ".agents" / "commands" / "a.md", "UPSTREAM a\n")
+        _write(self.src / ".agents" / "commands" / "b.md", "UPSTREAM b\n")
+        _git(self.src, "add", "-A")
+        _git(self.src, "commit", "-qm", "v0.2.0")
+
+        # Target vendored 0.1.0 (the seed commit), then the team customized
+        # b.md and added a team-only command — with no lockfile anywhere.
+        _seed_repo(self.tgt, "0.1.0")
+        _write(self.tgt / ".agents" / "commands" / "b.md", "LOCAL b\n")
+        _write(self.tgt / ".agents" / "commands" / "team-only.md", "ours\n")
+        _git(self.tgt, "add", "-A")
+        _git(self.tgt, "commit", "-qm", "team customizations")
+
+        proc = subprocess.run(
+            ["git", "-C", str(self.tgt), "rev-list", "--max-parents=0", "HEAD"],
+            check=True, capture_output=True, text=True,
+        )
+        self.vendor_commit = proc.stdout.strip()
+
+    def tearDown(self) -> None:
+        self._tmp.cleanup()
+
+    def _plan_verdicts(self) -> dict:
+        plan = json.loads(_lock(self.tgt, "status", "--source", str(self.src), "--json"))
+        return plan, {e["rel"]: e["verdict"] for e in plan["entries"]}
+
+    def _assert_customization_protected(self) -> None:
+        plan, v = self._plan_verdicts()
+        cmd = ".agents/commands"
+        # untouched since vendoring, upstream moved -> clean update
+        self.assertEqual(v[f"{cmd}/a.md"], "update")
+        # team-customized, upstream also moved -> conflict, never "update"
+        self.assertEqual(v[f"{cmd}/b.md"], "conflict")
+        # untouched, upstream unchanged -> skip
+        self.assertEqual(v[f"{cmd}/c.md"], "skip")
+
+        _lock(self.tgt, "apply", "--source", str(self.src), "--json")
+        cmd_dir = self.tgt / ".agents" / "commands"
+        self.assertEqual((cmd_dir / "a.md").read_text(), "UPSTREAM a\n")
+        self.assertEqual((cmd_dir / "b.md").read_text(), "LOCAL b\n")
+        self.assertEqual((cmd_dir / "b.md.awow").read_text(), "UPSTREAM b\n")
+        self.assertEqual((cmd_dir / "team-only.md").read_text(), "ours\n")
+        self.assertFalse((cmd_dir / "team-only.md.awow").exists())
+
+    def test_baseline_ref_seeds_from_vendor_commit(self) -> None:
+        _lock(self.tgt, "backfill", "--baseline-ref", self.vendor_commit)
+        lock = json.loads((self.tgt / "tools" / "awow.lock.json").read_text())
+        # baseline reflects the ref, not the customized working tree
+        self.assertNotIn(".agents/commands/team-only.md", lock["files"])
+        self._assert_customization_protected()
+
+    def test_source_history_matching_detects_local_edits(self) -> None:
+        _lock(self.tgt, "backfill", "--source", str(self.src))
+        lock = json.loads((self.tgt / "tools" / "awow.lock.json").read_text())
+        # never existed upstream -> not treated as starter-owned
+        self.assertNotIn(".agents/commands/team-only.md", lock["files"])
+        self._assert_customization_protected()
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

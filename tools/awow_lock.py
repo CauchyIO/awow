@@ -30,6 +30,25 @@ Subcommands
     backfill   Create/refresh the baseline from the LOCAL tree (run at install
                time — at t0 local == upstream, so hashing local gives the
                correct baseline). Consumes tools/.awow-vendor-stamp if present.
+
+               A repo that customized starter files BEFORE the lockfile existed
+               must not backfill from the working tree: the edits would become
+               the baseline and the next apply would overwrite them as clean
+               updates. Two retrofit modes seed a truthful baseline instead:
+
+               --baseline-ref <ref>  hash this repo's tree at <ref> — the
+                                     commit where awow was originally vendored.
+               --source <clone>      match each local file against every content
+                                     version in the upstream clone's history.
+                                     A match means pristine (baseline = local);
+                                     no match means team-edited (baseline = the
+                                     oldest upstream version, so the file lands
+                                     as conflict/keep-local, never update).
+                                     Files with no upstream history at all are
+                                     team-owned and stay out of the lock. One
+                                     blind spot: a file the team deleted looks
+                                     identical to one never vendored, so it
+                                     comes back as `new` on apply.
     status     Read-only. Offline: report version + which starter files you've
                locally modified. With --source: full 3-way plan + version delta.
     apply      Perform the update against --source: overwrite `update`/`new`
@@ -260,6 +279,139 @@ def _copy(src: Path, dst: Path) -> None:
 
 
 # --------------------------------------------------------------------------- #
+# retrofit baselines — repos that predate the lockfile
+# --------------------------------------------------------------------------- #
+
+def _sha256_bytes(data: bytes) -> str:
+    return "sha256:" + hashlib.sha256(data).hexdigest()
+
+
+def _show_at_ref(repo: Path, ref: str, rel: str) -> bytes | None:
+    """Blob content of rel at ref, or None if the path is absent at that ref.
+
+    Absence is a legitimate answer the callers branch on; any other git
+    failure (bad ref, not a repo) is raised by the caller that resolves refs.
+    """
+    proc = subprocess.run(
+        ["git", "-C", str(repo), "show", f"{ref}:{rel}"],
+        capture_output=True,
+    )
+    if proc.returncode != 0:
+        return None
+    return proc.stdout
+
+
+def _files_at_ref(repo: Path, ref: str, mode: dict) -> list[str]:
+    proc = subprocess.run(
+        ["git", "-C", str(repo), "ls-tree", "-r", "--name-only", "-z",
+         ref, "--", *STARTER_PATHS],
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0:
+        raise SystemExit(f"git ls-tree {ref} failed: {proc.stderr.strip()}")
+    return [rel for rel in proc.stdout.split("\0")
+            if rel and not _excluded(rel, mode)]
+
+
+def _read_version_at_ref(repo: Path, ref: str):
+    for rel in (".claude-plugin/plugin.json", ".github/plugin/plugin.json"):
+        blob = _show_at_ref(repo, ref, rel)
+        if blob is not None:
+            version = json.loads(blob).get("version")
+            if version:
+                return version
+    return None
+
+
+def _baseline_from_ref(root: Path, ref: str, mode: dict) -> dict:
+    """Baseline = this repo's starter tree as of ref (the vendor commit)."""
+    files = {}
+    for rel in _files_at_ref(root, ref, mode):
+        blob = _show_at_ref(root, ref, rel)
+        if blob is None:  # ls-tree listed it, so this is a real git failure
+            raise SystemExit(f"could not read {ref}:{rel}")
+        files[rel] = _sha256_bytes(blob)
+    return files
+
+
+def _history_hashes(source: Path, rels: set[str]) -> dict:
+    """Every content hash each rel ever had anywhere in source's history."""
+    proc = subprocess.run(
+        ["git", "-C", str(source), "log", "--all", "--no-renames", "--raw",
+         "--no-abbrev", "--format="],
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0:
+        raise SystemExit(f"git log in {source} failed: {proc.stderr.strip()}")
+
+    blobs_by_rel: dict[str, set] = {}
+    for line in proc.stdout.splitlines():
+        if not line.startswith(":"):
+            continue
+        meta, _, rel = line.partition("\t")
+        if rel not in rels:
+            continue
+        new_blob = meta.split()[3]
+        if set(new_blob) == {"0"}:  # deletion — no content on the new side
+            continue
+        blobs_by_rel.setdefault(rel, set()).add(new_blob)
+
+    cache: dict[str, str] = {}
+    hashes_by_rel = {}
+    for rel, blobs in blobs_by_rel.items():
+        hashes = set()
+        for blob in blobs:
+            if blob not in cache:
+                p = subprocess.run(
+                    ["git", "-C", str(source), "cat-file", "blob", blob],
+                    capture_output=True,
+                )
+                if p.returncode != 0:
+                    raise SystemExit(f"git cat-file {blob} in {source} failed")
+                cache[blob] = _sha256_bytes(p.stdout)
+            hashes.add(cache[blob])
+        hashes_by_rel[rel] = hashes
+    return hashes_by_rel
+
+
+def _oldest_upstream_hash(source: Path, rel: str) -> str:
+    proc = subprocess.run(
+        ["git", "-C", str(source), "rev-list", "--reverse", "--all", "--", rel],
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0 or not proc.stdout.strip():
+        raise SystemExit(f"no history for {rel} in {source}")
+    first = proc.stdout.splitlines()[0]
+    blob = _show_at_ref(source, first, rel)
+    if blob is None:
+        raise SystemExit(f"could not read {first}:{rel} in {source}")
+    return _sha256_bytes(blob)
+
+
+def _baseline_from_source_history(root: Path, source: Path, mode: dict) -> dict:
+    """Classify each local starter file against upstream's full history.
+
+    Hash found in history -> pristine at some released version, baseline is
+    the local hash. Not found -> team-edited, baseline is the oldest upstream
+    version so the 3-way compare protects it. Never existed upstream ->
+    team-owned, left unmanaged.
+    """
+    rels = list(_iter_starter_files(root, mode))
+    history = _history_hashes(source, set(rels))
+    files = {}
+    for rel in rels:
+        known = history.get(rel)
+        if known is None:
+            continue
+        local_h = _sha256(root / rel)
+        files[rel] = local_h if local_h in known else _oldest_upstream_hash(source, rel)
+    return files
+
+
+# --------------------------------------------------------------------------- #
 # 3-way classification
 # --------------------------------------------------------------------------- #
 
@@ -331,7 +483,8 @@ def _baseline_from_source(root: Path, source: Path, mode: dict, old_files: dict)
 # subcommands
 # --------------------------------------------------------------------------- #
 
-def cmd_backfill(root: Path) -> int:
+def cmd_backfill(root: Path, baseline_ref: str | None = None,
+                 source: Path | None = None) -> int:
     lock = _load_lock(root)
     stamp = _read_stamp(root)
     mode = _resolve_mode(lock, stamp)
@@ -339,17 +492,23 @@ def cmd_backfill(root: Path) -> int:
     version = (
         (stamp or {}).get("awow_version")
         or (lock or {}).get("awow_version")
+        or (baseline_ref and _read_version_at_ref(root, baseline_ref))
         or _read_version(root)
     )
     commit = (stamp or {}).get("source_commit") or (lock or {}).get("source_commit") or _git_commit(root)
 
-    # Which files to hash: an existing lock's set (re-hash), else enumerate.
-    if lock and lock.get("files"):
-        rels = list(lock["files"])
+    if baseline_ref:
+        files = _baseline_from_ref(root, baseline_ref, mode)
+    elif source:
+        files = _baseline_from_source_history(root, source, mode)
     else:
-        rels = list(_iter_starter_files(root, mode))
-
-    files = {rel: _sha256(root / rel) for rel in rels if (root / rel).exists()}
+        # t0 install: local == upstream, so hashing the working tree is the
+        # correct baseline. Re-hash an existing lock's file set if present.
+        if lock and lock.get("files"):
+            rels = list(lock["files"])
+        else:
+            rels = list(_iter_starter_files(root, mode))
+        files = {rel: _sha256(root / rel) for rel in rels if (root / rel).exists()}
 
     _write_lock(root, {
         "awow_version": version,
@@ -521,7 +680,14 @@ def main(argv=None) -> int:
                         help="target repo root (default: this repo)")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
-    sub.add_parser("backfill", help="create/refresh the baseline from the local tree")
+    p_back = sub.add_parser("backfill", help="create/refresh the baseline from the local tree")
+    retrofit = p_back.add_mutually_exclusive_group()
+    retrofit.add_argument("--baseline-ref",
+                          help="git ref of THIS repo to hash the baseline from "
+                               "(the commit where awow was originally vendored)")
+    retrofit.add_argument("--source", type=Path,
+                          help="upstream awow clone; classify each local file by "
+                               "matching it against the clone's full history")
 
     p_status = sub.add_parser("status", help="report version + drift (read-only)")
     p_status.add_argument("--source", type=Path, help="upstream awow clone / plugin root to compare against")
@@ -535,7 +701,11 @@ def main(argv=None) -> int:
     root = args.root.resolve()
 
     if args.cmd == "backfill":
-        return cmd_backfill(root)
+        return cmd_backfill(
+            root,
+            baseline_ref=args.baseline_ref,
+            source=args.source.resolve() if args.source else None,
+        )
     if args.cmd == "status":
         return cmd_status(root, args.source.resolve() if args.source else None, args.json)
     if args.cmd == "apply":

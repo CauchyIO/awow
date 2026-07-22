@@ -25,7 +25,7 @@ REPO_DIR="${CLAUDE_PROJECT_DIR:-${PWD}}"
 # substitution (render_plugin_body vs render_agent_skills_body), and the
 # agent-skills body resolves {AWOW_TOOLS} to ../../tools — a path that means
 # nothing to a Claude session.
-bootstrap_content="Error reading using-awow skill"
+bootstrap_content=""
 for candidate in "${PLUGIN_ROOT}/skills/using-awow/SKILL.md" \
                  "${PLUGIN_ROOT}/.agents/skills/using-awow/SKILL.md"; do
     if [ -r "${candidate}" ]; then
@@ -33,6 +33,14 @@ for candidate in "${PLUGIN_ROOT}/skills/using-awow/SKILL.md" \
         break
     fi
 done
+if [ -z "${bootstrap_content}" ]; then
+    # Fail loud, not soft: the 0.5.0 payload shipped with a one-line cat error
+    # quietly standing in for the whole reflex. A missing bootstrap must be
+    # unmistakable in the injected context AND on stderr. Exit stays 0 so a
+    # broken build degrades the session instead of bricking every SessionStart.
+    bootstrap_content="⚠️ awow: using-awow bootstrap NOT FOUND under ${PLUGIN_ROOT} (probed skills/ and .agents/skills/). The operating reflex did NOT load — this plugin build is broken. Report against CauchyIO/awow."
+    printf '%s\n' "${bootstrap_content}" >&2
+fi
 
 # One-time setup nudge: fire only when this repo has not adopted awow
 # (no .agents/AGENTS.md) AND the user has not opted out (no skip flag).

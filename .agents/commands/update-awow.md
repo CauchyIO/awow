@@ -50,9 +50,24 @@ wizard and never rewrites `context/team/`, `context/company/`, `board.md`,
 1. **Self-bootstrap — never ask the user to do this.** If `tools/awow_lock.py`
    is missing locally (the repo predates the update machinery), copy it from
    `<source>/tools/awow_lock.py` yourself. If `tools/awow.lock.json` is missing,
-   run `python tools/awow_lock.py backfill` to seed the baseline from the
-   current tree — it establishes "you are here" and changes no other file.
-   Report both actions in one line each.
+   seed it — the mode matters, because a repo that customized starter files
+   before the lockfile existed must not baseline those edits as pristine:
+   - **Fresh install, nothing customized yet:** `python tools/awow_lock.py
+     backfill` hashes the working tree — correct only when local still equals
+     the vendored upstream.
+   - **The vendor commit is findable** (search the repo's history for the
+     commit that introduced the awow starter files, e.g. `git log --oneline
+     --diff-filter=A -- .agents/AGENTS.md`): run `python tools/awow_lock.py
+     backfill --baseline-ref <commit>`. The baseline is the tree as vendored,
+     so every later team edit correctly classifies as keep-local or conflict.
+   - **Vendor commit not findable:** run `python tools/awow_lock.py backfill
+     --source <path>`. Each local file is matched against upstream's full
+     history — a match means pristine, no match means team-edited and
+     protected. One blind spot: a starter file the team deliberately deleted
+     is indistinguishable from one never vendored and returns as `new`;
+     re-delete it after apply.
+   Backfill only writes the lockfile — no other file changes. Report which
+   mode you used and why in one line.
 2. **Show the plan (read-only, proposal-first).** Run:
    ```
    python tools/awow_lock.py status --source <path>
@@ -64,13 +79,15 @@ wizard and never rewrites `context/team/`, `context/company/`, `board.md`,
      is left untouched** for you to merge.
    - **keep-local / removed-local / removed-upstream / unchanged** — no action.
 
-   **First-run caution:** when step 1 just seeded the lockfile, the compare
-   cannot distinguish "the team edited this" from "upstream moved" — every
-   locally-diverged starter file classifies as `update`. Walk the `update` list
-   against the team's known customisations and call out high-risk entries
-   yourself (`pyproject.toml` in a repo with its own Python project; anything
-   under `context/` the team filled in). Recommend excluding or hand-restoring
-   those rather than letting the user discover the clobber in review.
+   **First-run caution:** when step 1 just seeded the lockfile from the
+   working tree (plain `backfill` on a repo that was not actually pristine),
+   the compare cannot distinguish "the team edited this" from "upstream moved"
+   — every locally-diverged starter file classifies as `update`. Prefer the
+   retrofit modes in step 1; if you had to seed from the working tree anyway,
+   walk the `update` list against the team's known customisations and call out
+   high-risk entries yourself (`pyproject.toml` in a repo with its own Python
+   project; anything under `context/` the team filled in) rather than letting
+   the user discover the clobber in review.
 
    Nothing has been written yet. If invoked with `--check`, stop here.
 3. **Get explicit approval.** Do not apply until the user confirms. This is the

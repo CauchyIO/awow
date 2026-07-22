@@ -1,7 +1,7 @@
 ---
 phase: standardise
 prerequisites:
-  - "{HUB}/context/kb-inbox/ holds one or more candidate files (produced by /kb-mine or /daily-routine)"
+  - "{HUB}/context/kb-inbox/ holds one or more candidate files (produced by /kb-mine)"
   - "{HUB}/context/knowledge-base/ set up (the durable layer the drain writes into)"
 removes_pain: "mined candidates piling up in the inbox because promoting them is a manual slog"
 ---
@@ -50,7 +50,7 @@ Read the **committed** candidate files in `{HUB}/context/kb-inbox/` (skip `READM
 operates on committed state (`synthesis.md`, *Input*).
 
 If the inbox holds no candidates, say so and stop — there is nothing to drain. Point the
-user at `/kb-mine` or `/daily-routine` to produce some.
+user at `/kb-mine` to produce some.
 
 Accept an optional filter argument (e.g. a date `YYYY-MM-DD` or a source) to drain only a
 subset; default is the whole inbox.

@@ -18,5 +18,7 @@ post() {
   file-contains "digests/$d.md" 'AWOW-101'
   file-contains "digests/$d.md" 'AWOW-102'
   file-not-contains "digests/$d.md" 'QX-DIFF-CANARY-7Q'
+  # No HTML, ever — the command forbids rendering it (Behavioral boundaries).
   file-absent "digests/$d.html"
+  file-contains "digests/$d.md" 'tags:'
 }

@@ -12,8 +12,6 @@ Maintainer-only. Adopters who templated this repo can delete this directory.
 > /test-awow setup-awow --keep        # leave scratch dirs after the run
 ```
 
-(`/test-setup-awow` remains as a deprecated alias.)
-
 Outcomes: `pass` (judge has zero `no` AND every post-check passed), `fail` (either witness objects), `indeterminate` (the run could not be graded: broken fixture, broken check, no actual execution, or no judge verdict — the run file's `stage` names which). Run files: `/tmp/awow-test-runs/<suite>-<scenario>-<ts>.json` (schema 2).
 
 ## Layout

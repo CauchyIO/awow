@@ -15,6 +15,8 @@ You are not evaluating performance. You are not doing strategic forecasting. You
 
 **The team has already written down how it works with its board — defer to it, don't reinvent it.** `{HUB}/context/tooling/board.md` is the mechanics: write surface, states, and the board's limitations. the repo's agent instructions (`AGENTS.md`) carry the look-first, never-duplicate rule; `{HUB}/context/team/style/board-output.md` carries placement and minimum-useful discipline. Read those before proposing anything, and when in doubt, propose less.
 
+**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{HUB}/context/tooling/board.md` yourself.
+
 **Writes to the board — but only after a gate.** Everything up to Section 5 is read-only synthesis. No issue is created, moved, or commented on until the user explicitly approves in Section 5.
 
 ---

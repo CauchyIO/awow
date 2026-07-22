@@ -69,7 +69,7 @@ Where this surface lives is **Decision D1** below — it overlaps directly with 
 - **WI-4** — `.codex-plugin/plugin.json` (+ `.agents/plugins/marketplace.json`), empty `"hooks": {}`, version-locked.
 - **WI-5** — `.pi/extensions/awow.ts` + `package.json` `"pi"` field + awow bootstrap/tool-mapping.
 - **WI-6** — sync/package scripts adapted from superpowers; PR-only, branch-protection-safe.
-- **WI-7** — regression tests (extend `tests/setup-awow/` + `/test-setup-awow`) for both surfaces and both manifests.
+- **WI-7** — regression tests (extend `tests/setup-awow/`, run via `/test-awow setup-awow`) for both surfaces and both manifests.
 
 ## Decisions the team must make explicitly
 

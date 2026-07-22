@@ -30,6 +30,8 @@ This is the **seed** shipped with awow v0.1 — the flow below is a sensible def
 
 Resolve the ID via the team's board surface (per `{HUB}/context/tooling/board.md`), or read the local cache at `{PROJECT}/proposals/workitems/<id>.md`. Read it through the lens of `user-story-template.md`: title, body (what changes + why), tags, acceptance criteria if present, scope boundary if present, parent/children, recent comments.
 
+**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{HUB}/context/tooling/board.md` yourself.
+
 Confirm to the user: title, state, number of children, the archetype you plan to route to.
 
 **Check the dependency graph.** If the item carries `Blocked by` edges (native board links, a body `Blocked by:` line, or the `/project-plan` plan artefact), verify those predecessors are done before starting. If a blocker is open, surface it and ask whether to proceed anyway or pick an unblocked item — do not silently start work the plan says is gated.

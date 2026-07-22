@@ -76,7 +76,6 @@ ALWAYS_EXCLUDE = {
     "tools/distribute.py",
     "tools/reset-adopter-state.py",
     "tools/sync-dist.sh",
-    ".agents/commands/test-setup-awow.md",
     ".agents/commands/awow-reset.md",
     LOCK_REL,
     STAMP_REL,

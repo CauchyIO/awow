@@ -6,6 +6,7 @@ prerequisites:
   - "A project plan with a stated dependency graph exists — produced by /project-plan from a /solution-design-flow design and published to the board"
   - "More than one person or team coordinating on shared work"
 removes_pain: "the who's-waiting-on-whom-and-what-only-I-can-unblock problem"
+channel: vendored
 ---
 
 # /project-manager — run the delivery coordination loop
@@ -18,7 +19,7 @@ This is the **forward, operational** view of delivery. It is distinct from its n
 
 - `/my-work` — *inbound, personal*: what the board is asking of one person.
 - `/daily-checkin` — *outbound, personal*: someone narrates their own day, you update the board.
-- `/daily-digest`, `/weekly-digest` — *retrospective, team-wide*: what the team shipped.
+- `/daily-digest` — *retrospective, team-wide*: what the team shipped, over a day or a week (`/daily-digest --week`).
 - `/project-manager` — *forward, delivery*: you check in across the team to unblock people, keep the graph true, and surface what only management can clear.
 
 Read-only until an explicit gate. You check in, triage, and propose; you do not message people, edit the graph, or mutate the board without approval.

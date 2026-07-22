@@ -5,9 +5,9 @@ snapshot's activity to narrate *what moved*, mining reads the snapshot's **deep
 `payload`** — issue descriptions, comment threads, PR bodies and diffs — to surface
 **durable knowledge** worth keeping.
 
-This is a **projection contract, not a command.** Both the combined `/daily-routine`
-and the standalone `/kb-mine` follow it. It assumes the day snapshot already
-exists (produced by the shared collection step, `context/tooling/activity-collection.md`)
+This is a **projection contract, not a command.** `/kb-mine` follows it. It assumes
+the day snapshot already exists (produced by the shared collection step,
+`context/tooling/activity-collection.md`)
 and never re-queries a source.
 
 **Read-only against the durable KB.** The only output is *candidates* staged in

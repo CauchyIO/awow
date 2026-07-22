@@ -14,5 +14,7 @@ post() {
   file-exists "digests/$d.md"
   file-contains "digests/$d.md" 'No chat data available today'
   file-contains "digests/$d.md" 'AWOW-301'
+  # No HTML, ever — the command forbids rendering it (Behavioral boundaries).
   file-absent "digests/$d.html"
+  file-contains "digests/$d.md" 'tags:'
 }

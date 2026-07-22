@@ -30,6 +30,8 @@ Determine whose work to pull. If the board identity is ambiguous, ask once; do n
 
 Query the board (surface per `{HUB}/context/tooling/board.md`) for items assigned to that person across all states. Pull enough to triage: title, state, priority, due date, last-update time, parent, and whether the item is blocked or in review.
 
+**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{HUB}/context/tooling/board.md` yourself.
+
 ### 3. Group by what it needs from you — not by raw status
 
 Do not dump a status list. Re-group into action buckets:

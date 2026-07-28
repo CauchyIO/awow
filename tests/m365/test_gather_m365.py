@@ -165,25 +165,50 @@ class TestJsonBuilders(unittest.TestCase):
     def test_declarative_agent_shape(self):
         cmd = gather_m365.CommandEntry("refinement-prep", ".agents/commands/refinement-prep.md", "Draft a feature", "d")
         da = gather_m365.build_declarative_agent(self._cfg(), "INSTR", [cmd])
+        self.assertEqual(da["$schema"], "https://developer.microsoft.com/json-schemas/copilot/declarative-agent/v1.7/schema.json")
         self.assertEqual(da["version"], "v1.7")
         self.assertEqual(da["instructions"], "INSTR")
         titles = [s["title"] for s in da["conversation_starters"]]
         self.assertEqual(titles, ["Explore awow", "Draft a feature"])
         self.assertEqual(da["actions"], [{"id": "awowFetch", "file": "fetchAwowContext.plugin.json"}])
 
+    def test_teams_manifest_structure(self):
+        manifest = gather_m365.build_teams_manifest(self._cfg())
+        self.assertEqual(manifest["$schema"], "https://developer.microsoft.com/json-schemas/teams/v1.19/MicrosoftTeams.schema.json")
+        self.assertEqual(manifest["manifestVersion"], "1.19")
+        self.assertEqual(manifest["icons"], {"color": "color.png", "outline": "outline.png"})
+        self.assertEqual(manifest["copilotAgents"]["declarativeAgents"][0]["file"], "declarativeAgent.json")
+        # Verify ID is stable
+        a = gather_m365.build_teams_manifest(self._cfg())["id"]
+        b = gather_m365.build_teams_manifest(self._cfg())["id"]
+        self.assertEqual(a, b)
+
+    def test_build_plugin_manifest(self):
+        cfg = self._cfg()
+        pm = gather_m365.build_plugin_manifest(cfg)
+        self.assertEqual(pm["$schema"], "https://developer.microsoft.com/json-schemas/copilot/plugin/v2.3/schema.json")
+        self.assertEqual(pm["schema_version"], "v2.3")
+        self.assertEqual(pm["namespace"], "awowfetch")
+        self.assertEqual(pm["functions"][0]["name"], "fetchAwowContext")
+        self.assertEqual(pm["runtimes"][0]["spec"]["url"], "fetchAwowContext.openapi.json")
+        self.assertEqual(pm["runtimes"][0]["auth"], {"type": "None"})
+
     def test_openapi_targets_contents_api(self):
-        spec = gather_m365.build_openapi_spec(self._cfg())
+        cfg = self._cfg()
+        spec = gather_m365.build_openapi_spec(cfg)
+        self.assertEqual(spec["openapi"], "3.0.1")
         self.assertEqual(spec["servers"], [{"url": "https://api.github.com"}])
         path = "/repos/CauchyIO/awow/contents/{filePath}"
         self.assertIn(path, spec["paths"])
         op = spec["paths"][path]["get"]
         self.assertEqual(op["operationId"], "fetchAwowContext")
         self.assertIn("%2F", op["parameters"][0]["description"])
-
-    def test_manifest_id_is_stable(self):
-        a = gather_m365.build_teams_manifest(self._cfg())["id"]
-        b = gather_m365.build_teams_manifest(self._cfg())["id"]
-        self.assertEqual(a, b)
+        # Verify ref query param default
+        ref_param = next(p for p in op["parameters"] if p["name"] == "ref")
+        self.assertEqual(ref_param["schema"]["default"], cfg.ref)
+        # Verify Accept header param default
+        accept_param = next(p for p in op["parameters"] if p["name"] == "Accept")
+        self.assertEqual(accept_param["schema"]["default"], "application/vnd.github.raw+json")
 
     def test_dump_json_deterministic(self):
         obj = {"b": 1, "a": [1, 2]}

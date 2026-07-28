@@ -44,21 +44,43 @@ def load_indirection(repo_root: Path) -> dict:
     missing = [k for k in REQUIRED_FIELDS if k not in fields]
     if missing:
         raise CascadeConfigError(f"{path}: missing field(s): {', '.join(missing)}")
+
+    try:
+        stale_after_days = int(fields["stale_after_days"])
+    except ValueError:
+        raise CascadeConfigError(f"{path}: stale_after_days must be an integer, got '{fields['stale_after_days']}'")
+
     return {
         "teams_root": fields["teams_root"],
         "read_scope": [s.strip() for s in fields["read_scope"].split(",") if s.strip()],
         "decisions_dir": fields["decisions_dir"],
-        "stale_after_days": int(fields["stale_after_days"]),
+        "stale_after_days": stale_after_days,
     }
 
 
 def parse_registry(text: str) -> list[dict]:
     rows = []
     for line in text.splitlines():
-        cells = [c.strip() for c in line.strip().strip("|").split("|")]
-        if len(cells) == 3 and cells[0] not in ("Team", "---", ":---"):
-            if not re.match(r"^-+$", cells[0]):
-                rows.append({"team": cells[0], "path": cells[1], "lead": cells[2]})
+        stripped = line.strip()
+        if not stripped:
+            continue
+
+        # Check if line looks like a table row (starts and ends with |)
+        if stripped.startswith("|") and stripped.endswith("|"):
+            cells = [c.strip() for c in stripped.strip("|").split("|")]
+
+            # Skip header and separator rows
+            if cells[0] in ("Team", "---", ":---"):
+                continue
+            if re.match(r"^-+$", cells[0]):
+                continue
+
+            # If it looks like a table row but doesn't have 3 cells, error
+            if len(cells) != 3:
+                raise CascadeConfigError(f"teams.md: malformed row '{stripped}' (expected 3 cells, got {len(cells)})")
+
+            rows.append({"team": cells[0], "path": cells[1], "lead": cells[2]})
+
     if not rows:
         raise CascadeConfigError("teams.md: no registry rows found (need a | Team | Path | Lead | table)")
     return rows

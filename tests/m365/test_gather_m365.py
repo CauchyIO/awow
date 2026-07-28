@@ -23,6 +23,27 @@ class TestLoadConfig(unittest.TestCase):
         with self.assertRaises(gather_m365.M365ConfigError):
             gather_m365.load_config(Path("/nonexistent"))
 
+    def test_empty_index_roots_fails_loud(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            cfg_dir = root / "context" / "tooling" / "m365"
+            cfg_dir.mkdir(parents=True)
+            (cfg_dir / "agent.md").write_text(
+                '---\n'
+                'agent_name: Test Agent\n'
+                'agent_description: "d"\n'
+                'github_repo: o/r\n'
+                'ref: main\n'
+                'explore_starter: "Explore"\n'
+                'index_roots: " , "\n'
+                '---\n\n'
+                'Identity body.\n'
+            )
+            with self.assertRaises(gather_m365.M365ConfigError) as ctx:
+                gather_m365.load_config(root)
+            self.assertIn("resolved to no roots", str(ctx.exception))
+
 
 FM = """---
 phase: seed
@@ -47,6 +68,20 @@ class TestM365Block(unittest.TestCase):
     def test_include_false(self):
         text = FM.replace("include: true", "include: false")
         self.assertFalse(gather_m365.parse_m365_block(text)["include"])
+
+    def test_no_closing_delimiter_returns_none(self):
+        text = (
+            "---\nphase: seed\nm365:\n  include: true\n"
+            '  conversation_starter: "x"\n\nbody without closing fence\n'
+        )
+        self.assertIsNone(gather_m365.parse_m365_block(text))
+
+    def test_m365_block_last_line_no_indented_after_returns_defaults(self):
+        text = "---\nphase: seed\nm365:\n---\n\nbody\n"
+        self.assertEqual(
+            gather_m365.parse_m365_block(text),
+            {"include": False, "conversation_starter": None},
+        )
 
 
 class TestIncludedCommands(unittest.TestCase):
@@ -235,6 +270,32 @@ class TestIndexAndInstructions(unittest.TestCase):
         with self.assertRaises(gather_m365.M365BudgetError):
             gather_m365.assemble_instructions(self._cfg(), [], huge)
 
+    def test_budget_boundary_exact(self):
+        # Measure the fixed overhead with an empty identity, then pad the identity
+        # so the assembled text lands exactly on the budget — and one over it.
+        index = [("context/team/mission.md", "m")]
+        baseline_text = gather_m365.assemble_instructions(self._cfg(identity=""), [], index)
+        padding = gather_m365.INSTRUCTION_BUDGET - len(baseline_text)
+        at_budget = gather_m365.assemble_instructions(self._cfg(identity="x" * padding), [], index)
+        self.assertEqual(len(at_budget), gather_m365.INSTRUCTION_BUDGET)
+        with self.assertRaises(gather_m365.M365BudgetError):
+            gather_m365.assemble_instructions(self._cfg(identity="x" * (padding + 1)), [], index)
+
+    def test_nonexistent_index_root_fails_loud(self):
+        with self.assertRaises(gather_m365.M365ConfigError) as ctx:
+            gather_m365.build_file_index(REPO_ROOT, ("nonexistent-root-xyz",))
+        self.assertIn("nonexistent-root-xyz", str(ctx.exception))
+
+    def test_overlapping_roots_dedup(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "a" / "b").mkdir(parents=True)
+            (root / "a" / "b" / "x.md").write_text("# X\n\nbody\n")
+            index = gather_m365.build_file_index(root, ("a", "a/b"), tracked=None)
+            paths = [p for p, _ in index]
+            self.assertEqual(paths, ["a/b/x.md"])
+
 
 class TestJsonBuilders(unittest.TestCase):
     def _cfg(self):
@@ -253,6 +314,13 @@ class TestJsonBuilders(unittest.TestCase):
         titles = [s["title"] for s in da["conversation_starters"]]
         self.assertEqual(titles, ["Explore awow", "Draft a feature"])
         self.assertEqual(da["actions"], [{"id": "awowFetch", "file": "fetchAwowContext.plugin.json"}])
+
+    def test_starter_ordering_two_commands(self):
+        cmd1 = gather_m365.CommandEntry("cmd1", ".agents/commands/cmd1.md", "First starter", "d1")
+        cmd2 = gather_m365.CommandEntry("cmd2", ".agents/commands/cmd2.md", "Second starter", "d2")
+        da = gather_m365.build_declarative_agent(self._cfg(), "INSTR", [cmd1, cmd2])
+        titles = [s["title"] for s in da["conversation_starters"]]
+        self.assertEqual(titles, [self._cfg().explore_starter, "First starter", "Second starter"])
 
     def test_teams_manifest_structure(self):
         manifest = gather_m365.build_teams_manifest(self._cfg())
@@ -293,6 +361,22 @@ class TestJsonBuilders(unittest.TestCase):
         obj = {"b": 1, "a": [1, 2]}
         self.assertEqual(gather_m365.dump_json(obj), gather_m365.dump_json(obj))
         self.assertTrue(gather_m365.dump_json(obj).endswith("\n"))
+
+    def test_short_description_word_boundary_truncation(self):
+        from dataclasses import replace
+        long_desc = "x" * 75 + " " + "y" * 20  # len 96; char 80 lands mid-word
+        cfg = replace(self._cfg(), agent_description=long_desc)
+        short = gather_m365.build_teams_manifest(cfg)["description"]["short"]
+        self.assertEqual(short, "x" * 75)
+        self.assertLessEqual(len(short), 80)
+
+    def test_short_description_no_space_hard_cut(self):
+        from dataclasses import replace
+        long_desc = "z" * 90  # single token, no spaces anywhere
+        cfg = replace(self._cfg(), agent_description=long_desc)
+        short = gather_m365.build_teams_manifest(cfg)["description"]["short"]
+        self.assertEqual(len(short), 80)
+        self.assertEqual(short, "z" * 80)
 
 
 class TestIcons(unittest.TestCase):

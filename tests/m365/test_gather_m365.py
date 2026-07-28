@@ -216,5 +216,18 @@ class TestJsonBuilders(unittest.TestCase):
         self.assertTrue(gather_m365.dump_json(obj).endswith("\n"))
 
 
+class TestIcons(unittest.TestCase):
+    def _size(self, data: bytes) -> tuple[int, int]:
+        import struct
+        self.assertEqual(data[:8], b"\x89PNG\r\n\x1a\n")
+        w, h = struct.unpack(">II", data[16:24])
+        return w, h
+
+    def test_icons_exist_with_required_sizes(self):
+        assets = REPO_ROOT / "context" / "tooling" / "m365" / "assets"
+        self.assertEqual(self._size((assets / "color.png").read_bytes()), (192, 192))
+        self.assertEqual(self._size((assets / "outline.png").read_bytes()), (32, 32))
+
+
 if __name__ == "__main__":
     unittest.main()

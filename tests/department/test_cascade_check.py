@@ -140,6 +140,11 @@ stale_after_days: not-a-number
             self.assertIn("stale_after_days", str(cm.exception))
             self.assertIn("integer", str(cm.exception))
 
+    def test_load_indirection_real_repo(self):
+        """Real repo: load_indirection(REPO_ROOT) succeeds and returns teams_root == 'teams'."""
+        result = cascade_check.load_indirection(REPO_ROOT)
+        self.assertEqual(result["teams_root"], "teams")
+
 
 class TestFindQuarterDoc(unittest.TestCase):
     def test_find_quarter_doc_newest_by_name(self):

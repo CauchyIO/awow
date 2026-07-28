@@ -42,7 +42,7 @@ Seven named tests, asked in order. The first six are pass/fail — stop and reso
 
 ## The reconciliation doctrine
 
-A structure without its reconciliation mechanism fails regardless of how well the structure itself is designed. Objectives, KRs, and a PI-plan mapping are the structure; `tools/cascade_check.py` riding `/okr-cascade` is the mechanism that actually catches drift, staleness, and orphaned objectives before they compound.
+A structure without its reconciliation mechanism fails regardless of how well the structure itself is designed. Objectives, KRs, and a PI-plan mapping are the structure; `{AWOW_TOOLS}/cascade_check.py` riding `/okr-cascade` is the mechanism that actually catches drift, staleness, and orphaned objectives before they compound.
 
 A ritual that depends on unaided human discipline — "someone will remember to check" — is not a mechanism. If the check stops running, or its findings stop getting acted on, treat that as the department's real failure, not a paperwork gap.
 

@@ -271,7 +271,7 @@ class TestFindingClasses(unittest.TestCase):
         a = make_team(self.tmp, "team-a", ["O1"])
         old = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=60)).strftime("%Y-%m-%dT%H:%M:%S+00:00")
         env = {**os.environ, "GIT_AUTHOR_DATE": old, "GIT_COMMITTER_DATE": old}
-        _git(a, "commit", "--amend", "--no-edit", env=env)
+        _git(a, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "--amend", "--no-edit", env=env)
         dept = make_department(self.tmp, [a], stale_after_days=28)
         result = cascade_check.run_check(dept)
         classes = [f["class"] for f in result["findings"]]

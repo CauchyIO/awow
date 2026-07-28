@@ -1,7 +1,9 @@
 ---
+description: "Use when a repo has awow files but no board wiring or team context yet, or the user asks how to get started with awow, connect their issue board, or resume an unfinished setup."
 phase: kickoff
 prerequisites: []
 removes_pain: "the I-cloned-the-repo-now-what-do-I-do problem"
+channel: bootstrap
 ---
 
 # /setup-awow — incremental, resumable bootstrap
@@ -35,7 +37,7 @@ Reframe **Step 2** as the user's focus for the work, not a team charter. Everyth
 
 ## Step 0 — Installer (REQUIRED)
 
-The starter pack uses `tools/gather.py` to mirror `.agents/` into the harness surfaces (`.claude/`, `.github/`). The installer wires Python via `uv`, creates `.venv`, and runs `gather.py` once so the harness can discover this very command.
+The starter pack uses `tools/gather.py` to mirror `.agents/` into the harness surfaces (`.claude/`, `.github/`, `.opencode/`). The installer wires Python via `uv`, creates `.venv`, and runs `gather.py` once so the harness can discover this very command.
 
 1. **Detect.** Run a cheap two-file probe — do not scan further:
    - `.claude/commands/setup-awow.md` present? (signals `gather.py` has run, i.e. stubs are populated)
@@ -49,7 +51,7 @@ The starter pack uses `tools/gather.py` to mirror `.agents/` into the harness su
    When invoked with `--root <path>`, both probes still inspect the *repo root* (not `<path>/`); the installer is shared, not duplicated per workspace. Record the inheritance in `<path>/setup-progress.md` so future invocations know Step 0 was satisfied transitively.
 2. **Request permission.** Tell the user you are about to run the platform-appropriate installer on their behalf (`./setup/install.sh` on macOS / Linux, `.\setup\install.ps1` on Windows / PowerShell) and ask for explicit confirmation before invoking the shell. Do not run it silently.
 3. **Run.** Once confirmed, execute the installer and surface its output verbatim. If it fails — most commonly because `uv` is not on PATH — surface the error and tell the user to install `uv` (`brew install uv` on macOS, or follow uv's installation docs) and then re-invoke `/setup-awow`. Do not try to recover by running `tools/gather.py` under system Python; the installer's error message is the right place to learn what is wrong.
-4. **Verify.** Confirm `.venv/` exists and that `.claude/commands/setup-awow.md` and `.github/prompts/setup-awow.prompt.md` are present.
+4. **Verify.** Confirm `.venv/` exists and that `.claude/commands/setup-awow.md`, `.github/prompts/setup-awow.prompt.md` and `.opencode/commands/setup-awow.md` are present.
 5. Mark Step 0 complete in `setup-progress.md` and continue to Step 1.
 
 ## Step 1 — Kickoff (REQUIRED)
@@ -60,11 +62,14 @@ Step 1 has two parts. Step 1a wires up the read/write surface (an MCP or, for Gi
 
 ### Step 1a — Wire the read/write surface
 
-1. **Establish harness.** The starter pack ships both `.claude/` and `.github/` directories, so their presence is not a signal — do **not** infer "both harnesses in use" from directory listing alone. The real signal is which harness you (the model) are currently running inside:
-   - If you are Claude Code, the user's current harness is Claude Code.
-   - If you are GitHub Copilot, the user's current harness is Copilot.
+1. **Establish harness.** The starter pack ships the `.claude/`, `.github/` and `.opencode/` directories, so their presence is not a signal — do **not** infer which harnesses are in use from directory listing alone. The real signal is which harness you (the model) are currently running inside:
+   - If you are Claude Code, the current harness is Claude Code.
+   - If you are GitHub Copilot, the current harness is Copilot.
+   - If you are Codex, the current harness is Codex. (Corroborating on-disk signal: a repo-root `AGENTS.md` alongside a `.codex-plugin/` directory.)
+   - If you are Pi, the current harness is Pi. (Corroborating on-disk signal: a `.pi/` directory.)
+   - If you are opencode, the current harness is opencode. (Corroborating on-disk signal: an `.opencode/` directory or a repo-root `opencode.json`.)
 
-   Tell the user: "I can see I'm running in `<current harness>`. Does your team also use `<the other one>`, or is `<current>` the only harness to wire up?" Accept one of: *current only*, *both*. Record the choice; this drives which install snippets you surface in step 4.
+   Tell the user: "I can see I'm running in `<current harness>`. Does your team use any other supported harness (Claude Code, Copilot, Codex, Pi, opencode), or is `<current>` the only one to wire up?" Accept *current only* or a list of the additional harnesses. Record the choice; this drives which install snippets you surface in step 4.
 
 2. **Detect existing board surface.** Look for an existing MCP server entry whose name or URL references a supported board tool (`linear`, `jira`, `azure`, `github`) in:
    - `.claude/settings.json` and `.claude/settings.local.json`
@@ -183,7 +188,7 @@ For each of the four REQUIRED conventions (`issue-titles.md`, `labels.md`, `bran
 
 Land each under `proposals/setup/step-3/<convention>.md`, get approval, move to `context/team/conventions/REQUIRED/<convention>.md`. Update `setup-progress.md`.
 
-**Session-board correlation (opt-in).** Ask whether the team wants agent-authored board entries linked back to their session traces. If **yes**, first run the `session-correlation` skill's prerequisite check: tracing must already be wired (`MLFLOW_CLAUDE_TRACING_ENABLED=true` plus the MLflow `Stop` hook in `.claude/settings.local.json`). This skill does **not** set tracing up — if it is missing, stop and point the user at the team's `claudetracing` library (`../claudetracing`) to configure tracing first, then resume. Once tracing is confirmed: install the footer rule from the skill — append its Rule 4 to `output-discipline.md` here, add its shape note to `board-output.md` in Step 4, and wire the SessionStart accessor hook per the skill's "Enabling it" steps. The rule then flows into the generated `CLAUDE.md` at Step 5 and is enforced from then on. If **no**: leave all three untouched; the skill stays available to enable later via `/awow-add`. Record the choice in `setup-progress.md`.
+**Session-board correlation (opt-in).** Ask whether the team wants agent-authored board entries linked back to their session traces. If **yes**, first run the `session-correlation` skill's prerequisite check: tracing must already be wired (`MLFLOW_CLAUDE_TRACING_ENABLED=true` plus the MLflow `Stop` hook in `.claude/settings.local.json`). This skill does **not** set tracing up — if it is missing, stop and point the user at their own tracing library to configure tracing first, then resume. Once tracing is confirmed: install the footer rule from the skill — append its Rule 4 to `output-discipline.md` here, add its shape note to `board-output.md` in Step 4, and wire the SessionStart accessor hook per the skill's "Enabling it" steps. The rule then flows into the generated `CLAUDE.md` at Step 5 and is enforced from then on. If **no**: leave all three untouched; the skill stays available to enable later via `/awow-add`. Record the choice in `setup-progress.md`.
 
 ## Step 4 — Members and style
 
@@ -203,7 +208,7 @@ Walk the user through `context/knowledge-base/README.md` — what lives there vs
 
 **The capture → synthesize spine.** Explain how durable knowledge gets *in*, so the KB isn't a folder nobody fills:
 
-- **Capture.** Mining a day's activity (`/kb-mine`, or `/daily-routine` Phase 3) stages candidates as committed files in `context/kb-inbox/` — one durable insight per file. Point the user at `context/kb-inbox/README.md`.
+- **Capture.** Mining a day's activity (`/kb-mine`) stages candidates as committed files in `context/kb-inbox/` — one durable insight per file. Point the user at `context/kb-inbox/README.md`.
 - **Tune.** What mining keeps is governed by `context/knowledge-base/mining-policy.md`. Show its frontmatter dials (`selectivity`, `categories`, the two caps). It ships strict (`selectivity: 2`); ask whether the team wants to start more generous, and adjust the one value if so. This is the only knob they need to touch.
 - **Synthesize.** Draining the inbox into the durable KB is `/kb-synthesize` (per `context/knowledge-base/synthesis.md`) — **human-gated by default** (novel → write, matches → annotate, covered → no-op, thin → drop). Make clear no autonomous write path ships; unattended nightly drain is opt-in and out of the box.
 
@@ -217,7 +222,7 @@ Ask for the 1° teams (teams whose work the user's team depends on or supplies i
 
 ## Step 8 — Surface the extras
 
-Read the commands in `.agents/commands/` whose frontmatter declares `phase: spread` or `phase: standardise`. List each command, its phase, its prerequisites, and the pain it removes. Tell the user:
+Read the commands whose frontmatter declares `phase: spread` or `phase: standardise` — from `{HUB}/.agents/commands/` if that directory exists (a vendored install), otherwise `{AWOW_ROOT}/commands/`. List each command, its phase, its prerequisites, and the pain it removes. Tell the user:
 
 > These are not installed. When you are ready for one, run `/awow-add <command>`.
 
@@ -228,13 +233,22 @@ Read the commands in `.agents/commands/` whose frontmatter declares `phase: spre
 
 Record the answer (and any configured `path:`) in `setup-progress.md`.
 
+**Build engine (detect, then suggest).** awow owns the outer loop (board, planning, landing) and hands the *build* step to an optional inner-loop engine. Detect whether one is installed by checking for a `superpowers` directory under `~/.claude/plugins/cache/*/`, `~/.claude/plugins/*/`, or this repo's `.claude/plugins/*/`.
+
+- **Found** — an engine is configured; name it and move on. The `board-aware-development` seam (skill + PreToolUse reminder) is already active. If this team also keeps an architecture plane (ADRs / design records / pattern notes) reachable by a KB agent, offer to write a `context/tooling/architecture.md` pointer (draft it to `proposals/setup/step-8/` first, approve, then land it) — that switches on the parallel `architecture-aware-development` seam. No plane → skip it; the seam stays dormant.
+- **Not found** — recommend it as **optional**: *"awow hands the build step to an inner-loop engine. superpowers adds TDD-gated build → review and lights up the board-aware-development seam (and the architecture-aware-development seam, when a `context/tooling/architecture.md` plane is present). Install it with `/plugin` from the `claude-plugins-official` marketplace. This is optional — awow runs on its baseline build guidance without it."* Do not install it for the user, and never make it required. Note that spec-kit is an alternative engine (spec-first rather than test-first) for teams who prefer it.
+
+This is a soft dependency by design. Do not add it to the plugin manifest's `dependencies`; that would force-install it on every adopter and couple awow across marketplaces.
+
+Record the choice (engine name, or "none — declined") in `setup-progress.md`.
+
 Update `setup-progress.md` to mark all steps surfaced.
 
 ## Step 9 — Skills review (keep / customise / drop)
 
-The starter pack ships several skills under `.agents/skills/`. Each is opinionated about *some* part of the stack — harness session format, tracing backend, rubric — and will not fit every team out of the box. This step walks the user through each shipped skill once they have enough context to make a call.
+The starter pack ships several skills — under `{HUB}/.agents/skills/` if that directory exists (a vendored install), otherwise `{AWOW_ROOT}/skills/`. Each is opinionated about *some* part of the stack — harness session format, tracing backend, rubric — and will not fit every team out of the box. This step walks the user through each shipped skill once they have enough context to make a call.
 
-For each entry in `.agents/skills/` (read the directory; both declarative `<name>.md` files and operational `<name>/SKILL.md` directories):
+For each entry in that directory (read it; a vendored install holds both declarative `<name>.md` files and operational `<name>/SKILL.md` directories, while the payload renders every skill as `<name>/SKILL.md`):
 
 1. Read the skill's frontmatter `description` and the first body paragraph. Summarise in one sentence.
 2. Identify the **specific assumption** the skill bakes in (e.g. *"assumes Databricks MLflow"*, *"reads Claude Code JSONL"*, *"uses our story template"*). The "Starter shape — adjust for ..." callout at the top of each shipped operational skill states this directly; quote it.
@@ -247,13 +261,14 @@ For each entry in `.agents/skills/` (read the directory; both declarative `<name
 4. Apply the user's answer:
    - **Keep** — no change.
    - **Customise** — open the SKILL.md and the bundled scripts. Draft the changes under `proposals/setup/step-10/<skill>/` first (full proposal-first treatment). Common customisations to surface as concrete options:
-     - **mlflow-export** — swap the exporter script for the team's tracing backend (LangSmith, Helicone, OTLP, raw JSONL). The downstream skills consume the JSON layout documented in `mlflow-export/SKILL.md`; match that shape or update the consumers too.
-     - **prompt-skill-analysis** — add a parser for the team's harness session format (Copilot, Cursor, etc.). The rubric is harness-agnostic; only the input branch needs work.
-     - **awow-usage-coach** — adjust the intent taxonomy if the team's vocabulary doesn't fit; otherwise rely on the harness-agnostic `working_directory` + `files_modified` lenses.
+     - **mlflow-export**, **prompt-skill-analysis**, **awow-usage-coach**, **project-timeline**, **session-export** — these five ship in the separate `awow-telemetry` plugin, not in `awow`. If the team has not installed it (`/plugin install awow-telemetry@awow`), say so once and move on; do not offer to customise skills that are not present. If it is installed, or the repo is vendored and carries the sources under `.agents/skills/`, the customisations worth surfacing are:
+       - **mlflow-export** — swap the exporter script for the team's tracing backend (LangSmith, Helicone, OTLP, raw JSONL). The downstream skills consume the JSON layout documented in `mlflow-export/SKILL.md`; match that shape or update the consumers too.
+       - **prompt-skill-analysis** — add a parser for the team's harness session format (Copilot, Cursor, etc.). The rubric is harness-agnostic; only the input branch needs work.
+       - **awow-usage-coach** — adjust the intent taxonomy if the team's vocabulary doesn't fit; otherwise rely on the harness-agnostic `working_directory` + `files_modified` lenses.
      - **user-story-template** — replace with the team's own template if it differs from the seeded shape.
    - **Drop** — `git rm -r` the skill directory or file. Note in `setup-progress.md` so a re-run of `/setup-awow` doesn't keep re-offering it.
 
-5. If the user wants to **add** a new skill that isn't in the starter pack, point at `.agents/skills/README.md` ("When to write a skill") and offer to scaffold one — either a declarative `<name>.md` or an operational `<name>/SKILL.md` with a `scripts/` directory.
+5. If the user wants to **add** a new skill that isn't in the starter pack, point at `{HUB}/.agents/skills/README.md` ("When to write a skill") when the vendored tree is present — the payload does not carry it — and offer to scaffold one — either a declarative `<name>.md` or an operational `<name>/SKILL.md` with a `scripts/` directory.
 
 Update `setup-progress.md` to mark Step 9 complete (record per-skill decisions inline so the next session has context).
 
@@ -265,4 +280,4 @@ If the user invokes `/setup-awow --quickstart`, do Steps 0 → 1 → 2 → 3 →
 
 ## Proposal-first
 
-Every artefact lands first under `proposals/setup/<step>/<file>.md`. The user reviews. Only after explicit approval does the wizard move the artefact to its final location. This is the proposal-first principle from `input/PROPOSAL.md` §3. Do not bypass it.
+Every artefact lands first under `proposals/setup/<step>/<file>.md`. The user reviews. Only after explicit approval does the wizard move the artefact to its final location. This is the proposal-first principle. Do not bypass it.

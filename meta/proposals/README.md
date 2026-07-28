@@ -21,10 +21,13 @@ When a proposal's state changes, update its `**Status:**` line *and* the row bel
 |---|---|---|
 | [meta-workspace-and-fixture-decoupling](meta-workspace-and-fixture-decoupling.md) | **Landed** | `dogfood/` → `meta/`, test fixtures decoupled (`feature/dry_run_awow`). |
 | [session-board-correlation](session-board-correlation.md) | **Landed** | `session-correlation` skill + footer rule + `tools/session_footer_hook.py`. |
-| [setup-awow-regression-tests](setup-awow-regression-tests.md) | **Landed** | `tests/setup-awow/` suite + `/test-setup-awow`. |
-| [plugin-distribution](plugin-distribution.md) | **Draft** | Second adoption path (Claude Code plugin). Awaiting review. |
+| [setup-awow-regression-tests](setup-awow-regression-tests.md) | **Landed** | `tests/setup-awow/` suite, run via `/test-awow setup-awow`. |
+| [plugin-distribution](plugin-distribution.md) | **Draft** | Second adoption path (Claude Code plugin). Awaiting review — candidate for **Superseded** by hub-and-spoke-adoption. |
+| [hub-and-spoke-adoption](hub-and-spoke-adoption.md) | **Draft** (WI-1 in build) | Adopt Martijn's two-path hub-and-spoke model: plugin machinery + hub context, connector per project. Work items WI-0..4 + decisions D1–D6 await review. |
+| [hub-and-spoke-design](hub-and-spoke-design.md) | **Accepted design** (MVP validated 5/5) | Concrete design from the 2026-07-12 maintainer session: linear as hub, Path A spokes (~4 committed files), identity-based hub resolution, neutral-token path sweep, hub write path, Claude Code/Codex/Pi delivery, MVP validation gate, WI-0..8. |
 | [board-noise-pruning](board-noise-pruning.md) | **Draft** (solutioning) | Comparison-mode; pick an approach before writing the issue. |
 | [superpowers-integration-shape](superpowers-integration-shape.md) | **Draft** | Ready to file as a GitHub issue once the AC is confirmed. |
+| [eval-baseline-and-prompt-cleanup](eval-baseline-and-prompt-cleanup.md) | **Draft** (Phase 1 built, awaiting review) | Dual-witness `/test-awow` runner (checks + blind judge, `indeterminate` verdicts), per-scenario `pre()`/`post()` checks, `tools/validate-evals.py`. Phases 2–4 (new suites, prompt trims, cleanup) still due. |
 | [shared-activity-collection-lenses](shared-activity-collection-lenses.md) | **Draft** (built, awaiting review) | Shared gather (`activity-collection.md`) + `/daily-routine` (one gather → overview + KB candidates) + `/daily-digest` & `/kb-mine` standalone lenses. |
 | [kb-capture-synthesize-spine](kb-capture-synthesize-spine.md) | **Draft** (built, awaiting review) | Committed `context/kb-inbox/` + tunable `mining-policy.md` + gated `synthesis.md` drain, wired into mining/`/daily-routine`/`/setup-awow` Step 6 — the awow-portable half of linear's KB spine. Phase 4 (feeders, autonomous drain, tuning) deferred. |
 | [maintainer-meta-instructions](maintainer-meta-instructions.md) | **Parked** (2026-05-25) | Guide-sync tweak; revisit if the prompt catalogue drifts. |

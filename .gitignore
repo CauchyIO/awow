@@ -20,6 +20,11 @@ uv.lock
 # Distribution targets (per-machine config)
 tools/.distribute-targets
 
+# Per-session agent state: setup/engine nudge opt-outs and the board answer the
+# §4.2 fallback records. Machine-local, session-scoped, never a durable record —
+# the durable board pointer is context/tooling/board.md, written by /setup-awow.
+.awow/
+
 # Claude Code Tracing
 .claude/settings.local.json
 .claude/mlflow/
@@ -46,3 +51,10 @@ coach_reviews/
 **/coach_reviews/
 sessions.json
 timeline.html
+
+# Fixture .venv markers and activity snapshots are frozen test data, not real
+# virtualenvs / ephemeral working state — re-include them.
+!tests/*/fixtures/**/.venv/
+!tests/*/fixtures/**/.venv/**
+!tests/*/fixtures/**/activity/
+!tests/*/fixtures/**/activity/**

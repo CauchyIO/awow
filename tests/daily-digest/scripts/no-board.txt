@@ -1,0 +1,6 @@
+# No context/tooling/board.md. The scratch workspace has no git remote, so the
+# board cannot be inferred and the run must ask exactly once. Answer it, then
+# answer the Phase 4 review gate. Two replies, in this order — a run that asks
+# a third time, or halts instead of asking, is the bug this scenario catches.
+GitHub Issues on SampleOrg/awow-sample, via the gh CLI
+stop

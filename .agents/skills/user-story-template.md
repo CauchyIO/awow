@@ -20,7 +20,7 @@ Three things, always:
 
 1. **A title that names the outcome.** Verb-first, no "and", no domain jargon a reviewer won't recognise.
 2. **A body that answers: what changes, and why it matters.** One or two sentences if that suffices. Use role / action / value framing if it genuinely sharpens the why — otherwise skip it.
-3. **Tags.** Per [`context/team/conventions/REQUIRED/labels.md`](../../context/team/conventions/REQUIRED/labels.md). At minimum the story declares its `type:` and `area:`; add `status:` only when it carries information the workflow state does not. Tags determine routing, reviewers, and which rules apply — a story without them is unroutable.
+3. **Tags.** Per [`{HUB}/context/team/conventions/REQUIRED/labels.md`](../../context/team/conventions/REQUIRED/labels.md). At minimum the story declares its `type:` and `area:`; add `status:` only when it carries information the workflow state does not. Tags determine routing, reviewers, and which rules apply — a story without them is unroutable.
 
 Examples of sufficient bodies:
 

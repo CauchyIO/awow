@@ -120,6 +120,7 @@
   <div class="pad-tight">
     <p class="kicker">TL;DR</p>
     <p>One skill <strong>pulls</strong> the traces down to local JSON (<code>mlflow-export</code>); two skills <strong>read</strong> that JSON to produce markdown reports &mdash; <code>prompt-skill-analysis</code> (how well someone prompts) and <code>awow-usage-coach</code> (how a team or person works, and what to change). In every case the script only counts and extracts; the qualitative judgment lives in the agent.</p>
+    <p style="font-size:0.85rem;color:var(--text-3);margin:8px 0 0;">All three ship in <code>awow-telemetry</code>, a separate plugin from <code>awow</code> &mdash; install with <code>/plugin install awow-telemetry@awow</code>. Claude Code only for now; the Codex and Pi payload carries the base plugin alone.</p>
   </div>
 
   <!-- SHARED DEPENDENCY -->
@@ -280,7 +281,7 @@ python3 .agents/skills/awow-usage-coach/scripts/awow_extract.py \
 
   <!-- FOOTER -->
   <div class="pad" style="border-bottom:none;">
-    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Sources of truth: the three <code>SKILL.md</code> files under <code>.agents/skills/</code>. Companion guide: <code>guide-session-correlation.html</code> (the write side). This guide is self-contained &mdash; no external resources.</p>
+    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Sources of truth: the three <code>SKILL.md</code> files under <code>.agents/skills/</code>, built into the <code>awow-telemetry</code> plugin. Companion guide: <code>guide-session-correlation.html</code> (the write side). This guide is self-contained &mdash; no external resources.</p>
   </div>
 
 </div>

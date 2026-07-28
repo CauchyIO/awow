@@ -1,8 +1,11 @@
 ---
+description: "Use when the user has a feature brief, quarterly slidedeck, or board issue and wants it broken into right-sized stories before a refinement session, or asks to prep work for the next refinement."
+autofire: true
 phase: seed
+layer: team
 prerequisites:
   - "Step 0 of /setup-awow complete (the agent can read and write the board)"
-  - "context/team/mission.md exists"
+  - "{HUB}/context/team/mission.md exists"
 removes_pain: "the scramble-the-day-before-refinement problem"
 m365:
   include: true
@@ -17,7 +20,7 @@ One person can do this alone. The value shows up immediately in their own work, 
 
 ## What refinement decides — the *how*, never the *what*
 
-Refinement works out **how** to deliver work that has already been chosen. It does not decide *what* to build or *why* — that is set upstream in quarter planning, where the program board and PO define the outcomes (OKRs), the PO breaks each outcome into epics, and the PO with the tech lead breaks an epic into the **features** that enter refinement. A feature arrives already mapped to an outcome; refinement turns it into board-ready, right-sized stories and never re-opens the decision to build it. If a feature's *what* or *why* is still open, that is a planning gap — surface it; do not resolve it by drafting stories. The planning chain lives in `context/quarterly/`; how outcome → epic → feature → story map onto board primitives lives in the board hierarchy reference under `context/tooling/boards/`.
+Refinement works out **how** to deliver work that has already been chosen. It does not decide *what* to build or *why* — that is set upstream in quarter planning, where the program board and PO define the outcomes (OKRs), the PO breaks each outcome into epics, and the PO with the tech lead breaks an epic into the **features** that enter refinement. A feature arrives already mapped to an outcome; refinement turns it into board-ready, right-sized stories and never re-opens the decision to build it. If a feature's *what* or *why* is still open, that is a planning gap — surface it; do not resolve it by drafting stories. The planning chain lives in `{HUB}/context/quarterly/`; how outcome → epic → feature → story map onto board primitives lives in the board hierarchy reference under `{HUB}/context/tooling/boards/`, falling back to `{AWOW_ROOT}/context/tooling/boards/`.
 
 Populating the board is not one ceremony. Which route you take depends on team size, the kind of work, and cadence:
 
@@ -43,14 +46,16 @@ The user provides one of:
 
 Read:
 
-- `context/team/mission.md` — the feature must serve the mission. If you cannot see how, ask the user before drafting.
-- `context/team/conventions/REQUIRED/issue-titles.md` — story title verbs and patterns
-- `context/team/conventions/REQUIRED/labels.md` — label taxonomy
-- `context/team/conventions/REQUIRED/output-discipline.md` — story body rules (short!)
-- `context/team/style/board-output.md` — voice and shape
-- `context/knowledge-base/glossary.md` — domain terms; use these consistently
-- `context/knowledge-base/patterns/` — link to existing patterns rather than restating
-- `context/tooling/board.md` — sizing rules per board family
+- `{HUB}/context/team/mission.md` — the feature must serve the mission. If you cannot see how, ask the user before drafting.
+- `{HUB}/context/team/conventions/REQUIRED/issue-titles.md` — story title verbs and patterns
+- `{HUB}/context/team/conventions/REQUIRED/labels.md` — label taxonomy
+- `{HUB}/context/team/conventions/REQUIRED/output-discipline.md` — story body rules (short!)
+- `{HUB}/context/team/style/board-output.md` — voice and shape
+- `{HUB}/context/knowledge-base/glossary.md` — domain terms; use these consistently
+- `{HUB}/context/knowledge-base/patterns/` — link to existing patterns rather than restating
+- `{HUB}/context/tooling/board.md` — sizing rules per board family
+
+**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{HUB}/context/tooling/board.md` yourself.
 
 ### 2. Check for duplicates and overlap (REQUIRED before drafting)
 
@@ -70,7 +75,7 @@ Do not draft if potential duplicates exist without confirmation.
 
 ### 3. Draft
 
-Output to `proposals/refinement/<feature-slug>.md` with the structure below.
+Output to `{PROJECT}/proposals/refinement/<feature-slug>.md` with the structure below.
 
 Right-size every story so a single session can ship a working PR. Each story must:
 
@@ -96,7 +101,7 @@ The feature wrapper:
 
 ## Stories
 
-<3–7 user stories. Use the shape defined in [`.agents/skills/user-story-template.md`](../../skills/user-story-template.md).>
+<3–7 user stories. Use the shape defined by the `user-story-template` skill.>
 
 ## Dependencies
 
@@ -115,11 +120,11 @@ The feature wrapper:
 <Screenshots, sample data, references to upstream documents. Link, do not embed.>
 ```
 
-For the per-story shape inside `## Stories`, follow [`.agents/skills/user-story-template.md`](../../skills/user-story-template.md). The template defines what every story carries, what to add only when needed, and the anti-patterns to avoid. Do not duplicate the per-story structure here.
+For the per-story shape inside `## Stories`, follow the `user-story-template` skill. The template defines what every story carries, what to add only when needed, and the anti-patterns to avoid. Do not duplicate the per-story structure here.
 
 ## Anti-patterns
 
-See the anti-patterns table in [`.agents/skills/user-story-template.md`](../../skills/user-story-template.md#anti-patterns). The same rules apply to every story produced by this command.
+See the anti-patterns table in the `user-story-template` skill. The same rules apply to every story produced by this command.
 
 ## Quality bar
 

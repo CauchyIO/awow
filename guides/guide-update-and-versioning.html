@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Updating awow &mdash; pull newer versions without losing your config</title>
+<!--
+  AWOW GUIDE — updating and versioning
+  How an adopter repo pulls newer awow versions: the lockfile 3-way compare
+  (baseline vs local vs upstream), the two-action human flow via /update-awow,
+  the first-run backfill in older repos, .awow conflict sidecars, and what the
+  plugin version / git tags mean. Self-contained: no external fonts/links.
+-->
+<style>
+  :root {
+    --bg: #f6f5f3;
+    --surface: #ffffff;
+    --surface-alt: #f0efed;
+    --text-1: #1a1a1a;
+    --text-2: #6b6b6b;
+    --text-3: #9a9a9a;
+    --border: #e0dfdd;
+    --border-subtle: #ebeae8;
+    --accent: #f24b37;
+    --link: #337FF9;
+    --ok: #2e7d4f;
+    --warn: #c97a1b;
+    --risk: #b53a2a;
+  }
+  body { margin:0; padding:0; width:100%; font-family:'Nunito',system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text-1); line-height:1.6; }
+  .wrap { max-width:1040px; margin:0 auto; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .pad { padding:28px 40px; border-bottom:1px solid var(--border-subtle); }
+  .pad-tight { padding:20px 40px; border-bottom:1px solid var(--border-subtle); }
+  h1 { font-size:1.9rem; font-weight:700; margin:0; letter-spacing:-0.02em; }
+  h2 { font-size:1.35rem; font-weight:600; margin:0 0 16px; letter-spacing:-0.01em; }
+  h3 { font-size:1.05rem; font-weight:600; margin:24px 0 10px; letter-spacing:-0.01em; }
+  p  { font-size:0.92rem; color:var(--text-2); margin:0 0 12px; line-height:1.7; }
+  ul, ol { font-size:0.92rem; color:var(--text-2); line-height:1.7; padding-left:22px; margin:0 0 14px; }
+  li { margin:4px 0; }
+  strong { color:var(--text-1); font-weight:600; }
+  em { color:var(--text-1); font-style:italic; }
+  code { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.85em; background:var(--surface-alt); padding:1px 6px; border-radius:3px; border:1px solid var(--border-subtle); }
+  pre { font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace; font-size:0.82rem; background:var(--surface-alt); padding:14px 18px; border-radius:8px; border:1px solid var(--border-subtle); overflow-x:auto; line-height:1.55; color:var(--text-1); }
+  pre .c { color:var(--text-3); }
+  table.data { border-collapse:collapse; width:100%; font-size:0.85rem; margin:0 0 16px; }
+  table.data th { text-align:left; font-weight:600; padding:8px 10px; border-bottom:2px solid var(--border); background:var(--surface-alt); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; }
+  table.data td { padding:9px 10px; border-bottom:1px solid var(--border-subtle); color:var(--text-2); vertical-align:top; line-height:1.5; }
+  table.data tr:last-child td { border-bottom:none; }
+  table.data td strong { color:var(--text-1); }
+  .kicker { font-size:0.72rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin:0 0 8px; }
+  .badge { display:inline-block; font-size:0.7rem; font-weight:600; padding:3px 10px; border-radius:4px; border:1px solid var(--border); color:var(--text-1); background:var(--surface); }
+  .badge-accent { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .badge-ok { background:rgba(46,125,79,0.08); color:var(--ok); border-color:rgba(46,125,79,0.25); }
+  .badge-warn { background:rgba(201,122,27,0.08); color:var(--warn); border-color:rgba(201,122,27,0.25); }
+  .badge-muted { background:var(--surface-alt); color:var(--text-3); border-color:var(--border-subtle); border-style:dashed; }
+  .badges { display:flex; gap:6px; flex-wrap:wrap; }
+  .callout { background:var(--surface-alt); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 16px; font-size:0.88rem; color:var(--text-2); line-height:1.65; }
+  .callout strong { color:var(--text-1); }
+  .callout-warn { border-left-color:var(--warn); }
+  .callout-ok { border-left-color:var(--ok); }
+  .diagram { background:var(--surface-alt); border:1px solid var(--border-subtle); border-radius:10px; padding:18px 16px 12px; margin:0 0 18px; }
+  .diagram svg { display:block; max-width:100%; height:auto; margin:0 auto; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:0.78rem; color:var(--text-2); padding:8px 8px 0; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .legend i { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid var(--border); }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
+  .card .card-label { font-size:0.7rem; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; }
+  .card h3 { margin-top:0; }
+  @media (max-width: 760px) {
+    .pad, .pad-tight { padding-left:22px; padding-right:22px; }
+    .grid-3 { grid-template-columns:1fr; }
+  }
+  @media print {
+    body { background:#fff; }
+    .wrap { border:none; border-radius:0; max-width:100%; }
+  }
+
+  /* ===== LEFT INDEX (auto-built from section headings) ===== */
+  .guide-toc { position:fixed; top:0; left:0; width:232px; height:100vh; background:var(--surface); border-right:1px solid var(--border); z-index:60; display:flex; flex-direction:column; overflow-y:auto; padding:20px 0; }
+  .guide-toc .toc-brand { display:flex; align-items:center; gap:8px; padding:0 20px 18px; border-bottom:1px solid var(--border-subtle); margin-bottom:10px; flex-shrink:0; }
+  .guide-toc .toc-brand svg { width:18px; height:18px; flex:none; }
+  .guide-toc .toc-brand span { font-size:12px; font-weight:700; letter-spacing:0.06em; color:var(--text-2); text-transform:uppercase; }
+  .guide-toc a.toc-item { display:flex; align-items:flex-start; gap:10px; padding:8px 20px; text-decoration:none; color:var(--text-2); font-size:12px; font-weight:500; line-height:1.45; border-left:3px solid transparent; transition:background 0.12s, color 0.12s; }
+  .guide-toc a.toc-item:hover { background:var(--surface-alt); color:var(--text-1); }
+  .guide-toc a.toc-item.active { background:var(--surface-alt); color:var(--text-1); font-weight:700; border-left-color:var(--accent); }
+  .guide-toc .toc-num { font-size:10px; font-weight:700; color:var(--accent); min-width:16px; opacity:0.5; padding-top:1px; flex:none; }
+  .guide-toc a.toc-item.active .toc-num { opacity:1; }
+  @media (min-width:1024px) { body { padding-left:232px; } }
+  @media (max-width:1023px) { .guide-toc { display:none; } }
+  @media print { .guide-toc { display:none !important; } body { padding-left:0 !important; } }
+</style>
+</head>
+<body>
+
+<nav class="guide-toc" id="guideToc" aria-label="Contents">
+  <a class="toc-brand" href="index.html" style="text-decoration:none;"><svg viewBox="0 0 500 500" fill="none"><path d="M250 50C139.543 50 50 139.543 50 250C50 360.457 139.543 450 250 450C360.457 450 450 360.457 450 250C450 214.612 440.841 181.387 424.664 152.664L353.033 224.295C356.229 232.471 358 241.473 358 250C358 309.647 309.647 358 250 358C190.353 358 142 309.647 142 250C142 190.353 190.353 142 250 142C275.948 142 299.727 151.424 318.295 166.967L389.926 95.336C348.387 66.159 297.388 50 250 50Z" fill="#f24b37"/></svg><span>awow &middot; guides</span></a>
+  <!-- items injected by script below -->
+</nav>
+
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="pad" style="padding-top:36px;padding-bottom:24px;">
+    <p style="font-size:13px;font-weight:600;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin:0 0 10px;">Way of Working &middot; Guide</p>
+    <h1>Updating awow</h1>
+    <p style="font-size:1rem;color:var(--text-2);margin:6px 0 0;font-weight:500;">Pull newer awow into a repo that is already set up &mdash; without losing anything your team owns.</p>
+    <p style="font-size:0.85rem;color:var(--text-3);margin:8px 0 0;"><code>/setup-awow</code> configures a repo once; <code>/update-awow</code> keeps the scaffolding current afterwards. Your job is two actions: invoke it, and approve (or reject) the plan it shows. Everything else &mdash; bootstrapping, comparing, applying, re-mirroring &mdash; is the agent's.</p>
+    <div class="badges" style="margin-top:16px;">
+      <span class="badge">meta command</span>
+      <span class="badge badge-ok">proposal-first &mdash; nothing written before approval</span>
+      <span class="badge">lockfile-backed</span>
+    </div>
+  </div>
+
+  <!-- HOW IT DECIDES -->
+  <div class="pad">
+    <h2>How the update decides what to touch</h2>
+    <p>The update machinery (<code>tools/awow_lock.py</code>) keeps a <strong>lockfile</strong> &mdash; <code>tools/awow.lock.json</code> &mdash; recording a hash of every starter-owned file as you last reconciled it. An update is a <strong>3-way compare</strong> per file: that baseline, your local copy, and upstream. The verdicts:</p>
+    <table class="data">
+      <thead><tr><th>Verdict</th><th>Meaning</th><th>What happens</th></tr></thead>
+      <tbody>
+        <tr><td><strong>update</strong></td><td>Upstream changed; you didn&rsquo;t</td><td>Overwritten with the new version</td></tr>
+        <tr><td><strong>new</strong></td><td>Upstream added a file</td><td>Created</td></tr>
+        <tr><td><strong>keep-local</strong></td><td>You edited; upstream didn&rsquo;t</td><td>Left alone &mdash; your edit wins</td></tr>
+        <tr><td><strong>conflict</strong></td><td>Both changed</td><td>Your file untouched; upstream saved beside it as <code>&lt;file&gt;.awow</code> to merge</td></tr>
+        <tr><td><strong>removed-local</strong></td><td>You deleted it</td><td>Not re-added</td></tr>
+        <tr><td><strong>removed-upstream</strong></td><td>Upstream deleted it</td><td>Your copy left alone (delete by hand if you want to follow)</td></tr>
+      </tbody>
+    </table>
+    <p>Only <strong>starter-owned paths</strong> are ever managed: <code>.agents/</code>, <code>tools/</code>, <code>setup/</code>, <code>context/</code> reference material, <code>mcps/</code>, <code>pyproject.toml</code>, <code>SETUP.md</code>, <code>REFERENCES.md</code>. Team-owned content &mdash; <code>context/team/</code>, <code>context/company/</code>, <code>board.md</code>, <code>setup-progress.md</code>, a bootstrapped <code>AGENTS.md</code>, everything under <code>proposals/</code> &mdash; is never rewritten by an update.</p>
+  </div>
+
+  <!-- THE HUMAN FLOW -->
+  <div class="pad">
+    <h2>The human flow &mdash; two actions</h2>
+    <p>With the awow plugin installed, an update is:</p>
+    <pre>/plugin update awow     <span class="c"># refresh the bundle (Copilot CLI: copilot plugin update awow)</span>
+/update-awow            <span class="c"># agent shows the plan; you approve or reject</span></pre>
+    <p>Without the plugin, point at a checkout instead: <code>/update-awow --source ../awow</code>. The agent pulls the source current, verifies it is clean, and takes it from there. Either way the agent presents a grouped plan &mdash; what updates, what is new, what conflicts &mdash; and <strong>writes nothing until you approve</strong>. After apply it re-mirrors the harness stubs (<code>tools/gather.py</code>) and reports the version delta plus any <code>.awow</code> conflict files left for you to merge.</p>
+    <p>Run the whole thing on a branch and read the <code>git diff</code> as your final review &mdash; git is the backstop, so nothing an update does is unrecoverable. Add <code>--check</code> to see the plan and stop: a zero-risk way to ask &ldquo;how far behind are we?&rdquo;.</p>
+  </div>
+
+  <!-- FIRST RUN -->
+  <div class="pad">
+    <h2>First run in an older repo</h2>
+    <p>A repo set up before the update machinery existed has no lockfile and no <code>tools/awow_lock.py</code>. You do <em>not</em> prepare anything: the agent self-bootstraps &mdash; it copies the tool from the source, then seeds the lockfile from your current tree (<code>backfill</code>, which establishes &ldquo;you are here&rdquo; and changes no other file). Your flow is still invoke &rarr; approve.</p>
+    <div class="callout callout-warn">
+      <strong>The one first-run caveat.</strong> A freshly seeded baseline equals your local state, so the very first compare cannot distinguish &ldquo;we edited this&rdquo; from &ldquo;upstream moved&rdquo; &mdash; files your team deliberately changed show up as <em>update (will overwrite)</em> instead of <em>conflict</em>. The agent is instructed to walk that list against your known customisations and flag high-risk entries (a real product <code>pyproject.toml</code>; reference <code>context/</code> you filled in) before you approve. Review that first plan more carefully than usual; from the second update on, the lockfile holds a true reconciliation point and your edits classify as <em>keep-local</em> automatically.
+    </div>
+  </div>
+
+  <!-- CONFLICTS -->
+  <div class="pad">
+    <h2>Merging a conflict</h2>
+    <p>A conflict never touches your file. The upstream version lands next to it as <code>&lt;file&gt;.awow</code>; you diff the two, take what you want into your file, and delete the sidecar. The update is not &ldquo;done&rdquo; until every <code>.awow</code> is gone &mdash; the report lists them so none are forgotten.</p>
+    <pre>diff .agents/commands/daily-digest.md .agents/commands/daily-digest.md.awow
+<span class="c"># merge what you want, then:</span>
+rm .agents/commands/daily-digest.md.awow</pre>
+  </div>
+
+  <!-- VERSIONING -->
+  <div class="pad">
+    <h2>What the version numbers mean</h2>
+    <table class="data">
+      <thead><tr><th>Where</th><th>What it is</th></tr></thead>
+      <tbody>
+        <tr><td><code>.claude-plugin/plugin.json</code> &rarr; <code>version</code></td><td>The canonical awow version. Bumped when starter-owned files change; the plugin marketplace serves it and <code>status</code> reports it as the &ldquo;to&rdquo; side.</td></tr>
+        <tr><td><code>tools/awow.lock.json</code> &rarr; <code>awow_version</code></td><td>The version <em>your repo</em> last reconciled against &mdash; the &ldquo;from&rdquo; side of every plan.</td></tr>
+        <tr><td>Git tags (<code>v0.4.0</code>, &hellip;)</td><td>Pinnable release points on the awow repo. Pass a tag checkout as <code>--source</code> to update to a specific version instead of whatever <code>main</code> is.</td></tr>
+      </tbody>
+    </table>
+    <p>Correctness never depends on the numbers &mdash; the compare is content-hash based &mdash; but the numbers carry the meaning: a plan that says <code>0.3.0 &rarr; 0.4.0</code> tells you you&rsquo;re taking a real release, and a repo whose lockfile says <code>0.4.0</code> is verifiably current. Maintainers: bump the version in the same change that alters starter files, and tag the release commit.</p>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="pad-tight" style="border-bottom:none;">
+    <p style="font-size:0.78rem;color:var(--text-3);margin:0;">Sources of truth: <code>.agents/commands/update-awow.md</code> (the flow) and <code>tools/awow_lock.py</code> (the 3-way compare and lockfile format). Setup counterpart: <code>guide-setup-and-two-harnesses.html</code>. This guide is self-contained &mdash; no external resources.</p>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var toc=document.getElementById('guideToc'); if(!toc) return;
+  var heads=[].slice.call(document.querySelectorAll('.wrap h2')); if(!heads.length) return;
+  var pad2=function(n){return n<10?'0'+n:''+n;};
+  var slug=function(t){return t.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'sec';};
+  var top=function(el){return el.getBoundingClientRect().top+window.scrollY;};
+  var items=[];
+  heads.forEach(function(h){
+    var label=h.textContent.trim().replace(/^\s*\d+[.)]\s*/,'');
+    if(!label) return;
+    var target=h.closest('.pad,.pad-tight,.part-header,section')||h;
+    if(!target.id) target.id='sec-'+(items.length+1)+'-'+slug(label);
+    var a=document.createElement('a'); a.className='toc-item'; a.href='#'+target.id;
+    var num=document.createElement('span'); num.className='toc-num'; num.textContent=pad2(items.length+1);
+    var lab=document.createElement('span'); lab.className='toc-label'; lab.textContent=label;
+    a.appendChild(num); a.appendChild(lab);
+    a.addEventListener('click',function(e){e.preventDefault(); target.scrollIntoView({behavior:'smooth',block:'start'}); history.replaceState(null,'','#'+target.id);});
+    toc.appendChild(a); items.push({t:target,a:a});
+  });
+  var spy=function(){
+    var y=window.scrollY+130, cur=items[0];
+    for(var i=0;i<items.length;i++){ if(top(items[i].t)<=y) cur=items[i]; }
+    items.forEach(function(it){ it.a.classList.toggle('active', it===cur); });
+  };
+  window.addEventListener('scroll',spy,{passive:true});
+  window.addEventListener('resize',spy); spy();
+})();
+</script>
+</body>
+</html>

@@ -320,7 +320,7 @@
       <div class="pstep" style="--pc:var(--text-1);">
         <div class="pd">FRI</div>
         <div class="pa">Steer &amp; report</div>
-        <div class="pc"><code>/project-manager</code> surfaces the block for the MT; <code>/weekly-digest</code> rolls up the week.</div>
+        <div class="pc"><code>/daily-digest --week</code> rolls up the week&rsquo;s trajectory.</div>
         <div class="pb"><b>Board:</b> blocker owned; trajectory published</div>
       </div>
     </div>
@@ -341,7 +341,7 @@
     <div class="cards c3">
       <a class="card" href="guide-prompt-taxonomy.html">
         <div class="c-top"><span class="c-title">Prompt taxonomy</span><span class="c-pill">Craft</span></div>
-        <p class="c-desc">Name what you&rsquo;re doing before you ask &mdash; an eight-intent vocabulary (<code>investigate</code> &middot; <code>plan</code> &middot; <code>propose</code> &middot; <code>implement</code> &middot; <code>refine</code> &middot; <code>verify</code> &middot; <code>document</code> &middot; <code>inform</code>) that sharpens prompts and is the lens <code>/awow-usage-coach</code> reads sessions back through.</p>
+        <p class="c-desc">Name what you&rsquo;re doing before you ask &mdash; an eight-intent vocabulary (<code>investigate</code> &middot; <code>plan</code> &middot; <code>propose</code> &middot; <code>implement</code> &middot; <code>refine</code> &middot; <code>verify</code> &middot; <code>document</code> &middot; <code>inform</code>) that sharpens prompts and is the lens <code>/awow-usage-coach</code> (in the <code>awow-telemetry</code> plugin) reads sessions back through.</p>
         <div class="c-foot"><span class="c-file">guide-prompt-taxonomy.html</span><span class="c-go">Open guide <span class="arrow">&rarr;</span></span></div>
       </a>
       <a class="card" href="guide-session-timeline.html">
@@ -444,7 +444,7 @@
           <div class="rail">
             <a class="node art" href="guide-standardise-reporting.html"><span class="nt">digests + artifacts</span><span class="ns">who needs to know</span></a>
             <span class="sep">&larr;</span>
-            <a class="node cmd" href="guide-standardise-reporting.html"><span class="nt">/weekly-digest</span><span class="ns">the week&rsquo;s trajectory</span></a>
+            <a class="node cmd" href="guide-standardise-reporting.html"><span class="nt">/daily-digest --week</span><span class="ns">the week&rsquo;s trajectory</span></a>
             <span class="sep">&larr;</span>
             <a class="node cmd" href="guide-standardise-reporting.html"><span class="nt">/daily-digest</span><span class="ns">the day, synthesised</span></a>
             <span class="conn"><span class="line"></span><span class="io">reads &larr;</span></span>
@@ -538,9 +538,9 @@
         <p class="phase-frame">An agent is only as useful as its context. Write it down clearly, <strong>once</strong>, in the right files &mdash; and wire the board so the agent can read and write it. This is the <code>/setup-awow</code> wizard plus the board it configures.</p>
       </div>
     </div>
-    <div class="cards c2">
+    <div class="cards c3">
       <a class="card" href="guide-setup-and-two-harnesses.html">
-        <div class="c-top"><span class="c-title">Setup &amp; the two harnesses</span><span class="c-pill">New</span></div>
+        <div class="c-top"><span class="c-title">Setup &amp; the pointer-stub model</span><span class="c-pill">New</span></div>
         <p class="c-desc">The <code>/setup-awow</code> wizard step by step, and the pointer-stub model that lets you author once under <code>.agents/</code> and keep Claude Code and Copilot in sync.</p>
         <div class="c-foot"><span class="c-file">guide-setup-and-two-harnesses.html</span><span class="c-go">Open guide <span class="arrow">&rarr;</span></span></div>
       </a>
@@ -548,6 +548,11 @@
         <div class="c-top"><span class="c-title">Board &amp; MCP integration</span><span class="c-pill">New</span></div>
         <p class="c-desc">How your board (Linear / Jira / Azure DevOps / GitHub) becomes the single source of truth, and how approved MCP servers wire into both harnesses.</p>
         <div class="c-foot"><span class="c-file">guide-board-and-mcp.html</span><span class="c-go">Open guide <span class="arrow">&rarr;</span></span></div>
+      </a>
+      <a class="card" href="guide-update-and-versioning.html">
+        <div class="c-top"><span class="c-title">Updating &amp; versioning</span><span class="c-pill">New</span></div>
+        <p class="c-desc">Pull newer awow into an already-set-up repo: the lockfile 3-way compare, the two-action <code>/update-awow</code> flow, <code>.awow</code> conflict sidecars, and what the plugin version and tags mean.</p>
+        <div class="c-foot"><span class="c-file">guide-update-and-versioning.html</span><span class="c-go">Open guide <span class="arrow">&rarr;</span></span></div>
       </a>
     </div>
   </section>
@@ -594,7 +599,7 @@
     <div class="cards c3">
       <a class="card" href="guide-standardise-reporting.html">
         <div class="c-top"><span class="c-title">Reporting &amp; digests</span><span class="c-pill">New</span></div>
-        <p class="c-desc"><code>/daily-digest</code> and <code>/weekly-digest</code>: read-only synthesis at rising altitudes &mdash; the day, then the week&rsquo;s trajectory.</p>
+        <p class="c-desc"><code>/daily-digest</code>, with <code>--week</code> for the higher altitude: read-only synthesis of the day, then the week&rsquo;s trajectory.</p>
         <div class="c-foot"><span class="c-file">guide-standardise-reporting.html</span><span class="c-go">Open guide <span class="arrow">&rarr;</span></span></div>
       </a>
       <a class="card" href="guide-design-system-and-artifacts.html">
@@ -630,7 +635,7 @@
         <span class="lead-mark">&#9651;</span>
         <div class="lead-body">
           <div class="c-top"><span class="c-title">Cross-team feedback &amp; service drift</span><span class="c-pill">Proposed</span></div>
-          <p class="c-desc">Three mechanisms across the team&harr;pillar seam: a cadence-triggered team loop, an event-triggered pillar loop for service-definition drift, and a plan&harr;execution bridge. Why a pillar is a different archetype, and how one activity RACI becomes the spine &mdash; services distil up, projects route down. Reads alongside the digests&rsquo; planned <code>/cross-team-view</code>.</p>
+          <p class="c-desc">Three mechanisms across the team&harr;pillar seam: a cadence-triggered team loop, an event-triggered pillar loop for service-definition drift, and a plan&harr;execution bridge. Why a pillar is a different archetype, and how one activity RACI becomes the spine &mdash; services distil up, projects route down.</p>
           <div class="c-foot"><span class="c-file">guide-cross-team-and-pillar.html</span><span class="c-go">Open guide <span class="arrow">&rarr;</span></span></div>
         </div>
       </a>

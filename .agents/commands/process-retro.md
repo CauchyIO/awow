@@ -1,4 +1,6 @@
 ---
+description: "Use when the user points at or pastes a retrospective transcript or recording notes, or asks to turn a retro into named anti-patterns, owned actions, and diffs to their agent instructions."
+autofire: true
 phase: seed
 prerequisites:
   - "Step 0 of /setup-awow complete (board MCP wired)"
@@ -7,7 +9,7 @@ removes_pain: "the team-keeps-tripping-over-the-same-things problem"
 
 # /process-retro — gated pipeline for retrospective transcripts
 
-You take a raw retrospective transcript and turn it into **structured signal that closes the loop back into the team's agent instructions** — anti-patterns named, actions owned, recurring issues escalated, and concrete diffs proposed for `CLAUDE.md` / `copilot-instructions.md`.
+You take a raw retrospective transcript and turn it into **structured signal that closes the loop back into the team's agent instructions** — anti-patterns named, actions owned, recurring issues escalated, and concrete diffs proposed for `.agents/AGENTS.md`.
 
 You operate as a **sparring partner**, not a secretary. You name what was said, what was implied, and what was conspicuously absent. Every finding is presented with reasoning and a verbatim quote so the user can correct you.
 
@@ -27,7 +29,7 @@ The canonical reference is the five-phase model from Esther Derby & Diana Larsen
 | 4. Decide What to Do | **You** | Report §§ 6, 11 |
 | 5. Close | Team | Out of scope; you don't write it |
 
-The full grounding lives at `context/retros/canon.md`. Read it.
+The full grounding lives at `{HUB}/context/retros/canon.md`, falling back to `{AWOW_ROOT}/context/retros/canon.md` (a vendored copy wins over the shipped one). Read it.
 
 ---
 
@@ -67,15 +69,17 @@ If something is genuinely ambiguous (e.g. two VTT files plausibly match), ask on
 
 Before touching the transcript, read what's available:
 
-- `context/retros/canon.md` — the canonical grounding (Prime Directive, five-phase model, format taxonomy, what "good" looks like). This file is **load-bearing** — read it every run.
-- `context/retros/anti-patterns.md` — the maintained library of named issues to probe for. Two sections (general retro patterns; agentic-AI patterns). If absent, fall back to the embedded list in Phase 1.5.
-- `context/team/mission.md` — what the team is for.
-- `context/team/members.md` — names, roles. Critical for speaker attribution and for the sentiment-and-safety section.
-- `context/team/conventions/REQUIRED/*.md` — naming, labels, output discipline.
-- `context/knowledge-base/glossary.md` — domain terms (helps disambiguate transcription).
-- `context/tooling/board.md` — board family, MCP wiring. Used for closure verification.
+- `{HUB}/context/retros/canon.md`, falling back to `{AWOW_ROOT}/context/retros/canon.md` — the canonical grounding (Prime Directive, five-phase model, format taxonomy, what "good" looks like). This file is **load-bearing** — read it every run.
+- `{HUB}/context/retros/anti-patterns.md`, falling back to `{AWOW_ROOT}/context/retros/anti-patterns.md` — the maintained library of named issues to probe for. Two sections (general retro patterns; agentic-AI patterns). If absent from both, fall back to the embedded list in Phase 1.5.
+- `{HUB}/context/team/mission.md` — what the team is for.
+- `{HUB}/context/team/members.md` — names, roles. Critical for speaker attribution and for the sentiment-and-safety section.
+- `{HUB}/context/team/conventions/REQUIRED/*.md` — naming, labels, output discipline.
+- `{HUB}/context/knowledge-base/glossary.md` — domain terms (helps disambiguate transcription).
+- `{HUB}/context/tooling/board.md` — board family, MCP wiring. Used for closure verification.
 - `retro-reports/<team>/` (optional) — prior retro outputs. Enables trajectory analysis. Discover the team name from filename, prose, or `members.md`.
 - A reachable agent-activity / token-spend log (optional) — enables cost analysis. Don't fabricate; if it's not there, omit the section.
+
+**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{HUB}/context/tooling/board.md` yourself.
 
 ### 0.3 Context validation
 
@@ -166,7 +170,7 @@ Track the discard fraction. >50% noise is itself a signal — surface it in the 
 
 ### 1.5 Probe for anti-patterns
 
-Read `context/retros/anti-patterns.md` — it has two sections:
+Read `{HUB}/context/retros/anti-patterns.md`, falling back to `{AWOW_ROOT}/context/retros/anti-patterns.md` — it has two sections:
 
 - **Section A — general retro anti-patterns** (documented in the literature): `venting-ritual`, `conversational-dominance`, `action-list-inflation`, `action-orphan`, `hijacked-agenda`, `premature-solutioning`, `blameless-violation`, `template-stagnation`, `feedback-asymmetry`.
 - **Section B — agentic-AI anti-patterns** (AWOW-original, no prior canon): `duplicate-creation`, `attribution-gap`, `ghost-edit`, `prompt-drift`, `instruction-bypass`, `manual-override`, `blame-the-agent`, `context-bleed`, `board-zombie`, `silent-fail`, `acoustic-prioritisation`.
@@ -202,7 +206,7 @@ In **solo mode**, skip this section cleanly (don't apply person-by-person analys
 
 ### 1.8 Closure check (if board reachable)
 
-If `context/tooling/board.md` is present and prior retros exist, look up the previous retro's actions and classify each as:
+If `{HUB}/context/tooling/board.md` is present and prior retros exist, look up the previous retro's actions and classify each as:
 
 - ✅ Closed (visible in board / in the work).
 - ⏳ In progress (referenced this retro).
@@ -261,7 +265,7 @@ In order, all sections, in the transcript's original language. Every claim cites
 8. **Trajectory vs last retro** — omit if no history.
 9. **Counter-signal** — what was *absent* from the discussion that should have come up. Check against the expected-topics list: security/data-leak/IP, compliance/audit, vendor lock-in, cost, cross-team coordination, onboarding/adoption laggards, tooling fragmentation.
 10. **Closure tracker** — omit (or mark "not verified") if no board access.
-11. **Instruction-tightening proposals** — concrete diffs for `CLAUDE.md` / `copilot-instructions.md` / specific prompt files. Output as actual code-block diffs with a reason, not vague suggestions.
+11. **Instruction-tightening proposals** — concrete diffs for `.agents/AGENTS.md` (the source the harness instruction files are generated from) or for specific prompt files under `.agents/commands/`. Output as actual code-block diffs with a reason, not vague suggestions.
 12. **Three role-conditioned summaries** — team-local checklist (~10 lines, tactical), governance digest (~½ page, manager-level), sponsor one-pager (~½ page, value + cost + risks + ask). Visibly distinct, not the same content reordered.
 13. **Next-retro format recommendation** — named rule that fired (e.g. "dominance detected → silent stickies next" / "same format 3 retros → rotate" / ">50% noise → tighter agenda").
 
@@ -281,7 +285,7 @@ Stop. Present:
 - Section 12c (sponsor one-pager) — this is the artefact that travels upward.
 - Any actions with `@unassigned`.
 
-Ask: *"Land the instruction diffs in `CLAUDE.md` / `copilot-instructions.md`? Save the report to `retro-reports/<team>/`? Anything to redact from the sponsor one-pager before it goes up?"*
+Ask: *"Land the instruction diffs in `.agents/AGENTS.md`? Save the report to `retro-reports/<team>/`? Anything to redact from the sponsor one-pager before it goes up?"*
 
 Wait for the user.
 
@@ -321,11 +325,13 @@ If a report already exists for this date/team, ask whether to regenerate or appe
 
 ### 3.2 Apply approved instruction diffs
 
-For each diff approved at Gate 2, edit the target file. Show the diff inline before saving. Add a one-line provenance comment after each addition:
+For each diff approved at Gate 2, edit `.agents/AGENTS.md` (or the named prompt file under `.agents/commands/`). Show the diff inline before saving. Add a one-line provenance comment after each addition:
 
 ```markdown
 <!-- Added 2026-05-23 from retro: retro-reports/platform-team/2026-05-22-hybrid.md -->
 ```
+
+**Never edit the generated harness instruction files.** `.agents/AGENTS.md` is the source; run `{AWOW_TOOLS}/gather.py` after landing a diff so the generated surfaces regenerate. A diff written straight into a generated file is destroyed by the next build, which is why every instruction diff this command landed before 2026-07-20 is gone.
 
 ### 3.3 Confirm and offer follow-ups
 

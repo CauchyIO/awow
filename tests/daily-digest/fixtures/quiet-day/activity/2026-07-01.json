@@ -1,0 +1,32 @@
+{
+  "date": "2026-07-01",
+  "sources": {
+    "board": {
+      "status": "ok",
+      "scope": "SampleOrg project 1 — issues touched 2026-07-01",
+      "items": [
+        {
+          "kind": "board.issue",
+          "ref": "AWOW-201",
+          "actor": "Noor Haddad",
+          "title": "Onboarding flow — copy review",
+          "activity": ["2026-07-01: comment by Noor Haddad"],
+          "payload": {
+            "description": "Review pass over the onboarding copy.",
+            "comments": ["waiting on design feedback, no movement today"]
+          }
+        }
+      ]
+    },
+    "code": {
+      "status": "ok",
+      "scope": "SampleOrg/gateway, SampleOrg/pipelines",
+      "items": []
+    },
+    "chat": {
+      "status": "absent",
+      "scope": "no config/chat-to-project.yaml wired",
+      "items": []
+    }
+  }
+}

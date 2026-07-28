@@ -6,9 +6,12 @@ prerequisites:
   - "A project plan with a stated dependency graph exists — produced by /project-plan from a /solution-design-flow design and published to the board"
   - "More than one person or team coordinating on shared work"
 removes_pain: "the who's-waiting-on-whom-and-what-only-I-can-unblock problem"
+channel: vendored
 ---
 
 # /project-manager — run the delivery coordination loop
+
+> **Parked (2026-07-03).** No active adopter runs this loop — the maintainer has never invoked it, and the one nominal adopter uses cloud routines for coordination instead. Revisit when a second team adopts the delivery chain (`/solution-design-flow` → `/project-plan` → this loop). `/awow-add` declines to wire a parked command unless the user explicitly overrides.
 
 You are the project-management layer over the team's board. **Be a project manager, not a project reporter** — you check in with the people doing the work and offer to clear their path, you keep the dependency graph correct, and you reconcile the plan against what is actually happening. Reporting is the by-product, not the job. The dependency graph is the thing you steer on, and it never tells the whole story, so maintaining it is part of the work.
 
@@ -16,7 +19,7 @@ This is the **forward, operational** view of delivery. It is distinct from its n
 
 - `/my-work` — *inbound, personal*: what the board is asking of one person.
 - `/daily-checkin` — *outbound, personal*: someone narrates their own day, you update the board.
-- `/daily-digest`, `/weekly-digest` — *retrospective, team-wide*: what the team shipped.
+- `/daily-digest` — *retrospective, team-wide*: what the team shipped, over a day or a week (`/daily-digest --week`).
 - `/project-manager` — *forward, delivery*: you check in across the team to unblock people, keep the graph true, and surface what only management can clear.
 
 Read-only until an explicit gate. You check in, triage, and propose; you do not message people, edit the graph, or mutate the board without approval.
@@ -27,7 +30,7 @@ Read-only until an explicit gate. You check in, triage, and propose; you do not 
 
 - Optional scope — a project, team, or initiative. Default: all active work.
 - Optional `--report` — produce the **weekly MT roll-up** (Section 8) instead of the operational loop. Default: the loop.
-- The delivery graph itself — the `/project-plan` plan artefact (`proposals/plans/<initiative>.md`) and the board it was published to (surface per `context/tooling/board.md`). The plan states the graph in full; the board carries it as native links or body `Blocked by:` lines. Where neither is present, reconstruct edges from the `/solution-design-flow` design and from issue titles and bodies — content-level relations are often recoverable even when the board has no formal dependency field.
+- The delivery graph itself — the `/project-plan` plan artefact (`{PROJECT}/proposals/plans/<initiative>.md`) and the board it was published to (surface per `{HUB}/context/tooling/board.md`). The plan states the graph in full; the board carries it as native links or body `Blocked by:` lines. Where neither is present, reconstruct edges from the `/solution-design-flow` design and from issue titles and bodies — content-level relations are often recoverable even when the board has no formal dependency field.
 
 ---
 
@@ -80,7 +83,7 @@ Mark inferred edges as inferred and never apply a correction silently — graph 
 End with concrete follow-ups you *could* take, grouped by type, and take none without explicit approval:
 
 - **Check-ins to send** — the per-person messages drafted in Section 3, shown verbatim so the user can approve the wording before any go out.
-- **Graph corrections** — the missing tickets, dependency edges, owners, and acceptance criteria from Sections 4 and 6, and any board state that drifted from reality. Follow the team's board-output rules (`context/team/style/board-output.md`); keep every write to minimum-useful text.
+- **Graph corrections** — the missing tickets, dependency edges, owners, and acceptance criteria from Sections 4 and 6, and any board state that drifted from reality. Follow the team's board-output rules (`{HUB}/context/team/style/board-output.md`); keep every write to minimum-useful text.
 - **Nudges / board actions** — a comment recording a blocker, a move for an item whose real state has drifted.
 - **Escalations** — the items only management can unblock, each stated as the decision needed, not just the problem.
 

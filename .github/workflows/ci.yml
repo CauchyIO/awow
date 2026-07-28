@@ -1,0 +1,32 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  gather-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Generated surfaces in sync (.claude/, .github/, dist/)
+        run: python tools/gather.py --check
+      - name: Path-token lint
+        run: python tools/lint-paths.py
+      - name: Instruction-file write targets
+        run: python3 tests/context-writes/test_context_writes.py
+      - name: Command frontmatter contract
+        run: python3 tests/command-frontmatter/test_frontmatter.py
+      - name: Path-token substitution
+        run: python3 tests/gather-tokens/test_tokens.py
+      - name: Payload classification
+        run: python3 tests/payload-classification/test_classification.py
+      - name: Telemetry split
+        run: python3 tests/telemetry-split/test_telemetry_split.py
+      - name: Orphan detection across payload roots
+        run: python3 tests/telemetry-split/test_orphan_roots.py
+      - name: Harness wiring checks (Layer 1, no model)
+        run: bash tests/harness/run-harness-tests.sh all

@@ -13,6 +13,25 @@ Until then, the rules below are the minimum the agent needs to operate inside th
 - **Tooling reference:** `context/tooling/board.md` (the team's actual board spec — single source of truth once Step 1 of `/setup-awow` has run); the per-tool `context/tooling/boards/<your-board>/reference/` is for the wizard, not for runtime use
 - **Setup state:** `setup-progress.md` at the repo root — read this if `/setup-awow` is invoked
 
+## Path tokens
+
+Prompt bodies never hardcode where context or tools live. Four tokens, resolved per channel:
+
+- `{{HUB}}` — shared team context root (team, company, knowledge base, retros, board config).
+- `{{PROJECT}}` — this project's context and drafts (mission, board-scope, do-not-propose, proposals/).
+- `{{AWOW_TOOLS}}` — awow's runtime tool scripts.
+- `{{AWOW_ROOT}}` — awow's own bundled machinery: the board references, the collection and mining contracts, the retro canon. Shipped with the plugin, identical for every team.
+
+**In this repo (and any vendored install): `{{HUB}}` and `{{PROJECT}}` are the repo root, `{{AWOW_TOOLS}}` is `tools/`, `{{AWOW_ROOT}}` is the repo root.** So `{HUB}/context/tooling/board.md` means `context/tooling/board.md` here. In a plugin install `{{AWOW_ROOT}}` resolves into the payload instead, which is how a command reads awow's machinery without the adopter having vendored it.
+
+**Reading machinery: `{{HUB}}` first, then `{{AWOW_ROOT}}`.** A team that has vendored and edited a contract must win over the shipped default, so read `{HUB}/context/<path>` and fall back to `{AWOW_ROOT}/context/<path>`. Team data — mission, members, conventions, style, `board.md`, `architecture.md` — is `{{HUB}}` only and has no fallback: absent means absent, and commands branch on that.
+
+In a hub-connected spoke, the session reflex tells you where `{{HUB}}` resolves instead; if it is not resolvable, stop and say so — never guess a location or improvise conventions.
+
+Command and skill frontmatter carries three build-time fields. `channel:` — `vendored` files operate on the vendored install itself (gather, tests, adopter state) and are excluded from the plugin payload; `bootstrap` files ship in the payload but *create or update* the vendored tree (`/setup-awow`), so their literal repo paths are the deliverable and are exempt from the token lint. `description:` — one double-quoted line naming the situation the command fires in, never the mechanism it implements; it is the picker entry and the skill trigger on every harness. Never a YAML block scalar: the parser is line-based and would store `>-` verbatim. `autofire: true` — mirror this command into the Claude skill surface as well as the `/` picker, so the model can elect it from the situation. Omit it when a misfire would be damage (consequential and hard to reverse) or noise (a trigger broad enough to fire on ordinary conversation).
+
+The three renderings of a command differ on purpose. `dist/commands/<name>.md` is a full copy and keeps the authoring frontmatter whole. `dist/skills/<name>/SKILL.md` and `dist/agent-skills/<name>/SKILL.md` synthesise a two-field frontmatter — `name` and `description` — over the body, and carry no authoring metadata. A new frontmatter key follows that rule: it survives the copy and it does not appear in either SKILL.md.
+
 ## Before starting a new initiative
 
 Before starting work on something with a discernible outcome — a new bug, a new feature, a refactor, anything that would warrant a commit — go to the board first.
@@ -80,7 +99,7 @@ Linking those traces back to the board — a `_session: <id>_` footer on issues 
 
 This repository is **public**. Reports and exports derived from agent session traces carry customer/session data — real names, private issue IDs, infra topology, cost figures, and secrets users pasted into prompts. They must never be committed here.
 
-- **Never write session-derived output to a tracked path** (`proposals/`, `context/`, the knowledge base, anywhere git tracks). The `mlflow-export`, `awow-usage-coach`, `prompt-skill-analysis`, and `project-timeline` skills produce this kind of output — route it to the gitignored `coach_reviews/` (or `mlflow_export/`) only.
+- **Never write session-derived output to a tracked path** (`proposals/`, `context/`, the knowledge base, anywhere git tracks). The `awow-telemetry` skills — `mlflow-export`, `awow-usage-coach`, `prompt-skill-analysis`, `project-timeline`, `session-export` — produce this kind of output; route it to the gitignored `coach_reviews/` (or `mlflow_export/`) only. They ship in the separate `awow-telemetry` plugin, but this rule binds in this repo whether or not that plugin is installed.
 - `proposals/` is for drafting *awow's own* artefacts (stories, features). It is **not** a scratchpad for analysis of real team sessions.
 - A `pre-push` leak scan (`tools/hooks/pre-push`) backstops this. Install it with `cp tools/hooks/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push`. It is a backstop, not a guarantee — keeping the data untracked is the first line of defence.
 - If you spot session-derived or otherwise private content already tracked, stop and flag it to the user before pushing.

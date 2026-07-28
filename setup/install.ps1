@@ -1,7 +1,7 @@
 # awow installer (Windows / PowerShell)
 #
 # Sets up Python via uv, creates a .venv, and runs the initial pointer-stub
-# gather so .claude/ and .github/ are populated. Mirror of install.sh for
+# gather so .claude/, .github/ and .opencode/ are populated. Mirror of install.sh for
 # Unix systems.
 #
 # This is the prerequisite for the /setup-awow agent command: run it once
@@ -45,14 +45,17 @@ See https://docs.astral.sh/uv/getting-started/installation/ for alternatives.
     exit 1
 }
 
-Write-Host "[1/3] Ensuring Python $PythonVersion is available via uv..."
+Write-Host "[1/4] Ensuring Python $PythonVersion is available via uv..."
 uv python install $PythonVersion --quiet
 
-Write-Host "[2/3] Creating .venv ..."
+Write-Host "[2/4] Creating .venv ..."
 uv venv --python $PythonVersion --quiet
 
-Write-Host "[3/3] Running initial pointer-stub gather..."
+Write-Host "[3/4] Running initial pointer-stub gather..."
 uv run --no-project python tools/gather.py
+
+Write-Host "[4/4] Recording the awow version baseline (tools\awow.lock.json)..."
+uv run --no-project python tools/awow_lock.py backfill
 
 Write-Host @'
 
@@ -67,5 +70,5 @@ Next steps:
      Issues) and the rest of the configuration.
 
 If you re-edit .agents/ later, run `uv run python tools\gather.py` to
-re-mirror the pointer stubs into .claude/ and .github/.
+re-mirror the pointer stubs into .claude/, .github/ and .opencode/.
 '@

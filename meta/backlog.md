@@ -12,6 +12,12 @@ Each entry: what to do, why (what surfaced it), where the change lives.
 - **Why:** the tool's whole job was to concatenate `mission.md`, `members.md`, `conventions/REQUIRED/*.md`, `style/*.md`, and `tooling/board.md` with section headers. The agent can do that in-session without a hardwired script — and avoiding hardcoded scripts keeps awow legible. Surfaced 2026-05-14 when this dogfood walkthrough reached Step 5 and the tool turned out to be `NotImplementedError`; the user pushed back against generating Python to fill the gap.
 - **Where:** `tools/bootstrap-claude-md.py` (delete), `.agents/commands/setup-awow.md` Step 5 (rewrite), re-mirror via `tools/gather.py`.
 
+## `board-skill` — never landed; pain is covered elsewhere
+
+- **What:** the drafted-but-never-committed `board-skill` stub ("commits-and-issues-never-link", v0.2) should not land as a command. Its pain is already covered by the board-linkage convention in `.agents/AGENTS.md` plus the opt-in `session-correlation` skill.
+- **Why:** re-justify before reintroducing — same catalogue-inflation rationale as the retired cross-team-visibility stub. Rationale: `meta/proposals/eval-baseline-and-prompt-cleanup.md` §6.
+- **Where:** nothing to delete on `main`; this entry records the decision.
+
 ## Soften `/setup-awow` Step 5 — keep Do-not-propose defaults when they fit
 
 - **What:** rephrase Step 5's "ask the user to populate the `## Do not propose` block" to "augment or keep the stub's defaults, depending on whether the team has specific scope-shedding to add".

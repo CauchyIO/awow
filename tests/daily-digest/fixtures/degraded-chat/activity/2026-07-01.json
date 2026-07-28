@@ -1,0 +1,52 @@
+{
+  "date": "2026-07-01",
+  "sources": {
+    "board": {
+      "status": "ok",
+      "scope": "SampleOrg project 1 — issues touched 2026-07-01",
+      "items": [
+        {
+          "kind": "board.issue",
+          "ref": "AWOW-301",
+          "actor": "Asha Patel",
+          "title": "Gateway redesign kickoff notes",
+          "activity": ["2026-07-01: Todo → In Progress"],
+          "payload": {
+            "description": "Kick off the gateway redesign; scope the first slice.",
+            "comments": []
+          }
+        },
+        {
+          "kind": "board.issue",
+          "ref": "AWOW-302",
+          "actor": "Bram de Vries",
+          "title": "Ingest backpressure metrics",
+          "activity": ["2026-07-01: comment by Bram de Vries"],
+          "payload": {
+            "description": "Expose backpressure as a metric before tuning.",
+            "comments": ["metrics endpoint drafted, dashboard next"]
+          }
+        }
+      ]
+    },
+    "code": {
+      "status": "ok",
+      "scope": "SampleOrg/gateway, SampleOrg/pipelines",
+      "items": [
+        {
+          "kind": "code.commit",
+          "ref": "8c1d0e4",
+          "actor": "Bram de Vries",
+          "title": "pipelines: backpressure gauge (AWOW-302)",
+          "activity": ["2026-07-01: pushed to main"],
+          "payload": { "description": "", "comments": [], "diff": "" }
+        }
+      ]
+    },
+    "chat": {
+      "status": "error",
+      "scope": "all channels failed: webhook auth 401 — logged at collection",
+      "items": []
+    }
+  }
+}

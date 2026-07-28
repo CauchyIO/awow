@@ -15,15 +15,29 @@ Why pointers (not copies, not symlinks):
 
 Layout produced
 ---------------
-    .agents/AGENTS.md                    → .claude/CLAUDE.md
+    .agents/AGENTS.md                    → AGENTS.md          (repo root)
+                                         → .claude/CLAUDE.md
                                          → .github/copilot-instructions.md
                                          → .github/AGENTS.md
+
+The repo-root `AGENTS.md` is the cross-vendor instruction-file standard: a
+harness that reads it natively from the root (Codex among them) is steered to
+`.agents/AGENTS.md` with no install step. It is emitted for every in-repo
+surface but not for the `dist/` plugin payload.
     .agents/commands/<name>.md           → .claude/commands/<name>.md
                                          → .github/prompts/<name>.prompt.md
+                                         → .opencode/commands/<name>.md
 
 The `.prompt.md` extension under .github/prompts/ is required: VS Code's
 GitHub Copilot Chat discovers prompt files by that exact suffix; plain `.md`
 is silently ignored.
+
+The .opencode/ stubs use their own generator: opencode derives a command's
+placeholder list from the template body, so a stub without a literal
+$ARGUMENTS silently receives no arguments. opencode reads the repo-root
+AGENTS.md and discovers .agents/skills/ and .claude/skills/ natively (deduped,
+precedence .opencode/ > .claude/ > .agents/), so commands are the only surface
+it needs emitted.
     .agents/skills/<name>/SKILL.md       → .claude/skills/<name>/SKILL.md
                                          → .github/skills/<name>/SKILL.md
     .agents/skills/<name>.md             → .claude/skills/<name>/SKILL.md
@@ -35,23 +49,56 @@ is silently ignored.
 Files named README.md and any path under `_workitem-archetypes/` are not mirrored;
 they are documentation, not commands.
 
+Plugin payload (dist/)
+----------------------
+The `plugin` surface builds the distributable Claude Code plugin under
+`dist/` — full copies, not pointers, because plugin content runs inside an
+adopter's project where `.agents/` does not exist:
+
+    .agents/commands/<name>.md           → dist/commands/<name>.md
+    commands/<name>.md  (legacy /awowify) → dist/commands/<name>.md
+    .agents/skills/<name>/**             → dist/skills/<name>/**
+    .agents/skills/<name>.md             → dist/skills/<name>/SKILL.md
+    (every command AND skill, as a skill) → dist/agent-skills/<name>/SKILL.md
+    hooks/**                             → dist/hooks/**
+    tools/<runtime allowlist>            → dist/tools/**
+    .claude-plugin/plugin.json           → dist/.claude-plugin/plugin.json
+                                            (metadata only; commands/skills/
+                                            hooks are auto-discovered)
+
+The `agent-skills/` surface is the commands-as-skills payload for harnesses that
+consume skills rather than slash commands (Codex, Pi): every command and skill
+rendered as `<name>/SKILL.md`. Both harness manifests point at it (WI-5).
+
+`dist/` is wholly owned by this script: any file found there that is not in
+the plan is removed. Maintainer tools (gather.py itself, distribute.py, …)
+are deliberately excluded from the payload — they resolve REPO_ROOT from
+__file__ and would operate on the plugin install dir if shipped.
+This surface only applies in the awow maintainer repo (gated on
+`.claude-plugin/plugin.json`); vendored adopter repos skip it.
+
 Usage
 -----
-    python tools/gather.py                  # write all stubs
-    python tools/gather.py --check          # exit 1 if any stub is out of date
+    python tools/gather.py                  # write all surfaces (incl. dist/)
+    python tools/gather.py --check          # exit 1 if any output is out of date
     python tools/gather.py --surface claude # only emit to .claude/
     python tools/gather.py --surface github # only emit to .github/
+    python tools/gather.py --surface opencode  # only emit to .opencode/
+    python tools/gather.py --surface plugin # only build dist/
+    python tools/gather.py --surface both   # .claude/ + .github/, no dist/
 
 Orphans
 -------
 Stubs whose source has been removed are reported (and removed in non-check
 mode) only if they carry the GENERATED header this script writes, so user-
-added files are never deleted.
+added files are never deleted. Under dist/ every unplanned file is an orphan
+— the payload is fully generated, so nothing user-authored can live there.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from dataclasses import dataclass
@@ -61,16 +108,166 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 AGENTS_DIR = REPO_ROOT / ".agents"
 CLAUDE_DIR = REPO_ROOT / ".claude"
 GITHUB_DIR = REPO_ROOT / ".github"
+OPENCODE_DIR = REPO_ROOT / ".opencode"
+DIST_DIR = REPO_ROOT / "dist"
+# Second payload root: the awow-telemetry plugin (design spec 4.3). A sibling of
+# dist/, not a child, for two reasons. Claude Code installs from CauchyIO/awow
+# and resolves .claude-plugin/marketplace.json's relative `source` against the
+# repo root, so "./dist-telemetry" needs no new install mechanism. And
+# tools/sync-dist.sh mirrors only dist/ into awow-dist, so a sibling never
+# reaches the Codex/Pi channel — which is exactly the Claude-Code-only scope
+# constraint, enforced by the publish topology rather than by a rule someone
+# has to remember.
+DIST_TELEMETRY_DIR = REPO_ROOT / "dist-telemetry"
+# Commands-as-skills surface: every command AND skill rendered as <name>/SKILL.md,
+# for harnesses that consume skills rather than slash commands (Codex, Pi). Both
+# their manifests point here (hub-and-spoke WI-5).
+AGENT_SKILLS_DIR = DIST_DIR / "agent-skills"
+# Codex plugin + marketplace live at the dist/ root: codex git-clones the plugin
+# source, so it must be a repo root (source "./"), and dist/ published as a git repo
+# IS the codex marketplace. (Verified against codex 0.144.)
+CODEX_MANIFEST = DIST_DIR / ".codex-plugin" / "plugin.json"
+CODEX_MARKETPLACE = DIST_DIR / ".agents" / "plugins" / "marketplace.json"
+# Pi package manifest at the dist/ root: `pi install` reads the `pi` key and loads the
+# commands-as-skills from pi.skills. Pi reads root AGENTS.md and .agents/skills natively,
+# so the package is the whole Pi integration — no extension needed.
+# One manifest at the dist/ root serves two harnesses. `pi install` reads the `pi`
+# key; opencode reads `main`, which points at the plugin module below. Pi reads root
+# AGENTS.md and .agents/skills natively, so the package is the whole Pi integration.
+PI_MANIFEST = DIST_DIR / "package.json"
+# opencode plugin module. opencode plugins are JS hook modules — no manifest field
+# can register skills, so the skills directory is registered at runtime through the
+# plugin's `config` hook. (Verified against opencode 1.15.2.)
+OPENCODE_PLUGIN = DIST_DIR / ".opencode" / "plugins" / "awow.js"
+PLUGIN_MANIFEST = REPO_ROOT / ".claude-plugin" / "plugin.json"
+ROOT_COMMANDS_DIR = REPO_ROOT / "commands"
+HOOKS_DIR = REPO_ROOT / "hooks"
+
+# Runtime tools shipped in a plugin payload, split by which plugin needs them.
+# Everything else under tools/ stays maintainer-only: those scripts resolve
+# REPO_ROOT from __file__ and would operate on the plugin install dir if
+# shipped (hub-and-spoke WI-4).
+#
+# Base plugin: the pre-push leak scan and its pattern file. Nothing else — the
+# three session-analysis tools below served only skills that have moved.
+PLUGIN_TOOL_PATHS = [
+    "hooks/leak-patterns.txt",
+    "hooks/pre-push",
+]
+
+# awow-telemetry: the session-analysis runtime. project-timeline has no
+# scripts/ directory of its own — session_timeline.py plus its HTML template
+# ARE its implementation, reached as {AWOW_TOOLS}/… from the skill body. And
+# mlflow_reader.py is shared: awow-usage-coach's bundled awow_extract.py
+# imports it (scripts/awow_extract.py:52-61), so the two must land in the same
+# payload or that import fails at runtime.
+TELEMETRY_TOOL_PATHS = [
+    "mlflow_reader.py",
+    "session_timeline.py",
+    "session_timeline_template.html",
+]
+
+CONTEXT_DIR = REPO_ROOT / "context"
+
+# Which context/ files ship in the payload. The predicate (design spec 4.1.2):
+# a file ships if a default exists that is useful before /setup-awow runs.
+#   contract — identical for every adopter, nobody edits it
+#   template — ships a working default that /setup-awow tunes
+# Entries are POSIX paths relative to context/; a bare directory name covers
+# its whole subtree. Addressed in prompt bodies as {AWOW_ROOT}/context/...
+PAYLOAD_CONTEXT_PATHS = [
+    "kb-inbox/README.md",                 # contract
+    "knowledge-base/README.md",           # contract
+    "knowledge-base/mining.md",           # contract
+    "knowledge-base/synthesis.md",        # contract
+    "retros/anti-patterns.md",            # contract
+    "retros/canon.md",                    # contract
+    "tooling/README.md",                  # contract
+    "tooling/activity-collection.md",     # contract
+    "tooling/boards",                     # contract (subtree, 35 files)
+    "tooling/harnesses",                  # contract (subtree, 5 files)
+    "knowledge-base/mining-policy.md",    # template — selectivity: 2
+    "tooling/design-system.md",           # template — mode: absent
+    "tooling/knowledge-base.md",          # template — default kb_root
+    "tooling/department.md",              # template — default department indirection
+    "department/templates",               # contract (subtree — OKR and PI skeletons)
+]
+
+# Team data: /setup-awow authors these per adopter. No useful default exists,
+# and a generic stub is worse than absence — commands branch on absence
+# (see the board fallback, design spec 4.2), but cannot branch on boilerplate.
+TEAM_DATA_CONTEXT_PATHS = [
+    "README.md",
+    "company",
+    "department/definition.md",           # MD-authored department description
+    "department/teams.md",                # registry written by /setup-department
+    "department/decisions",               # governance decisions
+    "kb-inbox/_synthesis-log.md",
+    "knowledge-base/architecture",
+    "knowledge-base/decisions",
+    "knowledge-base/glossary.md",
+    "knowledge-base/patterns",
+    "knowledge-base/runbooks",
+    "quarterly",
+    "team",
+    "tooling/architecture.md",
+    "tooling/board.md",
+]
+
+
+def _covers(entry: str, rel: str) -> bool:
+    """True if manifest `entry` covers `rel` — exact file, or directory prefix."""
+    return rel == entry or rel.startswith(entry + "/")
+
+
+def classify_context_path(rel: str) -> str:
+    """'payload', 'team-data', or 'unclassified' for a POSIX path relative to
+    context/. Longest matching entry wins, so a file may be carved out of a
+    directory-level classification."""
+    best, verdict = -1, "unclassified"
+    for entry in PAYLOAD_CONTEXT_PATHS:
+        if _covers(entry, rel) and len(entry) > best:
+            best, verdict = len(entry), "payload"
+    for entry in TEAM_DATA_CONTEXT_PATHS:
+        if _covers(entry, rel) and len(entry) > best:
+            best, verdict = len(entry), "team-data"
+    return verdict
+
+
+def unclassified_context_paths() -> list[str]:
+    """Every file under context/ that no manifest entry covers. A new file that
+    nobody classified fails the build rather than silently not shipping."""
+    if not CONTEXT_DIR.is_dir():
+        return []
+    stray = []
+    for path in sorted(CONTEXT_DIR.rglob("*")):
+        if not path.is_file() or path.name == ".gitkeep":
+            continue
+        rel = path.relative_to(CONTEXT_DIR).as_posix()
+        if classify_context_path(rel) == "unclassified":
+            stray.append(rel)
+    return stray
+
 
 SKIP_FILENAMES = {"README.md"}
 SKIP_DIR_PARTS = {"_workitem-archetypes"}
 GENERATED_MARKER = "<!-- GENERATED by tools/gather.py"
+
+# Payload roots that this script wholly owns: under one of these, EVERY
+# unplanned file is an orphan, marker or not. That distinction is load-bearing,
+# because full-copy payload content carries no GENERATED header at all —
+# plugin_command_copy, command_skill_stub, and skill_stubs each emit the source
+# body verbatim. A payload root missing from this tuple therefore has its
+# orphans silently ignored while --check stays green. Add every new payload
+# root here in the same change that creates it.
+GENERATED_ROOTS = (DIST_DIR, DIST_TELEMETRY_DIR)
 
 
 @dataclass(frozen=True)
 class Stub:
     target: Path
     content: str
+    mode: int | None = None  # exec bits matter for hooks and scripts
 
 
 @dataclass(frozen=True)
@@ -83,10 +280,25 @@ class BinaryStub:
 
 _FM_DELIM = "---\n"
 
+# YAML block-scalar headers: folded (>) or literal (|), each with an optional
+# indentation indicator and an optional chomping indicator.
+_BLOCK_SCALAR = re.compile(r"^[|>][0-9]*[-+]?$")
 
-def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
-    """Return (scalar fields, body). Lists and block scalars are ignored — we
-    only need top-level strings like name, description, removes_pain."""
+
+def parse_frontmatter(
+    text: str, source: Path | None = None
+) -> tuple[dict[str, str], str]:
+    """Return (scalar fields, body). Lists are ignored — we only need top-level
+    strings like name, description, removes_pain.
+
+    Block scalars are REJECTED, not ignored. This parser is line-based, so a
+    `description: >-` would be stored as the literal two-character string '>-'
+    and would propagate to every pointer stub, plugin picker entry, and
+    agent-skill trigger built from it — with `--check` green the whole way,
+    because the build faithfully mirrors the wrong value. Descriptions are
+    single-line and double-quoted (design spec 4.5). Pass `source` so the
+    failure names the file.
+    """
     if not text.startswith(_FM_DELIM):
         return {}, text
     end = text.find("\n" + _FM_DELIM, len(_FM_DELIM))
@@ -100,6 +312,15 @@ def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
         if not m:
             continue
         key, raw = m.group(1), m.group(2).strip()
+        if _BLOCK_SCALAR.match(raw):
+            where = f"{source.relative_to(REPO_ROOT)}: " if source is not None else ""
+            raise ValueError(
+                f"{where}frontmatter field {key!r} uses the YAML block scalar "
+                f"{raw!r}. tools/gather.py parses frontmatter line by line, so "
+                f"the value would be stored as the literal string {raw!r} and "
+                f"mirrored into every stub, picker entry, and skill trigger. "
+                f"Write it as one double-quoted line instead."
+            )
         if raw == "" or raw.startswith("[") or raw.startswith("{"):
             continue
         if (raw.startswith('"') and raw.endswith('"')) or (
@@ -152,17 +373,24 @@ def command_description(fields: dict[str, str], body: str) -> str:
     return ""
 
 
-def gen_command_stub(source: Path, stub_target: Path) -> str:
-    text = source.read_text()
-    fields, body = parse_frontmatter(text)
+def command_frontmatter(source: Path) -> str:
+    """`description`-only frontmatter block, shared by the command-stub generators.
+
+    Every harness that consumes a command stub wants the same one key, so the
+    block is identical across surfaces; only the bodies differ."""
+    fields, body = parse_frontmatter(source.read_text(), source)
     desc = command_description(fields, body)
-    link = rel_link(stub_target, source)
-    fm_lines = ["---"]
+    lines = ["---"]
     if desc:
         # YAML-quote (double, with internal quote escape)
-        fm_lines.append(f'description: "{desc.replace(chr(34), chr(92) + chr(34))}"')
-    fm_lines.append("---")
-    fm = "\n".join(fm_lines)
+        lines.append(f'description: "{desc.replace(chr(34), chr(92) + chr(34))}"')
+    lines.append("---")
+    return "\n".join(lines)
+
+
+def gen_command_stub(source: Path, stub_target: Path) -> str:
+    link = rel_link(stub_target, source)
+    fm = command_frontmatter(source)
     return (
         f"{fm}\n\n"
         f"{header(source)}\n\n"
@@ -221,6 +449,30 @@ def gen_top_level_instructions(stub_target: Path, harness_label: str) -> str:
     )
 
 
+def gen_root_agents_stub(stub_target: Path) -> str:
+    """Repo-root `AGENTS.md` — the cross-vendor instruction-file standard.
+
+    Distinct from the per-surface top-level stubs: no harness label, neutral
+    wording, and it names AGENTS.md's cross-vendor role (a harness that reads
+    the root file natively, e.g. Codex, is steered with no install step)."""
+    source = AGENTS_DIR / "AGENTS.md"
+    link = rel_link(stub_target, source)
+    return (
+        f"{header(source)}\n\n"
+        f"# Agent instructions\n\n"
+        f"This repo uses a single source of truth for agent instructions, commands, and "
+        f"skills: the `.agents/` directory. **Before doing anything else, read "
+        f"[`.agents/AGENTS.md`]({link}) and follow its instructions.** That file is the "
+        f"canonical rule set for every agent working in this repo.\n\n"
+        f"`AGENTS.md` is the cross-vendor instruction-file standard. A harness that reads it "
+        f"natively from the repo root — Codex among them — is steered to the source above with "
+        f"no install step. Commands live under `.agents/commands/`, skills under "
+        f"`.agents/skills/`, and conventions and context under `context/`.\n\n"
+        f"This file is an auto-generated pointer produced by `tools/gather.py`; the substantive "
+        f"content lives under `.agents/`. Edits here are overwritten on the next gather.\n"
+    )
+
+
 def gen_folder_readme(stub_target: Path, source_dir: Path, harness_label: str) -> str:
     link = rel_link(stub_target, source_dir)
     return (
@@ -245,6 +497,35 @@ def is_skipped(path: Path) -> bool:
     return False
 
 
+def gen_opencode_command_stub(source: Path, stub_target: Path) -> str:
+    """Pointer stub for .opencode/commands/.
+
+    Two things differ from gen_command_stub, both load-bearing:
+
+    - The body MUST contain a literal `$ARGUMENTS`. opencode derives a command's
+      placeholder list from the template body (it matches /\\$\\d+/g and tests for
+      "$ARGUMENTS"); a template carrying neither receives no arguments at all, and
+      it fails silently — `/process-workitem AWO-48` would run with nothing.
+      Prose like "apply any arguments the user provided" is not a placeholder.
+    - `description` is the only frontmatter key worth setting. opencode also reads
+      `agent`, `model` and `subtask`; leaving them unset keeps the user's own
+      defaults. `template` must NOT appear — for a markdown command the body is
+      the template, and a frontmatter `template` key conflicts with it.
+    """
+    link = rel_link(stub_target, source)
+    fm = command_frontmatter(source)
+    return (
+        f"{fm}\n\n"
+        f"{header(source)}\n\n"
+        f"Execute the command defined at [`{source.relative_to(REPO_ROOT)}`]({link}). "
+        f"Read that file and follow its instructions. The body of this stub carries no "
+        f"substantive content — the real prompt lives at the path above.\n\n"
+        f"Arguments for this invocation: $ARGUMENTS\n\n"
+        f"Edits must be made in `{source.relative_to(REPO_ROOT)}` and re-mirrored with "
+        f"`python tools/gather.py`.\n"
+    )
+
+
 def plan_top_level() -> list[Stub]:
     plans = []
     for target, label in [
@@ -253,6 +534,8 @@ def plan_top_level() -> list[Stub]:
         (GITHUB_DIR / "AGENTS.md", ".github/"),
     ]:
         plans.append(Stub(target, gen_top_level_instructions(target, label)))
+    root_agents = REPO_ROOT / "AGENTS.md"
+    plans.append(Stub(root_agents, gen_root_agents_stub(root_agents)))
     return plans
 
 
@@ -262,12 +545,14 @@ def plan_commands() -> list[Stub]:
     for source in sorted(commands_root.rglob("*.md")):
         if is_skipped(source):
             continue
-        for target_dir, ext in [
-            (CLAUDE_DIR / "commands", ".md"),
-            (GITHUB_DIR / "prompts", ".prompt.md"),
+        for target_dir, ext, generator in [
+            (CLAUDE_DIR / "commands", ".md", gen_command_stub),
+            (GITHUB_DIR / "prompts", ".prompt.md", gen_command_stub),
+            # opencode needs its own generator — see gen_opencode_command_stub.
+            (OPENCODE_DIR / "commands", ".md", gen_opencode_command_stub),
         ]:
             target = target_dir / (source.stem + ext)
-            plans.append(Stub(target, gen_command_stub(source, target)))
+            plans.append(Stub(target, generator(source, target)))
     return plans
 
 
@@ -282,13 +567,13 @@ def plan_skills() -> list[Stub]:
             if not skill_file.exists():
                 continue
             text = skill_file.read_text()
-            fields, body = parse_frontmatter(text)
+            fields, body = parse_frontmatter(text, skill_file)
             name = fields.get("name", entry.name)
             description = fields.get("description") or first_h1(body) or ""
             source = skill_file
         elif entry.is_file() and entry.suffix == ".md":
             text = entry.read_text()
-            fields, body = parse_frontmatter(text)
+            fields, body = parse_frontmatter(text, entry)
             name = fields.get("name", entry.stem)
             description = fields.get("description") or first_h1(body) or ""
             source = entry
@@ -297,6 +582,612 @@ def plan_skills() -> list[Stub]:
         for target_dir in [CLAUDE_DIR / "skills", GITHUB_DIR / "skills"]:
             target = target_dir / name / "SKILL.md"
             plans.append(Stub(target, gen_skill_stub(source, target, name, description)))
+    return plans
+
+
+def copy_stub(target: Path, source: Path) -> Stub:
+    return Stub(target, source.read_text(), source.stat().st_mode & 0o777)
+
+
+# Path tokens (see .agents/AGENTS.md "Path tokens"): {AWOW_TOOLS} and
+# {AWOW_ROOT} resolve at build time for the plugin surface — the payload knows
+# where it lives. {HUB} and {PROJECT} ship as-is; the session reflex teaches
+# their resolution.
+PLUGIN_TOKEN_SUBSTITUTIONS = [
+    ("{AWOW_TOOLS}", "${CLAUDE_PLUGIN_ROOT}/tools"),
+    ("{AWOW_ROOT}", "${CLAUDE_PLUGIN_ROOT}"),
+]
+
+
+# A prompt body must be able to NAME a token without USING it — using-awow and
+# AGENTS.md both document the token vocabulary and are themselves rendered.
+# {{TOKEN}} is the escape: protected before substitution, unwrapped after.
+# Scoped to the four path-token names deliberately: a blanket {{[A-Z_]+}} escape
+# would also unwrap the {{PLACEHOLDER}} markers /daily-digest documents for the
+# adopter's HTML template, corrupting the syntax that file exists to describe.
+PATH_TOKEN_NAMES = ("HUB", "PROJECT", "AWOW_TOOLS", "AWOW_ROOT")
+_ESCAPED_TOKEN = re.compile(r"\{\{(" + "|".join(PATH_TOKEN_NAMES) + r")\}\}")
+_ESCAPE_SENTINEL = "\x00"
+
+
+def _render(text: str, substitutions: list[tuple[str, str]]) -> str:
+    text = _ESCAPED_TOKEN.sub(
+        lambda m: f"{_ESCAPE_SENTINEL}{m.group(1)}{_ESCAPE_SENTINEL}", text
+    )
+    for token, replacement in substitutions:
+        text = text.replace(token, replacement)
+    return re.sub(
+        rf"{_ESCAPE_SENTINEL}([A-Z_]+){_ESCAPE_SENTINEL}", r"{\1}", text
+    )
+
+
+def render_plugin_body(text: str) -> str:
+    return _render(text, PLUGIN_TOKEN_SUBSTITUTIONS)
+
+
+# The commands-as-skills surface (Codex/Pi) can't resolve ${CLAUDE_PLUGIN_ROOT}.
+# Agent Skills resolve paths relative to the skill dir, so from
+# dist/agent-skills/<name>/SKILL.md, ../../tools reaches the payload's dist/tools/.
+# (Residual literal ${CLAUDE_PLUGIN_ROOT} in a few Claude-channel command bodies —
+# awowify, using-awow — is WI-2 content-sweep debt, tracked separately.)
+AGENT_SKILLS_TOKEN_SUBSTITUTIONS = [
+    ("{AWOW_TOOLS}", "../../tools"),
+    ("{AWOW_ROOT}", "../.."),
+]
+
+
+def render_agent_skills_body(text: str) -> str:
+    return _render(text, AGENT_SKILLS_TOKEN_SUBSTITUTIONS)
+
+
+def declared_channel(text: str) -> str:
+    """The `channel:` declared in the leading frontmatter, or 'both'.
+
+    The field is NOT binary — four values are in play, and code that treats it
+    as ships/doesn't-ship gets `bootstrap` wrong:
+
+      both       (default)  ships in every payload
+      vendored              operates on the vendored install itself; never ships
+      bootstrap             ships, but *creates* the vendored tree, so its
+                            literal paths are the deliverable (lint-paths.py:36-38)
+      telemetry             ships in the awow-telemetry payload only, never in
+                            the base plugin (design spec 4.3)
+
+    tools/lint-paths.py carries an independent parser for the same field; the
+    two are asserted equal on every source file in tests/telemetry-split/."""
+    return parse_frontmatter(text)[0].get("channel", "both")
+
+
+def is_vendored_channel(text: str) -> bool:
+    """channel: vendored files operate on the vendored install itself and are
+    excluded from every plugin payload."""
+    return declared_channel(text) == "vendored"
+
+
+def is_telemetry_channel(text: str) -> bool:
+    """channel: telemetry files build into dist-telemetry/ (the awow-telemetry
+    plugin) and are excluded from dist/ — both its Claude skills surface and
+    its Codex/Pi agent-skills surface."""
+    return declared_channel(text) == "telemetry"
+
+
+def is_autofire(text: str) -> bool:
+    """`autofire: true` mirrors a command into dist/skills/ on top of the /
+    picker, so a Claude session can elect it from the situation the user is in
+    rather than waiting to be typed. The selection rule (design spec 4.5
+    Layer 3): a command autofires unless a misfire would be damage
+    (consequential and hard to reverse) or noise (trigger too broad) — and
+    noise is how the whole mechanism gets switched off.
+
+    Claude-surface only. plan_agent_skills emits a skill for EVERY non-vendored
+    command, so Codex, Pi, and Copilot see all of them regardless. That
+    asymmetry is accepted: suppressing there would make a command invisible to
+    three of the four harnesses' triggers.
+    """
+    return parse_frontmatter(text)[0].get("autofire") == "true"
+
+
+def plugin_command_copy(target: Path, source: Path, text: str | None = None) -> Stub:
+    """Full copy, with a `description:` injected into the frontmatter when the
+    source only carries it in the H1 — the plugin picker needs the field. Pass
+    `text` to reuse an already-read body and avoid a second read of `source`."""
+    text = render_plugin_body(source.read_text() if text is None else text)
+    mode = source.stat().st_mode & 0o777
+    fields, body = parse_frontmatter(text, source)
+    if "description" in fields:
+        return Stub(target, text, mode)
+    desc = command_description(fields, body)
+    if not desc:
+        return Stub(target, text, mode)
+    desc_line = f'description: "{desc.replace(chr(34), chr(92) + chr(34))}"'
+    if text.startswith(_FM_DELIM):
+        end = text.find("\n" + _FM_DELIM, len(_FM_DELIM))
+        fm_block = text[len(_FM_DELIM):end]
+        rest = text[end + len("\n" + _FM_DELIM):]
+        content = f"---\n{desc_line}\n{fm_block}\n---\n{rest}"
+    else:
+        content = f"---\n{desc_line}\n---\n\n{text}"
+    return Stub(target, content, mode)
+
+
+def skill_stubs(
+    entry: Path, dest_root: Path, render=render_plugin_body, channel: str = "both"
+) -> list[Stub]:
+    """Render one `.agents/skills/<entry>` into `dest_root/<name>/…` as full-content
+    SKILL.md (+ any bundled files). Shared by the Claude plugin payload (dist/skills),
+    the commands-as-skills surface (dist/agent-skills, which passes
+    render_agent_skills_body), and the telemetry payload (dist-telemetry/skills).
+
+    `channel` selects which payload is being built: 'both' takes everything that
+    is not vendored and not telemetry; 'telemetry' takes exactly the telemetry
+    entries. Returns [] for vendored or non-skill entries either way."""
+    if entry.is_dir() and (entry / "SKILL.md").exists():
+        skill_md = entry / "SKILL.md"
+        skill_text = skill_md.read_text()
+        if is_vendored_channel(skill_text):
+            return []
+        if is_telemetry_channel(skill_text) != (channel == "telemetry"):
+            return []
+        out: list[Stub] = []
+        for f in sorted(entry.rglob("*")):
+            if not f.is_file():
+                continue
+            target = dest_root / entry.name / f.relative_to(entry)
+            if f.suffix == ".md":
+                body = skill_text if f == skill_md else f.read_text()
+                out.append(Stub(target, render(body), f.stat().st_mode & 0o777))
+            else:
+                out.append(copy_stub(target, f))
+        return out
+    if entry.is_file() and entry.suffix == ".md":
+        # Declarative skill: wrap the FULL body (not a pointer) in the dir/SKILL.md
+        # form the loader discovers.
+        text = entry.read_text()
+        if is_vendored_channel(text):
+            return []
+        if is_telemetry_channel(text) != (channel == "telemetry"):
+            return []
+        fields, body = parse_frontmatter(text)
+        name = fields.get("name", entry.stem)
+        description = fields.get("description") or first_h1(body) or ""
+        desc_escaped = description.replace(chr(34), chr(92) + chr(34))
+        content = (
+            f"---\n"
+            f"name: {name}\n"
+            f'description: "{desc_escaped}"\n'
+            f"---\n\n"
+            f"{render(body.lstrip())}"
+        )
+        return [Stub(dest_root / name / "SKILL.md", content)]
+    return []
+
+
+def command_skill_stub(source: Path, dest_root: Path, render=render_plugin_body) -> Stub | None:
+    """Render a command as a `<name>/SKILL.md` — name + description frontmatter over
+    the full command body. Commands-as-skills: the harness loads it when the user
+    names the flow. None for vendored commands."""
+    text = source.read_text()
+    if is_vendored_channel(text):
+        return None
+    fields, body = parse_frontmatter(text, source)
+    name = source.stem
+    description = command_description(fields, body)
+    desc_escaped = description.replace(chr(34), chr(92) + chr(34))
+    content = (
+        f"---\n"
+        f"name: {name}\n"
+        f'description: "{desc_escaped}"\n'
+        f"---\n\n"
+        f"{render(body.lstrip())}"
+    )
+    return Stub(dest_root / name / "SKILL.md", content)
+
+
+def plan_agent_skills() -> list[Stub]:
+    """Commands-as-skills surface under dist/agent-skills/ — every command AND skill
+    as <name>/SKILL.md, for Codex and Pi. Full content (the payload ships where
+    `.agents/` is absent). Both harness manifests point at this one directory."""
+    plans: list[Stub] = []
+    for source in sorted((AGENTS_DIR / "commands").rglob("*.md")):
+        if is_skipped(source):
+            continue
+        stub = command_skill_stub(source, AGENT_SKILLS_DIR, render_agent_skills_body)
+        if stub is not None:
+            plans.append(stub)
+    if ROOT_COMMANDS_DIR.is_dir():
+        for source in sorted(ROOT_COMMANDS_DIR.glob("*.md")):
+            if source.name in SKIP_FILENAMES:
+                continue
+            stub = command_skill_stub(source, AGENT_SKILLS_DIR, render_agent_skills_body)
+            if stub is not None:
+                plans.append(stub)
+    for entry in sorted((AGENTS_DIR / "skills").iterdir()):
+        if entry.name in SKIP_FILENAMES:
+            continue
+        plans.extend(skill_stubs(entry, AGENT_SKILLS_DIR, render_agent_skills_body))
+    # No second context/ copy: {AWOW_ROOT} renders to ../.. on this channel,
+    # which from dist/agent-skills/<name>/ resolves to dist/ — the same files
+    # plan_plugin already ships. Adding a copy here would double the payload
+    # and desync the two.
+    return plans
+
+
+def plan_codex() -> list[Stub]:
+    """Codex plugin manifest + marketplace, into dist/. dist/ published as a git repo
+    IS the codex marketplace: the plugin sits at its root (source "./"), points
+    `skills` at the shared agent-skills surface, and carries the load-bearing empty
+    `hooks` (without it Codex auto-discovers hooks/hooks.json and re-registers Claude
+    Code's SessionStart hook; Codex needs none — root AGENTS.md is the reflex)."""
+    src = json.loads(PLUGIN_MANIFEST.read_text())
+    plugin = {
+        "name": src["name"],
+        "version": src["version"],
+        "description": src["description"],
+        "author": src.get("author", {"name": "awow maintainers"}),
+        "license": src.get("license", "MIT"),
+        "homepage": src.get("homepage"),
+        "repository": src.get("repository"),
+        "skills": "./agent-skills/",
+        "hooks": {},
+        "interface": {
+            "displayName": src.get("displayName", src["name"]),
+            "shortDescription": "Board-first delivery workflows for coding agents",
+            "category": "Developer Tools",
+        },
+    }
+    marketplace = {
+        "name": src["name"],
+        "plugins": [
+            {
+                "name": src["name"],
+                "source": {"source": "url", "url": "./"},
+                "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+                "category": "Developer Tools",
+            }
+        ],
+    }
+    return [
+        Stub(CODEX_MANIFEST, json.dumps(plugin, indent=2, ensure_ascii=False) + "\n"),
+        Stub(CODEX_MARKETPLACE, json.dumps(marketplace, indent=2, ensure_ascii=False) + "\n"),
+    ]
+
+
+def plan_pi() -> list[Stub]:
+    """The shared dist/ package manifest — Pi and opencode read the same file.
+
+    Pi: `pi install <dist>` reads `pi.skills` and surfaces the commands-as-skills.
+    Pi discovers root AGENTS.md + the user's own .agents/skills natively, so the
+    package is the whole integration — no `.pi/extensions` needed.
+
+    opencode: `opencode plugin awow@git+<awow-dist>` reads `main`, which points at
+    the plugin module plan_opencode_plugin emits. `type: module` is required — the
+    module uses ESM `import`, and without it opencode's loader rejects the file.
+
+    One manifest, not two: both harnesses expect package.json at the package root,
+    so a second file is impossible. The keys are disjoint, so neither constrains
+    the other."""
+    src = json.loads(PLUGIN_MANIFEST.read_text())
+    pkg = {
+        "name": src["name"],
+        "version": src["version"],
+        "description": src["description"],
+        "license": src.get("license", "MIT"),
+        "homepage": src.get("homepage"),
+        "repository": src.get("repository"),
+        "keywords": ["pi-package", "opencode-plugin"],
+        "type": "module",
+        "main": "./" + OPENCODE_PLUGIN.relative_to(DIST_DIR).as_posix(),
+        "pi": {"skills": ["./agent-skills"]},
+    }
+    return [Stub(PI_MANIFEST, json.dumps(pkg, indent=2, ensure_ascii=False) + "\n")]
+
+
+OPENCODE_PLUGIN_JS = '''\
+// GENERATED by tools/gather.py — DO NOT EDIT.
+// Edit tools/gather.py (plan_opencode_plugin) and re-run the gather.
+/**
+ * awow plugin for opencode.
+ *
+ * Two jobs, mirroring what the Claude Code plugin gets from its SessionStart hook:
+ *
+ *  1. Register the commands-as-skills payload. opencode plugins are JS hook
+ *     modules — no manifest field can declare a skills directory — so the only
+ *     way in is the `config` hook, which mutates the cached config singleton
+ *     before skills are lazily discovered.
+ *  2. Inject the using-awow operating reflex, plus an opencode tool mapping.
+ *     A global install lands in repos with no repo-root AGENTS.md; without this
+ *     awow would be installed but dormant.
+ */
+
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// .opencode/plugins/ -> the payload root. agent-skills/ is the same directory
+// Pi loads via pi.skills, so both harnesses see one copy with one token channel
+// ({AWOW_ROOT} -> ../.., {AWOW_TOOLS} -> ../../tools).
+const PACKAGE_ROOT = path.resolve(__dirname, '../..');
+const SKILLS_DIR = path.join(PACKAGE_ROOT, 'agent-skills');
+const BOOTSTRAP_PATH = path.join(SKILLS_DIR, 'using-awow', 'SKILL.md');
+const MARKER = 'awow-operating-reflex';
+
+const stripFrontmatter = (text) => {
+  const m = text.match(/^---\\n[\\s\\S]*?\\n---\\n([\\s\\S]*)$/);
+  return m ? m[1] : text;
+};
+
+const TOOL_MAPPING = [
+  '**Tool mapping for opencode.** Where awow names a Claude Code tool, use:',
+  '- Read / Write / Edit a file -> `read` / `write` / `edit`',
+  '- Run a shell command -> `bash`',
+  '- Track multi-step work -> `todowrite`',
+  '- Dispatch a subagent -> `task`',
+  '- Invoke a skill -> the native `skill` tool',
+  '- In a vendored awow repo, the flows are also slash commands from `.opencode/commands/`.',
+].join('\\n');
+
+// The SKILL.md does not change during a session, so read and parse it once.
+let _cache;
+
+const bootstrap = () => {
+  if (_cache !== undefined) return _cache;
+  if (!fs.existsSync(BOOTSTRAP_PATH)) {
+    // Fail loud, not soft. The 0.5.0 payload shipped a one-line error quietly
+    // standing in for the whole reflex; a missing bootstrap must be
+    // unmistakable both in the injected context and on stderr.
+    const err =
+      'awow: using-awow bootstrap NOT FOUND at ' + BOOTSTRAP_PATH +
+      '. The operating reflex did NOT load — this plugin build is broken.';
+    console.error(err);
+    _cache = '<' + MARKER + '>\\n' + err + '\\n</' + MARKER + '>';
+    return _cache;
+  }
+  const body = stripFrontmatter(fs.readFileSync(BOOTSTRAP_PATH, 'utf8')).trim();
+  _cache = '<' + MARKER + '>\\n' + body + '\\n\\n' + TOOL_MAPPING + '\\n</' + MARKER + '>';
+  return _cache;
+};
+
+export const AwowPlugin = async () => ({
+  config: async (config) => {
+    config.skills = config.skills || {};
+    config.skills.paths = config.skills.paths || [];
+    if (!config.skills.paths.includes(SKILLS_DIR)) {
+      config.skills.paths.push(SKILLS_DIR);
+    }
+  },
+
+  // Inject into the first user message rather than a system message: opencode
+  // reloads messages from the DB on every agent step, and repeated system
+  // messages both bloat tokens and break some models.
+  'experimental.chat.messages.transform': async (_input, output) => {
+    const text = bootstrap();
+    if (!text || !output.messages || !output.messages.length) return;
+    const firstUser = output.messages.find((m) => m.info.role === 'user');
+    if (!firstUser || !firstUser.parts.length) return;
+    // Guard against double injection when an already-transformed array is
+    // passed through the hook again.
+    if (firstUser.parts.some((p) => p.type === 'text' && p.text.includes(MARKER))) return;
+    const ref = firstUser.parts[0];
+    firstUser.parts.unshift({ ...ref, type: 'text', text });
+  },
+});
+'''
+
+
+def plan_opencode_plugin() -> list[Stub]:
+    """opencode plugin module into dist/.
+
+    `opencode plugin awow@git+<awow-dist>` resolves package.json `main` (set in
+    plan_pi) to this file. It registers agent-skills/ through the `config` hook
+    and injects the using-awow reflex — see the module docstring for why each is
+    needed. Verified against opencode 1.15.2."""
+    return [Stub(OPENCODE_PLUGIN, OPENCODE_PLUGIN_JS)]
+
+
+def plan_telemetry() -> list[Stub]:
+    """dist-telemetry/ — the awow-telemetry plugin payload (design spec 4.3).
+
+    Claude Code only, this release. Deliberately absent: the Codex manifest,
+    the Pi package.json, the agent-skills surface, and hooks/. The SessionStart
+    hook reads ${PLUGIN_ROOT}/.agents/skills/using-awow/SKILL.md, and using-awow
+    stays in the base plugin — a copy of hooks/ here would emit the error string
+    into every session, and double-inject for anyone running both plugins.
+
+    Name, description, and version derive from the one canonical
+    .claude-plugin/plugin.json, exactly as plan_codex and plan_pi do, so the two
+    plugins version in lockstep with no second file to keep in sync."""
+    src = json.loads(PLUGIN_MANIFEST.read_text())
+    manifest = {
+        "name": "awow-telemetry",
+        "displayName": "awow-telemetry — the evidence layer",
+        "description": (
+            "Session analysis for awow: export agent traces, build a visual "
+            "project timeline, score prompt craft, and coach a team or an "
+            "individual off what the sessions actually show. Installs beside "
+            "awow@awow; neither requires the other."
+        ),
+        "version": src["version"],
+        "author": src.get("author", {"name": "awow maintainers"}),
+        "license": src.get("license", "MIT"),
+        "homepage": src.get("homepage"),
+        "repository": src.get("repository"),
+    }
+    plans = [
+        Stub(
+            DIST_TELEMETRY_DIR / ".claude-plugin" / "plugin.json",
+            json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
+        ),
+        Stub(
+            DIST_TELEMETRY_DIR / "README.md",
+            f"{GENERATED_MARKER} — DO NOT EDIT. -->\n\n"
+            "# dist-telemetry/ — built awow-telemetry plugin payload\n\n"
+            "This directory is the installable `awow-telemetry` Claude Code "
+            "plugin, built by `python tools/gather.py --surface telemetry` from "
+            "the `channel: telemetry` skills under `.agents/skills/` plus a "
+            "runtime slice of `tools/`. The repo-root "
+            "`.claude-plugin/marketplace.json` points installers here as the "
+            "second entry, so `/plugin install awow-telemetry@awow` resolves.\n\n"
+            "**Claude Code only this release.** `tools/sync-dist.sh` mirrors "
+            "only `dist/` into `awow-dist`, which is the Codex and Pi install "
+            "source — so nothing here reaches those harnesses. That is the "
+            "intended scope, not an omission.\n\n"
+            "Do not edit files in this directory — edit the source and re-run "
+            "the gather. Any file here that the build did not plan is deleted "
+            "on the next run.\n",
+        ),
+    ]
+    for entry in sorted((AGENTS_DIR / "skills").iterdir()):
+        if entry.name in SKIP_FILENAMES:
+            continue
+        plans.extend(
+            skill_stubs(entry, DIST_TELEMETRY_DIR / "skills", channel="telemetry")
+        )
+    for rel in TELEMETRY_TOOL_PATHS:
+        plans.append(copy_stub(DIST_TELEMETRY_DIR / "tools" / rel, REPO_ROOT / "tools" / rel))
+    return plans
+
+
+def plan_context_payload(dest_root: Path, render=render_plugin_body) -> list[Stub]:
+    """The context/ machinery that ships, rendered for one channel. Commands
+    reach these as {AWOW_ROOT}/context/... — {HUB} first so a vendored override
+    wins, then {AWOW_ROOT}. See the predicate above PAYLOAD_CONTEXT_PATHS."""
+    plans: list[Stub] = []
+    for path in sorted(CONTEXT_DIR.rglob("*")):
+        if not path.is_file() or path.name == ".gitkeep":
+            continue
+        rel = path.relative_to(CONTEXT_DIR).as_posix()
+        if classify_context_path(rel) != "payload":
+            continue
+        plans.append(
+            Stub(
+                dest_root / "context" / rel,
+                render(path.read_text()),
+                path.stat().st_mode & 0o777,
+            )
+        )
+    return plans
+
+
+def plan_copilot_payload() -> list[Stub]:
+    """dist/.github/ — the Copilot slice of the payload. Generated from
+    .agents/, not copied from .github/: a copy would ship ci.yml (which would
+    run inside awow-dist against a repo with no .agents/), the pointer stubs
+    (whose ../.agents/ links resolve to nothing in a payload), and the
+    vendored-channel prompts the filter is meant to exclude.
+
+    Uses render_plugin_body via plugin_command_copy: Copilot CLI resolves
+    ${CLAUDE_PLUGIN_ROOT}. Only Codex and Pi need render_agent_skills_body."""
+    manifest = json.loads((GITHUB_DIR / "plugin" / "plugin.json").read_text())
+    plans = [
+        Stub(
+            DIST_DIR / ".github" / "plugin" / "plugin.json",
+            json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
+        )
+    ]
+    for source in sorted((AGENTS_DIR / "commands").rglob("*.md")):
+        if is_skipped(source):
+            continue
+        text = source.read_text()
+        if is_vendored_channel(text):
+            continue
+        plans.append(
+            plugin_command_copy(
+                DIST_DIR / ".github" / "prompts" / f"{source.stem}.prompt.md",
+                source,
+                text,
+            )
+        )
+    return plans
+
+
+def plan_workitem_archetypes() -> list[Stub]:
+    """The archetype handlers /process-workitem dispatches to. SKIP_DIR_PARTS
+    keeps them out of the command surface — they are handlers, not commands, and
+    must not appear in the picker — but the payload still needs them on disk, so
+    they ship as data under dist/commands/_workitem-archetypes/."""
+    src = AGENTS_DIR / "commands" / "_workitem-archetypes"
+    if not src.is_dir():
+        return []
+    return [
+        Stub(
+            DIST_DIR / "commands" / "_workitem-archetypes" / f.name,
+            render_plugin_body(f.read_text()),
+            f.stat().st_mode & 0o777,
+        )
+        for f in sorted(src.glob("*.md"))
+    ]
+
+
+def plan_plugin() -> list[Stub]:
+    """Full-copy payload under dist/ — the installable Claude Code plugin."""
+    manifest = json.loads(PLUGIN_MANIFEST.read_text())
+    # Metadata only: commands/, skills/, hooks/hooks.json are auto-discovered
+    # from the plugin root, so an explicit commands path would be redundant.
+    manifest.pop("commands", None)
+    plans = [
+        Stub(
+            DIST_DIR / ".claude-plugin" / "plugin.json",
+            json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
+        ),
+        Stub(
+            DIST_DIR / "README.md",
+            f"{GENERATED_MARKER} — DO NOT EDIT. -->\n\n"
+            "# dist/ — the built awow payload\n\n"
+            "awow is the Agentic Way of Working: board-first delivery "
+            "workflows for coding agents. This directory is the built "
+            "plugin, and it serves four harnesses from one tree — "
+            "`commands/` and `skills/` for Claude Code, `agent-skills/` for "
+            "Codex and Pi, `.github/` for GitHub Copilot, plus `hooks/`, a "
+            "runtime slice of `tools/`, and the `context/` machinery the "
+            "commands read.\n\n"
+            "Install instructions live in the source repo's README: "
+            "https://github.com/CauchyIO/awow\n\n"
+            "Built by `python tools/gather.py --surface plugin` from "
+            "`.agents/`, so the maintainer workspace (`meta/`, guides, "
+            "tests, team context) never ships. Do not edit anything here — "
+            "edit the source and re-run the gather. Any file the build did "
+            "not plan is deleted on the next run.\n",
+        ),
+    ]
+    commands_root = AGENTS_DIR / "commands"
+    for source in sorted(commands_root.rglob("*.md")):
+        if is_skipped(source):
+            continue
+        text = source.read_text()
+        if is_vendored_channel(text):
+            continue
+        plans.append(plugin_command_copy(DIST_DIR / "commands" / source.name, source, text))
+        if is_autofire(text):
+            stub = command_skill_stub(source, DIST_DIR / "skills")
+            if stub is not None:
+                plans.append(stub)
+    if ROOT_COMMANDS_DIR.is_dir():
+        for source in sorted(ROOT_COMMANDS_DIR.glob("*.md")):
+            if source.name in SKIP_FILENAMES:
+                continue
+            text = source.read_text()
+            if is_vendored_channel(text):
+                continue
+            plans.append(plugin_command_copy(DIST_DIR / "commands" / source.name, source, text))
+            if is_autofire(text):
+                stub = command_skill_stub(source, DIST_DIR / "skills")
+                if stub is not None:
+                    plans.append(stub)
+    skills_root = AGENTS_DIR / "skills"
+    for entry in sorted(skills_root.iterdir()):
+        if entry.name in SKIP_FILENAMES:
+            continue
+        plans.extend(skill_stubs(entry, DIST_DIR / "skills"))
+    for f in sorted(HOOKS_DIR.rglob("*")):
+        if f.is_file():
+            plans.append(copy_stub(DIST_DIR / "hooks" / f.relative_to(HOOKS_DIR), f))
+    for rel in PLUGIN_TOOL_PATHS:
+        source = REPO_ROOT / "tools" / rel
+        plans.append(copy_stub(DIST_DIR / "tools" / rel, source))
+    plans.extend(plan_context_payload(DIST_DIR, render_plugin_body))
+    plans.extend(plan_copilot_payload())
+    plans.extend(plan_workitem_archetypes())
     return plans
 
 
@@ -312,11 +1203,33 @@ def plan_folder_readmes() -> list[Stub]:
     return plans
 
 
+SURFACE_ROOTS = {
+    "claude": [CLAUDE_DIR],
+    "github": [GITHUB_DIR],
+    "opencode": [OPENCODE_DIR],
+    "plugin": [DIST_DIR],
+    "telemetry": [DIST_TELEMETRY_DIR],
+    # "both" stays the literal Claude-plus-Copilot pair — a named pair, not a
+    # synonym for "every in-repo surface". Adding opencode here would silently
+    # change what existing callers emit.
+    "both": [CLAUDE_DIR, GITHUB_DIR],
+    "all": [CLAUDE_DIR, GITHUB_DIR, OPENCODE_DIR, DIST_DIR, DIST_TELEMETRY_DIR],
+}
+
+
 def filter_surface(plans: list[Stub], surface: str) -> list[Stub]:
-    if surface == "both":
-        return plans
-    root = CLAUDE_DIR if surface == "claude" else GITHUB_DIR
-    return [p for p in plans if root in p.target.parents]
+    roots = SURFACE_ROOTS[surface]
+    kept: list[Stub] = []
+    for p in plans:
+        if p.target.parent == REPO_ROOT:
+            # Repo-root instruction files (AGENTS.md) are harness-neutral: they
+            # belong to every in-repo surface but never to a payload root,
+            # which owns only its own tree.
+            if surface not in ("plugin", "telemetry"):
+                kept.append(p)
+        elif any(root in p.target.parents for root in roots):
+            kept.append(p)
+    return kept
 
 
 # ---------- orphan detection ----------
@@ -332,7 +1245,14 @@ def find_orphans(planned_targets: set[Path], surfaces: list[Path], marker_option
                 continue
             if path in planned_targets:
                 continue
-            if any(root in path.parents for root in marker_optional_roots):
+            # A payload root is wholly generated — every unplanned file there
+            # is an orphan. Elsewhere only files carrying the GENERATED header
+            # are, so user-added files are never deleted. Membership, not
+            # identity: there is more than one payload root (GENERATED_ROOTS).
+            # marker_optional_roots extends the same "wholly generated" rule
+            # to a scoped subtree (e.g. dist/m365) that isn't itself one of
+            # the top-level GENERATED_ROOTS.
+            if surface in GENERATED_ROOTS or any(root in path.parents for root in marker_optional_roots):
                 orphans.append(path)
                 continue
             try:
@@ -350,7 +1270,11 @@ def find_orphans(planned_targets: set[Path], surfaces: list[Path], marker_option
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--check", action="store_true", help="exit 1 if stubs are out of date")
-    parser.add_argument("--surface", choices=["claude", "github", "m365", "both"], default="both")
+    parser.add_argument(
+        "--surface",
+        choices=["claude", "github", "opencode", "m365", "plugin", "telemetry", "both", "all"],
+        default="all",
+    )
     args = parser.parse_args()
 
     if args.surface == "m365":
@@ -387,9 +1311,35 @@ def main() -> int:
         print(f"wrote {len(plans) + len(binary_plans)} m365 file(s); {len(drift) + len(bdrift)} changed.")
         return 0
 
+    stray = unclassified_context_paths()
+    if stray:
+        print(
+            "Unclassified path(s) under context/. Add each to "
+            "PAYLOAD_CONTEXT_PATHS or TEAM_DATA_CONTEXT_PATHS in tools/gather.py "
+            "(see the predicate in the docstring above them):",
+            file=sys.stderr,
+        )
+        for rel in stray:
+            print(f"  context/{rel}", file=sys.stderr)
+        return 1
+
     if not AGENTS_DIR.is_dir():
         print(f"error: {AGENTS_DIR} does not exist", file=sys.stderr)
         return 1
+
+    surfaces = list(SURFACE_ROOTS[args.surface])
+    payload_roots = [r for r in (DIST_DIR, DIST_TELEMETRY_DIR) if r in surfaces]
+    if payload_roots and not PLUGIN_MANIFEST.exists():
+        # Vendored adopter repos have no plugin manifest and no payload to
+        # build; only the maintainer repo carries .claude-plugin/plugin.json.
+        # Both payload roots derive their manifests from it.
+        if args.surface in ("plugin", "telemetry"):
+            print(f"error: {PLUGIN_MANIFEST} does not exist — not the awow "
+                  f"maintainer repo, nothing to build", file=sys.stderr)
+            return 1
+        for root in payload_roots:
+            surfaces.remove(root)
+        print(f"note: {PLUGIN_MANIFEST.relative_to(REPO_ROOT)} not found — payload surfaces skipped")
 
     plans = (
         plan_top_level()
@@ -397,20 +1347,26 @@ def main() -> int:
         + plan_commands()
         + plan_skills()
     )
+    if DIST_DIR in surfaces:
+        plans += plan_plugin()
+        plans += plan_agent_skills()
+        plans += plan_codex()
+        plans += plan_pi()
+        plans += plan_opencode_plugin()
+    if DIST_TELEMETRY_DIR in surfaces:
+        plans += plan_telemetry()
     plans = filter_surface(plans, args.surface)
     planned_targets = {p.target for p in plans}
 
-    surfaces = []
-    if args.surface in ("claude", "both"):
-        surfaces.append(CLAUDE_DIR)
-    if args.surface in ("github", "both"):
-        surfaces.append(GITHUB_DIR)
     orphans = find_orphans(planned_targets, surfaces)
 
     drift: list[Stub] = []
     for plan in plans:
         existing = plan.target.read_text() if plan.target.exists() else None
-        if existing != plan.content:
+        stale = existing != plan.content
+        if not stale and plan.mode is not None:
+            stale = (plan.target.stat().st_mode & 0o777) != plan.mode
+        if stale:
             drift.append(plan)
 
     if args.check:
@@ -433,9 +1389,15 @@ def main() -> int:
     for plan in plans:
         plan.target.parent.mkdir(parents=True, exist_ok=True)
         plan.target.write_text(plan.content)
+        if plan.mode is not None:
+            plan.target.chmod(plan.mode)
     for orphan in orphans:
         orphan.unlink()
         print(f"removed orphan: {orphan.relative_to(REPO_ROOT)}")
+        parent = orphan.parent
+        while parent != REPO_ROOT and parent.is_dir() and not any(parent.iterdir()):
+            parent.rmdir()
+            parent = parent.parent
     print(f"wrote {len(plans)} stub(s); {len(drift)} changed; {len(orphans)} orphan(s) removed.")
     return 0
 

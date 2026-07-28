@@ -109,10 +109,11 @@ wizard and never rewrites `context/team/`, `context/company/`, `board.md`,
 
    **Call out `removed-upstream` explicitly.** Files upstream has dropped are
    left in place by design — `apply` never deletes. As of 0.6.0 that covers
-   `.agents/commands/daily-routine.md`, `weekly-digest.md`, and
-   `cross-team-view.md`: `/daily-routine` and `/weekly-digest` merged into
-   `/daily-digest` (the weekly view is now `/daily-digest --week`), and
-   `/cross-team-view` was never built. Name each one, say it is now unmaintained,
+   `.agents/commands/daily-routine.md`, `weekly-digest.md`, and the never-built
+   cross-team stub: `/daily-routine` and `/weekly-digest` merged into
+   `/daily-digest` (the weekly view is now `/daily-digest --week`), and the
+   cross-team stub was retired outright, its job subsumed by the department
+   layer's `/okr-cascade`. Name each one, say it is now unmaintained,
    and offer to delete it and re-run `python tools/gather.py`. Silence here
    leaves a team invoking a command upstream no longer supports.
 

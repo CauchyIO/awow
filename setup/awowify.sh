@@ -15,6 +15,10 @@
 # Tailoring (copy only what the team will use):
 #   --board <linear|jira|azure-devops|github-issues|all>
 #       Copy references for one board tool only. Default: all.
+#   --layer <team|department>
+#       Install profile (default: team). Commands/skills tagged `layer:
+#       team` or `layer: department` in frontmatter ship only in the
+#       matching profile; untagged files ship in both.
 #   --solo
 #       Skip team-coordination files (neighbouring teams, members roster, the
 #       team-digest / cross-team / coaching / transcript commands).
@@ -35,6 +39,7 @@ SOURCE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TARGET="$PWD"
 DRY_RUN=0
 BOARD="all"
+LAYER="team"
 SOLO=0
 
 while [[ $# -gt 0 ]]; do
@@ -42,9 +47,10 @@ while [[ $# -gt 0 ]]; do
     --source) SOURCE="$(cd "$2" && pwd)"; shift 2 ;;
     --target) mkdir -p "$2"; TARGET="$(cd "$2" && pwd)"; shift 2 ;;
     --board)  BOARD="$2"; shift 2 ;;
+    --layer)  LAYER="$2"; shift 2 ;;
     --solo)   SOLO=1; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
-    -h|--help) sed -n '2,33p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,37p' "$0"; exit 0 ;;
     *) echo "awowify.sh: unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -52,6 +58,11 @@ done
 case "$BOARD" in
   linear|jira|azure-devops|github-issues|all) ;;
   *) echo "awowify.sh: --board must be one of linear, jira, azure-devops, github-issues, all (got '$BOARD')." >&2; exit 2 ;;
+esac
+
+case "$LAYER" in
+  team|department) ;;
+  *) echo "awowify.sh: --layer must be one of team, department (got '$LAYER')." >&2; exit 2 ;;
 esac
 
 if [[ "$SOURCE" == "$TARGET" ]]; then
@@ -80,7 +91,6 @@ if [[ "$SOLO" -eq 1 ]]; then
     context/team/members.md
     .agents/commands/daily-digest.md
     .agents/commands/weekly-digest.md
-    .agents/commands/cross-team-view.md
     .agents/commands/coaching-review.md
     .agents/commands/process-transcript.md
   )
@@ -92,11 +102,54 @@ if [[ "$BOARD" != "all" ]]; then
   done
 fi
 
+# layer_of <file> — the frontmatter `layer:` value ("team" or "department"),
+# or empty when the file carries none.
+layer_of() {
+  awk '
+    /^---$/ { n++; if (n == 2) exit; next }
+    n == 1 && /^layer:/ {
+      sub(/^layer:[[:space:]]*"?/, ""); sub(/"?[[:space:]]*$/, ""); print; exit
+    }
+  ' "$1" 2>/dev/null
+}
+
+# layer_excluded <relpath> — true when relpath is tagged for the layer this
+# install is not using. Only .agents/commands/*.md (direct children) and
+# .agents/skills/* carry the tag; a directory skill's tag lives on its
+# SKILL.md, not on every file inside it. Untagged files pass for both layers.
+layer_excluded() {
+  local rel="$1" tagfile="" sub rest
+  case "$rel" in
+    .agents/commands/*.md)
+      sub="${rel#.agents/commands/}"
+      [[ "$sub" == */* ]] && return 1   # nested (e.g. _workitem-archetypes/)
+      tagfile="$SOURCE/$rel" ;;
+    .agents/skills/*)
+      rest="${rel#.agents/skills/}"
+      if [[ "$rest" == */* ]]; then
+        tagfile="$SOURCE/.agents/skills/${rest%%/*}/SKILL.md"
+      else
+        tagfile="$SOURCE/$rel"
+      fi ;;
+    *) return 1 ;;
+  esac
+  [[ -f "$tagfile" ]] || return 1
+  local tag
+  tag="$(layer_of "$tagfile")"
+  if [[ -n "$tag" && "$tag" != "team" && "$tag" != "department" ]]; then
+    echo "awowify.sh: ${tagfile#"$SOURCE"/} has unrecognized layer: '$tag' (must be team, department, or absent)." >&2
+    exit 1
+  fi
+  [[ -z "$tag" || "$tag" == "$LAYER" ]] && return 1
+  return 0
+}
+
 is_excluded() {
   local rel="$1" ex
   for ex in "${EXCLUDES[@]}"; do
     [[ "$rel" == "$ex" || "$rel" == "$ex"/* ]] && return 0
   done
+  layer_excluded "$rel" && return 0
   return 1
 }
 

@@ -106,7 +106,6 @@ SOLO_EXCLUDE = {
     "context/team/members.md",
     ".agents/commands/daily-digest.md",
     ".agents/commands/weekly-digest.md",
-    ".agents/commands/cross-team-view.md",
     ".agents/commands/coaching-review.md",
     ".agents/commands/process-transcript.md",
 }

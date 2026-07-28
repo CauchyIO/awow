@@ -15,11 +15,22 @@ Run this section on every invocation before entering any stage below.
 
 1. **Read the indirection.** Read `context/tooling/department.md`. Resolve `teams_root`, `read_scope`, `decisions_dir`, and `stale_after_days` from its frontmatter for every later step — never from the inline literals written in this file.
 2. **Run the check.** Run `python tools/cascade_check.py --json` from the repo root. Parse the JSON body: `quarter`, `findings` (list of `{class, team, detail}`), `drift` (list of `{team, pinned, remote}`), `pin_age_days` (map of team → integer days).
-3. **Exit 2 stops you cold.** No JSON is emitted on exit 2 — only a `CascadeConfigError` message on stderr. Show that message verbatim and stop before touching any stage. Some messages already carry their own fix (a missing `origin` remote names the exact `git remote add` command); for the rest, name it yourself: missing `context/tooling/department.md` → run `/setup-department` first; missing or malformed `teams.md` → run `/setup-department`'s join loop or fix the `| Team | Path | Lead |` table by hand; no `context/department/okrs-<quarter>.md` found → run `/setup-department` Step 4 to scaffold the current quarter's doc.
+3. **Exit 2 stops you cold.** No JSON is emitted on exit 2 — only a `CascadeConfigError` message on stderr. Show that message verbatim and stop before touching any stage.
+   - **Already carries its own fix** — show it and stop, nothing more to add: missing `context/tooling/department.md` (the message itself says "— run `/setup-department` first"); no `origin` remote configured (the message names the exact `git remote add` command).
+   - **`context/tooling/department.md` present but malformed** — a missing required field, or a non-integer `stale_after_days` — show the error verbatim and name the exact line to fix: add the missing field (one of `teams_root`, `read_scope`, `decisions_dir`, `stale_after_days`) with a value, or replace the `stale_after_days` value with a plain integer.
+   - **Everything else, name the fix yourself:** missing or malformed `teams.md` → run `/setup-department`'s join loop or fix the `| Team | Path | Lead |` table by hand; no `context/department/okrs-<quarter>.md` found → run `/setup-department` Step 4 to scaffold the current quarter's doc.
 4. **Exit 0 or 1, read on regardless.** Present `findings` as a compact table (`class | team | detail`) — empty is worth stating plainly ("no findings"), not skipping. Note `drift` separately if non-empty: a drift entry can exist without a `pin-stale` finding, since drift fires on any pinned/remote mismatch while `pin-stale` only fires past `stale_after_days`.
 5. **Read the department's own docs.** Read `context/department/definition.md`, `context/department/teams.md`, the current `okrs-<quarter>.md`, and any prior files under `<decisions_dir>/`. This is your working knowledge for every stage below.
 6. **Load the coach.** Load `department-coach` — Refine and Review lean on its battery and discipline directly; Articulate and Translate lean on it lighter.
-7. **Recommend a stage.** Judge which stage the quarter is actually at from the docs and the findings just read: no objectives yet, or the doc still holds template placeholders → **Articulate**. Objectives exist but their KRs are missing, placeholder, or never ran the coach's battery → **Refine**. `serves-nothing` or `orphaned-objective` findings present → **Translate**. Everything wired end-to-end and it is time to check standing — drift, `pin-stale`, or simply time elapsed → **Review**. State your recommendation in bold, name the other three as options, and wait for the user's stage choice (or explicit confirmation of your recommendation) before proceeding. Never present a bare menu with no bolded recommendation.
+7. **Recommend a stage.** Every finding class the script can emit routes to exactly one bolded recommendation; check in this order and stop at the first match:
+   - `registered-missing`, `backlink-missing`, or `backlink-mismatch` present → recommend **`/setup-department`**, not a cascade stage. A team's join is itself broken (missing checkout, missing backlink, or a backlink pointing at the wrong parent) — fix that first via its join loop or a backlink PR before any objective, KR, or mapping work means anything.
+   - `unregistered-present` present → recommend **`/setup-department`**. A directory under `teams_root` with no registry row is a setup gap, not a cascade-stage problem — register it as a team or remove it.
+   - No objectives yet, or the doc still holds template placeholders → recommend **Articulate**.
+   - Objectives exist but their KRs are missing, placeholder, or never ran the coach's battery → recommend **Refine**.
+   - `serves-nothing`, `orphaned-objective`, or `serves-unknown` present → recommend **Translate**. (`serves-unknown` means a team's `Serves:` target is dead — re-propose the mapping or fix the ID.)
+   - None of the above, and it is simply time to check standing — drift, `pin-stale`, or time elapsed since the last review → recommend **Review**.
+
+   State your recommendation in bold, name the other stages as options, and wait for the user's stage choice (or explicit confirmation of your recommendation) before proceeding. Never present a bare menu with no bolded recommendation.
 
 ---
 
@@ -45,6 +56,7 @@ Each objective's key results go through the coach's full battery before they cou
 4. Close each KR with the committed-vs-aspirational split, named explicitly.
 5. **Log every ratification in the same turn** to `<decisions_dir>/<date>-refine.md` — never batch logging to the end of the session. Log a human override exactly as `OVERRIDE: <item> passed without <thing>, by your call.` — never paraphrase it.
 6. Once a batch of KRs is ratified, write them into `okrs-<quarter>.md` in the pinned grammar (`- O<n>.KR<n>: <baseline> → <target> by <date>`), show the diff, get approval, and commit.
+7. **Gate.** Refine is done only when all three hold for every KR in scope: it passed the battery or carries a logged override, it carries its committed-or-aspirational label, and the ratified set is written to the quarter doc and approved. None of the three alone closes the stage.
 
 ---
 
@@ -67,7 +79,13 @@ Run partway through the quarter to check standing — graded on **KR movement, n
 1. Run the check (this stage's own baseline read, distinct from Ground's earlier run this turn).
 2. Run `git submodule update --remote` — working tree only, no gitlink commit yet. This pulls each team's latest quarterly-doc content into the local checkout so the next check reads current KR movement, not a stale snapshot.
 3. Re-run the check against the freshly updated working trees. Present `drift`, `findings`, and KR movement read from each team's quarterly doc under `read_scope` — actual progress against each KR's baseline and target, not whether the team followed the stated plan to get there.
-4. For each KR, reach a decision — **double-down, park, reallocate, or re-bet** — following the coach's session discipline: one decision at a time, bolded recommendation, human decides. **Log every decision in the same turn** to `<decisions_dir>/<date>-review.md`; log overrides verbatim exactly as `OVERRIDE: <item> passed without <thing>, by your call.`
+4. For each KR, reach one of four decisions — each produces its own artifact, never just a verdict in prose:
+   - **Double-down.** Shift more of a team's next-cycle capacity toward the objective. Record the shift in the decisions log and carry it into the next PI proposal.
+   - **Park.** The objective stays in `okrs-<quarter>.md` but is marked not-actively-served this quarter. Log it; leave every team's `Serves:` header exactly as it is.
+   - **Reallocate.** Move a proposed team from one objective to another. Add a new proposal row at Translate; the team accepts by PR as usual — this is never a direct edit to a team's `Serves:` header.
+   - **Re-bet.** Retire or rewrite the objective or its KRs. Follow with a Refine round on whatever gets rewritten before it counts as ratified again.
+
+   Reach each decision following the coach's session discipline: one decision at a time, bolded recommendation, human decides. **Log every decision in the same turn** to `<decisions_dir>/<date>-review.md`; log overrides verbatim exactly as `OVERRIDE: <item> passed without <thing>, by your call.`
 5. **State the tripwire plainly.** A `pin-stale` finding means the reconciliation mechanism itself failed to run on schedule — re-scope the mechanism (shorten the interval, fix what's blocking the check from running), never paper over it by re-running the check and moving on as if nothing happened.
 6. Close by offering **one bump PR**: a single PR against this repo that commits the now-current submodule gitlinks, ratifying the checked state. On decline, run `git submodule update --checkout` immediately — the working tree never stays half-updated relative to what is actually committed.
 

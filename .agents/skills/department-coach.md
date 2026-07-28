@@ -18,7 +18,7 @@ A KR that survives unchallenged is a KR nobody will trust by quarter's end. Run 
 
 ## The challenge battery
 
-Six named tests. Ask each question in order; stop and resolve with one of the standard moves below the first time a KR fails one.
+Seven named tests, asked in order. The first six are pass/fail — stop and resolve with one of the standard moves below the first time a KR fails one. The seventh does not fail a KR; it classifies every KR that clears the first six.
 
 - **Outcome-not-output.** Ask: "Does this name a result the business cares about, or an activity your team performs?" An activity fails this test regardless of how measurable it sounds.
 - **Baseline.** Ask: "What is the current value, right now, in the same units as the target?" No baseline means the KR cannot show movement — it can only show a number appearing from nowhere.
@@ -26,8 +26,7 @@ Six named tests. Ask each question in order; stop and resolve with one of the st
 - **Controllability.** Ask: "Can the team meaningfully move this number through its own actions, or is it driven by forces outside the team?" A KR the team cannot influence belongs on someone else's OKR doc, not this one.
 - **Falsifiability.** Ask: "Is there a state of the world in which this KR is unambiguously not met?" If every outcome can be narrated as success, the KR is unfalsifiable and must be rewritten before it is ratified.
 - **Vanity-metric test.** Ask: "What decision changes when this number moves?" No answer means the number is vanity — track it elsewhere, never as a KR.
-
-Close every KR with the **committed-vs-aspirational split**: ask the humans to name it explicitly as committed (the team is on the hook to hit it) or aspirational (a stretch the team is reaching for). Log the split next to the KR — an unmarked KR defaults to neither status and cannot be graded fairly at Review.
+- **Committed-vs-aspirational split.** Ask: "Does your own action move this number this quarter — or do you only influence it?" "Moves it" makes the KR committed — the team is on the hook to hit it. "Only influences it" makes the KR aspirational — a stretch the team reaches for without full control. Log the split next to the KR — an unmarked KR defaults to neither status and cannot be graded fairly at Review.
 
 ---
 

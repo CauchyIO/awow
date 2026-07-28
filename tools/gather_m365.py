@@ -5,7 +5,9 @@ docs/superpowers/specs/2026-07-15-m365-copilot-harness-design.md.
 """
 from __future__ import annotations
 
+import json
 import re
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -157,3 +159,114 @@ def assemble_instructions(config: M365Config, commands: list[CommandEntry], inde
             f"trim index_roots in {CONFIG_REL} or the agent identity block"
         )
     return text
+
+
+def dump_json(obj) -> str:
+    return json.dumps(obj, indent=2, ensure_ascii=False) + "\n"
+
+
+def build_declarative_agent(config: M365Config, instructions: str, commands: list[CommandEntry]) -> dict:
+    starters = [{"title": config.explore_starter, "text": config.explore_starter}]
+    starters += [{"title": c.starter, "text": c.starter} for c in commands]
+    return {
+        "$schema": "https://developer.microsoft.com/json-schemas/copilot/declarative-agent/v1.7/schema.json",
+        "version": "v1.7",
+        "name": config.agent_name,
+        "description": config.agent_description,
+        "instructions": instructions,
+        "conversation_starters": starters,
+        "actions": [{"id": "awowFetch", "file": "fetchAwowContext.plugin.json"}],
+    }
+
+
+def build_teams_manifest(config: M365Config) -> dict:
+    app_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"https://github.com/{config.github_repo}/m365"))
+    return {
+        "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.19/MicrosoftTeams.schema.json",
+        "manifestVersion": "1.19",
+        "version": "0.1.0",
+        "id": app_id,
+        "developer": {
+            "name": config.github_repo.split("/")[0],
+            "websiteUrl": f"https://github.com/{config.github_repo}",
+            "privacyUrl": f"https://github.com/{config.github_repo}",
+            "termsOfUseUrl": f"https://github.com/{config.github_repo}",
+        },
+        "name": {"short": config.agent_name, "full": config.agent_name},
+        "description": {"short": config.agent_description[:80], "full": config.agent_description},
+        "icons": {"color": "color.png", "outline": "outline.png"},
+        "accentColor": "#0F62FE",
+        "copilotAgents": {
+            "declarativeAgents": [{"id": "awowCoach", "file": "declarativeAgent.json"}]
+        },
+    }
+
+
+def build_plugin_manifest(config: M365Config) -> dict:
+    return {
+        "$schema": "https://developer.microsoft.com/json-schemas/copilot/plugin/v2.3/schema.json",
+        "schema_version": "v2.3",
+        "name_for_human": f"{config.agent_name} fetch",
+        "description_for_human": "Reads awow context and playbook files live from the git repository.",
+        "namespace": "awowfetch",
+        "functions": [{
+            "name": "fetchAwowContext",
+            "description": "Fetch the exact markdown file at a repo-relative path from the awow repository. Always fetch a playbook before executing it.",
+        }],
+        "runtimes": [{
+            "type": "OpenApi",
+            "auth": {"type": "None"},
+            "spec": {"url": "fetchAwowContext.openapi.json"},
+            "run_for_functions": ["fetchAwowContext"],
+        }],
+    }
+
+
+def build_openapi_spec(config: M365Config) -> dict:
+    return {
+        "openapi": "3.0.1",
+        "info": {
+            "title": "awow context fetch",
+            "description": "Read-only fetch of markdown files from the public awow repository.",
+            "version": "0.1.0",
+        },
+        "servers": [{"url": "https://api.github.com"}],
+        "paths": {
+            f"/repos/{config.github_repo}/contents/{{filePath}}": {
+                "get": {
+                    "operationId": "fetchAwowContext",
+                    "summary": "Fetch one repo file as raw markdown",
+                    "parameters": [
+                        {
+                            "name": "filePath",
+                            "in": "path",
+                            "required": True,
+                            "description": "Repo-relative file path. Encode each '/' as %2F, e.g. .agents%2Fcommands%2Frefinement-prep.md",
+                            "schema": {"type": "string"},
+                        },
+                        {
+                            "name": "ref",
+                            "in": "query",
+                            "required": False,
+                            "description": "Git ref to read from.",
+                            "schema": {"type": "string", "default": config.ref},
+                        },
+                        {
+                            "name": "Accept",
+                            "in": "header",
+                            "required": True,
+                            "description": "Must be application/vnd.github.raw+json to receive raw file text.",
+                            "schema": {"type": "string", "default": "application/vnd.github.raw+json"},
+                        },
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "Raw file content",
+                            "content": {"application/vnd.github.raw+json": {"schema": {"type": "string"}}},
+                        },
+                        "404": {"description": "File not found at this path/ref"},
+                    },
+                }
+            }
+        },
+    }

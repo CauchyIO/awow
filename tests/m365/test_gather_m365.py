@@ -154,5 +154,42 @@ class TestIndexAndInstructions(unittest.TestCase):
             gather_m365.assemble_instructions(self._cfg(), [], huge)
 
 
+class TestJsonBuilders(unittest.TestCase):
+    def _cfg(self):
+        return gather_m365.M365Config(
+            agent_name="awow Coach", agent_description="d", github_repo="CauchyIO/awow",
+            ref="main", explore_starter="Explore awow",
+            index_roots=("context/team",), identity="id",
+        )
+
+    def test_declarative_agent_shape(self):
+        cmd = gather_m365.CommandEntry("refinement-prep", ".agents/commands/refinement-prep.md", "Draft a feature", "d")
+        da = gather_m365.build_declarative_agent(self._cfg(), "INSTR", [cmd])
+        self.assertEqual(da["version"], "v1.7")
+        self.assertEqual(da["instructions"], "INSTR")
+        titles = [s["title"] for s in da["conversation_starters"]]
+        self.assertEqual(titles, ["Explore awow", "Draft a feature"])
+        self.assertEqual(da["actions"], [{"id": "awowFetch", "file": "fetchAwowContext.plugin.json"}])
+
+    def test_openapi_targets_contents_api(self):
+        spec = gather_m365.build_openapi_spec(self._cfg())
+        self.assertEqual(spec["servers"], [{"url": "https://api.github.com"}])
+        path = "/repos/CauchyIO/awow/contents/{filePath}"
+        self.assertIn(path, spec["paths"])
+        op = spec["paths"][path]["get"]
+        self.assertEqual(op["operationId"], "fetchAwowContext")
+        self.assertIn("%2F", op["parameters"][0]["description"])
+
+    def test_manifest_id_is_stable(self):
+        a = gather_m365.build_teams_manifest(self._cfg())["id"]
+        b = gather_m365.build_teams_manifest(self._cfg())["id"]
+        self.assertEqual(a, b)
+
+    def test_dump_json_deterministic(self):
+        obj = {"b": 1, "a": [1, 2]}
+        self.assertEqual(gather_m365.dump_json(obj), gather_m365.dump_json(obj))
+        self.assertTrue(gather_m365.dump_json(obj).endswith("\n"))
+
+
 if __name__ == "__main__":
     unittest.main()

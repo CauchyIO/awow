@@ -122,6 +122,77 @@ m365:
             self.assertIn("m365.include must be true or false", str(ctx.exception))
 
 
+class TestTrackedFilesFiltering(unittest.TestCase):
+    """Fix 1: untracked working-tree files must never leak into the emitted package."""
+
+    def _init_repo(self, root: Path) -> None:
+        import subprocess
+        subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+        subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=root, check=True)
+        subprocess.run(["git", "config", "user.name", "Test"], cwd=root, check=True)
+
+    def _commit(self, root: Path, *rel_paths: str) -> None:
+        import subprocess
+        subprocess.run(["git", "add", *rel_paths], cwd=root, check=True)
+        subprocess.run(["git", "commit", "-q", "-m", "add tracked fixture"], cwd=root, check=True)
+
+    def test_tracked_files_none_outside_git_repo(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            self.assertIsNone(gather_m365._tracked_files(Path(td)))
+
+    def test_tracked_files_lists_committed_paths(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._init_repo(root)
+            (root / "tracked.md").write_text("tracked\n")
+            self._commit(root, "tracked.md")
+            (root / "untracked.md").write_text("untracked\n")
+            tracked = gather_m365._tracked_files(root)
+            self.assertEqual(tracked, {"tracked.md"})
+
+    def test_included_commands_skips_untracked_command(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._init_repo(root)
+            cmds = root / ".agents" / "commands"
+            cmds.mkdir(parents=True)
+            (cmds / "in.md").write_text(FM)
+            self._commit(root, ".agents/commands/in.md")
+            # Untracked second command file — should never be discovered.
+            (cmds / "out.md").write_text(FM.replace("Draft a feature", "B feature"))
+            entries = gather_m365.included_commands(root)
+            self.assertEqual([e.name for e in entries], ["in"])
+
+    def test_build_file_index_skips_untracked_file(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._init_repo(root)
+            team = root / "context" / "team"
+            team.mkdir(parents=True)
+            (team / "tracked.md").write_text("# Tracked\n\nbody\n")
+            self._commit(root, "context/team/tracked.md")
+            (team / "untracked.md").write_text("# Untracked\n\nbody\n")
+            index = gather_m365.build_file_index(root, ("context/team",))
+            paths = [p for p, _ in index]
+            self.assertEqual(paths, ["context/team/tracked.md"])
+
+    def test_non_git_directory_still_includes_all_fixtures(self):
+        # Confirms the existing (non-git temp-dir) fixtures in TestIncludedCommands and
+        # TestIndexAndInstructions are unaffected: no tracked set means no filtering.
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            cmds = root / ".agents" / "commands"
+            cmds.mkdir(parents=True)
+            (cmds / "in.md").write_text(FM)
+            entries = gather_m365.included_commands(root)
+            self.assertEqual([e.name for e in entries], ["in"])
+
+
 class TestIndexAndInstructions(unittest.TestCase):
     def _cfg(self, **over):
         base = dict(
@@ -193,22 +264,19 @@ class TestJsonBuilders(unittest.TestCase):
         self.assertEqual(pm["runtimes"][0]["spec"]["url"], "fetchAwowContext.openapi.json")
         self.assertEqual(pm["runtimes"][0]["auth"], {"type": "None"})
 
-    def test_openapi_targets_contents_api(self):
+    def test_openapi_targets_raw_githubusercontent(self):
         cfg = self._cfg()
         spec = gather_m365.build_openapi_spec(cfg)
         self.assertEqual(spec["openapi"], "3.0.1")
-        self.assertEqual(spec["servers"], [{"url": "https://api.github.com"}])
-        path = "/repos/CauchyIO/awow/contents/{filePath}"
+        self.assertEqual(spec["servers"], [{"url": "https://raw.githubusercontent.com"}])
+        path = "/CauchyIO/awow/main/{filePath}"
         self.assertIn(path, spec["paths"])
         op = spec["paths"][path]["get"]
         self.assertEqual(op["operationId"], "fetchAwowContext")
+        # Only one parameter: filePath. No ref query param, no Accept header param.
+        self.assertEqual(len(op["parameters"]), 1)
+        self.assertEqual(op["parameters"][0]["name"], "filePath")
         self.assertIn("%2F", op["parameters"][0]["description"])
-        # Verify ref query param default
-        ref_param = next(p for p in op["parameters"] if p["name"] == "ref")
-        self.assertEqual(ref_param["schema"]["default"], cfg.ref)
-        # Verify Accept header param default
-        accept_param = next(p for p in op["parameters"] if p["name"] == "Accept")
-        self.assertEqual(accept_param["schema"]["default"], "application/vnd.github.raw+json")
 
     def test_dump_json_deterministic(self):
         obj = {"b": 1, "a": [1, 2]}

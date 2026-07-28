@@ -7,11 +7,12 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
 
-from gather import command_description, first_h1, parse_frontmatter
+from gather import command_description, parse_frontmatter
 
 CONFIG_REL = Path("context/tooling/m365/agent.md")
 INSTRUCTION_BUDGET = 8000
@@ -46,6 +47,8 @@ def load_config(repo_root: Path) -> M365Config:
     if missing:
         raise M365ConfigError(f"{path}: missing required field(s): {', '.join(missing)}")
     roots = tuple(r.strip() for r in fields["index_roots"].split(",") if r.strip())
+    if not roots:
+        raise M365ConfigError(f"{path}: index_roots resolved to no roots")
     return M365Config(
         agent_name=fields["agent_name"],
         agent_description=fields["agent_description"],
@@ -55,6 +58,16 @@ def load_config(repo_root: Path) -> M365Config:
         index_roots=roots,
         identity=body.strip(),
     )
+
+
+def _tracked_files(repo_root: Path) -> set[str] | None:
+    result = subprocess.run(
+        ["git", "-C", str(repo_root), "ls-files", "-z"],
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        return None
+    return set(result.stdout.decode().rstrip("\0").split("\0")) - {""}
 
 
 @dataclass(frozen=True)
@@ -88,11 +101,19 @@ def parse_m365_block(text: str) -> dict | None:
     return block
 
 
-def included_commands(repo_root: Path) -> list[CommandEntry]:
+_COMPUTE_TRACKED = object()
+
+
+def included_commands(repo_root: Path, tracked: set[str] | None = _COMPUTE_TRACKED) -> list[CommandEntry]:
+    if tracked is _COMPUTE_TRACKED:
+        tracked = _tracked_files(repo_root)
     entries = []
     commands_root = repo_root / ".agents" / "commands"
     for source in sorted(commands_root.rglob("*.md")):
         if source.name == "README.md" or "_workitem-archetypes" in source.parts:
+            continue
+        rel_posix = source.relative_to(repo_root).as_posix()
+        if tracked is not None and rel_posix not in tracked:
             continue
         text = source.read_text()
         block = parse_m365_block(text)
@@ -124,7 +145,11 @@ def _describe(path: Path) -> str:
     return desc or path.stem
 
 
-def build_file_index(repo_root: Path, roots: tuple[str, ...]) -> list[tuple[str, str]]:
+def build_file_index(
+    repo_root: Path, roots: tuple[str, ...], tracked: set[str] | None = _COMPUTE_TRACKED
+) -> list[tuple[str, str]]:
+    if tracked is _COMPUTE_TRACKED:
+        tracked = _tracked_files(repo_root)
     seen: dict[str, str] = {}
     for root in roots:
         base = repo_root / root
@@ -133,7 +158,10 @@ def build_file_index(repo_root: Path, roots: tuple[str, ...]) -> list[tuple[str,
         for path in sorted(base.rglob("*.md")):
             if "_workitem-archetypes" in path.parts:
                 continue
-            seen[path.relative_to(repo_root).as_posix()] = _describe(path)
+            rel_posix = path.relative_to(repo_root).as_posix()
+            if tracked is not None and rel_posix not in tracked:
+                continue
+            seen[rel_posix] = _describe(path)
     return sorted(seen.items())
 
 
@@ -179,6 +207,14 @@ def build_declarative_agent(config: M365Config, instructions: str, commands: lis
     }
 
 
+def _short_description(description: str, limit: int = 80) -> str:
+    if len(description) <= limit:
+        return description
+    truncated = description[:limit]
+    cut = truncated.rfind(" ")
+    return truncated[:cut] if cut != -1 else truncated
+
+
 def build_teams_manifest(config: M365Config) -> dict:
     app_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"https://github.com/{config.github_repo}/m365"))
     return {
@@ -193,7 +229,7 @@ def build_teams_manifest(config: M365Config) -> dict:
             "termsOfUseUrl": f"https://github.com/{config.github_repo}",
         },
         "name": {"short": config.agent_name, "full": config.agent_name},
-        "description": {"short": config.agent_description[:80], "full": config.agent_description},
+        "description": {"short": _short_description(config.agent_description), "full": config.agent_description},
         "icons": {"color": "color.png", "outline": "outline.png"},
         "accentColor": "#0F62FE",
         "copilotAgents": {
@@ -230,9 +266,9 @@ def build_openapi_spec(config: M365Config) -> dict:
             "description": "Read-only fetch of markdown files from the public awow repository.",
             "version": "0.1.0",
         },
-        "servers": [{"url": "https://api.github.com"}],
+        "servers": [{"url": "https://raw.githubusercontent.com"}],
         "paths": {
-            f"/repos/{config.github_repo}/contents/{{filePath}}": {
+            f"/{config.github_repo}/{config.ref}/{{filePath}}": {
                 "get": {
                     "operationId": "fetchAwowContext",
                     "summary": "Fetch one repo file as raw markdown",
@@ -244,25 +280,11 @@ def build_openapi_spec(config: M365Config) -> dict:
                             "description": "Repo-relative file path. Encode each '/' as %2F, e.g. .agents%2Fcommands%2Frefinement-prep.md",
                             "schema": {"type": "string"},
                         },
-                        {
-                            "name": "ref",
-                            "in": "query",
-                            "required": False,
-                            "description": "Git ref to read from.",
-                            "schema": {"type": "string", "default": config.ref},
-                        },
-                        {
-                            "name": "Accept",
-                            "in": "header",
-                            "required": True,
-                            "description": "Must be application/vnd.github.raw+json to receive raw file text.",
-                            "schema": {"type": "string", "default": "application/vnd.github.raw+json"},
-                        },
                     ],
                     "responses": {
                         "200": {
                             "description": "Raw file content",
-                            "content": {"application/vnd.github.raw+json": {"schema": {"type": "string"}}},
+                            "content": {"text/plain": {"schema": {"type": "string"}}},
                         },
                         "404": {"description": "File not found at this path/ref"},
                     },
@@ -275,8 +297,9 @@ def build_openapi_spec(config: M365Config) -> dict:
 def plan_m365(repo_root: Path):
     from gather import BinaryStub, Stub  # local import: gather imports this module lazily
     config = load_config(repo_root)
-    commands = included_commands(repo_root)
-    index = build_file_index(repo_root, config.index_roots)
+    tracked = _tracked_files(repo_root)
+    commands = included_commands(repo_root, tracked)
+    index = build_file_index(repo_root, config.index_roots, tracked)
     instructions = assemble_instructions(config, commands, index)
     pkg = repo_root / "dist" / "m365" / "appPackage"
     text_stubs = [

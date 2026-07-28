@@ -61,12 +61,18 @@ def load_config(repo_root: Path) -> M365Config:
 
 
 def _tracked_files(repo_root: Path) -> set[str] | None:
+    inside = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", "--is-inside-work-tree"],
+        capture_output=True,
+    )
+    if inside.returncode != 0 or inside.stdout.decode().strip() != "true":
+        return None
     result = subprocess.run(
         ["git", "-C", str(repo_root), "ls-files", "-z"],
         capture_output=True,
     )
     if result.returncode != 0:
-        return None
+        raise M365ConfigError(f"git ls-files failed in {repo_root}: {result.stderr.decode().strip()}")
     return set(result.stdout.decode().rstrip("\0").split("\0")) - {""}
 
 

@@ -141,6 +141,17 @@ class TestTrackedFilesFiltering(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             self.assertIsNone(gather_m365._tracked_files(Path(td)))
 
+    def test_tracked_files_returns_set_inside_work_tree(self):
+        # The is-inside-work-tree probe means the None fallback can never trigger
+        # once we're inside a git repo — even one with no commits yet.
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._init_repo(root)
+            tracked = gather_m365._tracked_files(root)
+            self.assertIsNotNone(tracked)
+            self.assertEqual(tracked, set())
+
     def test_tracked_files_lists_committed_paths(self):
         import tempfile
         with tempfile.TemporaryDirectory() as td:

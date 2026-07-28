@@ -73,6 +73,12 @@ class Stub:
     content: str
 
 
+@dataclass(frozen=True)
+class BinaryStub:
+    target: Path
+    content: bytes
+
+
 # ---------- minimal frontmatter parser ----------
 
 _FM_DELIM = "---\n"
@@ -316,7 +322,7 @@ def filter_surface(plans: list[Stub], surface: str) -> list[Stub]:
 # ---------- orphan detection ----------
 
 
-def find_orphans(planned_targets: set[Path], surfaces: list[Path]) -> list[Path]:
+def find_orphans(planned_targets: set[Path], surfaces: list[Path], marker_optional_roots: set[Path] = frozenset()) -> list[Path]:
     orphans: list[Path] = []
     for surface in surfaces:
         if not surface.exists():
@@ -325,6 +331,9 @@ def find_orphans(planned_targets: set[Path], surfaces: list[Path]) -> list[Path]
             if not path.is_file():
                 continue
             if path in planned_targets:
+                continue
+            if any(root in path.parents for root in marker_optional_roots):
+                orphans.append(path)
                 continue
             try:
                 text = path.read_text()
@@ -341,8 +350,42 @@ def find_orphans(planned_targets: set[Path], surfaces: list[Path]) -> list[Path]
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--check", action="store_true", help="exit 1 if stubs are out of date")
-    parser.add_argument("--surface", choices=["claude", "github", "both"], default="both")
+    parser.add_argument("--surface", choices=["claude", "github", "m365", "both"], default="both")
     args = parser.parse_args()
+
+    if args.surface == "m365":
+        from gather_m365 import M365BudgetError, M365ConfigError, plan_m365
+        try:
+            plans, binary_plans = plan_m365(REPO_ROOT)
+        except (M365BudgetError, M365ConfigError) as err:
+            print(f"error: {err}", file=sys.stderr)
+            return 1
+        m365_root = REPO_ROOT / "dist" / "m365"
+        planned = {p.target for p in plans} | {b.target for b in binary_plans}
+        orphans = find_orphans(planned, [m365_root], marker_optional_roots={m365_root})
+        drift = [p for p in plans if (not p.target.exists() or p.target.read_text() != p.content)]
+        bdrift = [b for b in binary_plans if (not b.target.exists() or b.target.read_bytes() != b.content)]
+        if args.check:
+            for p in drift + bdrift:
+                print(f"update: {p.target.relative_to(REPO_ROOT)}")
+            for o in orphans:
+                print(f"orphan: {o.relative_to(REPO_ROOT)}")
+            if drift or bdrift or orphans:
+                print(f"\n{len(drift) + len(bdrift)} file(s) out of date, {len(orphans)} orphan(s).", file=sys.stderr)
+                return 1
+            print("m365 package in sync.")
+            return 0
+        for p in plans:
+            p.target.parent.mkdir(parents=True, exist_ok=True)
+            p.target.write_text(p.content)
+        for b in binary_plans:
+            b.target.parent.mkdir(parents=True, exist_ok=True)
+            b.target.write_bytes(b.content)
+        for o in orphans:
+            o.unlink()
+            print(f"removed orphan: {o.relative_to(REPO_ROOT)}")
+        print(f"wrote {len(plans) + len(binary_plans)} m365 file(s); {len(drift) + len(bdrift)} changed.")
+        return 0
 
     if not AGENTS_DIR.is_dir():
         print(f"error: {AGENTS_DIR} does not exist", file=sys.stderr)

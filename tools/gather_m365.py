@@ -270,3 +270,24 @@ def build_openapi_spec(config: M365Config) -> dict:
             }
         },
     }
+
+
+def plan_m365(repo_root: Path):
+    from gather import BinaryStub, Stub  # local import: gather imports this module lazily
+    config = load_config(repo_root)
+    commands = included_commands(repo_root)
+    index = build_file_index(repo_root, config.index_roots)
+    instructions = assemble_instructions(config, commands, index)
+    pkg = repo_root / "dist" / "m365" / "appPackage"
+    text_stubs = [
+        Stub(pkg / "declarativeAgent.json", dump_json(build_declarative_agent(config, instructions, commands))),
+        Stub(pkg / "manifest.json", dump_json(build_teams_manifest(config))),
+        Stub(pkg / "fetchAwowContext.plugin.json", dump_json(build_plugin_manifest(config))),
+        Stub(pkg / "fetchAwowContext.openapi.json", dump_json(build_openapi_spec(config))),
+    ]
+    assets = repo_root / "context" / "tooling" / "m365" / "assets"
+    binary_stubs = [
+        BinaryStub(pkg / "color.png", (assets / "color.png").read_bytes()),
+        BinaryStub(pkg / "outline.png", (assets / "outline.png").read_bytes()),
+    ]
+    return text_stubs, binary_stubs

@@ -33,5 +33,13 @@ class TestEmit(unittest.TestCase):
         self.assertNotIn("dist/m365", check.stdout)
 
 
+class TestRefinementPrepIncluded(unittest.TestCase):
+    def test_starter_and_routing_present(self):
+        da = json.loads((PKG / "declarativeAgent.json").read_text())
+        titles = [s["title"] for s in da["conversation_starters"]]
+        self.assertIn("Draft a feature for the next refinement", titles)
+        self.assertIn(".agents/commands/refinement-prep.md", da["instructions"])
+
+
 if __name__ == "__main__":
     unittest.main()

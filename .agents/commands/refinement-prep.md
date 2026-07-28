@@ -4,6 +4,9 @@ prerequisites:
   - "Step 0 of /setup-awow complete (the agent can read and write the board)"
   - "context/team/mission.md exists"
 removes_pain: "the scramble-the-day-before-refinement problem"
+m365:
+  include: true
+  conversation_starter: "Draft a feature for the next refinement"
 ---
 
 # /refinement-prep — draft a feature for the next refinement

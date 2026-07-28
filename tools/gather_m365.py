@@ -5,10 +5,11 @@ docs/superpowers/specs/2026-07-15-m365-copilot-harness-design.md.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from gather import parse_frontmatter
+from gather import command_description, first_h1, parse_frontmatter
 
 CONFIG_REL = Path("context/tooling/m365/agent.md")
 INSTRUCTION_BUDGET = 8000
@@ -52,3 +53,57 @@ def load_config(repo_root: Path) -> M365Config:
         index_roots=roots,
         identity=body.strip(),
     )
+
+
+@dataclass(frozen=True)
+class CommandEntry:
+    name: str
+    rel_path: str
+    starter: str
+    description: str
+
+
+def parse_m365_block(text: str) -> dict | None:
+    if not text.startswith("---\n"):
+        return None
+    end = text.find("\n---\n", 4)
+    if end == -1:
+        return None
+    lines = text[4:end].splitlines()
+    try:
+        start = next(i for i, l in enumerate(lines) if re.match(r"^m365:\s*$", l))
+    except StopIteration:
+        return None
+    block: dict = {}
+    for line in lines[start + 1:]:
+        m = re.match(r"^  ([A-Za-z_][A-Za-z0-9_]*):\s*(.*)$", line)
+        if not m:
+            break
+        key, raw = m.group(1), m.group(2).strip().strip('"').strip("'")
+        block[key] = {"true": True, "false": False}.get(raw, raw)
+    block.setdefault("include", False)
+    block.setdefault("conversation_starter", None)
+    return block
+
+
+def included_commands(repo_root: Path) -> list[CommandEntry]:
+    entries = []
+    commands_root = repo_root / ".agents" / "commands"
+    for source in sorted(commands_root.rglob("*.md")):
+        if source.name == "README.md" or "_workitem-archetypes" in source.parts:
+            continue
+        text = source.read_text()
+        block = parse_m365_block(text)
+        if not block or block["include"] is not True:
+            continue
+        starter = block["conversation_starter"]
+        if not starter:
+            raise M365ConfigError(f"{source}: m365.include is true but conversation_starter is missing")
+        fields, body = parse_frontmatter(text)
+        entries.append(CommandEntry(
+            name=source.stem,
+            rel_path=source.relative_to(repo_root).as_posix(),
+            starter=starter,
+            description=command_description(fields, body),
+        ))
+    return entries

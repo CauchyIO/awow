@@ -24,5 +24,47 @@ class TestLoadConfig(unittest.TestCase):
             gather_m365.load_config(Path("/nonexistent"))
 
 
+FM = """---
+phase: seed
+m365:
+  include: true
+  conversation_starter: "Draft a feature"
+removes_pain: "x"
+---
+
+# /demo — a demo command
+"""
+
+
+class TestM365Block(unittest.TestCase):
+    def test_parses_block(self):
+        block = gather_m365.parse_m365_block(FM)
+        self.assertEqual(block, {"include": True, "conversation_starter": "Draft a feature"})
+
+    def test_absent_block_is_none(self):
+        self.assertIsNone(gather_m365.parse_m365_block("---\nphase: seed\n---\n\nbody\n"))
+
+    def test_include_false(self):
+        text = FM.replace("include: true", "include: false")
+        self.assertFalse(gather_m365.parse_m365_block(text)["include"])
+
+
+class TestIncludedCommands(unittest.TestCase):
+    def test_discovers_only_included(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            cmds = root / ".agents" / "commands"
+            cmds.mkdir(parents=True)
+            (cmds / "in.md").write_text(FM)
+            (cmds / "out.md").write_text("---\nphase: seed\n---\n\n# /out — excluded\n")
+            (cmds / "README.md").write_text("# readme\n")
+            entries = gather_m365.included_commands(root)
+            self.assertEqual([e.name for e in entries], ["in"])
+            self.assertEqual(entries[0].rel_path, ".agents/commands/in.md")
+            self.assertEqual(entries[0].starter, "Draft a feature")
+            self.assertEqual(entries[0].description, "a demo command")
+
+
 if __name__ == "__main__":
     unittest.main()

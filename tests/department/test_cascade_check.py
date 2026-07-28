@@ -1,3 +1,7 @@
+import contextlib
+import datetime as dt
+import io
+import os
 import shutil
 import subprocess
 import sys
@@ -7,8 +11,12 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "tools"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import cascade_check  # noqa: E402
+from fixture import _git, make_department, make_team  # noqa: E402
+
+CASCADE_CHECK_PATH = REPO_ROOT / "tools" / "cascade_check.py"
 
 REGISTRY = """# Teams
 | Team | Path | Lead |
@@ -155,48 +163,6 @@ class TestFindQuarterDoc(unittest.TestCase):
             self.assertIn("okrs-", str(cm.exception))
 
 
-def _git(cwd, *args):
-    subprocess.run(["git", "-C", str(cwd), *args], check=True, capture_output=True)
-
-
-def make_team(base: Path, name: str, serves: list[str]) -> Path:
-    repo = base / name
-    (repo / "context" / "quarterly").mkdir(parents=True)
-    (repo / "context" / "company").mkdir(parents=True)
-    lines = "".join(f"Serves: {s}\n" for s in serves)
-    (repo / "context" / "quarterly" / "focus.md").write_text(lines + "\n# Focus\n")
-    subprocess.run(["git", "init", "-q", str(repo)], check=True)
-    _git(repo, "add", "-A"); _git(repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init")
-    return repo
-
-
-def make_department(base: Path, teams: list[Path]) -> Path:
-    dept = base / "dept"
-    (dept / "context" / "department").mkdir(parents=True)
-    (dept / "context" / "tooling").mkdir(parents=True)
-    (dept / "context" / "tooling" / "department.md").write_text(
-        "---\nteams_root: teams\nread_scope: context/team, context/quarterly, context/company\n"
-        "decisions_dir: context/department/decisions\nstale_after_days: 28\n---\n")
-    rows = "\n".join(f"| {t.name} | teams/{t.name} | Lead |" for t in teams)
-    (dept / "context" / "department" / "teams.md").write_text(
-        "| Team | Path | Lead |\n|---|---|---|\n" + rows + "\n")
-    (dept / "context" / "department" / "okrs-2026-Q3.md").write_text(
-        "## O1 — Alpha\n- O1.KR1: x\n## O2 — Beta\n- O2.KR1: y\n")
-    subprocess.run(["git", "init", "-q", str(dept)], check=True)
-    # The dept's own origin must match what the backlink `parent:` claims, or
-    # every team would fail backlink-mismatch even on an otherwise-clean setup.
-    # Compute it once and reuse it for both the remote and the backlinks.
-    origin_url = f"file://{dept}"
-    _git(dept, "remote", "add", "origin", origin_url)
-    for t in teams:
-        _git(dept, "-c", "protocol.file.allow=always", "submodule", "add", "-q", f"file://{t}", f"teams/{t.name}")
-        backlink = dept / "teams" / t.name / "context" / "company" / "department.md"
-        backlink.parent.mkdir(parents=True, exist_ok=True)
-        backlink.write_text(f"---\ndepartment: Dept\nparent: {origin_url}\n---\n")
-    _git(dept, "add", "-A"); _git(dept, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init")
-    return dept
-
-
 class TestRunCheck(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
@@ -242,6 +208,109 @@ class TestRunCheck(unittest.TestCase):
         self.assertEqual(team_a_findings[0]["class"], "registered-missing")
         team_b_findings = [f for f in result["findings"] if f["team"] == "team-b"]
         self.assertEqual(team_b_findings, [])
+
+
+class TestFindingClasses(unittest.TestCase):
+    """One seeded deviation per remaining finding class, plus CLI exit codes.
+
+    Clean department, serves-unknown/orphaned-objective, serves-nothing,
+    missing-OKR-doc config error, and the git-failure short-circuit are
+    already covered by TestRunCheck above and are not duplicated here.
+    """
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+
+    def _run_cli(self, *args):
+        return subprocess.run(
+            [sys.executable, str(CASCADE_CHECK_PATH), *args],
+            capture_output=True, text=True,
+        )
+
+    def test_backlink_missing(self):
+        a = make_team(self.tmp, "team-a", ["O1"])
+        dept = make_department(self.tmp, [a])
+        backlink = dept / "teams" / "team-a" / "context" / "company" / "department.md"
+        backlink.unlink()
+        classes = [(f["class"], f["team"]) for f in cascade_check.run_check(dept)["findings"]]
+        self.assertIn(("backlink-missing", "team-a"), classes)
+
+    def test_backlink_mismatch(self):
+        a = make_team(self.tmp, "team-a", ["O1"])
+        dept = make_department(self.tmp, [a])
+        backlink = dept / "teams" / "team-a" / "context" / "company" / "department.md"
+        backlink.write_text("---\ndepartment: Dept\nparent: file:///not/the/right/origin\n---\n")
+        classes = [(f["class"], f["team"]) for f in cascade_check.run_check(dept)["findings"]]
+        self.assertIn(("backlink-mismatch", "team-a"), classes)
+
+    def test_registered_missing_for_registry_row_with_no_submodule(self):
+        a = make_team(self.tmp, "team-a", ["O1"])
+        dept = make_department(self.tmp, [a])
+        teams_md = dept / "context" / "department" / "teams.md"
+        teams_md.write_text(teams_md.read_text() + "| Team X | teams/team-x | Lead |\n")
+        findings = [f for f in cascade_check.run_check(dept)["findings"] if f["team"] == "Team X"]
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["class"], "registered-missing")
+
+    def test_unregistered_present(self):
+        a = make_team(self.tmp, "team-a", ["O1"])
+        dept = make_department(self.tmp, [a])
+        rogue = dept / "teams" / "rogue"
+        rogue.mkdir()
+        (rogue / "notes.md").write_text("# rogue\n")
+        classes = [(f["class"], f["team"]) for f in cascade_check.run_check(dept)["findings"]]
+        self.assertIn(("unregistered-present", "rogue"), classes)
+
+    def test_pin_stale(self):
+        a = make_team(self.tmp, "team-a", ["O1"])
+        old = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=60)).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+        env = {**os.environ, "GIT_AUTHOR_DATE": old, "GIT_COMMITTER_DATE": old}
+        _git(a, "commit", "--amend", "--no-edit", env=env)
+        dept = make_department(self.tmp, [a], stale_after_days=28)
+        result = cascade_check.run_check(dept)
+        classes = [f["class"] for f in result["findings"]]
+        self.assertIn("pin-stale", classes)
+        self.assertGreaterEqual(result["pin_age_days"]["team-a"], 59)
+
+    def test_drift_is_informational_only(self):
+        """Drift alone (remote moved past the pin) is not a finding and
+        keeps the CLI exit code at 0."""
+        a = make_team(self.tmp, "team-a", ["O1"]); b = make_team(self.tmp, "team-b", ["O2.KR1"])
+        dept = make_department(self.tmp, [a, b])
+        # Advance team-a's origin past what the parent already pinned.
+        (a / "context" / "quarterly" / "focus.md").write_text("Serves: O1\n\n# Focus v2\n")
+        _git(a, "add", "-A")
+        _git(a, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "update")
+
+        result = cascade_check.run_check(dept)
+        self.assertEqual(result["findings"], [])
+        drift_by_team = {d["team"]: d for d in result["drift"]}
+        self.assertIn("team-a", drift_by_team)
+        self.assertNotEqual(drift_by_team["team-a"]["pinned"], drift_by_team["team-a"]["remote"])
+
+        with contextlib.redirect_stdout(io.StringIO()):
+            exit_code = cascade_check.main(["--json", "--root", str(dept)])
+        self.assertEqual(exit_code, 0)
+
+    def test_cli_exit_clean_is_zero(self):
+        a = make_team(self.tmp, "team-a", ["O1"]); b = make_team(self.tmp, "team-b", ["O2.KR1"])
+        dept = make_department(self.tmp, [a, b])
+        result = self._run_cli("--root", str(dept))
+        self.assertEqual(result.returncode, 0)
+
+    def test_cli_exit_one_finding_is_one(self):
+        a = make_team(self.tmp, "team-a", [])
+        dept = make_department(self.tmp, [a])
+        result = self._run_cli("--root", str(dept))
+        self.assertEqual(result.returncode, 1)
+
+    def test_cli_exit_missing_indirection_is_two_with_stderr_error(self):
+        empty = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, empty, ignore_errors=True)
+        result = self._run_cli("--root", str(empty))
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("error:", result.stderr)
 
 
 if __name__ == "__main__":

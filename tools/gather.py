@@ -189,6 +189,8 @@ PAYLOAD_CONTEXT_PATHS = [
     "knowledge-base/mining-policy.md",    # template — selectivity: 2
     "tooling/design-system.md",           # template — mode: absent
     "tooling/knowledge-base.md",          # template — default kb_root
+    "tooling/department.md",              # template — default department indirection
+    "department/templates",               # contract (subtree — OKR and PI skeletons)
 ]
 
 # Team data: /setup-awow authors these per adopter. No useful default exists,
@@ -197,6 +199,9 @@ PAYLOAD_CONTEXT_PATHS = [
 TEAM_DATA_CONTEXT_PATHS = [
     "README.md",
     "company",
+    "department/definition.md",           # MD-authored department description
+    "department/teams.md",                # registry written by /setup-department
+    "department/decisions",               # governance decisions
     "kb-inbox/_synthesis-log.md",
     "knowledge-base/architecture",
     "knowledge-base/decisions",

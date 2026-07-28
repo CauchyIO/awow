@@ -10,8 +10,9 @@ Reference instructions per agent harness. One file per supported harness.
 |---|---|
 | `claude-code.md` | Claude Code |
 | `copilot.md` | GitHub Copilot |
+| `m365-copilot.md` | Microsoft 365 Copilot (pilot / experimental) |
 
-Both ship from day one. The team can use one or both; `tools/gather.py` mirrors `.agents/` to both surfaces.
+Both `claude-code.md` and `copilot.md` ship from day one. The team can use one or both; `tools/gather.py` mirrors `.agents/` to both surfaces. `m365-copilot.md` is a pilot: it targets non-technical users with no repo, via a declarative agent `gather.py --surface m365` emits — see that file for scope and current limits.
 
 ## Why two
 

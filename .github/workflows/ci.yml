@@ -14,6 +14,8 @@ jobs:
           python-version: "3.12"
       - name: Generated surfaces in sync (.claude/, .github/, dist/)
         run: python tools/gather.py --check
+      - name: M365 Copilot surface in sync (dist/m365)
+        run: python tools/gather.py --surface m365 --check
       - name: Path-token lint
         run: python tools/lint-paths.py
       - name: Instruction-file write targets
@@ -28,5 +30,11 @@ jobs:
         run: python3 tests/telemetry-split/test_telemetry_split.py
       - name: Orphan detection across payload roots
         run: python3 tests/telemetry-split/test_orphan_roots.py
+      - name: M365 Copilot harness tests
+        run: python3 -m unittest discover -s tests/m365
+      - name: Department layer tests
+        run: python3 -m unittest discover -s tests/department
+      - name: awow-lock tests
+        run: python3 -m unittest discover -s tests/awow-lock
       - name: Harness wiring checks (Layer 1, no model)
         run: bash tests/harness/run-harness-tests.sh all

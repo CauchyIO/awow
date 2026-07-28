@@ -65,6 +65,62 @@ class TestIncludedCommands(unittest.TestCase):
             self.assertEqual(entries[0].starter, "Draft a feature")
             self.assertEqual(entries[0].description, "a demo command")
 
+    def test_sorted_by_name_not_path(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            cmds = root / ".agents" / "commands"
+            (cmds / "zzzdir").mkdir(parents=True)
+            # Create nested aaa.md (would sort last if sorted by path)
+            (cmds / "zzzdir" / "aaa.md").write_text(FM)
+            # Create top-level bbb.md and ccc.md (would sort first/second if sorted by path)
+            (cmds / "bbb.md").write_text(FM.replace("Draft a feature", "B feature"))
+            (cmds / "ccc.md").write_text(FM.replace("Draft a feature", "C feature"))
+            entries = gather_m365.included_commands(root)
+            # Should be sorted by name: aaa, bbb, ccc (not by path: bbb, ccc, aaa)
+            self.assertEqual([e.name for e in entries], ["aaa", "bbb", "ccc"])
+
+    def test_include_true_without_starter_fails_loud(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            cmds = root / ".agents" / "commands"
+            cmds.mkdir(parents=True)
+            # include: true but no conversation_starter
+            no_starter = """---
+phase: seed
+m365:
+  include: true
+---
+
+# /bad — no starter
+"""
+            (cmds / "bad.md").write_text(no_starter)
+            with self.assertRaises(gather_m365.M365ConfigError) as ctx:
+                gather_m365.included_commands(root)
+            self.assertIn("conversation_starter is missing", str(ctx.exception))
+
+    def test_non_canonical_include_value_fails_loud(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            cmds = root / ".agents" / "commands"
+            cmds.mkdir(parents=True)
+            # include: True (capitalized, not converted to bool)
+            bad_bool = """---
+phase: seed
+m365:
+  include: True
+  conversation_starter: "Feature"
+---
+
+# /bad — bad bool
+"""
+            (cmds / "bad.md").write_text(bad_bool)
+            with self.assertRaises(gather_m365.M365ConfigError) as ctx:
+                gather_m365.included_commands(root)
+            self.assertIn("m365.include must be true or false", str(ctx.exception))
+
 
 if __name__ == "__main__":
     unittest.main()

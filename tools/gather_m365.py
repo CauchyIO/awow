@@ -94,7 +94,12 @@ def included_commands(repo_root: Path) -> list[CommandEntry]:
             continue
         text = source.read_text()
         block = parse_m365_block(text)
-        if not block or block["include"] is not True:
+        if not block:
+            continue
+        include = block["include"]
+        if not isinstance(include, bool):
+            raise M365ConfigError(f"{source}: m365.include must be true or false, got {repr(include)}")
+        if include is not True:
             continue
         starter = block["conversation_starter"]
         if not starter:
@@ -106,4 +111,5 @@ def included_commands(repo_root: Path) -> list[CommandEntry]:
             starter=starter,
             description=command_description(fields, body),
         ))
+    entries.sort(key=lambda e: e.name)
     return entries

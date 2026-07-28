@@ -84,6 +84,17 @@ def main() -> int:
         for p in dist_context.rglob("*"):
             if p.is_file():
                 shipped.add(p.relative_to(dist_context).as_posix())
+    def _shippable_as_text(p: Path) -> bool:
+        """Mirrors plan_context_payload's own skip: a classified-payload file
+        that can't decode as text is never mirrored. Catches only
+        UnicodeDecodeError — same as production — so any other read failure
+        still raises and fails the test loudly rather than being absorbed."""
+        try:
+            p.read_text()
+        except UnicodeDecodeError:
+            return False
+        return True
+
     wanted = {
         p.relative_to(gather.CONTEXT_DIR).as_posix()
         for p in gather.CONTEXT_DIR.rglob("*")
@@ -92,6 +103,7 @@ def main() -> int:
         and gather.classify_context_path(
             p.relative_to(gather.CONTEXT_DIR).as_posix()
         ) == "payload"
+        and _shippable_as_text(p)
     }
     for missing in sorted(wanted - shipped):
         FAILURES.append(f"classified payload but not shipped: context/{missing}")

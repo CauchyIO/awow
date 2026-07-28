@@ -1,0 +1,47 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "awow context fetch",
+    "description": "Read-only fetch of markdown files from the public awow repository.",
+    "version": "0.1.0"
+  },
+  "servers": [
+    {
+      "url": "https://raw.githubusercontent.com"
+    }
+  ],
+  "paths": {
+    "/CauchyIO/awow/main/{filePath}": {
+      "get": {
+        "operationId": "fetchAwowContext",
+        "summary": "Fetch one repo file as raw markdown",
+        "parameters": [
+          {
+            "name": "filePath",
+            "in": "path",
+            "required": true,
+            "description": "Repo-relative file path. Encode each '/' as %2F, e.g. .agents%2Fcommands%2Frefinement-prep.md",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Raw file content",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "File not found at this path/ref"
+          }
+        }
+      }
+    }
+  }
+}

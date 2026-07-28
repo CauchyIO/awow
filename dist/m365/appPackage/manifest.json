@@ -1,0 +1,33 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.19/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.19",
+  "version": "0.1.0",
+  "id": "a28b6253-6b96-5030-ac01-113cd6e28636",
+  "developer": {
+    "name": "CauchyIO",
+    "websiteUrl": "https://github.com/CauchyIO/awow",
+    "privacyUrl": "https://github.com/CauchyIO/awow",
+    "termsOfUseUrl": "https://github.com/CauchyIO/awow"
+  },
+  "name": {
+    "short": "awow Coach",
+    "full": "awow Coach"
+  },
+  "description": {
+    "short": "Your team's agentic way of working, as a coach: it grounds every answer in the",
+    "full": "Your team's agentic way of working, as a coach: it grounds every answer in the awow repo's live conventions and playbooks, and drafts board-ready artifacts with you."
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#0F62FE",
+  "copilotAgents": {
+    "declarativeAgents": [
+      {
+        "id": "awowCoach",
+        "file": "declarativeAgent.json"
+      }
+    ]
+  }
+}

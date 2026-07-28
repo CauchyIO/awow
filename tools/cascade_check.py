@@ -7,6 +7,14 @@ backlinks, and pin freshness. Exit 0 clean, 1 findings, 2 config error.
 CLI: `python tools/cascade_check.py [--json] [--root <path>]`, run from the
 department repo root (or pass --root for testability; cwd remains the
 default when --root is omitted).
+
+Finding class taxonomy is closed by design (downstream stages depend on the
+exact set of strings). In particular `registered-missing` is the single
+class for every registry row whose submodule state cannot be verified:
+directory missing, not a git checkout, or its pin/remote unresolvable via
+git — see each finding's `detail` for the specific cause. A team's
+`registered-missing` finding short-circuits all remaining checks for that
+team (one cause, one finding); other teams are unaffected.
 """
 from __future__ import annotations
 
@@ -138,8 +146,8 @@ def _origin_url(repo_root: Path) -> str:
     )
     if result.returncode != 0:
         raise CascadeConfigError(
-            f"{repo_root}: no 'origin' remote configured (needed to verify team backlinks): "
-            f"{result.stderr.strip()}"
+            f"{repo_root}: no 'origin' remote configured (needed to verify team backlinks) — "
+            f"fix: git -C {repo_root} remote add origin <url> ({result.stderr.strip()})"
         )
     return result.stdout.strip()
 
@@ -225,8 +233,14 @@ def run_check(repo_root: Path, now: float | None = None) -> dict:
             })
             continue
 
+        # Resolve all git-derived state up front. ANY failure here means the
+        # submodule isn't verifiably checked out — one cause, one finding —
+        # so it short-circuits before any content (backlink/Serves) check
+        # runs and could otherwise sit alongside a "not checked out" claim.
         try:
             pin_sha = _pin_sha(repo_root, team_path_rel)
+            remote_head = _remote_head(team_path)
+            age_days = _pin_age_days(team_path, pin_sha, now)
         except _GitCheckError as e:
             findings.append({"class": "registered-missing", "team": team, "detail": str(e)})
             continue
@@ -275,11 +289,6 @@ def run_check(repo_root: Path, now: float | None = None) -> dict:
                 else:
                     served_objectives.add(served_id.split(".")[0])
 
-        try:
-            age_days = _pin_age_days(team_path, pin_sha, now)
-        except _GitCheckError as e:
-            findings.append({"class": "registered-missing", "team": team, "detail": str(e)})
-            continue
         pin_age_days[team] = age_days
         if age_days > stale_after_days:
             findings.append({
@@ -288,11 +297,6 @@ def run_check(repo_root: Path, now: float | None = None) -> dict:
                 "detail": f"pin age {age_days}d exceeds stale_after_days={stale_after_days}",
             })
 
-        try:
-            remote_head = _remote_head(team_path)
-        except _GitCheckError as e:
-            findings.append({"class": "registered-missing", "team": team, "detail": str(e)})
-            continue
         if remote_head != pin_sha:
             drift.append({"team": team, "pinned": pin_sha, "remote": remote_head})
 

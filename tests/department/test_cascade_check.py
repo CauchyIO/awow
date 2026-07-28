@@ -228,6 +228,21 @@ class TestRunCheck(unittest.TestCase):
         with self.assertRaises(cascade_check.CascadeConfigError):
             cascade_check.run_check(dept)
 
+    def test_git_failure_short_circuits_to_single_registered_missing(self):
+        """A git failure resolving a team's pin/remote state (here: no `origin` to
+        ls-remote) yields exactly one registered-missing finding for that team,
+        with no content (backlink/Serves) findings alongside it. The other team's
+        checks are unaffected."""
+        a = make_team(self.tmp, "team-a", ["O1"]); b = make_team(self.tmp, "team-b", ["O2.KR1"])
+        dept = make_department(self.tmp, [a, b])
+        _git(dept / "teams" / "team-a", "remote", "remove", "origin")
+        result = cascade_check.run_check(dept)
+        team_a_findings = [f for f in result["findings"] if f["team"] == "team-a"]
+        self.assertEqual(len(team_a_findings), 1)
+        self.assertEqual(team_a_findings[0]["class"], "registered-missing")
+        team_b_findings = [f for f in result["findings"] if f["team"] == "team-b"]
+        self.assertEqual(team_b_findings, [])
+
 
 if __name__ == "__main__":
     unittest.main()

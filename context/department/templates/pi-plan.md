@@ -4,10 +4,11 @@
 
 Proposal table mapping quarterly objectives to the teams that will serve each one.
 
+<!-- The "Accepted" column fills in only once a team's Serves: PR actually merges — never pre-filled. -->
 | Objective | Proposed teams | Accepted (Serves: merged) |
 |---|---|---|
-| O1 — Example objective | team-a, team-b | Serves: O1 (in context/quarterly/focus.md) |
-| O2 — Another objective | team-c | Serves: O2 (in context/quarterly/focus.md) |
+| O1 — Example objective | team-a, team-b | — pending merge |
+| O2 — Another objective | team-c | — pending merge |
 
 ## Dependencies
 

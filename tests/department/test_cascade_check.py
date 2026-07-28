@@ -310,6 +310,16 @@ class TestFindingClasses(unittest.TestCase):
         result = self._run_cli("--root", str(dept))
         self.assertEqual(result.returncode, 1)
 
+    def test_human_table_prints_dash_not_none_for_department_side_findings(self):
+        """`orphaned-objective` findings carry team=None. The human (non-JSON)
+        table must print `-` there, never Python's `None`."""
+        a = make_team(self.tmp, "team-a", ["O1"])  # O2 goes unserved
+        dept = make_department(self.tmp, [a])
+        result = self._run_cli("--root", str(dept))
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("\t-\t", result.stdout)
+        self.assertNotIn("None", result.stdout)
+
     def test_cli_exit_missing_indirection_is_two_with_stderr_error(self):
         empty = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, empty, ignore_errors=True)

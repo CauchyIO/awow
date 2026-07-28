@@ -327,7 +327,7 @@ def run_check(repo_root: Path, now: float | None = None) -> dict:
 
 
 def _format_table(findings: list[dict]) -> str:
-    return "\n".join(f"{f['class']}\t{f['team']}\t{f['detail']}" for f in findings)
+    return "\n".join(f"{f['class']}\t{f['team'] or '-'}\t{f['detail']}" for f in findings)
 
 
 def main(argv: list[str]) -> int:

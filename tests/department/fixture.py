@@ -4,10 +4,8 @@ Builds throwaway git repos on disk (team repos + a department repo wired to
 them as submodules) so tests exercise cascade_check.run_check against real
 git plumbing — submodule gitlinks, remotes, pin history — rather than mocks.
 Extracted from tests/department/test_cascade_check.py (Task 2's inline
-helpers) and generalized only as far as later seeds need:
-`quarterly_extra` lets a team's focus doc carry extra freeform content
-after its Serves: block, and `stale_after_days` lets a department be built
-with a non-default staleness threshold.
+helpers) and generalized only as far as later seeds need: `stale_after_days`
+lets a department be built with a non-default staleness threshold.
 """
 from __future__ import annotations
 
@@ -19,20 +17,17 @@ def _git(cwd, *args, env=None):
     subprocess.run(["git", "-C", str(cwd), *args], check=True, capture_output=True, env=env)
 
 
-def make_team(base: Path, name: str, serves: list[str], *, quarterly_extra: str | None = None) -> Path:
+def make_team(base: Path, name: str, serves: list[str]) -> Path:
     """Create a standalone, committed team repo with one quarterly focus doc.
 
     `serves` becomes the leading `Serves: <id>` header lines in
-    context/quarterly/focus.md. `quarterly_extra`, if given, is appended
-    verbatim after the doc's `# Focus` heading.
+    context/quarterly/focus.md.
     """
     repo = base / name
     (repo / "context" / "quarterly").mkdir(parents=True)
     (repo / "context" / "company").mkdir(parents=True)
     lines = "".join(f"Serves: {s}\n" for s in serves)
     body = lines + "\n# Focus\n"
-    if quarterly_extra:
-        body += quarterly_extra
     (repo / "context" / "quarterly" / "focus.md").write_text(body)
     subprocess.run(["git", "init", "-q", str(repo)], check=True)
     _git(repo, "add", "-A")

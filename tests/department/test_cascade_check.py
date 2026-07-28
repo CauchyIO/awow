@@ -1,3 +1,5 @@
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -151,6 +153,80 @@ class TestFindQuarterDoc(unittest.TestCase):
             with self.assertRaises(cascade_check.CascadeConfigError) as cm:
                 cascade_check.find_quarter_doc(repo_root)
             self.assertIn("okrs-", str(cm.exception))
+
+
+def _git(cwd, *args):
+    subprocess.run(["git", "-C", str(cwd), *args], check=True, capture_output=True)
+
+
+def make_team(base: Path, name: str, serves: list[str]) -> Path:
+    repo = base / name
+    (repo / "context" / "quarterly").mkdir(parents=True)
+    (repo / "context" / "company").mkdir(parents=True)
+    lines = "".join(f"Serves: {s}\n" for s in serves)
+    (repo / "context" / "quarterly" / "focus.md").write_text(lines + "\n# Focus\n")
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    _git(repo, "add", "-A"); _git(repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init")
+    return repo
+
+
+def make_department(base: Path, teams: list[Path]) -> Path:
+    dept = base / "dept"
+    (dept / "context" / "department").mkdir(parents=True)
+    (dept / "context" / "tooling").mkdir(parents=True)
+    (dept / "context" / "tooling" / "department.md").write_text(
+        "---\nteams_root: teams\nread_scope: context/team, context/quarterly, context/company\n"
+        "decisions_dir: context/department/decisions\nstale_after_days: 28\n---\n")
+    rows = "\n".join(f"| {t.name} | teams/{t.name} | Lead |" for t in teams)
+    (dept / "context" / "department" / "teams.md").write_text(
+        "| Team | Path | Lead |\n|---|---|---|\n" + rows + "\n")
+    (dept / "context" / "department" / "okrs-2026-Q3.md").write_text(
+        "## O1 — Alpha\n- O1.KR1: x\n## O2 — Beta\n- O2.KR1: y\n")
+    subprocess.run(["git", "init", "-q", str(dept)], check=True)
+    # The dept's own origin must match what the backlink `parent:` claims, or
+    # every team would fail backlink-mismatch even on an otherwise-clean setup.
+    # Compute it once and reuse it for both the remote and the backlinks.
+    origin_url = f"file://{dept}"
+    _git(dept, "remote", "add", "origin", origin_url)
+    for t in teams:
+        _git(dept, "-c", "protocol.file.allow=always", "submodule", "add", "-q", f"file://{t}", f"teams/{t.name}")
+        backlink = dept / "teams" / t.name / "context" / "company" / "department.md"
+        backlink.parent.mkdir(parents=True, exist_ok=True)
+        backlink.write_text(f"---\ndepartment: Dept\nparent: {origin_url}\n---\n")
+    _git(dept, "add", "-A"); _git(dept, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init")
+    return dept
+
+
+class TestRunCheck(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+
+    def test_clean_department(self):
+        a = make_team(self.tmp, "team-a", ["O1"]); b = make_team(self.tmp, "team-b", ["O2.KR1"])
+        dept = make_department(self.tmp, [a, b])
+        result = cascade_check.run_check(dept)
+        self.assertEqual(result["findings"], [])
+
+    def test_serves_unknown_and_orphan(self):
+        a = make_team(self.tmp, "team-a", ["O9"]); b = make_team(self.tmp, "team-b", ["O1"])
+        dept = make_department(self.tmp, [a, b])
+        classes = sorted(f["class"] for f in cascade_check.run_check(dept)["findings"])
+        self.assertIn("serves-unknown", classes)
+        self.assertIn("orphaned-objective", classes)  # O2 unserved
+
+    def test_serves_nothing(self):
+        a = make_team(self.tmp, "team-a", [])
+        dept = make_department(self.tmp, [a])
+        classes = [f["class"] for f in cascade_check.run_check(dept)["findings"]]
+        self.assertIn("serves-nothing", classes)
+
+    def test_missing_okrs_is_config_error(self):
+        a = make_team(self.tmp, "team-a", ["O1"])
+        dept = make_department(self.tmp, [a])
+        (dept / "context" / "department" / "okrs-2026-Q3.md").unlink()
+        with self.assertRaises(cascade_check.CascadeConfigError):
+            cascade_check.run_check(dept)
 
 
 if __name__ == "__main__":

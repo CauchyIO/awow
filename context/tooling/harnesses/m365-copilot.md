@@ -48,6 +48,7 @@ cd dist/m365/appPackage && zip -r ../awow-m365.zip .
 1. In Teams: **Apps → Manage your apps → Upload an app → Upload a custom app**, then pick `awow-m365.zip`.
 2. If the tenant blocks custom-app upload, a tenant admin either enables it (Teams admin center → **Teams apps → Setup policies → Upload custom apps**) or uploads it org-wide themselves.
 3. Once installed, the agent appears in M365 Copilot's agent list.
+4. Step zero, in the first conversation: ask the agent to fetch a known file and confirm raw markdown text arrives — not a JSON or base64 envelope. That check is exactly what proves the fetch contract on the real runtime.
 
 Requires an M365 Copilot seat — the single largest adoption gate for this population.
 
@@ -60,11 +61,10 @@ The first `fetchAwowContext` call shows a consent card. This is expected — cli
 Before sideloading, confirm the fetch path works from any shell:
 
 ```bash
-curl -sf -H "Accept: application/vnd.github.raw+json" \
-  "https://api.github.com/repos/CauchyIO/awow/contents/.agents/commands/refinement-prep.md?ref=main" | head -5
+curl -sf https://raw.githubusercontent.com/CauchyIO/awow/main/.agents/commands/refinement-prep.md | head -5
 ```
 
-Expected: the file's frontmatter prints. Note the unauthenticated rate limit (60 requests/hour/IP) — fine for a pilot. A later increment replaces this direct fetch with a proxied endpoint (design spec §4.1a) for private hubs.
+Expected: the file's frontmatter prints. Unauthenticated raw fetches are throttled by GitHub — fine for a pilot. A later increment replaces this direct fetch with a proxied endpoint (design spec §4.1a) for private hubs.
 
 ## Slice limits (stated honestly)
 

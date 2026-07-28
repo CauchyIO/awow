@@ -27,6 +27,13 @@ class TestEmit(unittest.TestCase):
         self.assertLessEqual(len(da["instructions"]), 8000)
         check = run_gather("--surface", "m365", "--check")
         self.assertEqual(check.returncode, 0, check.stdout + check.stderr)
+        # Regeneration must reproduce exactly the committed bytes — catches a stale
+        # committed package (e.g. one regenerated before a routing/config change landed).
+        diff = subprocess.run(
+            ["git", "diff", "--quiet", "HEAD", "--", "dist/m365"],
+            cwd=REPO_ROOT, capture_output=True, text=True,
+        )
+        self.assertEqual(diff.returncode, 0, diff.stdout + diff.stderr)
 
     def test_default_surface_untouched_by_m365(self):
         check = run_gather("--check")

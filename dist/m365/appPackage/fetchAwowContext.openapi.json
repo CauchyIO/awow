@@ -7,11 +7,11 @@
   },
   "servers": [
     {
-      "url": "https://api.github.com"
+      "url": "https://raw.githubusercontent.com"
     }
   ],
   "paths": {
-    "/repos/CauchyIO/awow/contents/{filePath}": {
+    "/CauchyIO/awow/main/{filePath}": {
       "get": {
         "operationId": "fetchAwowContext",
         "summary": "Fetch one repo file as raw markdown",
@@ -24,33 +24,13 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "ref",
-            "in": "query",
-            "required": false,
-            "description": "Git ref to read from.",
-            "schema": {
-              "type": "string",
-              "default": "main"
-            }
-          },
-          {
-            "name": "Accept",
-            "in": "header",
-            "required": true,
-            "description": "Must be application/vnd.github.raw+json to receive raw file text.",
-            "schema": {
-              "type": "string",
-              "default": "application/vnd.github.raw+json"
-            }
           }
         ],
         "responses": {
           "200": {
             "description": "Raw file content",
             "content": {
-              "application/vnd.github.raw+json": {
+              "text/plain": {
                 "schema": {
                   "type": "string"
                 }

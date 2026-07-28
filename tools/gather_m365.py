@@ -113,3 +113,47 @@ def included_commands(repo_root: Path) -> list[CommandEntry]:
         ))
     entries.sort(key=lambda e: e.name)
     return entries
+
+
+def _describe(path: Path) -> str:
+    fields, body = parse_frontmatter(path.read_text())
+    desc = fields.get("description") or command_description(fields, body)
+    desc = " ".join(desc.split())
+    return desc or path.stem
+
+
+def build_file_index(repo_root: Path, roots: tuple[str, ...]) -> list[tuple[str, str]]:
+    seen: dict[str, str] = {}
+    for root in roots:
+        base = repo_root / root
+        if not base.is_dir():
+            raise M365ConfigError(f"index root does not exist: {base}")
+        for path in sorted(base.rglob("*.md")):
+            if "_workitem-archetypes" in path.parts:
+                continue
+            seen[path.relative_to(repo_root).as_posix()] = _describe(path)
+    return sorted(seen.items())
+
+
+def assemble_instructions(config: M365Config, commands: list[CommandEntry], index: list[tuple[str, str]]) -> str:
+    lines = [config.identity, "", "## How you work", ""]
+    lines.append(
+        "On a conversation starter or a matching request: find the playbook path in the "
+        "routing table below, call fetchAwowContext with that exact path, and follow the "
+        "fetched playbook exactly. If a fetch fails, stop and name the path that failed — "
+        "never improvise a procedure from memory. For open questions, fetch the most "
+        "relevant file(s) from the index below before answering."
+    )
+    lines += ["", "## Routing", ""]
+    for cmd in commands:
+        lines.append(f'- "{cmd.starter}" -> fetch {cmd.rel_path}')
+    lines += ["", "## Files you can fetch", ""]
+    for rel, desc in index:
+        lines.append(f"- {rel} — {desc}")
+    text = "\n".join(lines) + "\n"
+    if len(text) > INSTRUCTION_BUDGET:
+        raise M365BudgetError(
+            f"assembled instructions are {len(text)} chars, over the {INSTRUCTION_BUDGET} cap; "
+            f"trim index_roots in {CONFIG_REL} or the agent identity block"
+        )
+    return text

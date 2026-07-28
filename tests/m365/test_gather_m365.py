@@ -122,5 +122,37 @@ m365:
             self.assertIn("m365.include must be true or false", str(ctx.exception))
 
 
+class TestIndexAndInstructions(unittest.TestCase):
+    def _cfg(self, **over):
+        base = dict(
+            agent_name="awow Coach", agent_description="d", github_repo="o/r",
+            ref="main", explore_starter="Explore awow",
+            index_roots=("context/team",), identity="You are the awow Coach.",
+        )
+        base.update(over)
+        return gather_m365.M365Config(**base)
+
+    def test_index_walks_roots(self):
+        index = gather_m365.build_file_index(REPO_ROOT, ("context/team",))
+        paths = [p for p, _ in index]
+        self.assertIn("context/team/mission.md", paths)
+        self.assertEqual(paths, sorted(paths))
+        for _, desc in index:
+            self.assertNotIn("\n", desc)
+
+    def test_assembles_within_budget(self):
+        cmd = gather_m365.CommandEntry("refinement-prep", ".agents/commands/refinement-prep.md", "Draft a feature", "draft a feature")
+        text = gather_m365.assemble_instructions(self._cfg(), [cmd], [("context/team/mission.md", "the mission")])
+        self.assertIn("You are the awow Coach.", text)
+        self.assertIn('"Draft a feature" -> fetch .agents/commands/refinement-prep.md', text)
+        self.assertIn("context/team/mission.md — the mission", text)
+        self.assertLessEqual(len(text), gather_m365.INSTRUCTION_BUDGET)
+
+    def test_over_budget_fails_loud(self):
+        huge = [(f"context/x/file{i}.md", "y" * 200) for i in range(200)]
+        with self.assertRaises(gather_m365.M365BudgetError):
+            gather_m365.assemble_instructions(self._cfg(), [], huge)
+
+
 if __name__ == "__main__":
     unittest.main()

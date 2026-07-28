@@ -1,6 +1,6 @@
 # Microsoft 365 Copilot — harness reference
 
-A declarative agent for non-technical users whose only surface onto awow is Microsoft 365 Copilot — no repo, no CLI. Pilot / experimental: this slice covers advisory grounding and one gated command, not the full command set.
+A declarative agent for non-technical users whose only surface onto awow is Microsoft 365 Copilot — no repo, no CLI. Pilot / experimental: this slice covers advisory grounding and one ported command whose output lands as a copy-paste draft in chat — not yet gated by an M365 confirmation card.
 
 ## What this harness is
 
@@ -15,7 +15,7 @@ It doesn't, yet. This harness is assigned by a tenant admin, not self-detected f
 ## What it provides
 
 - **Instructions** — an inline system prompt assembled from `agent.md` plus a generated file-index manifest (fetchable paths + one-line descriptions), capped at 8,000 characters.
-- **Conversation starters** — the declarative-agent equivalent of slash commands, capped at 12. This slice ships one: `refinement-prep`.
+- **Conversation starters** — the declarative-agent equivalent of slash commands, capped at 12. This slice ships two: a general grounding starter ("What does awow say about how we work?") plus one ported command, `refinement-prep`.
 - **A `fetchAwowContext` action** — an OpenAPI plugin that calls the GitHub contents API directly (public-repo direct fetch; a proxied endpoint for private hubs is a later increment).
 - No board actions and no `commitAwowInbox` in this slice — see Slice limits below.
 

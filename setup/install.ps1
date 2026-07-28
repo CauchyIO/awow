@@ -1,7 +1,7 @@
 # awow installer (Windows / PowerShell)
 #
 # Sets up Python via uv, creates a .venv, and runs the initial pointer-stub
-# gather so .claude/ and .github/ are populated. Mirror of install.sh for
+# gather so .claude/, .github/ and .opencode/ are populated. Mirror of install.sh for
 # Unix systems.
 #
 # This is the prerequisite for the /setup-awow agent command: run it once
@@ -70,5 +70,5 @@ Next steps:
      Issues) and the rest of the configuration.
 
 If you re-edit .agents/ later, run `uv run python tools\gather.py` to
-re-mirror the pointer stubs into .claude/ and .github/.
+re-mirror the pointer stubs into .claude/, .github/ and .opencode/.
 '@

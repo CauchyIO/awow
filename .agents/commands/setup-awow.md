@@ -37,7 +37,7 @@ Reframe **Step 2** as the user's focus for the work, not a team charter. Everyth
 
 ## Step 0 — Installer (REQUIRED)
 
-The starter pack uses `tools/gather.py` to mirror `.agents/` into the harness surfaces (`.claude/`, `.github/`). The installer wires Python via `uv`, creates `.venv`, and runs `gather.py` once so the harness can discover this very command.
+The starter pack uses `tools/gather.py` to mirror `.agents/` into the harness surfaces (`.claude/`, `.github/`, `.opencode/`). The installer wires Python via `uv`, creates `.venv`, and runs `gather.py` once so the harness can discover this very command.
 
 1. **Detect.** Run a cheap two-file probe — do not scan further:
    - `.claude/commands/setup-awow.md` present? (signals `gather.py` has run, i.e. stubs are populated)
@@ -51,7 +51,7 @@ The starter pack uses `tools/gather.py` to mirror `.agents/` into the harness su
    When invoked with `--root <path>`, both probes still inspect the *repo root* (not `<path>/`); the installer is shared, not duplicated per workspace. Record the inheritance in `<path>/setup-progress.md` so future invocations know Step 0 was satisfied transitively.
 2. **Request permission.** Tell the user you are about to run the platform-appropriate installer on their behalf (`./setup/install.sh` on macOS / Linux, `.\setup\install.ps1` on Windows / PowerShell) and ask for explicit confirmation before invoking the shell. Do not run it silently.
 3. **Run.** Once confirmed, execute the installer and surface its output verbatim. If it fails — most commonly because `uv` is not on PATH — surface the error and tell the user to install `uv` (`brew install uv` on macOS, or follow uv's installation docs) and then re-invoke `/setup-awow`. Do not try to recover by running `tools/gather.py` under system Python; the installer's error message is the right place to learn what is wrong.
-4. **Verify.** Confirm `.venv/` exists and that `.claude/commands/setup-awow.md` and `.github/prompts/setup-awow.prompt.md` are present.
+4. **Verify.** Confirm `.venv/` exists and that `.claude/commands/setup-awow.md`, `.github/prompts/setup-awow.prompt.md` and `.opencode/commands/setup-awow.md` are present.
 5. Mark Step 0 complete in `setup-progress.md` and continue to Step 1.
 
 ## Step 1 — Kickoff (REQUIRED)
@@ -62,13 +62,14 @@ Step 1 has two parts. Step 1a wires up the read/write surface (an MCP or, for Gi
 
 ### Step 1a — Wire the read/write surface
 
-1. **Establish harness.** The starter pack ships both `.claude/` and `.github/` directories, so their presence is not a signal — do **not** infer which harnesses are in use from directory listing alone. The real signal is which harness you (the model) are currently running inside:
+1. **Establish harness.** The starter pack ships the `.claude/`, `.github/` and `.opencode/` directories, so their presence is not a signal — do **not** infer which harnesses are in use from directory listing alone. The real signal is which harness you (the model) are currently running inside:
    - If you are Claude Code, the current harness is Claude Code.
    - If you are GitHub Copilot, the current harness is Copilot.
    - If you are Codex, the current harness is Codex. (Corroborating on-disk signal: a repo-root `AGENTS.md` alongside a `.codex-plugin/` directory.)
    - If you are Pi, the current harness is Pi. (Corroborating on-disk signal: a `.pi/` directory.)
+   - If you are opencode, the current harness is opencode. (Corroborating on-disk signal: an `.opencode/` directory or a repo-root `opencode.json`.)
 
-   Tell the user: "I can see I'm running in `<current harness>`. Does your team use any other supported harness (Claude Code, Copilot, Codex, Pi), or is `<current>` the only one to wire up?" Accept *current only* or a list of the additional harnesses. Record the choice; this drives which install snippets you surface in step 4.
+   Tell the user: "I can see I'm running in `<current harness>`. Does your team use any other supported harness (Claude Code, Copilot, Codex, Pi, opencode), or is `<current>` the only one to wire up?" Accept *current only* or a list of the additional harnesses. Record the choice; this drives which install snippets you surface in step 4.
 
 2. **Detect existing board surface.** Look for an existing MCP server entry whose name or URL references a supported board tool (`linear`, `jira`, `azure`, `github`) in:
    - `.claude/settings.json` and `.claude/settings.local.json`

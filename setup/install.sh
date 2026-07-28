@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # awow installer — sets up Python via uv, syncs the project .venv, and runs
-# the initial pointer-stub gather so .claude/ and .github/ are populated.
+# the initial pointer-stub gather so .claude/, .github/ and .opencode/ are populated.
 #
 # This is the prerequisite for the /setup-awow agent command: run it once
 # after cloning, then open an agent session and invoke /setup-awow.
@@ -64,7 +64,7 @@ Next steps:
      Issues) and the rest of the configuration.
 
 If you re-edit .agents/ later, run `uv run python tools/gather.py` to
-re-mirror the pointer stubs into .claude/ and .github/.
+re-mirror the pointer stubs into .claude/, .github/ and .opencode/.
 
 To add a Python dependency a skill needs:
   uv add <package>            # records it in pyproject.toml + uv.lock

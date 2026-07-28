@@ -26,10 +26,18 @@ harness that reads it natively from the root (Codex among them) is steered to
 surface but not for the `dist/` plugin payload.
     .agents/commands/<name>.md           → .claude/commands/<name>.md
                                          → .github/prompts/<name>.prompt.md
+                                         → .opencode/commands/<name>.md
 
 The `.prompt.md` extension under .github/prompts/ is required: VS Code's
 GitHub Copilot Chat discovers prompt files by that exact suffix; plain `.md`
 is silently ignored.
+
+The .opencode/ stubs use their own generator: opencode derives a command's
+placeholder list from the template body, so a stub without a literal
+$ARGUMENTS silently receives no arguments. opencode reads the repo-root
+AGENTS.md and discovers .agents/skills/ and .claude/skills/ natively (deduped,
+precedence .opencode/ > .claude/ > .agents/), so commands are the only surface
+it needs emitted.
     .agents/skills/<name>/SKILL.md       → .claude/skills/<name>/SKILL.md
                                          → .github/skills/<name>/SKILL.md
     .agents/skills/<name>.md             → .claude/skills/<name>/SKILL.md
@@ -75,6 +83,7 @@ Usage
     python tools/gather.py --check          # exit 1 if any output is out of date
     python tools/gather.py --surface claude # only emit to .claude/
     python tools/gather.py --surface github # only emit to .github/
+    python tools/gather.py --surface opencode  # only emit to .opencode/
     python tools/gather.py --surface plugin # only build dist/
     python tools/gather.py --surface both   # .claude/ + .github/, no dist/
 
@@ -99,6 +108,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 AGENTS_DIR = REPO_ROOT / ".agents"
 CLAUDE_DIR = REPO_ROOT / ".claude"
 GITHUB_DIR = REPO_ROOT / ".github"
+OPENCODE_DIR = REPO_ROOT / ".opencode"
 DIST_DIR = REPO_ROOT / "dist"
 # Second payload root: the awow-telemetry plugin (design spec 4.3). A sibling of
 # dist/, not a child, for two reasons. Claude Code installs from CauchyIO/awow
@@ -121,7 +131,14 @@ CODEX_MARKETPLACE = DIST_DIR / ".agents" / "plugins" / "marketplace.json"
 # Pi package manifest at the dist/ root: `pi install` reads the `pi` key and loads the
 # commands-as-skills from pi.skills. Pi reads root AGENTS.md and .agents/skills natively,
 # so the package is the whole Pi integration — no extension needed.
+# One manifest at the dist/ root serves two harnesses. `pi install` reads the `pi`
+# key; opencode reads `main`, which points at the plugin module below. Pi reads root
+# AGENTS.md and .agents/skills natively, so the package is the whole Pi integration.
 PI_MANIFEST = DIST_DIR / "package.json"
+# opencode plugin module. opencode plugins are JS hook modules — no manifest field
+# can register skills, so the skills directory is registered at runtime through the
+# plugin's `config` hook. (Verified against opencode 1.15.2.)
+OPENCODE_PLUGIN = DIST_DIR / ".opencode" / "plugins" / "awow.js"
 PLUGIN_MANIFEST = REPO_ROOT / ".claude-plugin" / "plugin.json"
 ROOT_COMMANDS_DIR = REPO_ROOT / "commands"
 HOOKS_DIR = REPO_ROOT / "hooks"
@@ -345,17 +362,24 @@ def command_description(fields: dict[str, str], body: str) -> str:
     return ""
 
 
-def gen_command_stub(source: Path, stub_target: Path) -> str:
-    text = source.read_text()
-    fields, body = parse_frontmatter(text, source)
+def command_frontmatter(source: Path) -> str:
+    """`description`-only frontmatter block, shared by the command-stub generators.
+
+    Every harness that consumes a command stub wants the same one key, so the
+    block is identical across surfaces; only the bodies differ."""
+    fields, body = parse_frontmatter(source.read_text(), source)
     desc = command_description(fields, body)
-    link = rel_link(stub_target, source)
-    fm_lines = ["---"]
+    lines = ["---"]
     if desc:
         # YAML-quote (double, with internal quote escape)
-        fm_lines.append(f'description: "{desc.replace(chr(34), chr(92) + chr(34))}"')
-    fm_lines.append("---")
-    fm = "\n".join(fm_lines)
+        lines.append(f'description: "{desc.replace(chr(34), chr(92) + chr(34))}"')
+    lines.append("---")
+    return "\n".join(lines)
+
+
+def gen_command_stub(source: Path, stub_target: Path) -> str:
+    link = rel_link(stub_target, source)
+    fm = command_frontmatter(source)
     return (
         f"{fm}\n\n"
         f"{header(source)}\n\n"
@@ -462,6 +486,35 @@ def is_skipped(path: Path) -> bool:
     return False
 
 
+def gen_opencode_command_stub(source: Path, stub_target: Path) -> str:
+    """Pointer stub for .opencode/commands/.
+
+    Two things differ from gen_command_stub, both load-bearing:
+
+    - The body MUST contain a literal `$ARGUMENTS`. opencode derives a command's
+      placeholder list from the template body (it matches /\\$\\d+/g and tests for
+      "$ARGUMENTS"); a template carrying neither receives no arguments at all, and
+      it fails silently — `/process-workitem AWO-48` would run with nothing.
+      Prose like "apply any arguments the user provided" is not a placeholder.
+    - `description` is the only frontmatter key worth setting. opencode also reads
+      `agent`, `model` and `subtask`; leaving them unset keeps the user's own
+      defaults. `template` must NOT appear — for a markdown command the body is
+      the template, and a frontmatter `template` key conflicts with it.
+    """
+    link = rel_link(stub_target, source)
+    fm = command_frontmatter(source)
+    return (
+        f"{fm}\n\n"
+        f"{header(source)}\n\n"
+        f"Execute the command defined at [`{source.relative_to(REPO_ROOT)}`]({link}). "
+        f"Read that file and follow its instructions. The body of this stub carries no "
+        f"substantive content — the real prompt lives at the path above.\n\n"
+        f"Arguments for this invocation: $ARGUMENTS\n\n"
+        f"Edits must be made in `{source.relative_to(REPO_ROOT)}` and re-mirrored with "
+        f"`python tools/gather.py`.\n"
+    )
+
+
 def plan_top_level() -> list[Stub]:
     plans = []
     for target, label in [
@@ -481,12 +534,14 @@ def plan_commands() -> list[Stub]:
     for source in sorted(commands_root.rglob("*.md")):
         if is_skipped(source):
             continue
-        for target_dir, ext in [
-            (CLAUDE_DIR / "commands", ".md"),
-            (GITHUB_DIR / "prompts", ".prompt.md"),
+        for target_dir, ext, generator in [
+            (CLAUDE_DIR / "commands", ".md", gen_command_stub),
+            (GITHUB_DIR / "prompts", ".prompt.md", gen_command_stub),
+            # opencode needs its own generator — see gen_opencode_command_stub.
+            (OPENCODE_DIR / "commands", ".md", gen_opencode_command_stub),
         ]:
             target = target_dir / (source.stem + ext)
-            plans.append(Stub(target, gen_command_stub(source, target)))
+            plans.append(Stub(target, generator(source, target)))
     return plans
 
 
@@ -787,9 +842,19 @@ def plan_codex() -> list[Stub]:
 
 
 def plan_pi() -> list[Stub]:
-    """Pi package manifest into dist/. `pi install <dist>` reads `pi.skills` and surfaces
-    the commands-as-skills. Pi discovers root AGENTS.md + the user's own .agents/skills
-    natively, so the package is the whole integration — no `.pi/extensions` needed."""
+    """The shared dist/ package manifest — Pi and opencode read the same file.
+
+    Pi: `pi install <dist>` reads `pi.skills` and surfaces the commands-as-skills.
+    Pi discovers root AGENTS.md + the user's own .agents/skills natively, so the
+    package is the whole integration — no `.pi/extensions` needed.
+
+    opencode: `opencode plugin awow@git+<awow-dist>` reads `main`, which points at
+    the plugin module plan_opencode_plugin emits. `type: module` is required — the
+    module uses ESM `import`, and without it opencode's loader rejects the file.
+
+    One manifest, not two: both harnesses expect package.json at the package root,
+    so a second file is impossible. The keys are disjoint, so neither constrains
+    the other."""
     src = json.loads(PLUGIN_MANIFEST.read_text())
     pkg = {
         "name": src["name"],
@@ -798,10 +863,115 @@ def plan_pi() -> list[Stub]:
         "license": src.get("license", "MIT"),
         "homepage": src.get("homepage"),
         "repository": src.get("repository"),
-        "keywords": ["pi-package"],
+        "keywords": ["pi-package", "opencode-plugin"],
+        "type": "module",
+        "main": "./" + OPENCODE_PLUGIN.relative_to(DIST_DIR).as_posix(),
         "pi": {"skills": ["./agent-skills"]},
     }
     return [Stub(PI_MANIFEST, json.dumps(pkg, indent=2, ensure_ascii=False) + "\n")]
+
+
+OPENCODE_PLUGIN_JS = '''\
+// GENERATED by tools/gather.py — DO NOT EDIT.
+// Edit tools/gather.py (plan_opencode_plugin) and re-run the gather.
+/**
+ * awow plugin for opencode.
+ *
+ * Two jobs, mirroring what the Claude Code plugin gets from its SessionStart hook:
+ *
+ *  1. Register the commands-as-skills payload. opencode plugins are JS hook
+ *     modules — no manifest field can declare a skills directory — so the only
+ *     way in is the `config` hook, which mutates the cached config singleton
+ *     before skills are lazily discovered.
+ *  2. Inject the using-awow operating reflex, plus an opencode tool mapping.
+ *     A global install lands in repos with no repo-root AGENTS.md; without this
+ *     awow would be installed but dormant.
+ */
+
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// .opencode/plugins/ -> the payload root. agent-skills/ is the same directory
+// Pi loads via pi.skills, so both harnesses see one copy with one token channel
+// ({AWOW_ROOT} -> ../.., {AWOW_TOOLS} -> ../../tools).
+const PACKAGE_ROOT = path.resolve(__dirname, '../..');
+const SKILLS_DIR = path.join(PACKAGE_ROOT, 'agent-skills');
+const BOOTSTRAP_PATH = path.join(SKILLS_DIR, 'using-awow', 'SKILL.md');
+const MARKER = 'awow-operating-reflex';
+
+const stripFrontmatter = (text) => {
+  const m = text.match(/^---\\n[\\s\\S]*?\\n---\\n([\\s\\S]*)$/);
+  return m ? m[1] : text;
+};
+
+const TOOL_MAPPING = [
+  '**Tool mapping for opencode.** Where awow names a Claude Code tool, use:',
+  '- Read / Write / Edit a file -> `read` / `write` / `edit`',
+  '- Run a shell command -> `bash`',
+  '- Track multi-step work -> `todowrite`',
+  '- Dispatch a subagent -> `task`',
+  '- Invoke a skill -> the native `skill` tool',
+  '- In a vendored awow repo, the flows are also slash commands from `.opencode/commands/`.',
+].join('\\n');
+
+// The SKILL.md does not change during a session, so read and parse it once.
+let _cache;
+
+const bootstrap = () => {
+  if (_cache !== undefined) return _cache;
+  if (!fs.existsSync(BOOTSTRAP_PATH)) {
+    // Fail loud, not soft. The 0.5.0 payload shipped a one-line error quietly
+    // standing in for the whole reflex; a missing bootstrap must be
+    // unmistakable both in the injected context and on stderr.
+    const err =
+      'awow: using-awow bootstrap NOT FOUND at ' + BOOTSTRAP_PATH +
+      '. The operating reflex did NOT load — this plugin build is broken.';
+    console.error(err);
+    _cache = '<' + MARKER + '>\\n' + err + '\\n</' + MARKER + '>';
+    return _cache;
+  }
+  const body = stripFrontmatter(fs.readFileSync(BOOTSTRAP_PATH, 'utf8')).trim();
+  _cache = '<' + MARKER + '>\\n' + body + '\\n\\n' + TOOL_MAPPING + '\\n</' + MARKER + '>';
+  return _cache;
+};
+
+export const AwowPlugin = async () => ({
+  config: async (config) => {
+    config.skills = config.skills || {};
+    config.skills.paths = config.skills.paths || [];
+    if (!config.skills.paths.includes(SKILLS_DIR)) {
+      config.skills.paths.push(SKILLS_DIR);
+    }
+  },
+
+  // Inject into the first user message rather than a system message: opencode
+  // reloads messages from the DB on every agent step, and repeated system
+  // messages both bloat tokens and break some models.
+  'experimental.chat.messages.transform': async (_input, output) => {
+    const text = bootstrap();
+    if (!text || !output.messages || !output.messages.length) return;
+    const firstUser = output.messages.find((m) => m.info.role === 'user');
+    if (!firstUser || !firstUser.parts.length) return;
+    // Guard against double injection when an already-transformed array is
+    // passed through the hook again.
+    if (firstUser.parts.some((p) => p.type === 'text' && p.text.includes(MARKER))) return;
+    const ref = firstUser.parts[0];
+    firstUser.parts.unshift({ ...ref, type: 'text', text });
+  },
+});
+'''
+
+
+def plan_opencode_plugin() -> list[Stub]:
+    """opencode plugin module into dist/.
+
+    `opencode plugin awow@git+<awow-dist>` resolves package.json `main` (set in
+    plan_pi) to this file. It registers agent-skills/ through the `config` hook
+    and injects the using-awow reflex — see the module docstring for why each is
+    needed. Verified against opencode 1.15.2."""
+    return [Stub(OPENCODE_PLUGIN, OPENCODE_PLUGIN_JS)]
 
 
 def plan_telemetry() -> list[Stub]:
@@ -1025,10 +1195,14 @@ def plan_folder_readmes() -> list[Stub]:
 SURFACE_ROOTS = {
     "claude": [CLAUDE_DIR],
     "github": [GITHUB_DIR],
+    "opencode": [OPENCODE_DIR],
     "plugin": [DIST_DIR],
     "telemetry": [DIST_TELEMETRY_DIR],
+    # "both" stays the literal Claude-plus-Copilot pair — a named pair, not a
+    # synonym for "every in-repo surface". Adding opencode here would silently
+    # change what existing callers emit.
     "both": [CLAUDE_DIR, GITHUB_DIR],
-    "all": [CLAUDE_DIR, GITHUB_DIR, DIST_DIR, DIST_TELEMETRY_DIR],
+    "all": [CLAUDE_DIR, GITHUB_DIR, OPENCODE_DIR, DIST_DIR, DIST_TELEMETRY_DIR],
 }
 
 
@@ -1084,7 +1258,7 @@ def main() -> int:
     parser.add_argument("--check", action="store_true", help="exit 1 if stubs are out of date")
     parser.add_argument(
         "--surface",
-        choices=["claude", "github", "plugin", "telemetry", "both", "all"],
+        choices=["claude", "github", "opencode", "plugin", "telemetry", "both", "all"],
         default="all",
     )
     args = parser.parse_args()
@@ -1130,6 +1304,7 @@ def main() -> int:
         plans += plan_agent_skills()
         plans += plan_codex()
         plans += plan_pi()
+        plans += plan_opencode_plugin()
     if DIST_TELEMETRY_DIR in surfaces:
         plans += plan_telemetry()
     plans = filter_surface(plans, args.surface)

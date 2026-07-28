@@ -362,17 +362,24 @@ def command_description(fields: dict[str, str], body: str) -> str:
     return ""
 
 
-def gen_command_stub(source: Path, stub_target: Path) -> str:
-    text = source.read_text()
-    fields, body = parse_frontmatter(text, source)
+def command_frontmatter(source: Path) -> str:
+    """`description`-only frontmatter block, shared by the command-stub generators.
+
+    Every harness that consumes a command stub wants the same one key, so the
+    block is identical across surfaces; only the bodies differ."""
+    fields, body = parse_frontmatter(source.read_text(), source)
     desc = command_description(fields, body)
-    link = rel_link(stub_target, source)
-    fm_lines = ["---"]
+    lines = ["---"]
     if desc:
         # YAML-quote (double, with internal quote escape)
-        fm_lines.append(f'description: "{desc.replace(chr(34), chr(92) + chr(34))}"')
-    fm_lines.append("---")
-    fm = "\n".join(fm_lines)
+        lines.append(f'description: "{desc.replace(chr(34), chr(92) + chr(34))}"')
+    lines.append("---")
+    return "\n".join(lines)
+
+
+def gen_command_stub(source: Path, stub_target: Path) -> str:
+    link = rel_link(stub_target, source)
+    fm = command_frontmatter(source)
     return (
         f"{fm}\n\n"
         f"{header(source)}\n\n"
@@ -494,15 +501,8 @@ def gen_opencode_command_stub(source: Path, stub_target: Path) -> str:
       defaults. `template` must NOT appear — for a markdown command the body is
       the template, and a frontmatter `template` key conflicts with it.
     """
-    text = source.read_text()
-    fields, body = parse_frontmatter(text, source)
-    desc = command_description(fields, body)
     link = rel_link(stub_target, source)
-    fm_lines = ["---"]
-    if desc:
-        fm_lines.append(f'description: "{desc.replace(chr(34), chr(92) + chr(34))}"')
-    fm_lines.append("---")
-    fm = "\n".join(fm_lines)
+    fm = command_frontmatter(source)
     return (
         f"{fm}\n\n"
         f"{header(source)}\n\n"

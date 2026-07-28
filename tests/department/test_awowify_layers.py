@@ -102,6 +102,10 @@ class TestAwowifyLayers(unittest.TestCase):
         self.assertFalse((commands / "zz-synthetic-department-cmd.md").exists())
         self.assertFalse((skills / "zz-synthetic-department-skill.md").exists())
         self.assertFalse((skills / "zz-synthetic-department-dirskill").exists())
+        # Real department-layer files are trimmed from the team profile too.
+        self.assertFalse((commands / "setup-department.md").exists())
+        self.assertFalse((commands / "okr-cascade.md").exists())
+        self.assertFalse((skills / "department-coach.md").exists())
 
     def test_no_flag_matches_explicit_layer_team(self):
         """Omitting --layer is identical to passing --layer team."""
@@ -135,6 +139,10 @@ class TestAwowifyLayers(unittest.TestCase):
         # Team-tagged commands are excluded from the department profile.
         self.assertFalse((commands / "process-workitem.md").exists())
         self.assertFalse((commands / "refinement-prep.md").exists())
+        # Real department-layer files ship in the department profile.
+        self.assertTrue((commands / "setup-department.md").is_file())
+        self.assertTrue((commands / "okr-cascade.md").is_file())
+        self.assertTrue((skills / "department-coach.md").is_file())
 
     def test_invalid_layer_value_rejected(self):
         target = self.tmp / "bad-layer"
@@ -146,6 +154,35 @@ class TestAwowifyLayers(unittest.TestCase):
         )
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("must be one of team, department", result.stderr)
+
+    # -- unrecognized `layer:` frontmatter value ------------------------------
+
+    def test_unrecognized_file_layer_tag_fails_loud(self):
+        """A file's own `layer:` frontmatter value — not team/department/empty —
+        must fail loud, naming the file and the bad value, instead of silently
+        shipping the file in no profile.
+
+        Built on an isolated copy of self.source: the bad tag is invalid for
+        every --layer value, so it must not leak into the shared source used
+        by the other tests above (every one of which would then fail too).
+        """
+        bad_source = self.tmp / "bad-tag-source"
+        shutil.copytree(self.source, bad_source)
+        bad_rel = ".agents/commands/zz-synthetic-bad-layer-cmd.md"
+        _write(
+            bad_source / bad_rel,
+            '---\ndescription: "bad fixture"\nlayer: bogus\n---\n\n# fixture\n',
+        )
+
+        target = self.tmp / "bad-tag-target"
+        target.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(
+            ["bash", str(AWOWIFY), "--source", str(bad_source), "--target", str(target)],
+            capture_output=True, text=True,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(bad_rel, result.stderr)
+        self.assertIn("bogus", result.stderr)
 
 
 if __name__ == "__main__":

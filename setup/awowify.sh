@@ -136,6 +136,10 @@ layer_excluded() {
   [[ -f "$tagfile" ]] || return 1
   local tag
   tag="$(layer_of "$tagfile")"
+  if [[ -n "$tag" && "$tag" != "team" && "$tag" != "department" ]]; then
+    echo "awowify.sh: ${tagfile#"$SOURCE"/} has unrecognized layer: '$tag' (must be team, department, or absent)." >&2
+    exit 1
+  fi
   [[ -z "$tag" || "$tag" == "$LAYER" ]] && return 1
   return 0
 }

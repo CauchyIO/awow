@@ -6,8 +6,11 @@
   "homepage": "https://github.com/CauchyIO/awow",
   "repository": "https://github.com/CauchyIO/awow",
   "keywords": [
-    "pi-package"
+    "pi-package",
+    "opencode-plugin"
   ],
+  "type": "module",
+  "main": "./.opencode/plugins/awow.js",
   "pi": {
     "skills": [
       "./agent-skills"

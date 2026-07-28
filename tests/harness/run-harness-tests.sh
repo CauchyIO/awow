@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 # Driver for the harness wiring suite.
-#   tests/harness/run-harness-tests.sh <claude-code|codex|pi|all> [--live]
+#   tests/harness/run-harness-tests.sh <claude-code|codex|pi|opencode|all> [--live]
 # Sources each selected harness's wiring.sh (always) and live.sh (with --live),
 # each of which defines a wiring()/live() function that calls assert verbs.
 # Exit: 0 all passed, 1 an assertion failed, 127 broken invocation.
 set -u
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-usage() { echo "usage: run-harness-tests.sh <claude-code|codex|pi|all> [--live]" >&2; exit 127; }
+usage() { echo "usage: run-harness-tests.sh <claude-code|codex|pi|opencode|all> [--live]" >&2; exit 127; }
 
 [ $# -ge 1 ] || usage
 target="$1"; shift || true
 live=0
 [ "${1:-}" = "--live" ] && live=1
-case "$target" in claude-code|codex|pi) harnesses="$target" ;; all) harnesses="claude-code codex pi" ;; *) usage ;; esac
+case "$target" in claude-code|codex|pi|opencode) harnesses="$target" ;; all) harnesses="claude-code codex pi opencode" ;; *) usage ;; esac
 
 # shellcheck source=/dev/null
 source "$HERE/lib/assert.sh" || { echo "broken: assert.sh failed to source" >&2; exit 127; }

@@ -1,7 +1,7 @@
 # awow on opencode — harness design
 
 - **Date:** 2026-07-28
-- **Status:** Draft (design spec — pre-implementation)
+- **Status:** Implemented — all work items in §6 landed and verified against opencode 1.15.2 (see §8).
 - **Board:** AWO-48
 - **Related:** `context/tooling/harnesses/{codex,pi}.md`, `meta/proposals/pi-codex-harness-support.md`, `tools/gather.py`, `tools/sync-dist.sh`
 
@@ -103,7 +103,26 @@ A user who sets `OPENCODE_DISABLE_CLAUDE_CODE=1` or `OPENCODE_DISABLE_CLAUDE_COD
 
 WI-1 and WI-3 are independent and can land together; WI-2 is the only item touching the published payload and should be verified against a real `opencode plugin` install before the sync-dist PR.
 
-## 7. Open items
+## 7. What was verified on implementation
+
+Against the real binary, no model required — `tests/harness/opencode/live.sh` reproduces all of it:
+
+| Check | Result |
+|---|---|
+| Commands discovered in a vendored repo | 22, all with `description` |
+| `$ARGUMENTS` **registered** by opencode (its own `hints` parse, not just present as text) | 22/22 |
+| `/README` leaked as a command | no |
+| Plugin `config` hook registers `agent-skills/` | yes, idempotent across repeat calls |
+| Skills discoverable through the plugin, in a copy of `dist/` with no root `AGENTS.md` | 21, including `using-awow` |
+| Bootstrap injected, frontmatter stripped, tool mapping present | yes |
+| Double-injection guard | holds on repeat transform |
+| Pi's `pi.skills` still intact in the shared manifest | yes |
+
+Full suite state: 9/9 Python suites, 4/4 harness wiring suites, opencode live suite — all pass.
+
+One step is **not** covered: injection into a live model turn. The transform hook is exercised directly with a synthetic message array, and the hook is the same one superpowers uses in production, but no real session was run (both local model endpoints were down, and a paid provider was not used without authorisation).
+
+## 8. Open items
 
 1. **Plugin API stability.** The `config` hook and `skills.paths` are verified present in 1.15.2 and used by superpowers, but neither is covered by a documented compatibility guarantee. Pin the observed shape in the harness doc so a future break is diagnosable.
 2. **Install-path confirmation.** `opencode plugin <name>@git+<url>` is confirmed working for superpowers, whose package sits at its repo root. awow-dist has the same shape, but the first real install should be verified end-to-end before the harness doc calls it supported.

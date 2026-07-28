@@ -24,9 +24,13 @@ GitHub Copilot:
     copilot plugin marketplace add CauchyIO/awow
     copilot plugin install awow
 
-Claude Code installs from this repo. Codex and Pi install from `awow-dist`,
-which carries the built payload. Copilot exposes the commands as skills rather
-than slash commands.
+opencode:
+
+    opencode plugin awow@git+https://github.com/CauchyIO/awow-dist.git
+
+Claude Code installs from this repo. Codex, Pi and opencode install from
+`awow-dist`, which carries the built payload. Copilot exposes the commands as
+skills rather than slash commands.
 
 ## Then what
 

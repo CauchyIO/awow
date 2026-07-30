@@ -126,6 +126,8 @@ and `{HUB}/context/tooling/architecture.md` are referenced across the command se
 not exist in this repo. Stage `UNROUTED` and name the step that creates them —
 `/setup-awow` Step 1 for the board pointer, Step 8 for the architecture plane.
 
+**Several `board.md` candidates, or an index-form `board.md`?** Resolve per §Context resolution in the agent instructions (AGENTS.md) before any board read or write: the nearest installation inside the repo boundary — never a parent or sibling repo's — then, for an index, the ladder (explicit reference → scope match → session pin → picker), recording the answer in `.awow/board-session.md` beside the absent-board note. Announce a silently-resolved target with `targeting board: <name>` before the first write.
+
 ### Accretion duty
 
 Count the rules in the destination file before drafting. A rule is one `## Rule N`

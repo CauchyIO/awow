@@ -32,6 +32,8 @@ Read-only until an explicit gate. You check in, triage, and propose; you do not 
 - Optional `--report` — produce the **weekly MT roll-up** (Section 8) instead of the operational loop. Default: the loop.
 - The delivery graph itself — the `/project-plan` plan artefact (`{PROJECT}/proposals/plans/<initiative>.md`) and the board it was published to (surface per `{HUB}/context/tooling/board.md`). The plan states the graph in full; the board carries it as native links or body `Blocked by:` lines. Where neither is present, reconstruct edges from the `/solution-design-flow` design and from issue titles and bodies — content-level relations are often recoverable even when the board has no formal dependency field.
 
+**Several `board.md` candidates, or an index-form `board.md`?** Resolve per §Context resolution in the agent instructions (AGENTS.md) before any board read or write: the nearest installation inside the repo boundary — never a parent or sibling repo's — then, for an index, the ladder (explicit reference → scope match → session pin → picker), recording the answer in `.awow/board-session.md` beside the absent-board note. Announce a silently-resolved target with `targeting board: <name>` before the first write.
+
 ---
 
 ## 1. Resolve scope and cadence

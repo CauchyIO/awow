@@ -89,9 +89,10 @@ import mlflow_reader as mr
 # Commands declared under .agents/commands/.
 # The set is enumerated so reports can call out *coverage* — which commands
 # exist, which go unused. It must therefore name only commands that can still
-# be invoked: `weekly-digest` and `cross-team-view` were removed from the
-# surface, and the weekly window survives as a /daily-digest parameter rather
-# than as its own command (design spec 4.4).
+# be invoked: `weekly-digest` was removed (the weekly window survives as a
+# /daily-digest parameter rather than as its own command, design spec 4.4),
+# and the never-built cross-team stub was retired outright, its job subsumed
+# by the department layer's `/okr-cascade`.
 KNOWN_COMMANDS = {
     "setup-awow": "kickoff",
     "awow-add": "meta",

@@ -2,10 +2,14 @@
 description: "Use when the user has a feature brief, quarterly slidedeck, or board issue and wants it broken into right-sized stories before a refinement session, or asks to prep work for the next refinement."
 autofire: true
 phase: seed
+layer: team
 prerequisites:
   - "Step 0 of /setup-awow complete (the agent can read and write the board)"
   - "{HUB}/context/team/mission.md exists"
 removes_pain: "the scramble-the-day-before-refinement problem"
+m365:
+  include: true
+  conversation_starter: "Draft a feature for the next refinement"
 ---
 
 # /refinement-prep — draft a feature for the next refinement

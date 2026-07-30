@@ -58,7 +58,6 @@ awow-plugin/
 │   ├── board-skill.md           # spread
 │   ├── coaching-review.md       # spread
 │   ├── solution-design-flow.md  # spread
-│   ├── cross-team-view.md       # standardise
 │   ├── daily-digest.md          # standardise
 │   └── weekly-digest.md         # standardise
 ├── skills/
@@ -135,7 +134,7 @@ The plugin's `commands/` set covers four roles around `/setup-awow`:
 | **Bootstrap** | `setup-awow`, `awow-status` | Scaffold-or-configure; report where the team is in adoption |
 | **Lifecycle** | `awow-add`, `awow-reset` | Promote opt-in commands; tear down scaffolded state for re-run |
 | **Seed cycle** | `refinement-prep`, `process-workitem`, `process-transcript` | What the adopter runs on day two; the value demo |
-| **Phase 3/4** | `board-skill`, `coaching-review`, `solution-design-flow`, `cross-team-view`, `daily-digest`, `weekly-digest` | Surface via `/awow-add`; not active until opted in |
+| **Phase 3/4** | `board-skill`, `coaching-review`, `solution-design-flow`, `daily-digest`, `weekly-digest` | Surface via `/awow-add`; not active until opted in |
 
 The commands talk to each other through the same state file (`setup-progress.md`) and the same convention files in `context/`. Nothing in the plugin's interaction model is new — it's the same Phase 2/3/4 ladder that's in `.agents/commands/README.md`, just shipped via a different distribution channel.
 

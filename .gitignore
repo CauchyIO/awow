@@ -58,3 +58,6 @@ timeline.html
 !tests/*/fixtures/**/.venv/**
 !tests/*/fixtures/**/activity/
 !tests/*/fixtures/**/activity/**
+
+# Local scratch: superpowers specs/plans (ship via awow_io)
+docs/

@@ -14,7 +14,7 @@ Reference instructions per agent harness. One file per supported harness.
 | `pi.md` | Pi | repo-root `AGENTS.md` + `package.json` `pi.skills` package |
 | `opencode.md` | opencode | repo-root `AGENTS.md` + native `.agents/skills/` + `.opencode/commands/` surface + `package.json` `main` plugin |
 
-Claude Code and GitHub Copilot ship in the vendored template channel. Codex and Pi are added per [`pi-codex-harness-support.md`](../../../meta/proposals/pi-codex-harness-support.md), reconciled into hub-and-spoke WI-5: both read the repo-root `AGENTS.md` for zero-install steering, and reach awow's commands as skills through the `dist/` payload — Codex via `.codex-plugin/plugin.json`, Pi via `package.json` `pi.skills`. `tools/gather.py` mirrors `.agents/` to each surface; `tools/sync-dist.sh` publishes `dist/` to the `CauchyIO/awow-dist` marketplace repo.
+Claude Code and GitHub Copilot ship in the vendored template channel. Codex and Pi are added per [`pi-codex-harness-support.md`](../../../proposals/pi-codex-harness-support.md), reconciled into hub-and-spoke WI-5: both read the repo-root `AGENTS.md` for zero-install steering, and reach awow's commands as skills through the `dist/` payload — Codex via `.codex-plugin/plugin.json`, Pi via `package.json` `pi.skills`. `tools/gather.py` mirrors `.agents/` to each surface; `tools/sync-dist.sh` publishes `dist/` to the `CauchyIO/awow-dist` marketplace repo.
 
 ## Why multiple
 

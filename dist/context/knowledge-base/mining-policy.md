@@ -65,4 +65,4 @@ The synthesis drain records each candidate's fate in `context/kb-inbox/_synthesi
 (`promoted` / `annotated` / `no-op` / `dropped`). Read against it over time: a high
 **drop / no-op** rate means the bar is too low (raise strictness); a **trickle** of
 candidates on active days means it is too high (lower it). An automated tuning loop over
-this signal is deferred — see `meta/proposals/kb-capture-synthesize-spine.md`.
+this signal is deferred — see `proposals/kb-capture-synthesize-spine.md`.

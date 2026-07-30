@@ -7,7 +7,7 @@ Each suite evaluates one command prompt with two independent witnesses, composed
 1. **Deterministic checks** — `tests/<suite>/checks/<scenario>.sh` defines `pre()` (is the fixture intact?) and `post()` (did the mechanical facts land?), executed by the shared driver `tests/run-checks.sh` with the verb vocabulary from `tests/checks-prelude.sh`.
 2. **A blind judge** — an agent that grades the scenario's rubric from an evidence bundle (agent turns, tool calls, post-run state) without seeing the runner's reasoning or the check results.
 
-`indeterminate` is a first-class outcome meaning "this run could not measure the prompt" — broken fixture, broken check, or the command never actually ran. It is deliberately distinct from a graded `fail`. Methodology rationale: [`meta/proposals/eval-baseline-and-prompt-cleanup.md`](../meta/proposals/eval-baseline-and-prompt-cleanup.md).
+`indeterminate` is a first-class outcome meaning "this run could not measure the prompt" — broken fixture, broken check, or the command never actually ran. It is deliberately distinct from a graded `fail`. Methodology rationale: [`proposals/eval-baseline-and-prompt-cleanup.md`](../proposals/eval-baseline-and-prompt-cleanup.md).
 
 ## Layout
 

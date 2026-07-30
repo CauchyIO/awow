@@ -1159,7 +1159,7 @@ def plan_plugin() -> list[Stub]:
             "Install instructions live in the source repo's README: "
             "https://github.com/CauchyIO/awow\n\n"
             "Built by `python tools/gather.py --surface plugin` from "
-            "`.agents/`, so the maintainer workspace (`meta/`, guides, "
+            "`.agents/`, so the maintainer surfaces (proposals, guides, "
             "tests, team context) never ships. Do not edit anything here — "
             "edit the source and re-run the gather. Any file the build did "
             "not plan is deleted on the next run.\n",

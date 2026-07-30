@@ -1,6 +1,6 @@
-# meta/proposals/
+# proposals/
 
-awow's own product proposals — drafts en route to GitHub issues, or records of decisions that have already shipped. This is awow applied to itself: the parallel of the template's top-level `proposals/`, but holding real awow work.
+awow's own product proposals — drafts en route to GitHub issues, or records of decisions that have already shipped — sharing this directory with the wizard's gitignored `proposals/setup/` landing area. Adopters: these are awow-internal records; delete them freely, your own drafts land under `proposals/setup/`. Implementation plans that executed accepted proposals are archived under [`plans/`](plans/).
 
 ## How status works
 
@@ -19,7 +19,14 @@ When a proposal's state changes, update its `**Status:**` line *and* the row bel
 
 | Proposal | Status | Outcome / next step |
 |---|---|---|
-| [meta-workspace-and-fixture-decoupling](meta-workspace-and-fixture-decoupling.md) | **Landed** | `dogfood/` → `meta/`, test fixtures decoupled (`feature/dry_run_awow`). |
+| [meta-workspace-and-fixture-decoupling](meta-workspace-and-fixture-decoupling.md) | **Landed** | `dogfood/` → `meta/`, test fixtures decoupled (`feature/dry_run_awow`). `meta/` itself since dissolved: proposals merged here, workspace context frozen at `tests/fixtures/fikkert/_seed/`. |
+| [pi-codex-harness-support](pi-codex-harness-support.md) | **Superseded** | Reconciled into hub-and-spoke-design §7/§10; tracked as WI-5. |
+| [architecture-aware-development](architecture-aware-development.md) | **Proposed** | v2, incorporates an adversarial design review. |
+| [strategy-rollup-capability](strategy-rollup-capability.md) | **Draft** | Awaiting approval (2026-07-08). |
+| [marketplace-distribution](marketplace-distribution.md) | **Reference** | Distribution status per harness (self-hosted live; official tiers gated on portal applications). |
+| [design-system-capability](design-system-capability.md) | **Landed** | Approved; Phases 1–3 implemented (render skill, §3.7, deferred). |
+| [board-as-afterthought](board-as-afterthought.md) | **Draft** | Awaiting approval (2026-05-30). |
+| [archetypes-board-anchoring](archetypes-board-anchoring.md) | **Superseded** | Rolled back to generic reference (2026-05-25). |
 | [session-board-correlation](session-board-correlation.md) | **Landed** | `session-correlation` skill + footer rule + `tools/session_footer_hook.py`. |
 | [setup-awow-regression-tests](setup-awow-regression-tests.md) | **Landed** | `tests/setup-awow/` suite, run via `/test-awow setup-awow`. |
 | [plugin-distribution](plugin-distribution.md) | **Draft** | Second adoption path (Claude Code plugin). Awaiting review — candidate for **Superseded** by hub-and-spoke-adoption. |

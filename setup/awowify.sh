@@ -72,7 +72,7 @@ if [[ "$SOURCE" == "$TARGET" ]]; then
 fi
 
 # Starter-owned paths only (see the owner table in README.md). README.md,
-# guides/, meta/, input/, tests/, and the wizard's own state are intentionally
+# guides/, proposals/, input/, tests/, and the wizard's own state are intentionally
 # left out: they are either the adopter's own, awow-internal, or generated.
 STARTER_PATHS=(.agents tools setup context mcps pyproject.toml SETUP.md REFERENCES.md)
 

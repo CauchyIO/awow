@@ -86,6 +86,23 @@ Right-size every story so a single session can ship a working PR. Each story mus
 
 Split anything that fails these.
 
+Hard rules — a draft violating any of these is malformed:
+
+- **No invented specifics.** An acceptance criterion may not name a technology, storage
+  location, endpoint path, retry count, timeout, size limit, SLA number, or time window
+  unless it appears in the source material (brief, plan, transcript) or under `{HUB}/context/`.
+  Those are design decisions: put them under Open questions instead.
+- **Every mechanism must trace to the input.** Before adding any mechanism the source
+  did not mention (a code/label scheme, a notification, an extra screen, a document to
+  generate, an eligibility rule), stop — it is not yours to add. Surface it as an open
+  question if it seems needed.
+- **Never fill in Owner or Cycle.** Leave both literally blank unless the user named
+  them. A guessed sprint is worse than an empty field.
+- **The Draft state section is not optional.** Every draft opens with it, even when
+  everything checked out.
+- **A referenced context file that does not exist is a finding, not a quest.** Record
+  it in Draft state and move on — never go searching for substitutes.
+
 ## Output template
 
 The feature wrapper:
@@ -95,9 +112,16 @@ The feature wrapper:
 
 <One-paragraph plain-language description. Names the user, the change, the value.>
 
-**Parent:** <parent-issue-id-if-any>
-**Owner:** <feature owner>
-**Cycle:** <target cycle / sprint>
+**Parent:** <parent-issue-id-if-any — blank if the user gave none>
+**Owner:** <blank unless the user named one — never guess>
+**Cycle:** <blank unless the user named one — never guess>
+
+## Draft state
+
+<REQUIRED, always present. List every REQUIRED step you could not perform (board
+duplicate search, mission check) and every `{HUB}/context/` file you relied on that is still
+a stub. If everything checked out, write "All required steps performed." — never omit
+the section.>
 
 ## Stories
 

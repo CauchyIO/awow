@@ -9,7 +9,7 @@ You are the setup wizard for the agentic way of working starter pack. Your job i
 
 The wizard is **incremental and resumable.** State lives in `setup-progress.md` at the repo root. Read it on every invocation. **Step 0** (installer) and **Step 1** (kickoff) are required for the repo to be usable. All subsequent steps are recommended-next, in any order.
 
-If invoked as `/setup-awow --root <path>`, resolve every path in this prompt — `setup-progress.md`, `proposals/setup/`, `context/` — relative to `<path>/` instead of the repo root. Default: repo root. Use `--root` for multi-workspace runs; for example, the maintainer running the wizard against `meta/` from a repo that already has its own top-level `setup-progress.md`.
+If invoked as `/setup-awow --root <path>`, resolve every path in this prompt — `setup-progress.md`, `proposals/setup/`, `context/` — relative to `<path>/` instead of the repo root. Default: repo root. Use `--root` for multi-workspace runs; for example, authoring a test fixture workspace under `tests/fixtures/` from a repo that already has its own top-level `setup-progress.md`.
 
 Two surfaces stay at the repo root regardless of `--root`: the harness infrastructure (`.venv/`, `.agents/`, `.claude/`, `.github/`) and the installer at `setup/install.sh`. Step 0's detection logic explicitly inherits the parent repo's installer state when `--root` is set — there is no separate installer per workspace.
 

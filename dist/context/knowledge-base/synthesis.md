@@ -122,7 +122,7 @@ A team may want an unattended nightly drain (like a cloud routine that promotes 
 pushes to a `kb-routine/*` branch, git history as the audit trail). That trades the human
 gate for automation and is an **opt-in operational choice**, not the awow default — a
 template must ship gated. It is deferred to a separate proposal
-(`meta/proposals/kb-capture-synthesize-spine.md`, Phase 4). Until then, this drain always
+(`proposals/kb-capture-synthesize-spine.md`, Phase 4). Until then, this drain always
 stops at *The gate*. This binds both lanes, and it is why
 `/update-context` ships with no `--auto` mode either: a rule written into
 `context/team/` unattended is binding on everyone who opens a session afterwards.

@@ -31,4 +31,4 @@ Shipping under hub-and-spoke WI-5: the `package.json` `pi` manifest, the command
 
 ## Reference
 
-- Design: [`pi-codex-harness-support.md`](../../../meta/proposals/pi-codex-harness-support.md), reconciled in [`hub-and-spoke-design.md`](../../../meta/proposals/hub-and-spoke-design.md) §7 and §10.
+- Design: [`pi-codex-harness-support.md`](../../../proposals/pi-codex-harness-support.md), reconciled in [`hub-and-spoke-design.md`](../../../proposals/hub-and-spoke-design.md) §7 and §10.

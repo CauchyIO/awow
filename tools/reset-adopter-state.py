@@ -22,7 +22,8 @@ What is kept by default
 -----------------------
 - All edits under `.agents/`, `tools/`, `setup/`, `README.md`, `SETUP.md`,
   `mcps/`, etc. — these are the template iterations you are testing.
-- `meta/` — awow's own lived team context (the "awow applied to itself"
+- `tests/` — awow's own suites and fixtures, including the retired awow-on-awow
+  workspace frozen at `tests/fixtures/fikkert/_seed/` (the "awow applied to itself"
   worked example). This is *not* adopter state; it is preserved across
   resets.
 - `.venv/`, `.mcp.json`, `.vscode/`, `.claude/settings.local.json` — heavy

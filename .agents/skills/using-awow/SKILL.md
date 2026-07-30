@@ -17,6 +17,8 @@ Paths here never hardcode a location — they use four tokens. **In this repo, a
 
 In a hub-connected spoke, a hub pointer tells you where `{{HUB}}` resolves instead. If `{{HUB}}` is ever unresolvable, stop and say so — never guess a location or improvise a convention. **An absent file is not an unresolvable `{{HUB}}`.** A missing `board.md` means ask once (below), not halt.
 
+Several candidates — sibling repos under one working root, a nested checkout, more than one context tree in the repo, or an index-form `board.md` declaring several boards? Resolve per §Context resolution in the repo's agent instructions (AGENTS.md) before any board read or write: the nearest installation inside the repo boundary wins, never one across it; several reachable installations or boards resolve by explicit reference, then scope match, then the session pin, then a picker — and announce a silently-resolved target in one line.
+
 ## Go to the board before any initiative
 
 Before you start work with a discernible outcome — a bug, a feature, a refactor, anything that would warrant a commit — go to the board first.

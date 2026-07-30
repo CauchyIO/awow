@@ -1256,12 +1256,12 @@ def _iter_surface_files(root: Path):
     file OR directory. A nested git checkout — e.g. a Claude Code worktree
     at .claude/worktrees/<name>/, whose `.git` is a FILE — is a separate
     repo with its own tracked content; the orphan sweep must treat it as
-    opaque rather than walk in and delete it (AWOW-62)."""
+    opaque rather than walk in and delete it (AWO-62)."""
     stack = [root]
     while stack:
         current = stack.pop()
         for entry in current.iterdir():
-            if entry.is_dir():
+            if entry.is_dir() and not entry.is_symlink():
                 if entry != REPO_ROOT and (entry / ".git").exists():
                     continue
                 stack.append(entry)

@@ -25,3 +25,12 @@ subject; board content is minimal set dressing).
 - Setup hooks run `git init` + one commit in each directory that must read as a git
   repo at run time (fixtures cannot ship `.git/`). The workspace-root fixture's own
   root deliberately gets NO `git init`.
+
+## Follow-ups (uncovered spec items)
+
+- Missing `board-<name>.md` hard error — needs a fifth scenario with a dangling
+  index entry.
+- Board-stage session-pin and board-picker rungs never fire in any current
+  scenario.
+- From-a-subtree silent resolution (spec Testing item 2, monorepo shape) —
+  blocked on per-scenario CWD control in the `/test-awow` runner.

@@ -30,12 +30,12 @@ Walk upward from CWD, directory by directory, stopping hard at the first `.git` 
 
 1. The **nearest** directory on that path containing `context/tooling/board.md` is the installation root. A scaffolded repo nested inside another scaffolded repo → the inner one wins, always.
 2. The walk **never crosses the repo boundary**. An unscaffolded inner repo under a scaffolded outer repo resolves to: "this repo has no awow context; run `/setup-awow` here or cd to the repo that has one." The outer installation's board is never named and never used — inheriting it across a repo boundary is exactly the silent wrong-board write this proposal exists to prevent, and the outer context is invisible to any teammate who clones only the inner repo.
-3. **Downward probe, monorepo edge.** If the upward walk finds nothing and CWD is inside a git repo, probe shallowly downward for `*/context/tooling/board.md` (up to three directory levels, git-tracked files only). Exactly one hit → use it, stating which in one line. Several hits → selection picker. None → unscaffolded, as in rule 2.
+3. **Downward probe, monorepo edge.** If the upward walk finds nothing and CWD is inside a git repo, probe shallowly downward for `*/context/tooling/board.md` (up to three directory levels, git-tracked files only). Exactly one hit → use it, stating which in one line. Several hits → resolve with the ladder below, run over installations. None → unscaffolded, as in rule 2.
 4. **Workspace root, outside any repo.** When CWD is not inside a git repo at all (the `/root` above sibling repos), enumerate the immediate child directories that are git repos containing an installation. Exactly one → use it, stating which in one line. Several → resolve with the same ladder used for boards below: explicit reference in the prompt, then path evidence (the files the work names), then the session pin, then a picker. The chosen installation supplies *all* context for the invocation — sibling repos' boards and conventions are never mixed in, so the repo-boundary invariant of rule 2 survives the workspace view.
 
 ## Board ladder — which board
 
-Resolution is two-stage with one ladder shape: when several installations are reachable (discovery rule 4), the ladder first picks the installation, then runs again to pick the board within it. Pins are kept per stage (an installation pin and a board pin), and an explicit reference resolves the current invocation only — it never silently re-pins the session.
+Resolution is two-stage with one ladder shape: when several installations are reachable (discovery rules 3–4), the ladder first picks the installation, then runs again to pick the board within it. Pins are kept per stage (an installation pin and a board pin), and an explicit reference resolves the current invocation only — it never silently re-pins the session.
 
 If `board.md` is the single-board form: done, no new behavior. If it is the index form, resolve top-down; the first rung that produces exactly one board wins:
 
@@ -96,7 +96,7 @@ An index entry whose `board-<name>.md` is missing is a **hard error naming the f
 
 Three new fixture shapes for the regression suite:
 
-1. **Nested repo** — outer scaffolded, inner not. Rubrics: command declares the inner repo unscaffolded; the outer board is never mentioned in the transcript.
+1. **Nested repo** — outer scaffolded, inner not. Rubrics: command declares the inner repo unscaffolded; the outer board is never presented as the inner repo's board.
 2. **Monorepo, two context trees.** Rubrics: from a subtree CWD the correct root resolves silently; from the repo root the downward probe finds both and a picker appears.
 3. **Index-form `board.md`.** Rubrics: scope match resolves silently and emits the `targeting board:` one-liner; the picker fires at most once per session; a missing `board-<name>.md` produces the hard error; existing single-board fixtures pass unchanged.
 4. **Workspace root over sibling repos.** A parent directory holding a single-board repo and a two-board repo (three boards total, two "teams"). Rubrics: from the parent, the installation picker lists both repos; an explicit ticket reference resolves the right installation *and* board in one step without re-pinning; the resolved installation's output never cites the sibling's context.

@@ -46,7 +46,7 @@ If `board.md` is the single-board form: done, no new behavior. If it is the inde
 
 Two deliberate properties:
 
-- **The pin is conversational state, not a file.** Nothing is written to disk, so nothing can be committed or go stale. It evaporates with the session; worst case is one redundant question next session. A persisted pin's failure mode is a stale silent wrong-board write — the worse trade in every case.
+- **Pins ride the existing session record.** Ladder answers land in `.awow/board-session.md` with a `session:` line — the same gitignored, session-guarded mechanism the absent-`board.md` rule already uses; an entry whose `session:` does not match the current session is ignored and overwritten. Same staleness defence as a conversational pin (a stale entry cannot bind a new session), and one mechanism instead of two.
 - **Silent resolution is announced.** Whenever rung 1 or 2 resolves without asking, the command states `targeting board: <name>` in one line before its first board write. No confirmation gate — just visibility, so a wrong inference is catchable before it matters.
 
 **No `default:` field.** A default board silently swallows scope-miss cases and lands workstream-B items on board A. The picker-once-per-session cost is acceptable; determinism failures should be visible, not papered over.
@@ -88,7 +88,7 @@ An index entry whose `board-<name>.md` is missing is a **hard error naming the f
 
 - Cross-repo inheritance and workspace-level boards living outside any repo (a `~/clients/acme/` umbrella governing repos beneath it) — breaks the "context is committed where teammates see it" invariant.
 - Per-user board configuration outside the repo.
-- Pin-state files, in any form.
+- New pin-state surfaces beyond `.awow/board-session.md` (the existing session-guarded record); durable cross-session pins in any form.
 - A cross-installation aggregation lens ("everything I must act on across all three boards"). Resolution always targets one installation per invocation; an aggregate view over several installations is a separate follow-up, not a resolution concern.
 - A guided flow for converting single-board `board.md` into index form. For now that conversion is a documented manual edit; a `/awow-add board` flow is a named follow-up, not specced here.
 

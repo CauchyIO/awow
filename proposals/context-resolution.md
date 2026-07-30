@@ -1,7 +1,7 @@
 # Proposal — Context resolution: which installation, which board
 
 **Status:** Draft — awaiting review.
-**Scope:** define how any awow command — whether loaded from a template clone or a globally-installed plugin — resolves the context it operates against, when CWD no longer uniquely determines one `context/tooling/board.md`. Covers two real shapes: multiple boards inside one repo, and multiple repos (possibly nested) each with their own board.
+**Scope:** define how any awow command — whether loaded from a template clone or a globally-installed plugin — resolves the context it operates against, when CWD no longer uniquely determines one `context/tooling/board.md`. Covers two real shapes and their composition: multiple boards inside one repo, and multiple repos — siblings under one working root, possibly nested — each with their own board.
 **Related:** `proposals/plugin-distribution.md` (the "identity check at command entry" this composes with).
 
 ---
@@ -11,7 +11,7 @@
 Today every command reads `context/tooling/board.md` relative to the repo it runs in. The assumption baked in everywhere is **one repo → one board → one context tree**. Two observed shapes break it:
 
 1. **Two boards, one repo.** One team runs two workstreams (say a product board and an infra board) from a shared repo — shared conventions, shared knowledge base, two board pointers. The current data model has no place for the second board. A monorepo hosting two teams — each subtree with its own full context tree — is the same problem one level up.
-2. **Two repos, one nested.** A scaffolded repo checked out inside another scaffolded repo (vendored tool, submodule-ish layouts). Several `board.md` files now sit on the path from CWD to `/`, and a globally-installed plugin makes its commands available in *every* directory, so "which one wins" needs a stated rule rather than luck.
+2. **Several repos, one working root.** The observed shape is sibling repos under a common parent — `/root/board_1_awow` and `/root/board_2_awow`, each with its own board — with sessions sometimes launched from `/root` itself, above every repo. Nesting is the rarer variant of the same problem (a scaffolded repo checked out inside another). And the shapes compose: one of those siblings can itself be a two-board repo (shape 1 inside shape 2), so the user is realistically driving three boards from two teams' points of view. A globally-installed plugin makes its commands available in *every* one of these directories, so "which board wins where" needs a stated rule rather than luck.
 
 The failure mode that matters is not a crash — it is a **silent wrong-board write**: a work item landing on a board the user (or their client) never intended. Every rule below is shaped to make that impossible or at least loudly visible.
 
@@ -31,8 +31,11 @@ Walk upward from CWD, directory by directory, stopping hard at the first `.git` 
 1. The **nearest** directory on that path containing `context/tooling/board.md` is the installation root. A scaffolded repo nested inside another scaffolded repo → the inner one wins, always.
 2. The walk **never crosses the repo boundary**. An unscaffolded inner repo under a scaffolded outer repo resolves to: "this repo has no awow context; run `/setup-awow` here or cd to the repo that has one." The outer installation's board is never named and never used — inheriting it across a repo boundary is exactly the silent wrong-board write this proposal exists to prevent, and the outer context is invisible to any teammate who clones only the inner repo.
 3. **Downward probe, monorepo edge.** If the upward walk finds nothing and CWD is inside a git repo, probe shallowly downward for `*/context/tooling/board.md` (up to three directory levels, git-tracked files only). Exactly one hit → use it, stating which in one line. Several hits → selection picker. None → unscaffolded, as in rule 2.
+4. **Workspace root, outside any repo.** When CWD is not inside a git repo at all (the `/root` above sibling repos), enumerate the immediate child directories that are git repos containing an installation. Exactly one → use it, stating which in one line. Several → resolve with the same ladder used for boards below: explicit reference in the prompt, then path evidence (the files the work names), then the session pin, then a picker. The chosen installation supplies *all* context for the invocation — sibling repos' boards and conventions are never mixed in, so the repo-boundary invariant of rule 2 survives the workspace view.
 
 ## Board ladder — which board
+
+Resolution is two-stage with one ladder shape: when several installations are reachable (discovery rule 4), the ladder first picks the installation, then runs again to pick the board within it. Pins are kept per stage (an installation pin and a board pin), and an explicit reference resolves the current invocation only — it never silently re-pins the session.
 
 If `board.md` is the single-board form: done, no new behavior. If it is the index form, resolve top-down; the first rung that produces exactly one board wins:
 
@@ -86,6 +89,7 @@ An index entry whose `board-<name>.md` is missing is a **hard error naming the f
 - Cross-repo inheritance and workspace-level boards living outside any repo (a `~/clients/acme/` umbrella governing repos beneath it) — breaks the "context is committed where teammates see it" invariant.
 - Per-user board configuration outside the repo.
 - Pin-state files, in any form.
+- A cross-installation aggregation lens ("everything I must act on across all three boards"). Resolution always targets one installation per invocation; an aggregate view over several installations is a separate follow-up, not a resolution concern.
 - A guided flow for converting single-board `board.md` into index form. For now that conversion is a documented manual edit; a `/awow-add board` flow is a named follow-up, not specced here.
 
 ## Testing
@@ -95,6 +99,7 @@ Three new fixture shapes for the regression suite:
 1. **Nested repo** — outer scaffolded, inner not. Rubrics: command declares the inner repo unscaffolded; the outer board is never mentioned in the transcript.
 2. **Monorepo, two context trees.** Rubrics: from a subtree CWD the correct root resolves silently; from the repo root the downward probe finds both and a picker appears.
 3. **Index-form `board.md`.** Rubrics: scope match resolves silently and emits the `targeting board:` one-liner; the picker fires at most once per session; a missing `board-<name>.md` produces the hard error; existing single-board fixtures pass unchanged.
+4. **Workspace root over sibling repos.** A parent directory holding a single-board repo and a two-board repo (three boards total, two "teams"). Rubrics: from the parent, the installation picker lists both repos; an explicit ticket reference resolves the right installation *and* board in one step without re-pinning; the resolved installation's output never cites the sibling's context.
 
 ## Suggested next move
 

@@ -28,6 +28,26 @@ Prompt bodies never hardcode where context or tools live. Four tokens, resolved 
 
 In a hub-connected spoke, the session reflex tells you where `{{HUB}}` resolves instead; if it is not resolvable, stop and say so — never guess a location or improvise conventions.
 
+## Context resolution — which installation, which board
+
+`{{HUB}}` and `{{PROJECT}}` resolve to "the repo root" only when CWD sits inside exactly one scaffolded repo. When it does not — sibling repos under one working root, a nested checkout, a monorepo with several context trees, or a `board.md` that declares more than one board — resolve in two stages before any board read or write. In a hub-connected spoke the hub pointer wins, as above; these rules are the vendored/plugin fallback. An *installation root* is a directory containing `context/tooling/board.md` alongside its `context/` tree and `setup-progress.md`.
+
+**Stage 1 — the installation.**
+
+1. Walk upward from CWD, directory by directory, stopping hard at the first `.git` root. The nearest directory on that path containing `context/tooling/board.md` is the installation root; `{{HUB}}` and `{{PROJECT}}` resolve there.
+2. Never cross the repo boundary. In an unscaffolded repo below or beside a scaffolded one, say "this repo has no awow context — run `/setup-awow` here, or cd to the repo that has one." Never name, suggest, or use another repo's board: a silent wrong-board write is the failure mode all of this exists to prevent.
+3. Upward walk empty, but CWD is inside a git repo? Probe shallowly downward for `*/context/tooling/board.md` (up to three directory levels, git-tracked files only). Exactly one hit — use it, stating which in one line. Several — resolve with the Stage-2 ladder, run over installations. None — unscaffolded, as rule 2.
+4. CWD not inside any git repo (a workspace root over sibling repos)? Enumerate the immediate child directories that are git repos containing an installation. Exactly one — use it, stating which in one line. Several — the Stage-2 ladder, run over installations. The chosen installation supplies *all* context for the invocation; sibling repos' boards and conventions never mix in.
+
+**Stage 2 — the board.** A single-board `board.md` is the board; done — no ladder. An index-form `board.md` (a `## Boards` list: name, scope globs, one-liner, each entry linking a sibling `board-<name>.md` that holds the full board spec) resolves top-down; the first rung producing exactly one winner takes it:
+
+1. **Explicit reference** — a ticket id whose prefix belongs to one board, or a board named outright in the user's prompt. Resolves this invocation only; it never silently re-pins the session.
+2. **Scope match** — the index entries' scope globs against CWD and the files the work touches. Zero matches or overlapping matches: fall through.
+3. **Session pin** — the answer already recorded this session (below).
+4. **Picker** — ask "Which board is this for?" once; the answer becomes the session pin.
+
+Record ladder answers — installation and board, one line each — in `.awow/board-session.md` with a `session:` line, the same mechanism the absent-`board.md` rule uses; ignore and overwrite an entry whose `session:` does not match the current session. When rung 1 or 2 resolves silently, announce `targeting board: <name>` in one line before the first board write. An index entry whose `board-<name>.md` does not exist is a hard error naming the missing file — never fall back to another board.
+
 Command and skill frontmatter carries three build-time fields. `channel:` — `vendored` files operate on the vendored install itself (gather, tests, adopter state) and are excluded from the plugin payload; `bootstrap` files ship in the payload but *create or update* the vendored tree (`/setup-awow`), so their literal repo paths are the deliverable and are exempt from the token lint. `description:` — one double-quoted line naming the situation the command fires in, never the mechanism it implements; it is the picker entry and the skill trigger on every harness. Never a YAML block scalar: the parser is line-based and would store `>-` verbatim. `autofire: true` — mirror this command into the Claude skill surface as well as the `/` picker, so the model can elect it from the situation. Omit it when a misfire would be damage (consequential and hard to reverse) or noise (a trigger broad enough to fire on ordinary conversation).
 
 The three renderings of a command differ on purpose. `dist/commands/<name>.md` is a full copy and keeps the authoring frontmatter whole. `dist/skills/<name>/SKILL.md` and `dist/agent-skills/<name>/SKILL.md` synthesise a two-field frontmatter — `name` and `description` — over the body, and carry no authoring metadata. A new frontmatter key follows that rule: it survives the copy and it does not appear in either SKILL.md.

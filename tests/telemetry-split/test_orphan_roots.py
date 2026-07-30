@@ -13,23 +13,37 @@ removed, still published, and `gather.py --check` would stay green. That is a
 silent-corruption failure with no visible symptom, which is why it gets its own
 test rather than a line in the split suite.
 
-Four assertions:
+Six assertions:
   1. Both payload roots are registered as fully generated.
   2. A markerless probe under dist-telemetry/ IS reported as an orphan.
   3. The same probe under .claude/ is NOT — the fully-generated rule stays
      scoped, so a user file outside the payload is still safe.
   4. Real payload content carries no marker, which is the premise that makes
      assertion 2 load-bearing rather than incidental.
+  5. AWOW-62: a nested git checkout under a surface — e.g. a Claude Code
+     worktree at .claude/worktrees/<name>/, whose .git is a FILE, not a
+     directory — must never be swept for orphans, even though a worktree is
+     a full checkout of this repo and therefore contains files that
+     legitimately carry the GENERATED marker. A non---check gather run once
+     walked into three live worktrees this way and deleted 283 tracked
+     files.
+  6. The nested-checkout guard must not blind the sweep entirely: a genuine
+     orphan outside the nested checkout is still caught.
 
 Pure stdlib; no pytest, no network. Creates and removes one probe file under
-each root; leaves no directory it did not find.
+each root; leaves no directory it did not find. Assertions 5/6 use their own
+throwaway temp directory rather than a real repo path, since they must
+exercise a directory the guard is specifically meant to protect and must not
+risk touching this repo's actual .claude/worktrees/ checkouts.
 
 Run:  python3 tests/telemetry-split/test_orphan_roots.py
+Also collectible by pytest, via test_nested_checkout_guard() below.
 """
 from __future__ import annotations
 
 import importlib
 import sys
+import tempfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -64,6 +78,60 @@ def remove_probe(path: Path, created) -> None:
     for d in created:
         if d.is_dir() and not any(d.iterdir()):
             d.rmdir()
+
+
+def check_nested_checkout_guard() -> list:
+    """Assertions 5 & 6 (AWOW-62). Builds a throwaway temp tree shaped like
+    the real incident: `<surface>/worktrees/<name>/.git` as a FILE (exactly
+    how a Claude Code / git worktree checkout looks), holding a file that
+    carries the GENERATED marker — plausible, since a worktree is a full
+    checkout of this repo and its own generated stubs carry that marker too.
+    A genuine orphan sits directly under the surface, outside the nested
+    checkout. Returns a list of failure strings (empty means the guard is
+    correct); shared by main()'s script-mode run and by the pytest wrapper
+    below so both invocation paths exercise the same check."""
+    failures = []
+    with tempfile.TemporaryDirectory() as tmp:
+        surface = Path(tmp) / "surface"
+
+        nested_file = surface / "worktrees" / "probe-worktree" / "commands" / "some-command.md"
+        nested_file.parent.mkdir(parents=True)
+        (nested_file.parent.parent / ".git").write_text(
+            "gitdir: /elsewhere/.git/worktrees/probe-worktree\n"
+        )
+        nested_file.write_text(gather.GENERATED_MARKER + " -->\nnested checkout content\n")
+
+        real_orphan = surface / "commands" / "stale.md"
+        real_orphan.parent.mkdir(parents=True)
+        real_orphan.write_text(gather.GENERATED_MARKER + " -->\nstale content\n")
+
+        found = gather.find_orphans(set(), [surface])
+
+        if nested_file in found:
+            failures.append(
+                f"{nested_file.relative_to(tmp)} WAS reported as an orphan — the "
+                "sweep descended into a nested git checkout (.git as a file) and "
+                "would delete tracked worktree content (AWOW-62 regression)."
+            )
+        if real_orphan not in found:
+            failures.append(
+                f"{real_orphan.relative_to(tmp)} was NOT reported as an orphan — "
+                "the nested-checkout guard is over-broad and disabled the sweep "
+                "outside the nested checkout too."
+            )
+    return failures
+
+
+def test_nested_checkout_guard() -> None:
+    """pytest entry point for assertions 5 & 6. This file's own convention
+    (module-level FAILURES list + main(), no pytest) is what CI actually
+    invokes (`python3 tests/telemetry-split/test_orphan_roots.py`,
+    .github/workflows/ci.yml), and pytest cannot collect anything from a
+    plain main()/FAILURES script — there is no test_*() function for it to
+    find. This thin wrapper calls the same check function so `pytest -q`
+    over this directory also has a real, collectible signal."""
+    failures = check_nested_checkout_guard()
+    assert not failures, "\n".join(failures)
 
 
 def main() -> int:
@@ -113,6 +181,10 @@ def main() -> int:
             )
     finally:
         remove_probe(claude_probe, created)
+
+    # 5 & 6. Nested git checkouts under a surface are never swept; a genuine
+    # orphan outside one is still caught.
+    FAILURES.extend(check_nested_checkout_guard())
 
     for f in FAILURES:
         print(f"FAIL {f}")

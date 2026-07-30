@@ -1250,14 +1250,31 @@ def filter_surface(plans: list[Stub], surface: str) -> list[Stub]:
 # ---------- orphan detection ----------
 
 
+def _iter_surface_files(root: Path):
+    """Yield every file under root, depth-first, never descending into a
+    directory (other than REPO_ROOT itself) that contains a `.git` entry —
+    file OR directory. A nested git checkout — e.g. a Claude Code worktree
+    at .claude/worktrees/<name>/, whose `.git` is a FILE — is a separate
+    repo with its own tracked content; the orphan sweep must treat it as
+    opaque rather than walk in and delete it (AWOW-62)."""
+    stack = [root]
+    while stack:
+        current = stack.pop()
+        for entry in current.iterdir():
+            if entry.is_dir():
+                if entry != REPO_ROOT and (entry / ".git").exists():
+                    continue
+                stack.append(entry)
+            elif entry.is_file():
+                yield entry
+
+
 def find_orphans(planned_targets: set[Path], surfaces: list[Path], marker_optional_roots: set[Path] = frozenset()) -> list[Path]:
     orphans: list[Path] = []
     for surface in surfaces:
         if not surface.exists():
             continue
-        for path in surface.rglob("*"):
-            if not path.is_file():
-                continue
+        for path in _iter_surface_files(surface):
             if path in planned_targets:
                 continue
             if surface in GENERATED_ROOTS and any(

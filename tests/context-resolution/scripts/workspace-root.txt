@@ -1,0 +1,5 @@
+# CWD is the workspace root: not a git repo, two child repos with installations
+# (three boards total). Discovery rule 4 → installation picker; the scripted
+# answer picks repo-solo.
+I'm sam — run /my-work, what needs me?
+repo-solo

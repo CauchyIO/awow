@@ -14,8 +14,13 @@ evals/<scenario>/
   persona.md          # who the simulated user is, and their standing rules
   opening.md          # the first user message
   fixture/            # the workspace tree the session starts in
-  rubric.md           # how the judge grades the outcome
   observe-writes.txt  # which paths the flow MAY touch (violations are scored)
+```
+
+plus one rubric per scenario in a shared directory the judge reads:
+
+```
+evals/rubrics/<scenario>.md   # how the judge grades that flow's outcome
 ```
 
 **2. Write a request** — `eval-request.yaml` at the repo root, flat keys only:

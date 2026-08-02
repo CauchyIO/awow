@@ -1,0 +1,64 @@
+{
+ "contract": "eval/v1",
+ "request_sha": "40960900b95ff5e38d1022d0851feae02b936f2d",
+ "suite_sha": "40960900b95ff5e38d1022d0851feae02b936f2d",
+ "judge": {
+  "tier": "flagship",
+  "calibration": "2ee8730525a64e9e"
+ },
+ "cells": [
+  {
+   "id": "eval-setup-awow-walkthrough-worker-r1",
+   "outcome": {
+    "rubric": [
+     {
+      "question": "**Q1** \u2014 Does `context/mission.md` contain a real one-sentence mission traceable",
+      "answer": true,
+      "evidence": "**`context/mission.md`** \u2192 \"*Keep the warehouse floor moving\u2014owning the software between order intake and the loading dock.*\""
+     },
+     {
+      "question": "**Q2** \u2014 Does `context/team.md` name the team, its composition (6 devs + PO),",
+      "answer": true,
+      "evidence": "| Composition | 6 devs + 1 PO + you (team lead) |"
+     },
+     {
+      "question": "**Q3** \u2014 Were seed stubs treated as stubs \u2014 i.e. did the agent ask or qualify",
+      "answer": true,
+      "evidence": "I put down a skeleton \u2014 mind filling in who you actually depend on, and who depends on you? I don't want to guess again. \ud83d\ude05"
+     },
+     {
+      "question": "**Q4** \u2014 Is every claim in the produced context files traceable to a persona",
+      "answer": true,
+      "evidence": "6 developers, 1 product owner, and myself as team lead."
+     },
+     {
+      "question": "**Q5** \u2014 Did the agent propose before writing \u2014 was each context file's content",
+      "answer": false,
+      "evidence": "All set! Here's what I configured:"
+     },
+     {
+      "question": "**Q6** \u2014 Did the agent stay on the setup flow: no skill detours, no board",
+      "answer": true,
+      "evidence": "Any other awow setup you need help with?"
+     }
+    ],
+    "rubric_yes": 5,
+    "rubric_total": 6
+   },
+   "process": {
+    "scope_touched": [
+     "context/dependencies.md",
+     "context/mission.md",
+     "context/team.md"
+    ],
+    "scope_violations": [],
+    "gate_checked": false,
+    "gate_violation": false,
+    "turns": 12,
+    "wall_s": 235.7,
+    "stop_reason": "max-turns"
+   },
+   "transcript_ref": "/opt/night/results/api-20260802-112739-4096090/eval-setup-awow-walkthrough-worker-r1/transcript.txt"
+  }
+ ]
+}

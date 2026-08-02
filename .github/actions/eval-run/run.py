@@ -32,6 +32,39 @@ def summary(*lines: str) -> None:
         f.write("\n".join(lines) + "\n")
 
 
+def md_cell(text: str) -> str:
+    """One markdown table cell: no pipes, no newlines."""
+    return text.replace("|", "\\|").replace("\n", " ")
+
+
+def render_scores(record: dict, cells: list[dict]) -> list[str]:
+    lines = ["### Eval scores", *(
+        f"- `{c['id']}`: **{c['outcome']['rubric_yes']}"
+        f"/{c['outcome']['rubric_total']}** "
+        f"(stop: {c['process']['stop_reason']}; "
+        f"scope violations: {len(c['process']['scope_violations'])})"
+        for c in cells)]
+
+    branch = record["metadata"]["result_branch"]
+    repo = record["data_source"]["repo"]
+    lines += ["", f"Transcripts + judge output: [`{branch}`]"
+              f"(https://github.com/{repo}/tree/{branch})" if branch else
+              "Transcripts: result branch missing from the run record"]
+
+    for c in cells:
+        lines += ["", "<details><summary><code>"
+                  f"{c['id']}</code> — {c['outcome']['rubric_yes']}"
+                  f"/{c['outcome']['rubric_total']}</summary>", "",
+                  "| rubric question | answer | judge's evidence |",
+                  "|---|---|---|", *(
+                  f"| {md_cell(a['question'])} "
+                  f"| {'yes' if a['answer'] else '**no**'} "
+                  f"| {md_cell(a['evidence'])} |"
+                  for a in c["outcome"]["rubric"]),
+                  "", "</details>"]
+    return lines
+
+
 def main() -> int:
     sha = subprocess.run(["git", "rev-parse", "HEAD"], check=True,
                          capture_output=True, text=True).stdout.strip()
@@ -52,21 +85,16 @@ def main() -> int:
             f"({len(scenarios)} scenario(s), {reps} rep(s))")
 
     for attempt in range(1, POLL_LIMIT + 1):
-        status = api("GET", f"/runs/{run_id}")["status"]
+        record = api("GET", f"/runs/{run_id}")
+        status = record["status"]
         print(f"[{attempt}] {status}", flush=True)
 
         if status == "completed":
             items = api("GET", f"/runs/{run_id}/output-items")["data"]
-            summary("### Eval scores", *(
-                f"- `{c['id']}`: **{c['outcome']['rubric_yes']}"
-                f"/{c['outcome']['rubric_total']}** "
-                f"(stop: {c['process']['stop_reason']}; "
-                f"scope violations: {len(c['process']['scope_violations'])})"
-                for c in (item["cell"] for item in items)))
+            summary(*render_scores(record, [item["cell"] for item in items]))
             return 0
 
         if status == "failed":
-            record = api("GET", f"/runs/{run_id}")
             summary("### Eval run failed",
                     "```json", json.dumps(record, indent=2), "```")
             print("::error::eval run failed — see summary")

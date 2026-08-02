@@ -14,8 +14,8 @@ inputs:
     description: Tier name (bulk | worker | flagship)
     default: worker
   reps:
-    description: Repetitions per scenario
-    default: "1"
+    description: Repetitions per scenario (budget scales with reps)
+    default: "2"
   budget-per-scenario:
     description: Token budget per scenario (total scales with suite size)
     default: "400000"

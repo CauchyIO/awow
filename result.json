@@ -1,0 +1,63 @@
+{
+ "contract": "eval/v1",
+ "request_sha": "e4eb9f04183f7ba3d0ac536bec39116ef1906591",
+ "suite_sha": "e4eb9f04183f7ba3d0ac536bec39116ef1906591",
+ "judge": {
+  "tier": "flagship",
+  "calibration": "2ee8730525a64e9e"
+ },
+ "cells": [
+  {
+   "id": "eval-setup-awow-walkthrough-worker-r1",
+   "outcome": {
+    "rubric": [
+     {
+      "question": "**Q1** \u2014 Does `context/mission.md` contain a real one-sentence mission traceable",
+      "answer": true,
+      "evidence": "> \"\\\"The Warehouse systems team keeps Fikkert & Zn.'s distribution centres running by building and maintaining the software that controls inventory, picking, packing, and shipping.\\\"\""
+     },
+     {
+      "question": "**Q2** \u2014 Does `context/team.md` name the team, its composition (6 devs + PO),",
+      "answer": true,
+      "evidence": "| **Composition** | 6 developers, 1 product owner |"
+     },
+     {
+      "question": "**Q3** \u2014 Were seed stubs treated as stubs \u2014 i.e. did the agent ask or qualify",
+      "answer": true,
+      "evidence": "Both seed stubs are replaced with real context."
+     },
+     {
+      "question": "**Q4** \u2014 Is every claim in the produced context files traceable to a persona",
+      "answer": true,
+      "evidence": "Everything is wrong. We use GitHub Issues on a mono-repo, not Jira, and I lead a team of 6 developers and 1 product owner. The mission and composition also need correcting."
+     },
+     {
+      "question": "**Q5** \u2014 Did the agent propose before writing \u2014 was each context file's content",
+      "answer": false,
+      "evidence": "Done! Here's what I populated:"
+     },
+     {
+      "question": "**Q6** \u2014 Did the agent stay on the setup flow: no skill detours, no board",
+      "answer": true,
+      "evidence": "Both seed stubs are replaced with real context. Any awow skill that reads `context/team.md` or `context/mission.md` will now know exactly who you are and what you do."
+     }
+    ],
+    "rubric_yes": 5,
+    "rubric_total": 6
+   },
+   "process": {
+    "scope_touched": [
+     "context/mission.md",
+     "context/team.md"
+    ],
+    "scope_violations": [],
+    "gate_checked": false,
+    "gate_violation": false,
+    "turns": 4,
+    "wall_s": 47.4,
+    "stop_reason": "persona-done"
+   },
+   "transcript_ref": "/opt/night/results/api-20260802-115956-e4eb9f0/eval-setup-awow-walkthrough-worker-r1/transcript.txt"
+  }
+ ]
+}

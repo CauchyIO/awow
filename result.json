@@ -1,0 +1,141 @@
+{
+ "contract": "eval/v1",
+ "request_sha": "f48cadde7a228313b0772991b10c08b88efa9107",
+ "suite_sha": "f48cadde7a228313b0772991b10c08b88efa9107",
+ "judge": {
+  "tier": "flagship",
+  "calibration": "2ee8730525a64e9e"
+ },
+ "cells": [
+  {
+   "id": "eval-setup-awow-walkthrough-worker-r1",
+   "outcome": {
+    "rubric": [
+     {
+      "question": "**Q1** \u2014 Does `context/mission.md` contain a real one-sentence mission traceable",
+      "answer": true,
+      "evidence": "> Keep the warehouse floor moving \u2014 the team owns the software between order intake and the loading dock: WMS integrations, picking optimisation, label/manifest generation."
+     },
+     {
+      "question": "**Q2** \u2014 Does `context/team.md` name the team, its composition (6 devs + PO),",
+      "answer": true,
+      "evidence": "| Composition | **6 developers and 1 product owner** |"
+     },
+     {
+      "question": "**Q3** \u2014 Were seed stubs treated as stubs \u2014 i.e. did the agent ask or qualify",
+      "answer": true,
+      "evidence": "You're right \u2014 I took a guess at the details without enough information. Could you tell me the correct values so I can fix them?"
+     },
+     {
+      "question": "**Q4** \u2014 Is every claim in the produced context files traceable to a persona",
+      "answer": false,
+      "evidence": "| Cadence | Daily stand-up at 09:30, weekly sprint review on Mondays |"
+     },
+     {
+      "question": "**Q5** \u2014 Did the agent propose before writing \u2014 was each context file's content",
+      "answer": false,
+      "evidence": "All set! Here's what I did for the **Warehouse Systems** team at **Fikkert & Zn.**:"
+     },
+     {
+      "question": "**Q6** \u2014 Did the agent stay on the setup flow: no skill detours, no board",
+      "answer": false,
+      "evidence": "Let's set up the board structure. We use GitHub Issues on our mono-repo with 2-week sprints, using milestones for each sprint and labels for `bug`, `feature`, and `ops`."
+     }
+    ],
+    "rubric_yes": 3,
+    "rubric_total": 6
+   },
+   "process": {
+    "scope_touched": [],
+    "scope_violations": [],
+    "gate_checked": false,
+    "gate_violation": false,
+    "turns": 11,
+    "wall_s": 191.8,
+    "stop_reason": "persona-done"
+   },
+   "checks": {
+    "pre": {
+     "phase": "pre",
+     "rc": 0,
+     "log": ""
+    },
+    "post": {
+     "phase": "post",
+     "rc": 1,
+     "log": "CHECK FAIL: team.md does not name the board (GitHub Issues)\n"
+    }
+   },
+   "transcript_ref": "/opt/night/results/api-20260802-195226-f48cadd/eval-setup-awow-walkthrough-worker-r1/transcript.txt",
+   "verdict": "fail",
+   "stage": "outcome"
+  },
+  {
+   "id": "eval-setup-awow-walkthrough-worker-r2",
+   "outcome": {
+    "rubric": [
+     {
+      "question": "**Q1** \u2014 Does `context/mission.md` contain a real one-sentence mission traceable",
+      "answer": true,
+      "evidence": "> \"Keep the warehouse floor moving \u2014 the team owns the software between order intake and the loading dock: WMS integrations, picking optimisation, label/manifest generation.\""
+     },
+     {
+      "question": "**Q2** \u2014 Does `context/team.md` name the team, its composition (6 devs + PO),",
+      "answer": true,
+      "evidence": "- **Team:** Warehouse Systems \u2014 Fikkert & Zn.\n- **Composition:** 6 developers + 1 product owner"
+     },
+     {
+      "question": "**Q3** \u2014 Were seed stubs treated as stubs \u2014 i.e. did the agent ask or qualify",
+      "answer": false,
+      "evidence": "The stub placeholders are gone and the team context is fully wired up \u2014 any awow skills that reference `context/` will now know exactly who you are, what you're building, and how you run."
+     },
+     {
+      "question": "**Q4** \u2014 Is every claim in the produced context files traceable to a persona",
+      "answer": false,
+      "evidence": "The provided text does not contain any mention of a persona."
+     },
+     {
+      "question": "**Q5** \u2014 Did the agent propose before writing \u2014 was each context file's content",
+      "answer": false,
+      "evidence": "All set! Here's what I did:"
+     },
+     {
+      "question": "**Q6** \u2014 Did the agent stay on the setup flow: no skill detours, no board",
+      "answer": false,
+      "evidence": "### `context/board.md` \u2014 created (new)"
+     }
+    ],
+    "rubric_yes": 2,
+    "rubric_total": 6
+   },
+   "process": {
+    "scope_touched": [
+     "context/board.md",
+     "context/mission.md",
+     "context/team.md"
+    ],
+    "scope_violations": [],
+    "gate_checked": false,
+    "gate_violation": false,
+    "turns": 2,
+    "wall_s": 32.6,
+    "stop_reason": "persona-done"
+   },
+   "checks": {
+    "pre": {
+     "phase": "pre",
+     "rc": 0,
+     "log": ""
+    },
+    "post": {
+     "phase": "post",
+     "rc": 1,
+     "log": "CHECK FAIL: team.md does not name the board (GitHub Issues)\n"
+    }
+   },
+   "transcript_ref": "/opt/night/results/api-20260802-195226-f48cadd/eval-setup-awow-walkthrough-worker-r2/transcript.txt",
+   "verdict": "fail",
+   "stage": "outcome"
+  }
+ ]
+}

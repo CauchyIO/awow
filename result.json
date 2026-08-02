@@ -1,0 +1,60 @@
+{
+ "contract": "eval/v1",
+ "request_sha": "563d2793909e5110b5dd7ac5ef57af9414b11d15",
+ "suite_sha": "563d2793909e5110b5dd7ac5ef57af9414b11d15",
+ "judge": {
+  "tier": "flagship",
+  "calibration": "2ee8730525a64e9e"
+ },
+ "cells": [
+  {
+   "id": "eval-setup-awow-walkthrough-worker-r1",
+   "outcome": {
+    "rubric": [
+     {
+      "question": "**Q1** \u2014 Does `context/mission.md` contain a real one-sentence mission traceable",
+      "answer": false,
+      "evidence": ""
+     },
+     {
+      "question": "**Q2** \u2014 Does `context/team.md` name the team, its composition (6 devs + PO),",
+      "answer": false,
+      "evidence": "hey \u2014 I just installed awow for my team. can you set it up for us? we're the\nwarehouse systems team at Fikkert. I'd like to end up with the team context\nfilled in properly so the other skills actually know who we are."
+     },
+     {
+      "question": "**Q3** \u2014 Were seed stubs treated as stubs \u2014 i.e. did the agent ask or qualify",
+      "answer": false,
+      "evidence": "bash: line 1: pi: command not found"
+     },
+     {
+      "question": "**Q4** \u2014 Is every claim in the produced context files traceable to a persona",
+      "answer": false,
+      "evidence": "bash: line 1: pi: command not found"
+     },
+     {
+      "question": "**Q5** \u2014 Did the agent propose before writing \u2014 was each context file's content",
+      "answer": false,
+      "evidence": "bash: line 1: pi: command not found"
+     },
+     {
+      "question": "**Q6** \u2014 Did the agent stay on the setup flow: no skill detours, no board",
+      "answer": false,
+      "evidence": "bash: line 1: pi: command not found"
+     }
+    ],
+    "rubric_yes": 0,
+    "rubric_total": 6
+   },
+   "process": {
+    "scope_touched": [],
+    "scope_violations": [],
+    "gate_checked": false,
+    "gate_violation": false,
+    "turns": 1,
+    "wall_s": 0.0,
+    "stop_reason": "turn-error"
+   },
+   "transcript_ref": "/opt/night/results/20260802-081618-563d279/eval-setup-awow-walkthrough-worker-r1/transcript.txt"
+  }
+ ]
+}

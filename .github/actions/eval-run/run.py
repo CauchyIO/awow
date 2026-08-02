@@ -68,9 +68,44 @@ def render_scores(record: dict, cells: list[dict]) -> list[str]:
                   f"| {md_cell(a['question'])} "
                   f"| {'yes' if a['answer'] else '**no**'} "
                   f"| {md_cell(a['evidence'])} |"
-                  for a in c["outcome"]["rubric"]),
-                  "", "</details>"]
+                  for a in c["outcome"]["rubric"])]
+        post = (c.get("checks") or {}).get("post")
+        if post and post.get("rc") not in (0, None):
+            lines += ["", f"Deterministic witness (rc={post['rc']}):", "",
+                      *(f"> {md_cell(l)}" for l in post["log"].splitlines() if l)]
+        lines += ["", "</details>"]
     return lines
+
+
+def gate_errors(resp: dict, cells: list[dict], gate: dict) -> list[str]:
+    """Regression is a score below the baselined floor; indeterminate is
+    no-data and trips its own cap, never a fail. An unqualified or drifted
+    calibration refuses to gate at all (spec §8/§9)."""
+    run_calib = (resp.get("judge") or {}).get("calibration")
+    if not gate.get("sabotage_pass"):
+        return ["gate.json has no sabotage_pass — the judge is unqualified; "
+                "refusing to gate"]
+    if run_calib != gate["calibration"]:
+        return [f"run calibration {run_calib!r} != gate {gate['calibration']!r}"
+                " — re-baseline before gating"]
+    per, indeterminate = {}, 0
+    for c in cells:
+        scen = c["id"].removeprefix("eval-").rsplit("-", 2)[0]
+        if c.get("verdict") == "indeterminate":
+            indeterminate += 1
+        else:
+            per.setdefault(scen, []).append(c["outcome"]["rubric_yes"])
+    errs = []
+    if indeterminate > gate["max_indeterminate"]:
+        errs.append(f"{indeterminate} indeterminate cell(s) > cap "
+                    f"{gate['max_indeterminate']} — no-data, not regression")
+    for scen, g in gate["scenarios"].items():
+        scores = per.get(scen)
+        if scores:
+            mean = sum(scores) / len(scores)
+            if mean < g["min_mean"]:
+                errs.append(f"{scen}: mean {mean:.2f} < gate {g['min_mean']}")
+    return errs
 
 
 def main() -> int:
@@ -98,8 +133,18 @@ def main() -> int:
         print(f"[{attempt}] {status}", flush=True)
 
         if status == "completed":
-            items = api("GET", f"/runs/{run_id}/output-items")["data"]
-            summary(*render_scores(record, [item["cell"] for item in items]))
+            resp = api("GET", f"/runs/{run_id}/output-items")
+            cells = [item["cell"] for item in resp["data"]]
+            summary(*render_scores(record, cells))
+            gate_path = Path("evals/gate.json")
+            if gate_path.is_file():
+                errs = gate_errors(resp, cells, json.loads(gate_path.read_text()))
+                if errs:
+                    summary("### Gate", *(f"- {e}" for e in errs))
+                    print("::error::eval gate failed — see summary")
+                    return 1
+                summary("", "Gate: **clean** vs baseline "
+                        f"`{json.loads(gate_path.read_text())['calibration']}`")
             return 0
 
         if status == "failed":

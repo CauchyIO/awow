@@ -37,10 +37,18 @@ def md_cell(text: str) -> str:
     return text.replace("|", "\\|").replace("\n", " ")
 
 
+def verdict_note(c: dict) -> str:
+    v = c.get("verdict")
+    if v in (None, "pass"):
+        return ""
+    stage = f" ({c['stage']})" if c.get("stage") else ""
+    return f" — **{v}**{stage}"
+
+
 def render_scores(record: dict, cells: list[dict]) -> list[str]:
     lines = ["### Eval scores", *(
         f"- `{c['id']}`: **{c['outcome']['rubric_yes']}"
-        f"/{c['outcome']['rubric_total']}** "
+        f"/{c['outcome']['rubric_total']}**{verdict_note(c)} "
         f"(stop: {c['process']['stop_reason']}; "
         f"scope violations: {len(c['process']['scope_violations'])})"
         for c in cells)]

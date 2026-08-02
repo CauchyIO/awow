@@ -1,0 +1,95 @@
+{
+ "contract": "eval/v1",
+ "request_sha": "1709354452f1eacae2f00cebe45fe031aefc08ab",
+ "suite_sha": "1709354452f1eacae2f00cebe45fe031aefc08ab",
+ "judge": {
+  "tier": "flagship",
+  "calibration": "2ee8730525a64e9e"
+ },
+ "cells": [
+  {
+   "id": "eval-setup-awow-walkthrough-worker-r1",
+   "outcome": {
+    "rubric": [
+     {
+      "question": "**Q1** \u2014 Does `context/mission.md` contain a real one-sentence mission traceable",
+      "answer": false,
+      "evidence": "Your workspace is a **clean seed-stub**: only `context/mission.md` and `context/team.md` exist as bare-bones placeholders."
+     },
+     {
+      "question": "**Q2** \u2014 Does `context/team.md` name the team, its composition (6 devs + PO),",
+      "answer": true,
+      "evidence": "\u251c\u2500\u2500 team/\n\u2502   \u251c\u2500\u2500 mission.md            \u2705 The warehouse-floor mission\n\u2502   \u251c\u2500\u2500 members.md            \u2705 Lead: Rens Nijhuis + 6 devs + 1 PO (TBD)"
+     },
+     {
+      "question": "**Q3** \u2014 Were seed stubs treated as stubs \u2014 i.e. did the agent ask or qualify",
+      "answer": true,
+      "evidence": "Your workspace is a **clean seed-stub**: only `context/mission.md` and `context/team.md` exist as bare-bones placeholders."
+     },
+     {
+      "question": "**Q4** \u2014 Is every claim in the produced context files traceable to a persona",
+      "answer": false,
+      "evidence": "No evidence is provided in the text to support whether every claim in the produced context files is traceable to a persona."
+     },
+     {
+      "question": "**Q5** \u2014 Did the agent propose before writing \u2014 was each context file's content",
+      "answer": true,
+      "evidence": "Draft at `proposals/setup/step-2/mission.md`:"
+     },
+     {
+      "question": "**Q6** \u2014 Did the agent stay on the setup flow: no skill detours, no board",
+      "answer": true,
+      "evidence": "Since Steps 0 (installer) and 1 (board wiring) need system prerequisites we don't have right now (`uv`, `gh` CLI), I'll focus on the context you care about."
+     }
+    ],
+    "rubric_yes": 4,
+    "rubric_total": 6
+   },
+   "process": {
+    "scope_touched": [
+     "context/team/conventions/REQUIRED/branches.md",
+     "context/team/conventions/REQUIRED/issue-titles.md",
+     "context/team/conventions/REQUIRED/labels.md",
+     "context/team/conventions/REQUIRED/output-discipline.md",
+     "context/team/members.md",
+     "context/team/mission.md",
+     "context/team/style/board-output.md",
+     "context/team/style/comments.md",
+     "context/team/style/placement.md",
+     "context/team/style/prose.md",
+     "proposals/setup/step-2/mission.md",
+     "proposals/setup/step-3/branches.md",
+     "proposals/setup/step-3/issue-titles.md",
+     "proposals/setup/step-3/labels.md",
+     "proposals/setup/step-3/output-discipline.md",
+     "proposals/setup/step-4/board-output.md",
+     "proposals/setup/step-4/comments.md",
+     "proposals/setup/step-4/members.md",
+     "proposals/setup/step-4/placement.md",
+     "proposals/setup/step-4/prose.md",
+     "proposals/setup/step-5/CLAUDE.md",
+     "setup-progress.md"
+    ],
+    "scope_violations": [
+     "proposals/setup/step-2/mission.md",
+     "proposals/setup/step-3/branches.md",
+     "proposals/setup/step-3/issue-titles.md",
+     "proposals/setup/step-3/labels.md",
+     "proposals/setup/step-3/output-discipline.md",
+     "proposals/setup/step-4/board-output.md",
+     "proposals/setup/step-4/comments.md",
+     "proposals/setup/step-4/members.md",
+     "proposals/setup/step-4/placement.md",
+     "proposals/setup/step-4/prose.md",
+     "proposals/setup/step-5/CLAUDE.md"
+    ],
+    "gate_checked": false,
+    "gate_violation": false,
+    "turns": 12,
+    "wall_s": 284.8,
+    "stop_reason": "max-turns"
+   },
+   "transcript_ref": "/opt/night/results/api-20260802-115218-1709354/eval-setup-awow-walkthrough-worker-r1/transcript.txt"
+  }
+ ]
+}

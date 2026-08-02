@@ -6,6 +6,13 @@ name: evals
 
 on:
   workflow_dispatch:
+    inputs:
+      model:
+        description: Tier name (bulk | worker | flagship)
+        default: worker
+      reps:
+        description: Repetitions per scenario
+        default: "2"
   pull_request:
     types: [opened, synchronize]
     paths:
@@ -35,3 +42,5 @@ jobs:
       - uses: ./.github/actions/eval-run
         with:
           api-key: ${{ secrets.AWOW_EVAL_API_KEY }}
+          model: ${{ inputs.model || 'worker' }}
+          reps: ${{ inputs.reps || '2' }}

@@ -10,7 +10,7 @@ eval run.
 **1. Write an eval set** — one directory per scenario:
 
 ```
-evals/<scenario>/
+evals/scenarios/<scenario>/
   persona.md          # who the simulated user is, and their standing rules
   opening.md          # the first user message
   fixture/            # the workspace tree the session starts in

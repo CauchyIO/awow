@@ -27,6 +27,6 @@ run before this rubric and are not re-asked here.
 ## Band placement
 
 Compare the produced `context/` files pairwise against the reference bank for
-this flow (when present at `evals/setup-awow-walkthrough/references/`):
+this flow (when present at `evals/scenarios/setup-awow-walkthrough/references/`):
 place the candidate above/below each tier-labeled reference. Report the band, not
 a score. If the bank is absent, report `band: unbenchmarked`.

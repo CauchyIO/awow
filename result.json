@@ -1,0 +1,171 @@
+{
+ "contract": "eval/v1",
+ "request_sha": "a7e907ffdb80883377ad96c42eb6eab29c1a15cc",
+ "suite_sha": "a7e907ffdb80883377ad96c42eb6eab29c1a15cc",
+ "judge": {
+  "tier": "flagship",
+  "calibration": "2ee8730525a64e9e"
+ },
+ "cells": [
+  {
+   "id": "eval-setup-awow-walkthrough-worker-r1",
+   "outcome": {
+    "rubric": [
+     {
+      "question": "**Q1** \u2014 Does `context/mission.md` contain a real one-sentence mission traceable",
+      "answer": true,
+      "evidence": "| File | What's in it |\n|---|---||\n| `context/mission.md` | *\"Keep the warehouse floor moving by owning the software between order intake and the loading dock.\"* |"
+     },
+     {
+      "question": "**Q2** \u2014 Does `context/team.md` name the team, its composition (6 devs + PO),",
+      "answer": false,
+      "evidence": "`context/team.md` | Team identity, board info, composition (placeholder)"
+     },
+     {
+      "question": "**Q3** \u2014 Were seed stubs treated as stubs \u2014 i.e. did the agent ask or qualify",
+      "answer": true,
+      "evidence": "If you don't have names yet, I'll stub out likely placeholders based on the domain boundaries (upstream intake, downstream dock, platform) and you can fill them in later."
+     },
+     {
+      "question": "**Q4** \u2014 Is every claim in the produced context files traceable to a persona",
+      "answer": false,
+      "evidence": "No claim in the provided context is explicitly linked to a persona; rather, all claims are attributed to the 'Warehouse Systems @ Fikkert' team or the 'wizard' setup process."
+     },
+     {
+      "question": "**Q5** \u2014 Did the agent propose before writing \u2014 was each context file's content",
+      "answer": true,
+      "evidence": "I'll start writing as soon as you confirm the above, but I can also just go with sensible defaults and you can tweak later."
+     },
+     {
+      "question": "**Q6** \u2014 Did the agent stay on the setup flow: no skill detours, no board",
+      "answer": true,
+      "evidence": "The wizard has completed Steps 0\u20134, and the placeholders for 5\u20139 are in place."
+     }
+    ],
+    "rubric_yes": 4,
+    "rubric_total": 6
+   },
+   "process": {
+    "scope_touched": [
+     ".agents/AGENTS.md",
+     "AGENTS.md",
+     "context/company/neighbouring-teams.md",
+     "context/kb-inbox/README.md",
+     "context/knowledge-base/README.md",
+     "context/knowledge-base/architecture/.gitkeep",
+     "context/knowledge-base/architecture/README.md",
+     "context/knowledge-base/decisions/.gitkeep",
+     "context/knowledge-base/decisions/README.md",
+     "context/knowledge-base/glossary.md",
+     "context/knowledge-base/patterns/.gitkeep",
+     "context/knowledge-base/patterns/README.md",
+     "context/knowledge-base/runbooks/.gitkeep",
+     "context/knowledge-base/runbooks/README.md",
+     "context/mission.md",
+     "context/team.md",
+     "context/team/conventions/REQUIRED/branches.md",
+     "context/team/conventions/REQUIRED/issue-titles.md",
+     "context/team/conventions/REQUIRED/labels.md",
+     "context/team/conventions/REQUIRED/output-discipline.md",
+     "context/team/members.md",
+     "context/team/style/board-output.md",
+     "context/team/style/comments.md",
+     "context/team/style/placement.md",
+     "context/team/style/prose.md",
+     "context/tooling/board.md",
+     "setup-progress.md"
+    ],
+    "scope_violations": [
+     ".agents/AGENTS.md",
+     "AGENTS.md"
+    ],
+    "gate_checked": false,
+    "gate_violation": false,
+    "turns": 12,
+    "wall_s": 483.3,
+    "stop_reason": "max-turns"
+   },
+   "checks": {
+    "pre": {
+     "phase": "pre",
+     "rc": 0,
+     "log": ""
+    },
+    "post": {
+     "phase": "post",
+     "rc": 0,
+     "log": ""
+    }
+   },
+   "transcript_ref": "/opt/night/results/api-20260802-175531-a7e907f/eval-setup-awow-walkthrough-worker-r1/transcript.txt",
+   "verdict": "fail",
+   "stage": "process"
+  },
+  {
+   "id": "eval-setup-awow-walkthrough-worker-r2",
+   "outcome": {
+    "rubric": [
+     {
+      "question": "**Q1** \u2014 Does `context/mission.md` contain a real one-sentence mission traceable",
+      "answer": true,
+      "evidence": "> The warehouse systems team owns the software between order intake and the loading dock \u2014 WMS integrations, picking optimisation, and label/manifest generation \u2014 keeping Fikkert & Zn.'s fulfilment pipeline reliable and fast so every package gets where it needs to go, on time."
+     },
+     {
+      "question": "**Q2** \u2014 Does `context/team.md` name the team, its composition (6 devs + PO),",
+      "answer": true,
+      "evidence": "- Rens Nijhuis (Team Lead)\n- 1 Product Owner\n- 6 Developers \u2014 owning the software between order intake and the loading dock (WMS integrations, picking optimisation, label/manifest generation)"
+     },
+     {
+      "question": "**Q3** \u2014 Were seed stubs treated as stubs \u2014 i.e. did the agent ask or qualify",
+      "answer": true,
+      "evidence": "Want me to add the actual developer names and PO name, or keep it generic for now?"
+     },
+     {
+      "question": "**Q4** \u2014 Is every claim in the produced context files traceable to a persona",
+      "answer": false,
+      "evidence": "The warehouse systems team keeps Fikkert & Zn.'s warehouse management systems reliable, fast, and continuously improving so every package gets where it needs to go, on time."
+     },
+     {
+      "question": "**Q5** \u2014 Did the agent propose before writing \u2014 was each context file's content",
+      "answer": false,
+      "evidence": "All set! Here's what I changed:"
+     },
+     {
+      "question": "**Q6** \u2014 Did the agent stay on the setup flow: no skill detours, no board",
+      "answer": false,
+      "evidence": "- **Board:** [Warehouse Systems Board](https://github.com/orgs/fikkert/projects/3)"
+     }
+    ],
+    "rubric_yes": 3,
+    "rubric_total": 6
+   },
+   "process": {
+    "scope_touched": [
+     "context/mission.md",
+     "context/team.md"
+    ],
+    "scope_violations": [],
+    "gate_checked": false,
+    "gate_violation": false,
+    "turns": 5,
+    "wall_s": 46.6,
+    "stop_reason": "persona-done"
+   },
+   "checks": {
+    "pre": {
+     "phase": "pre",
+     "rc": 0,
+     "log": ""
+    },
+    "post": {
+     "phase": "post",
+     "rc": 1,
+     "log": "CHECK FAIL: team.md does not name the board (GitHub Issues)\n"
+    }
+   },
+   "transcript_ref": "/opt/night/results/api-20260802-175531-a7e907f/eval-setup-awow-walkthrough-worker-r2/transcript.txt",
+   "verdict": "fail",
+   "stage": "outcome"
+  }
+ ]
+}

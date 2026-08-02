@@ -1,10 +1,8 @@
 name: evals
 
-# Submitting an eval run IS one authenticated API call against the night eval
-# service; this workflow is the repo's trigger for it — a manual button plus a
-# gate run on PRs that touch the flows or the eval set. The Actions run is the
-# job handle: it submits, polls the run to a terminal status, and writes the
-# scores into the step summary. Only secret: the tenant subscription key.
+# Submitting an eval run is one authenticated API call against the night eval
+# service; .github/actions/eval-run does it and waits for scores. Triggers: a
+# manual button, and a gate run on PRs that touch the flows or the eval set.
 
 on:
   workflow_dispatch:
@@ -31,46 +29,6 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - name: Submit — the full suite, one API call
-        id: submit
-        env:
-          KEY: ${{ secrets.AWOW_EVAL_API_KEY }}
-        run: |
-          sha=$(git rev-parse HEAD)
-          scenarios=$(ls evals/scenarios | jq -R . | jq -sc .)
-          total=$((400000 * $(ls evals/scenarios | wc -l)))
-          body=$(jq -nc --arg sha "$sha" --argjson sc "$scenarios" --argjson t "$total" \
-            '{model:"worker", scenarios:$sc, data_source:{sha:$sha}, reps:1, budget_tokens_total:$t}')
-          run=$(curl -sf -X POST "https://apim-awow.azure-api.net/evals/runs" \
-            -H "Ocp-Apim-Subscription-Key: $KEY" -H "Content-Type: application/json" -d "$body")
-          id=$(echo "$run" | jq -r .id)
-          echo "id=$id" >> "$GITHUB_OUTPUT"
-          echo "submitted \`$id\` for \`$sha\` (scenarios: $(ls evals/scenarios | tr '\n' ' '))" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Watch — poll to a terminal status, report scores
-        env:
-          KEY: ${{ secrets.AWOW_EVAL_API_KEY }}
-        run: |
-          id='${{ steps.submit.outputs.id }}'
-          for i in $(seq 1 60); do
-            s=$(curl -sf -H "Ocp-Apim-Subscription-Key: $KEY" \
-              "https://apim-awow.azure-api.net/evals/runs/$id" | jq -r .status)
-            echo "[$i] $s"
-            case "$s" in
-              completed)
-                {
-                  echo '### Eval scores'
-                  curl -sf -H "Ocp-Apim-Subscription-Key: $KEY" \
-                    "https://apim-awow.azure-api.net/evals/runs/$id/output-items" \
-                    | jq -r '.data[].cell | "- `\(.id)`: **\(.outcome.rubric_yes)/\(.outcome.rubric_total)** (stop: \(.process.stop_reason); scope violations: \(.process.scope_violations | length))"'
-                } >> "$GITHUB_STEP_SUMMARY"
-                exit 0;;
-              failed)
-                curl -sf -H "Ocp-Apim-Subscription-Key: $KEY" \
-                  "https://apim-awow.azure-api.net/evals/runs/$id" | jq . >> "$GITHUB_STEP_SUMMARY"
-                echo "::error::eval run failed — see summary"; exit 1;;
-            esac
-            sleep 30
-          done
-          echo "::error::run not terminal after 30 minutes — the request record is durable; the next submission drains it"
-          exit 1
+      - uses: ./.github/actions/eval-run
+        with:
+          api-key: ${{ secrets.AWOW_EVAL_API_KEY }}

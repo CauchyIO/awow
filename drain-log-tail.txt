@@ -1,0 +1,8 @@
+=== eval-boot 2026-08-02T11:10:21Z ===
+Already up to date.
+eval-boot: resolve: pi=/usr/local/bin/pi node=v18.19.1
+eval-drain: nothing new
+eval-drain: deallocate accepted (202)
+=== eval-boot 2026-08-02T11:12:52Z ===
+Already up to date.
+eval-boot: resolve: pi=/usr/local/bin/pi node=v18.19.1

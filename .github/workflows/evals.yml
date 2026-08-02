@@ -29,6 +29,9 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
+      - name: Validate suite (static, zero tokens)
+        run: python3 evals/validate.py
+
       - uses: ./.github/actions/eval-run
         with:
           api-key: ${{ secrets.AWOW_EVAL_API_KEY }}

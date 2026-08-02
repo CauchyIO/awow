@@ -29,4 +29,4 @@ runs:
         EVAL_MODEL: ${{ inputs.model }}
         EVAL_REPS: ${{ inputs.reps }}
         EVAL_BUDGET_PER_SCENARIO: ${{ inputs.budget-per-scenario }}
-      run: bash "${{ github.action_path }}/run.sh"
+      run: python3 "${{ github.action_path }}/run.py"

@@ -1,4 +1,5 @@
 {
+ "tree_questions": [1, 2],
  "corruptions": [
   {
    "script": "corruptions/strip-mission.sh",

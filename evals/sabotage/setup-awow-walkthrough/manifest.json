@@ -1,0 +1,20 @@
+{
+ "corruptions": [
+  {
+   "script": "corruptions/strip-mission.sh",
+   "must_flip": [1]
+  },
+  {
+   "script": "corruptions/reinsert-stub.sh",
+   "must_flip": [1]
+  },
+  {
+   "script": "corruptions/drop-board.sh",
+   "must_flip": [2]
+  }
+ ],
+ "variants": {
+  "mediocre": "variants/mediocre",
+  "hallucinated": "variants/hallucinated"
+ }
+}

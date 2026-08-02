@@ -1,0 +1,71 @@
+{
+ "contract": "eval/v1",
+ "request_sha": "1709354452f1eacae2f00cebe45fe031aefc08ab",
+ "suite_sha": "1709354452f1eacae2f00cebe45fe031aefc08ab",
+ "judge": {
+  "tier": "flagship",
+  "calibration": "2ee8730525a64e9e"
+ },
+ "cells": [
+  {
+   "id": "eval-setup-awow-walkthrough-worker-r1",
+   "outcome": {
+    "rubric": [
+     {
+      "question": "**Q1** \u2014 Does `context/mission.md` contain a real one-sentence mission traceable",
+      "answer": true,
+      "evidence": "> **Mission.** Keep the warehouse floor moving by owning the software between order intake and the loading dock: WMS integrations, picking optimisation, and label/manifest generation."
+     },
+     {
+      "question": "**Q2** \u2014 Does `context/team.md` name the team, its composition (6 devs + PO),",
+      "answer": true,
+      "evidence": "> **Team \u2014 Warehouse Systems (Fikkert & Zn.)\n> - **Company:** Fikkert & Zn. \u2014 e-commerce fulfilment, ~180 people\n> - **Lead:** Rens Nijhuis\n> - **Composition:** 6 developers + 1 product owner\n> - **Cadence:** 2-week sprints, tracked via GitHub milestones\n> - **Board:** GitHub Issues on `github.com/Fikkert/warehouse-monorepo`"
+     },
+     {
+      "question": "**Q3** \u2014 Were seed stubs treated as stubs \u2014 i.e. did the agent ask or qualify",
+      "answer": true,
+      "evidence": "Both are stubs by convention \u2014 each neighbour owns and fills in their own summary when ready."
+     },
+     {
+      "question": "**Q4** \u2014 Is every claim in the produced context files traceable to a persona",
+      "answer": false,
+      "evidence": "The provided text does not contain the produced context files themselves, only the proposals and logs of the conversation leading up to them."
+     },
+     {
+      "question": "**Q5** \u2014 Did the agent propose before writing \u2014 was each context file's content",
+      "answer": true,
+      "evidence": "Here's my proposal for `context/mission.md`:"
+     },
+     {
+      "question": "**Q6** \u2014 Did the agent stay on the setup flow: no skill detours, no board",
+      "answer": false,
+      "evidence": "Since the installer's not available here to run, I'll skip Step 0 (noted as blocked) and go to **Step 1 \u2014 Kickoff** (the board)."
+     }
+    ],
+    "rubric_yes": 4,
+    "rubric_total": 6
+   },
+   "process": {
+    "scope_touched": [
+     "context/mission.md",
+     "context/team.md",
+     "proposals/setup/step-2/mission.md",
+     "proposals/setup/step-2/team.md",
+     "proposals/setup/step-7/neighbouring-teams.md",
+     "setup-progress.md"
+    ],
+    "scope_violations": [
+     "proposals/setup/step-2/mission.md",
+     "proposals/setup/step-2/team.md",
+     "proposals/setup/step-7/neighbouring-teams.md"
+    ],
+    "gate_checked": false,
+    "gate_violation": false,
+    "turns": 12,
+    "wall_s": 349.8,
+    "stop_reason": "max-turns"
+   },
+   "transcript_ref": "/opt/night/results/api-20260802-115211-1709354/eval-setup-awow-walkthrough-worker-r1/transcript.txt"
+  }
+ ]
+}

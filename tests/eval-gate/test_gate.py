@@ -22,12 +22,12 @@ eval_run = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(eval_run)
 
 CALIB = "abc123"
+FLOW = "setup-awow-walkthrough"
 
-GATE = {"calibration": CALIB,
-        "sabotage_pass": {"calibration": CALIB, "flow": "setup-awow-walkthrough"},
+GATE = {"calibration": {FLOW: CALIB},
+        "sabotage_pass": {FLOW: {"calibration": CALIB, "flow": FLOW}},
         "max_indeterminate": 1,
-        "scenarios": {"setup-awow-walkthrough":
-                      {"min_mean": 4.0, "baseline_scores": [4, 5, 5]}}}
+        "scenarios": {FLOW: {"min_mean": 4.0, "baseline_scores": [4, 5, 5]}}}
 
 
 def cell(scen: str, rep: int, yes: int, verdict: str = "pass") -> dict:
@@ -36,7 +36,8 @@ def cell(scen: str, rep: int, yes: int, verdict: str = "pass") -> dict:
 
 
 def resp(calib: str | None = CALIB) -> dict:
-    return {"judge": {"tier": "worker", "calibration": calib} if calib else None}
+    return {"judge": {"tier": "worker", "calibration": {FLOW: calib}}
+            if calib else None}
 
 
 class TestGateErrors(unittest.TestCase):
@@ -82,6 +83,23 @@ class TestGateErrors(unittest.TestCase):
         errs = eval_run.gate_errors(resp(), cells, GATE)
         self.assertTrue(any("0 judged cells" in e for e in errs), errs)
 
+    def test_two_flow_run_gates_clean(self):
+        """AWO-72 AC: a two-scenario suite gates without a spurious drift
+        refusal — the per-flow maps compare equal when no rubric changed."""
+        calib = {FLOW: CALIB, "daily-digest": "def456"}
+        gate = {"calibration": calib,
+                "sabotage_pass": {
+                    FLOW: {"calibration": CALIB, "flow": FLOW},
+                    "daily-digest": {"calibration": "def456",
+                                     "flow": "daily-digest"}},
+                "max_indeterminate": 1,
+                "scenarios": {FLOW: {"min_mean": 4.0},
+                              "daily-digest": {"min_mean": 3.0}}}
+        r = {"judge": {"tier": "worker", "calibration": calib}}
+        cells = [cell(FLOW, 1, 5), cell(FLOW, 2, 5),
+                 cell("daily-digest", 1, 4), cell("daily-digest", 2, 4)]
+        self.assertEqual(eval_run.gate_errors(r, cells, gate), [])
+
 
 class TestDeriveGate(unittest.TestCase):
     """derive_gate.py as a subprocess against a temp evals/ copy — the real
@@ -93,16 +111,18 @@ class TestDeriveGate(unittest.TestCase):
         shutil.copy(REPO / "evals" / "derive_gate.py", self.tmp / "derive_gate.py")
         (self.tmp / "scenarios" / "setup-awow-walkthrough").mkdir(parents=True)
         (self.tmp / "sab.json").write_text(json.dumps(
-            {"calibration": CALIB, "flow": "setup-awow-walkthrough"}))
+            {"calibration": CALIB, "flow": FLOW}))
 
-    def derive(self, cells: list[dict], calib: str = CALIB):
+    def derive(self, cells: list[dict], calib=None, stamps=("sab.json",)):
         (self.tmp / "items.json").write_text(json.dumps(
-            {"judge": {"tier": "worker", "calibration": calib},
+            {"judge": {"tier": "worker",
+                       "calibration": {FLOW: CALIB} if calib is None else calib},
              "data": [{"cell": c} for c in cells]}))
-        return subprocess.run(
-            [sys.executable, str(self.tmp / "derive_gate.py"),
-             str(self.tmp / "items.json"), "--sabotage", str(self.tmp / "sab.json")],
-            capture_output=True, text=True)
+        args = [sys.executable, str(self.tmp / "derive_gate.py"),
+                str(self.tmp / "items.json")]
+        for s in stamps:
+            args += ["--sabotage", str(self.tmp / s)]
+        return subprocess.run(args, capture_output=True, text=True)
 
     def test_happy_path_writes_gate(self):
         r = self.derive([cell("setup-awow-walkthrough", i, s)
@@ -112,12 +132,54 @@ class TestDeriveGate(unittest.TestCase):
         scen = gate["scenarios"]["setup-awow-walkthrough"]
         self.assertEqual(scen["baseline_scores"], [4, 5, 5])
         self.assertAlmostEqual(scen["min_mean"], 4.67 - 1.0, places=2)
-        self.assertEqual(gate["calibration"], CALIB)
+        self.assertEqual(gate["calibration"], {FLOW: CALIB})
+        self.assertEqual(gate["sabotage_pass"][FLOW]["flow"], FLOW)
 
     def test_calibration_mismatch_refuses(self):
-        r = self.derive([cell("setup-awow-walkthrough", 1, 5)], calib="other")
+        r = self.derive([cell(FLOW, 1, 5)], calib={FLOW: "other"})
         self.assertNotEqual(r.returncode, 0)
         self.assertIn("recalibrate", r.stderr)
+        self.assertFalse((self.tmp / "gate.json").exists())
+
+    def test_two_flow_baseline_with_both_stamps_writes_gate(self):
+        """AWO-72 AC: scenario #2 + its own stamp derive cleanly — no
+        spurious drift refusal from the old suite-level digest."""
+        (self.tmp / "scenarios" / "daily-digest").mkdir()
+        (self.tmp / "sab2.json").write_text(json.dumps(
+            {"calibration": "def456", "flow": "daily-digest"}))
+        r = self.derive(
+            [cell(FLOW, i, 5) for i in (1, 2)] +
+            [cell("daily-digest", i, 4) for i in (1, 2)],
+            calib={FLOW: CALIB, "daily-digest": "def456"},
+            stamps=("sab.json", "sab2.json"))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        gate = json.loads((self.tmp / "gate.json").read_text())
+        self.assertEqual(gate["calibration"],
+                         {FLOW: CALIB, "daily-digest": "def456"})
+        self.assertEqual(sorted(gate["sabotage_pass"]), ["daily-digest", FLOW])
+
+    def test_missing_stamp_for_second_flow_refuses(self):
+        (self.tmp / "scenarios" / "daily-digest").mkdir()
+        r = self.derive([cell(FLOW, 1, 5), cell("daily-digest", 1, 4)],
+                        calib={FLOW: CALIB, "daily-digest": "def456"})
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("no sabotage stamp for flow(s) daily-digest", r.stderr)
+        self.assertFalse((self.tmp / "gate.json").exists())
+
+    def test_stale_stamp_for_absent_flow_refuses(self):
+        (self.tmp / "sab2.json").write_text(json.dumps(
+            {"calibration": "def456", "flow": "daily-digest"}))
+        r = self.derive([cell(FLOW, 1, 5)], stamps=("sab.json", "sab2.json"))
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("stale", r.stderr)
+        self.assertFalse((self.tmp / "gate.json").exists())
+
+    def test_legacy_string_calibration_refuses(self):
+        """A pre-AWO-72 items.json (suite-level string) must refuse loudly,
+        not false-match a stamp."""
+        r = self.derive([cell(FLOW, 1, 5)], calib=CALIB)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("per-flow", r.stderr)
         self.assertFalse((self.tmp / "gate.json").exists())
 
     def test_no_judged_cells_refuses(self):

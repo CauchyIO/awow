@@ -36,5 +36,7 @@ jobs:
         run: python3 -m unittest discover -s tests/department
       - name: awow-lock tests
         run: python3 -m unittest discover -s tests/awow-lock
+      - name: Eval gate tests (gate_errors + derive_gate)
+        run: python3 tests/eval-gate/test_gate.py
       - name: Harness wiring checks (Layer 1, no model)
         run: bash tests/harness/run-harness-tests.sh all

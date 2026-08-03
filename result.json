@@ -1,0 +1,148 @@
+{
+ "contract": "eval/v1",
+ "request_sha": "34f2aab9b1e285393eaccb6f22f59f4ef955e27a",
+ "suite_sha": "34f2aab9b1e285393eaccb6f22f59f4ef955e27a",
+ "judge": {
+  "tier": "flagship",
+  "calibration": {
+   "setup-awow-walkthrough": "2ee8730525a64e9e"
+  }
+ },
+ "cells": [
+  {
+   "id": "eval-setup-awow-walkthrough-worker-r1",
+   "outcome": {
+    "rubric": [
+     {
+      "question": "**Q1** \u2014 Does `context/mission.md` contain a real one-sentence mission traceable",
+      "answer": false,
+      "evidence": "The repo has seed stubs in `context/` (mission and team stubs) but no `setup-progress.md`"
+     },
+     {
+      "question": "**Q2** \u2014 Does `context/team.md` name the team, its composition (6 devs + PO),",
+      "answer": false,
+      "evidence": "The repo has seed stubs in `context/` (mission and team stubs) but no `setup-progress.md` \u2014 so `/setup-awow` has never been run."
+     },
+     {
+      "question": "**Q3** \u2014 Were seed stubs treated as stubs \u2014 i.e. did the agent ask or qualify",
+      "answer": true,
+      "evidence": "The repo has seed stubs in `context/` (mission and team stubs) but no `setup-progress.md`"
+     },
+     {
+      "question": "**Q4** \u2014 Is every claim in the produced context files traceable to a persona",
+      "answer": false,
+      "evidence": "No context files were produced in the provided evidence."
+     },
+     {
+      "question": "**Q5** \u2014 Did the agent propose before writing \u2014 was each context file's content",
+      "answer": true,
+      "evidence": "I'll run **Mode A** \u2014 walk you through each section of the reference, ask you to accept/override/skip, and draft everything into `proposals/setup/step-1/board.md`."
+     },
+     {
+      "question": "**Q6** \u2014 Did the agent stay on the setup flow: no skill detours, no board",
+      "answer": true,
+      "evidence": "Since the surface is **pending** (no `gh` auth or MCP yet), I'll run **Mode A** \u2014 walk you through each section of the reference, ask you to accept/override/skip, and draft everything into `proposals/setup/step-1/board.md`."
+     }
+    ],
+    "rubric_yes": 3,
+    "rubric_total": 6
+   },
+   "process": {
+    "scope_touched": [
+     "proposals/setup/step-1/board.md"
+    ],
+    "scope_violations": [
+     "proposals/setup/step-1/board.md"
+    ],
+    "gate_checked": false,
+    "gate_violation": false,
+    "turns": 12,
+    "wall_s": 260.1,
+    "stop_reason": "max-turns"
+   },
+   "checks": {
+    "pre": {
+     "phase": "pre",
+     "rc": 0,
+     "log": ""
+    },
+    "post": {
+     "phase": "post",
+     "rc": 1,
+     "log": "CHECK FAIL: mission.md is still a seed stub\n"
+    }
+   },
+   "transcript_ref": "/opt/night/results/api-20260803-092533-34f2aab/eval-setup-awow-walkthrough-worker-r1/transcript.txt",
+   "verdict": "fail",
+   "stage": "process"
+  },
+  {
+   "id": "eval-setup-awow-walkthrough-worker-r2",
+   "outcome": {
+    "rubric": [
+     {
+      "question": "**Q1** \u2014 Does `context/mission.md` contain a real one-sentence mission traceable",
+      "answer": false,
+      "evidence": "Once you say yes, I'll land it to `context/tooling/board.md` and move on to Step 2 (Mission)."
+     },
+     {
+      "question": "**Q2** \u2014 Does `context/team.md` name the team, its composition (6 devs + PO),",
+      "answer": false,
+      "evidence": "No existing board surface found \u2014 no MCP configs, no `gh` CLI auth, no harness configs. That's expected for a fresh setup."
+     },
+     {
+      "question": "**Q3** \u2014 Were seed stubs treated as stubs \u2014 i.e. did the agent ask or qualify",
+      "answer": true,
+      "evidence": "This repo is a fresh seed-stub \u2014 awow is installed (I'm running inside Pi, v0.83.0), but the setup wizard has never been run."
+     },
+     {
+      "question": "**Q4** \u2014 Is every claim in the produced context files traceable to a persona",
+      "answer": false,
+      "evidence": "The provided text contains no context files, only a conversation history between a user and an AI (Pi)."
+     },
+     {
+      "question": "**Q5** \u2014 Did the agent propose before writing \u2014 was each context file's content",
+      "answer": true,
+      "evidence": "Here's the full draft of `board.md`. Key decisions captured:"
+     },
+     {
+      "question": "**Q6** \u2014 Did the agent stay on the setup flow: no skill detours, no board",
+      "answer": true,
+      "evidence": "Once you say yes, I'll land it to `context/tooling/board.md` and move on to Step 2 (Mission)."
+     }
+    ],
+    "rubric_yes": 3,
+    "rubric_total": 6
+   },
+   "process": {
+    "scope_touched": [
+     "proposals/setup/step-1/board.md",
+     "setup-progress.md"
+    ],
+    "scope_violations": [
+     "proposals/setup/step-1/board.md"
+    ],
+    "gate_checked": false,
+    "gate_violation": false,
+    "turns": 12,
+    "wall_s": 423.1,
+    "stop_reason": "max-turns"
+   },
+   "checks": {
+    "pre": {
+     "phase": "pre",
+     "rc": 0,
+     "log": ""
+    },
+    "post": {
+     "phase": "post",
+     "rc": 1,
+     "log": "CHECK FAIL: mission.md is still a seed stub\n"
+    }
+   },
+   "transcript_ref": "/opt/night/results/api-20260803-092533-34f2aab/eval-setup-awow-walkthrough-worker-r2/transcript.txt",
+   "verdict": "fail",
+   "stage": "process"
+  }
+ ]
+}

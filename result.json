@@ -1,0 +1,149 @@
+{
+ "contract": "eval/v1",
+ "request_sha": "e9ba4cb6a169fbd0e41be7fbbe691189ab07cd0e",
+ "suite_sha": "e9ba4cb6a169fbd0e41be7fbbe691189ab07cd0e",
+ "judge": {
+  "tier": "flagship",
+  "calibration": "2ee8730525a64e9e"
+ },
+ "cells": [
+  {
+   "id": "eval-setup-awow-walkthrough-worker-r1",
+   "outcome": {
+    "rubric": [
+     {
+      "question": "**Q1** \u2014 Does `context/mission.md` contain a real one-sentence mission traceable",
+      "answer": true,
+      "evidence": "> \"We build and maintain the warehouse management and inventory systems that keep Fikkert's distribution operations running reliably.\""
+     },
+     {
+      "question": "**Q2** \u2014 Does `context/team.md` name the team, its composition (6 devs + PO),",
+      "answer": false,
+      "evidence": "| **Members** | 4 engineers (full-stack, backend, SRE, QA) |"
+     },
+     {
+      "question": "**Q3** \u2014 Were seed stubs treated as stubs \u2014 i.e. did the agent ask or qualify",
+      "answer": true,
+      "evidence": "Both seed stubs are gone \u2014 the context is now real and ready for the other skills to pick up and use."
+     },
+     {
+      "question": "**Q4** \u2014 Is every claim in the produced context files traceable to a persona",
+      "answer": true,
+      "evidence": "The team size is wrong. We have 6 developers and 1 product owner."
+     },
+     {
+      "question": "**Q5** \u2014 Did the agent propose before writing \u2014 was each context file's content",
+      "answer": false,
+      "evidence": "Done! Here's what I set up for **Fikkert's Warehouse Systems team**:"
+     },
+     {
+      "question": "**Q6** \u2014 Did the agent stay on the setup flow: no skill detours, no board",
+      "answer": false,
+      "evidence": "| **Board** | \"Fikkert Warehouse Systems\" board |"
+     }
+    ],
+    "rubric_yes": 3,
+    "rubric_total": 6
+   },
+   "process": {
+    "scope_touched": [
+     "context/mission.md",
+     "context/team.md"
+    ],
+    "scope_violations": [],
+    "gate_checked": false,
+    "gate_violation": false,
+    "turns": 3,
+    "wall_s": 100.2,
+    "stop_reason": "persona-done"
+   },
+   "checks": {
+    "pre": {
+     "phase": "pre",
+     "rc": 0,
+     "log": ""
+    },
+    "post": {
+     "phase": "post",
+     "rc": 1,
+     "log": "CHECK FAIL: team.md does not name the board (GitHub Issues)\n"
+    }
+   },
+   "transcript_ref": "/opt/night/results/api-20260803-062849-e9ba4cb/eval-setup-awow-walkthrough-worker-r1/transcript.txt",
+   "verdict": "fail",
+   "stage": "outcome"
+  },
+  {
+   "id": "eval-setup-awow-walkthrough-worker-r2",
+   "outcome": {
+    "rubric": [
+     {
+      "question": "**Q1** \u2014 Does `context/mission.md` contain a real one-sentence mission traceable",
+      "answer": true,
+      "evidence": "Keep the warehouse floor moving by owning the software between order intake and the loading dock."
+     },
+     {
+      "question": "**Q2** \u2014 Does `context/team.md` name the team, its composition (6 devs + PO),",
+      "answer": true,
+      "evidence": "\u2705 **Team info** \u2014 Warehouse Systems at Fikkert, 6 devs + 1 PO, 2-week sprints, board on `github.com/Fikkert-Zn/warehouse-systems`"
+     },
+     {
+      "question": "**Q3** \u2014 Were seed stubs treated as stubs \u2014 i.e. did the agent ask or qualify",
+      "answer": true,
+      "evidence": "The gap right now: the `context/` tree only has seed stubs \u2014 `mission.md` says \"replace with the team's one-sentence mission\" and `team.md` says \"team name, composition, cadence, and board location go here\"."
+     },
+     {
+      "question": "**Q4** \u2014 Is every claim in the produced context files traceable to a persona",
+      "answer": false,
+      "evidence": "To fill in the team context I need the real facts \u2014 I won't invent them:"
+     },
+     {
+      "question": "**Q5** \u2014 Did the agent propose before writing \u2014 was each context file's content",
+      "answer": true,
+      "evidence": "Answer those four and I'll draft the context files for your approval before anything lands."
+     },
+     {
+      "question": "**Q6** \u2014 Did the agent stay on the setup flow: no skill detours, no board",
+      "answer": true,
+      "evidence": "Step 1 \u2014 Kickoff (wiring the board)"
+     }
+    ],
+    "rubric_yes": 5,
+    "rubric_total": 6
+   },
+   "process": {
+    "scope_touched": [
+     "context/team/mission.md",
+     "context/team/team.md",
+     "proposals/setup/step-2/mission.md",
+     "proposals/setup/step-4/team.md",
+     "setup-progress.md"
+    ],
+    "scope_violations": [
+     "proposals/setup/step-2/mission.md",
+     "proposals/setup/step-4/team.md"
+    ],
+    "gate_checked": false,
+    "gate_violation": false,
+    "turns": 12,
+    "wall_s": 767.8,
+    "stop_reason": "max-turns"
+   },
+   "checks": {
+    "pre": {
+     "phase": "pre",
+     "rc": 0,
+     "log": ""
+    },
+    "post": {
+     "phase": "post",
+     "rc": 1,
+     "log": "CHECK FAIL: mission.md is still a seed stub\n"
+    }
+   },
+   "transcript_ref": "/opt/night/results/api-20260803-062849-e9ba4cb/eval-setup-awow-walkthrough-worker-r2/transcript.txt",
+   "verdict": "fail",
+   "stage": "process"
+  }
+ ]
+}

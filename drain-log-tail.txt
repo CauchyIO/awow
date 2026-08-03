@@ -1,0 +1,300 @@
+remote: 
+To https://github.com/awowIO/eval-relay.git
+ * [new branch]      HEAD -> results/CauchyIO-awow/eval-api-20260802-115218-1709354
+remote: 
+remote: Create a pull request for 'results/CauchyIO-awow/eval-api-20260802-115749-e4eb9f0' on GitHub by visiting:        
+remote:      https://github.com/awowIO/eval-relay/pull/new/results/CauchyIO-awow/eval-api-20260802-115749-e4eb9f0        
+remote: 
+To https://github.com/awowIO/eval-relay.git
+ * [new branch]      HEAD -> results/CauchyIO-awow/eval-api-20260802-115749-e4eb9f0
+remote: 
+remote: Create a pull request for 'results/CauchyIO-awow/eval-api-20260802-115956-e4eb9f0' on GitHub by visiting:        
+remote:      https://github.com/awowIO/eval-relay/pull/new/results/CauchyIO-awow/eval-api-20260802-115956-e4eb9f0        
+remote: 
+To https://github.com/awowIO/eval-relay.git
+ * [new branch]      HEAD -> results/CauchyIO-awow/eval-api-20260802-115956-e4eb9f0
+eval-poller: inbox api-20260802-115211-1709354 @ 170935445 -> /opt/night/bundles/eval-api-20260802-115211-1709354
+eval-poller: inbox api-20260802-115218-1709354 @ 170935445 -> /opt/night/bundles/eval-api-20260802-115218-1709354
+eval-drain: relay rung for results/CauchyIO-awow/eval-api-20260802-115211-1709354 (204)
+eval-drain: inbox api-20260802-115211-1709354 -> results/CauchyIO-awow/eval-api-20260802-115211-1709354
+eval-drain: relay rung for results/CauchyIO-awow/eval-api-20260802-115218-1709354 (204)
+eval-drain: inbox api-20260802-115218-1709354 -> results/CauchyIO-awow/eval-api-20260802-115218-1709354
+eval-poller: inbox api-20260802-115749-e4eb9f0 @ e4eb9f041 -> /opt/night/bundles/eval-api-20260802-115749-e4eb9f0
+eval-poller: inbox api-20260802-115956-e4eb9f0 @ e4eb9f041 -> /opt/night/bundles/eval-api-20260802-115956-e4eb9f0
+eval-drain: relay rung for results/CauchyIO-awow/eval-api-20260802-115749-e4eb9f0 (204)
+eval-drain: inbox api-20260802-115749-e4eb9f0 -> results/CauchyIO-awow/eval-api-20260802-115749-e4eb9f0
+eval-drain: relay rung for results/CauchyIO-awow/eval-api-20260802-115956-e4eb9f0 (204)
+eval-drain: inbox api-20260802-115956-e4eb9f0 -> results/CauchyIO-awow/eval-api-20260802-115956-e4eb9f0
+eval-drain: 4 result branch(es) pushed
+eval-drain: deallocate accepted (202)
+=== eval-boot 2026-08-02T13:13:03Z ===
+From https://github.com/awowIO/overnight
+   97997ea..ad02e2d  casper/estate-deliteral -> origin/casper/estate-deliteral
+Updating 97997ea..ad02e2d
+Fast-forward
+ docs/EVAL-API.md                                   |   9 +-
+ .../plans/2026-08-02-nightcore-implementation.md   | 575 +++++++++++++++++++++
+ .../specs/2026-08-02-nightcore-module.md           |  71 +++
+ harness/eval_drain.py                              |  13 +-
+ harness/eval_poller.py                             |  39 +-
+ harness/nightcore/__init__.py                      |   4 +
+ harness/nightcore/azure.py                         |  45 ++
+ harness/nightcore/ghapp.py                         |  47 ++
+ harness/nightcore/ident.py                         |  21 +
+ harness/nightcore/inbox.py                         |  42 ++
+ harness/tests/test_nightcore.py                    | 138 +++++
+ ...R-2026-08-02-eval-api-live-next-eval-content.md | 133 +++++
+ 12 files changed, 1094 insertions(+), 43 deletions(-)
+ create mode 100644 docs/superpowers/plans/2026-08-02-nightcore-implementation.md
+ create mode 100644 docs/superpowers/specs/2026-08-02-nightcore-module.md
+ create mode 100644 harness/nightcore/__init__.py
+ create mode 100644 harness/nightcore/azure.py
+ create mode 100644 harness/nightcore/ghapp.py
+ create mode 100644 harness/nightcore/ident.py
+ create mode 100644 harness/nightcore/inbox.py
+ create mode 100644 harness/tests/test_nightcore.py
+ create mode 100644 ops/records/HANDOVER-2026-08-02-eval-api-live-next-eval-content.md
+eval-boot: harness updated (97997ea63976a112aa8a3771f82a3376a2329229 -> ad02e2d1ffd4ff9c55df0471768e9005ba3aec96) — re-exec
+=== eval-boot 2026-08-02T13:13:06Z ===
+Already up to date.
+eval-boot: resolve: pi=/usr/local/bin/pi node=v22.23.2
+eval-boot: post-check: pi=/usr/local/bin/pi node=v22.23.2
+eval-poller: inbox api-20260802-131239-f49f9ab @ f49f9ab81 -> /opt/night/bundles/eval-api-20260802-131239-f49f9ab
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/urllib/request.py", line 1344, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+  File "/usr/lib/python3.12/http/client.py", line 1365, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/usr/lib/python3.12/http/client.py", line 1411, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/usr/lib/python3.12/http/client.py", line 1360, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/usr/lib/python3.12/http/client.py", line 1120, in _send_output
+    self.send(msg)
+  File "/usr/lib/python3.12/http/client.py", line 1064, in send
+    self.connect()
+  File "/usr/lib/python3.12/http/client.py", line 1499, in connect
+    super().connect()
+  File "/usr/lib/python3.12/http/client.py", line 1030, in connect
+    self.sock = self._create_connection(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "/usr/lib/python3.12/socket.py", line 837, in create_connection
+    sock.connect(sa)
+TimeoutError: timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/night/repos/overnight/harness/eval_drain.py", line 252, in <module>
+    branches = drain(registry_md, args.clones_root, args.state_dir,
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/night/repos/overnight/harness/eval_drain.py", line 95, in drain
+    files = run_bundle(bundles_dir, clone, meta, results_root)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/night/repos/overnight/harness/eval_drain.py", line 249, in run_bundle
+    return run_bundle_local(bundles_dir, clone, meta, results_root,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/night/repos/overnight/harness/eval_drain.py", line 169, in run_bundle_local
+    eval_run_local.run_eval(bundles_dir, wt, out, seatmap, chat)
+  File "/opt/night/repos/overnight/harness/eval_run_local.py", line 102, in run_eval
+    cells.append(eval_judge.judge_cell(
+                 ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/night/repos/overnight/harness/eval_judge.py", line 107, in judge_cell
+    answers = rubric_answers(chat, questions, transcript[-40000:])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/night/repos/overnight/harness/eval_judge.py", line 68, in rubric_answers
+    raw = chat(RUBRIC_SYSTEM, f"Question: {q}\n\nEVIDENCE:\n{evidence}")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/night/repos/overnight/harness/turn_driver.py", line 140, in chat
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 215, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 515, in open
+    response = self._open(req, data)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 532, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 492, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 1392, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 1347, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error timed out>
+=== eval-boot 2026-08-02T17:34:18Z ===
+From https://github.com/awowIO/overnight
+   ad02e2d..0617b42  casper/estate-deliteral -> origin/casper/estate-deliteral
+Updating ad02e2d..0617b42
+Fast-forward
+ .../plans/2026-08-02-eval-dual-witness-verdicts.md | 927 +++++++++++++++++++++
+ .../2026-08-02-eval-content-night-protocol.md      | 317 +++++++
+ 2 files changed, 1244 insertions(+)
+ create mode 100644 docs/superpowers/plans/2026-08-02-eval-dual-witness-verdicts.md
+ create mode 100644 docs/superpowers/specs/2026-08-02-eval-content-night-protocol.md
+eval-boot: harness updated (ad02e2d1ffd4ff9c55df0471768e9005ba3aec96 -> 0617b42769f1ec6529c36b4ec909de4116bd2042) — re-exec
+=== eval-boot 2026-08-02T17:34:19Z ===
+Already up to date.
+eval-boot: resolve: pi=/usr/local/bin/pi node=v22.23.2
+eval-boot: post-check: pi=/usr/local/bin/pi node=v22.23.2
+remote: 
+remote: Create a pull request for 'results/CauchyIO-awow/eval-api-20260802-131823-f49f9ab' on GitHub by visiting:        
+remote:      https://github.com/awowIO/eval-relay/pull/new/results/CauchyIO-awow/eval-api-20260802-131823-f49f9ab        
+remote: 
+To https://github.com/awowIO/eval-relay.git
+ * [new branch]      HEAD -> results/CauchyIO-awow/eval-api-20260802-131823-f49f9ab
+remote: 
+remote: Create a pull request for 'results/CauchyIO-awow/eval-api-20260802-173404-f49f9ab' on GitHub by visiting:        
+remote:      https://github.com/awowIO/eval-relay/pull/new/results/CauchyIO-awow/eval-api-20260802-173404-f49f9ab        
+remote: 
+To https://github.com/awowIO/eval-relay.git
+ * [new branch]      HEAD -> results/CauchyIO-awow/eval-api-20260802-173404-f49f9ab
+eval-poller: inbox api-20260802-131823-f49f9ab @ f49f9ab81 -> /opt/night/bundles/eval-api-20260802-131823-f49f9ab
+eval-poller: inbox api-20260802-173404-f49f9ab @ f49f9ab81 -> /opt/night/bundles/eval-api-20260802-173404-f49f9ab
+eval-drain: relay rung for results/CauchyIO-awow/eval-api-20260802-131823-f49f9ab (204)
+eval-drain: inbox api-20260802-131823-f49f9ab -> results/CauchyIO-awow/eval-api-20260802-131823-f49f9ab
+eval-drain: relay rung for results/CauchyIO-awow/eval-api-20260802-173404-f49f9ab (204)
+eval-drain: inbox api-20260802-173404-f49f9ab -> results/CauchyIO-awow/eval-api-20260802-173404-f49f9ab
+eval-drain: 2 result branch(es) pushed
+eval-drain: deallocate accepted (202)
+=== eval-boot 2026-08-02T17:55:50Z ===
+From https://github.com/awowIO/overnight
+   0617b42..b9b5171  casper/estate-deliteral -> origin/casper/estate-deliteral
+Updating 0617b42..b9b5171
+Fast-forward
+ docs/EVAL-API.md                        |   6 +
+ harness/eval_judge.py                   |  92 +++++++++++++--
+ harness/eval_run_local.py               |  27 ++++-
+ harness/make_eval_bundles.py            |   5 +
+ harness/tests/test_eval_judge.py        | 194 ++++++++++++++++++++++++++++++++
+ harness/tests/test_eval_run_local.py    |  61 ++++++++++
+ harness/tests/test_make_eval_bundles.py |  10 ++
+ 7 files changed, 383 insertions(+), 12 deletions(-)
+eval-boot: harness updated (0617b42769f1ec6529c36b4ec909de4116bd2042 -> b9b51718267e4641dd1ec05969e1fc09640911ef) — re-exec
+=== eval-boot 2026-08-02T17:55:52Z ===
+Already up to date.
+eval-boot: resolve: pi=/usr/local/bin/pi node=v22.23.2
+eval-boot: post-check: pi=/usr/local/bin/pi node=v22.23.2
+remote: 
+remote: Create a pull request for 'results/CauchyIO-awow/eval-api-20260802-175531-a7e907f' on GitHub by visiting:        
+remote:      https://github.com/awowIO/eval-relay/pull/new/results/CauchyIO-awow/eval-api-20260802-175531-a7e907f        
+remote: 
+To https://github.com/awowIO/eval-relay.git
+ * [new branch]      HEAD -> results/CauchyIO-awow/eval-api-20260802-175531-a7e907f
+eval-poller: inbox api-20260802-175531-a7e907f @ a7e907ffd -> /opt/night/bundles/eval-api-20260802-175531-a7e907f
+eval-drain: relay rung for results/CauchyIO-awow/eval-api-20260802-175531-a7e907f (204)
+eval-drain: inbox api-20260802-175531-a7e907f -> results/CauchyIO-awow/eval-api-20260802-175531-a7e907f
+eval-drain: 1 result branch(es) pushed
+eval-drain: deallocate accepted (202)
+=== eval-boot 2026-08-02T18:07:41Z ===
+From https://github.com/awowIO/overnight
+   b9b5171..78ab1ec  casper/estate-deliteral -> origin/casper/estate-deliteral
+Updating b9b5171..78ab1ec
+Fast-forward
+ docs/EVAL-API.md                                   |  4 +-
+ .../2026-08-02-eval-content-night-protocol.md      |  9 +++--
+ harness/eval_judge.py                              | 35 ++++++++++++----
+ harness/tests/test_eval_judge.py                   | 46 +++++++++++++++++++++-
+ 4 files changed, 81 insertions(+), 13 deletions(-)
+eval-boot: harness updated (b9b51718267e4641dd1ec05969e1fc09640911ef -> 78ab1eca6bd81eada21f13482e35e712209211ae) — re-exec
+=== eval-boot 2026-08-02T18:07:43Z ===
+Already up to date.
+eval-boot: resolve: pi=/usr/local/bin/pi node=v22.23.2
+eval-boot: post-check: pi=/usr/local/bin/pi node=v22.23.2
+remote: 
+remote: Create a pull request for 'results/CauchyIO-awow/eval-api-20260802-180714-b8c50e8' on GitHub by visiting:        
+remote:      https://github.com/awowIO/eval-relay/pull/new/results/CauchyIO-awow/eval-api-20260802-180714-b8c50e8        
+remote: 
+To https://github.com/awowIO/eval-relay.git
+ * [new branch]      HEAD -> results/CauchyIO-awow/eval-api-20260802-180714-b8c50e8
+eval-poller: inbox api-20260802-180714-b8c50e8 @ b8c50e89c -> /opt/night/bundles/eval-api-20260802-180714-b8c50e8
+eval-drain: relay rung for results/CauchyIO-awow/eval-api-20260802-180714-b8c50e8 (204)
+eval-drain: inbox api-20260802-180714-b8c50e8 -> results/CauchyIO-awow/eval-api-20260802-180714-b8c50e8
+eval-drain: 1 result branch(es) pushed
+eval-drain: deallocate accepted (202)
+=== eval-boot 2026-08-02T19:29:42Z ===
+From https://github.com/awowIO/overnight
+   78ab1ec..b0ef895  casper/estate-deliteral -> origin/casper/estate-deliteral
+Updating 78ab1ec..b0ef895
+Fast-forward
+ .../plans/2026-08-02-eval-gate-trend-sabotage.md   | 700 +++++++++++++++++++++
+ .../2026-08-02-eval-content-night-protocol.md      |  48 +-
+ .../2026-08-02-checks-env-inheritance-vuln.md      |  97 +++
+ 3 files changed, 824 insertions(+), 21 deletions(-)
+ create mode 100644 docs/superpowers/plans/2026-08-02-eval-gate-trend-sabotage.md
+ create mode 100644 ops/records/post-mortems/2026-08-02-checks-env-inheritance-vuln.md
+eval-boot: harness updated (78ab1eca6bd81eada21f13482e35e712209211ae -> b0ef895619e99037c6be9ec92c5cb7269334ecd7) — re-exec
+=== eval-boot 2026-08-02T19:29:45Z ===
+Already up to date.
+eval-boot: resolve: pi=/usr/local/bin/pi node=v22.23.2
+eval-boot: post-check: pi=/usr/local/bin/pi node=v22.23.2
+remote: 
+remote: Create a pull request for 'results/CauchyIO-awow/eval-api-20260802-192921-96ffc8f' on GitHub by visiting:        
+remote:      https://github.com/awowIO/eval-relay/pull/new/results/CauchyIO-awow/eval-api-20260802-192921-96ffc8f        
+remote: 
+To https://github.com/awowIO/eval-relay.git
+ * [new branch]      HEAD -> results/CauchyIO-awow/eval-api-20260802-192921-96ffc8f
+eval-poller: inbox api-20260802-192921-96ffc8f @ 96ffc8fb8 -> /opt/night/bundles/eval-api-20260802-192921-96ffc8f
+eval-drain: relay rung for results/CauchyIO-awow/eval-api-20260802-192921-96ffc8f (204)
+eval-drain: inbox api-20260802-192921-96ffc8f -> results/CauchyIO-awow/eval-api-20260802-192921-96ffc8f
+eval-drain: 1 result branch(es) pushed
+eval-drain: deallocate accepted (202)
+=== eval-boot 2026-08-02T19:52:47Z ===
+From https://github.com/awowIO/overnight
+   b0ef895..591b270  casper/estate-deliteral -> origin/casper/estate-deliteral
+Updating b0ef895..591b270
+Fast-forward
+ docs/EVAL-API.md                                   |  22 +++
+ .../2026-08-02-eval-content-night-protocol.md      |  70 ++++++---
+ harness/eval_drain.py                              |   3 +
+ harness/eval_judge.py                              |  22 +++
+ harness/eval_sabotage.py                           | 129 ++++++++++++++++
+ harness/preflight_harness.sh                       |   2 +-
+ harness/prewarm-caches.sh                          |   2 +-
+ harness/run1.sh                                    |   2 +-
+ harness/tests/test_eval_drain.py                   |  16 +-
+ harness/tests/test_eval_judge.py                   |  29 ++++
+ harness/tests/test_eval_sabotage.py                | 171 +++++++++++++++++++++
+ ops/eval-ingress/relay-deliver-trend.patch.md      |  59 +++++++
+ ops/sbx-codegen/provision.sh                       |  54 +++++--
+ 13 files changed, 535 insertions(+), 46 deletions(-)
+ create mode 100644 harness/eval_sabotage.py
+ create mode 100644 harness/tests/test_eval_sabotage.py
+ create mode 100644 ops/eval-ingress/relay-deliver-trend.patch.md
+eval-boot: harness updated (b0ef895619e99037c6be9ec92c5cb7269334ecd7 -> 591b270006842c401505dc19615d7c830703faaf) — re-exec
+=== eval-boot 2026-08-02T19:52:49Z ===
+Already up to date.
+eval-boot: resolve: pi=/usr/local/bin/pi node=v22.23.2
+eval-boot: post-check: pi=/usr/local/bin/pi node=v22.23.2
+remote: 
+remote: Create a pull request for 'results/CauchyIO-awow/eval-api-20260802-195226-f48cadd' on GitHub by visiting:        
+remote:      https://github.com/awowIO/eval-relay/pull/new/results/CauchyIO-awow/eval-api-20260802-195226-f48cadd        
+remote: 
+To https://github.com/awowIO/eval-relay.git
+ * [new branch]      HEAD -> results/CauchyIO-awow/eval-api-20260802-195226-f48cadd
+eval-poller: inbox api-20260802-195226-f48cadd @ f48cadde7 -> /opt/night/bundles/eval-api-20260802-195226-f48cadd
+eval-drain: relay rung for results/CauchyIO-awow/eval-api-20260802-195226-f48cadd (204)
+eval-drain: inbox api-20260802-195226-f48cadd -> results/CauchyIO-awow/eval-api-20260802-195226-f48cadd
+eval-drain: 1 result branch(es) pushed
+eval-drain: deallocate accepted (202)
+=== eval-boot 2026-08-03T06:29:09Z ===
+From https://github.com/awowIO/overnight
+   591b270..25885d6  casper/estate-deliteral -> origin/casper/estate-deliteral
+Updating 591b270..25885d6
+Fast-forward
+ docs/EVAL-API.md                                               |  6 ++++--
+ .../specs/2026-08-02-eval-content-night-protocol.md            |  9 +++++++++
+ harness/eval_sabotage.py                                       | 10 ++++++++--
+ ops/eval-ingress/relay-deliver-trend.patch.md                  |  7 +++++--
+ 4 files changed, 26 insertions(+), 6 deletions(-)
+eval-boot: harness updated (591b270006842c401505dc19615d7c830703faaf -> 25885d6b27cb63f08032fcd2ccf433799204b28e) — re-exec
+=== eval-boot 2026-08-03T06:29:12Z ===
+Already up to date.
+eval-boot: resolve: pi=/usr/local/bin/pi node=v22.23.2
+eval-boot: post-check: pi=/usr/local/bin/pi node=v22.23.2

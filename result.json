@@ -1,0 +1,176 @@
+{
+ "contract": "eval/v1",
+ "request_sha": "4bcc8045cd32dbc4afdb9561c0bb4731ccf6bfd8",
+ "suite_sha": "4bcc8045cd32dbc4afdb9561c0bb4731ccf6bfd8",
+ "judge": {
+  "tier": "flagship",
+  "calibration": {
+   "setup-awow-walkthrough": "2ee8730525a64e9e"
+  }
+ },
+ "cells": [
+  {
+   "id": "eval-setup-awow-walkthrough-worker-r1",
+   "outcome": {
+    "rubric": [
+     {
+      "question": "**Q1** \u2014 Does `context/mission.md` contain a real one-sentence mission traceable",
+      "answer": true,
+      "evidence": "Keep the warehouse floor moving by owning the software between order intake and the loading dock, covering WMS integrations, picking optimisation, and label/manifest generation."
+     },
+     {
+      "question": "**Q2** \u2014 Does `context/team.md` name the team, its composition (6 devs + PO),",
+      "answer": true,
+      "evidence": "- **Rens Nijhuis** \u2014 Team lead. Technical direction, coordination, delivery. Focus: WMS integrations, picking, labels/manifests.\n- **Developers (5)** \u2014 placeholder pending names/specialisations\n- **Product owner (1)** \u2014 placeholder pending name"
+     },
+     {
+      "question": "**Q3** \u2014 Were seed stubs treated as stubs \u2014 i.e. did the agent ask or qualify",
+      "answer": true,
+      "evidence": "Once you say yes, it goes to:\n- `context/team/mission.md` (canonical \u2014 this is what the skills read)\n- `context/mission.md` (the seed stub, replaced with the real mission)"
+     },
+     {
+      "question": "**Q4** \u2014 Is every claim in the produced context files traceable to a persona",
+      "answer": false,
+      "evidence": "The Warehouse Systems team consists of 6 developers and 1 product owner. I lead the team."
+     },
+     {
+      "question": "**Q5** \u2014 Did the agent propose before writing \u2014 was each context file's content",
+      "answer": true,
+      "evidence": "Here's the draft `AGENTS.md` \u2014 it composes everything we've collected so far:"
+     },
+     {
+      "question": "**Q6** \u2014 Did the agent stay on the setup flow: no skill detours, no board",
+      "answer": true,
+      "evidence": "Step 1 \u2014 Kickoff (REQUIRED). This wires your board so the agent can read and write issues. I need two things from you:"
+     }
+    ],
+    "rubric_yes": 5,
+    "rubric_total": 6
+   },
+   "process": {
+    "scope_touched": [
+     "context/mission.md",
+     "context/team.md",
+     "context/team/conventions/REQUIRED/branches.md",
+     "context/team/conventions/REQUIRED/issue-titles.md",
+     "context/team/conventions/REQUIRED/labels.md",
+     "context/team/conventions/REQUIRED/output-discipline.md",
+     "context/team/members.md",
+     "context/team/mission.md",
+     "context/team/style/board-output.md",
+     "context/team/style/comments.md",
+     "context/team/style/placement.md",
+     "context/team/style/prose.md",
+     "proposals/setup/step-2/mission.md",
+     "proposals/setup/step-3/branches.md",
+     "proposals/setup/step-3/issue-titles.md",
+     "proposals/setup/step-3/labels.md",
+     "proposals/setup/step-3/output-discipline.md",
+     "proposals/setup/step-4/members.md",
+     "proposals/setup/step-4/style/board-output.md",
+     "proposals/setup/step-4/style/comments.md",
+     "proposals/setup/step-4/style/placement.md",
+     "proposals/setup/step-4/style/prose.md",
+     "proposals/setup/step-5/AGENTS.md",
+     "setup-progress.md"
+    ],
+    "scope_violations": [
+     "proposals/setup/step-2/mission.md",
+     "proposals/setup/step-3/branches.md",
+     "proposals/setup/step-3/issue-titles.md",
+     "proposals/setup/step-3/labels.md",
+     "proposals/setup/step-3/output-discipline.md",
+     "proposals/setup/step-4/members.md",
+     "proposals/setup/step-4/style/board-output.md",
+     "proposals/setup/step-4/style/comments.md",
+     "proposals/setup/step-4/style/placement.md",
+     "proposals/setup/step-4/style/prose.md",
+     "proposals/setup/step-5/AGENTS.md"
+    ],
+    "gate_checked": false,
+    "gate_violation": false,
+    "turns": 12,
+    "wall_s": 628.7,
+    "stop_reason": "max-turns"
+   },
+   "checks": {
+    "pre": {
+     "phase": "pre",
+     "rc": 0,
+     "log": ""
+    },
+    "post": {
+     "phase": "post",
+     "rc": 0,
+     "log": ""
+    }
+   },
+   "transcript_ref": "/opt/night/results/api-20260803-092116-4bcc804/eval-setup-awow-walkthrough-worker-r1/transcript.txt",
+   "verdict": "fail",
+   "stage": "process"
+  },
+  {
+   "id": "eval-setup-awow-walkthrough-worker-r2",
+   "outcome": {
+    "rubric": [
+     {
+      "question": "**Q1** \u2014 Does `context/mission.md` contain a real one-sentence mission traceable",
+      "answer": true,
+      "evidence": "> The Warehouse Systems team equips Fikkert & Zn. with reliable, automated warehouse management systems that keep stock moving and orders accurate."
+     },
+     {
+      "question": "**Q2** \u2014 Does `context/team.md` name the team, its composition (6 devs + PO),",
+      "answer": false,
+      "evidence": "- **Composition:** 6 engineers (backend, frontend, QA) + team lead (you)"
+     },
+     {
+      "question": "**Q3** \u2014 Were seed stubs treated as stubs \u2014 i.e. did the agent ask or qualify",
+      "answer": true,
+      "evidence": "One thing I couldn't fill in: the actual mono-repo URL for the board link. The repo here has no git remote configured, so I didn't want to invent a URL. If you share the repo URL (e.g. `github.com/fikkert/warehouse-platform`), I'll add it as a clickable board link."
+     },
+     {
+      "question": "**Q4** \u2014 Is every claim in the produced context files traceable to a persona",
+      "answer": false,
+      "evidence": "I set the standup/refinement/planning/retro schedule as a reasonable default, but if your team actually works differently, let me know and I'll update it."
+     },
+     {
+      "question": "**Q5** \u2014 Did the agent propose before writing \u2014 was each context file's content",
+      "answer": false,
+      "evidence": "Done! Here's what we set up:"
+     },
+     {
+      "question": "**Q6** \u2014 Did the agent stay on the setup flow: no skill detours, no board",
+      "answer": true,
+      "evidence": "I'll start with **Step 0 \u2014 Installer**. First though: I'm running in **Pi**, but your repo doesn't have a `.pi/` directory yet. Does your team use any other supported harness (Claude Code, Copilot, Codex, opencode), or is Pi the only one to wire up?"
+     }
+    ],
+    "rubric_yes": 3,
+    "rubric_total": 6
+   },
+   "process": {
+    "scope_touched": [],
+    "scope_violations": [],
+    "gate_checked": false,
+    "gate_violation": false,
+    "turns": 12,
+    "wall_s": 434.4,
+    "stop_reason": "max-turns"
+   },
+   "checks": {
+    "pre": {
+     "phase": "pre",
+     "rc": 0,
+     "log": ""
+    },
+    "post": {
+     "phase": "post",
+     "rc": 0,
+     "log": ""
+    }
+   },
+   "transcript_ref": "/opt/night/results/api-20260803-092116-4bcc804/eval-setup-awow-walkthrough-worker-r2/transcript.txt",
+   "verdict": "fail",
+   "stage": "outcome"
+  }
+ ]
+}

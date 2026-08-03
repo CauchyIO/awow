@@ -77,17 +77,24 @@ def render_scores(record: dict, cells: list[dict]) -> list[str]:
     return lines
 
 
+def calib_str(calib) -> str:
+    """Per-flow calibration map ({flow: hash}, AWO-72) rendered for messages."""
+    return (", ".join(f"{f}={h}" for f, h in sorted(calib.items()))
+            if isinstance(calib, dict) else repr(calib))
+
+
 def gate_errors(resp: dict, cells: list[dict], gate: dict) -> list[str]:
     """Regression is a score below the baselined floor; indeterminate is
     no-data and trips its own cap, never a fail. An unqualified or drifted
-    calibration refuses to gate at all (spec §8/§9)."""
+    calibration refuses to gate at all (spec §8/§9). Calibration compares as
+    a whole per-flow map: any rubric edit or flow addition re-baselines."""
     run_calib = (resp.get("judge") or {}).get("calibration")
     if not gate.get("sabotage_pass"):
         return ["gate.json has no sabotage_pass — the judge is unqualified; "
                 "refusing to gate"]
     if run_calib != gate["calibration"]:
-        return [f"run calibration {run_calib!r} != gate {gate['calibration']!r}"
-                " — re-baseline before gating"]
+        return [f"run calibration {calib_str(run_calib)} != gate "
+                f"{calib_str(gate['calibration'])} — re-baseline before gating"]
     per, indeterminate = {}, 0
     for c in cells:
         scen = c["id"].removeprefix("eval-").rsplit("-", 2)[0]
@@ -147,7 +154,7 @@ def main() -> int:
                     print("::error::eval gate failed — see summary")
                     return 1
                 summary("", "Gate: **clean** vs baseline "
-                        f"`{json.loads(gate_path.read_text())['calibration']}`")
+                        f"`{calib_str(json.loads(gate_path.read_text())['calibration'])}`")
             return 0
 
         if status == "failed":

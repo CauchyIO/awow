@@ -59,7 +59,7 @@ Flag cross-team edges (a dependency owned by a neighbouring team) and any node w
 
 ### >>> GATE 1: Confirm the graph
 
-Stop here. Present:
+Stop here. The block below is deliberately dense — it is the precise, checkable form of the plan. Never present it bare: open with 2–4 plain-language sentences that orient a reader who does not live in dependency graphs — what this graph decides (the build order: what can start now, what waits on what), and where their attention pays off: the **critical path** (the chain that sets the timeline), any **inferred edges** (your guesses, to confirm or strike), and the **gaps** list (what stalls if picked up as-is). Then present:
 
 ```
 GATE 1 — DEPENDENCY GRAPH
@@ -109,6 +109,13 @@ Turn the confirmed graph into a concrete, ordered set of board actions, and asse
 **Owner:** <name or —>
 **Target cycle:** <cycle or —>
 
+## How to read this plan
+<3–5 plain-language sentences for the least technical teammate who will open
+this file: what this plan decides; that a layer can start once the layer before
+it is done and everything inside a layer can run in parallel; that the critical
+path is the chain to watch because delay there delays everything; and where to
+look first — decisions carrying your name, then the risks.>
+
 ## Dependency graph
 - Nodes, edges, sequence layers, and critical path (the confirmed Gate 1 graph, in full).
 
@@ -130,7 +137,7 @@ Turn the confirmed graph into a concrete, ordered set of board actions, and asse
 
 ### >>> GATE 2: Approve writes
 
-Stop here. Present:
+Stop here. Orient before the block, in one or two plain sentences: what will be created or changed where, that nothing has been written yet, and which single action deserves the closest look (usually an UPDATE to an existing item, or the edge encoding). Then present:
 
 ```
 GATE 2 — PROPOSED WRITES

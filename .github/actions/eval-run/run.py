@@ -105,6 +105,9 @@ def gate_errors(resp: dict, cells: list[dict], gate: dict) -> list[str]:
             mean = sum(scores) / len(scores)
             if mean < g["min_mean"]:
                 errs.append(f"{scen}: mean {mean:.2f} < gate {g['min_mean']}")
+        else:
+            errs.append(f"{scen}: 0 judged cells in this run — every "
+                        "baselined scenario must produce data to gate")
     return errs
 
 

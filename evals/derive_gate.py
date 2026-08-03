@@ -37,6 +37,13 @@ def main() -> int:
             per.setdefault(scen, []).append(c["outcome"]["rubric_yes"])
     if not per:
         sys.exit("derive_gate: no judged cells in the baseline run")
+    scen_root = Path(__file__).resolve().parent / "scenarios"
+    missing = sorted(p.name for p in scen_root.iterdir()
+                     if p.is_dir() and p.name not in per)
+    if missing:
+        sys.exit(f"derive_gate: no judged cells for {', '.join(missing)} — "
+                 "a flaky scenario must not silently drop out of the gate; "
+                 "rerun the baseline")
     gate = {"calibration": sab["calibration"],
             "sabotage_pass": {**sab, "date":
                 f"{dt.datetime.now(dt.timezone.utc):%Y-%m-%dT%H:%M:%SZ}"},

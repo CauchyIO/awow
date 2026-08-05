@@ -14,7 +14,7 @@ import urllib.request
 from pathlib import Path
 
 POLL_SECONDS = 30
-POLL_LIMIT = 60  # 30 minutes
+POLL_LIMIT = 120  # 60 minutes — cold starts have run 25-28 min; 30 was too thin a margin
 
 
 def api(method: str, path: str, body: dict | None = None) -> dict:

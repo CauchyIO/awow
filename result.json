@@ -1,0 +1,45 @@
+{
+ "contract": "eval/v1",
+ "request_sha": "34f2aab9b1e285393eaccb6f22f59f4ef955e27a",
+ "suite_sha": "34f2aab9b1e285393eaccb6f22f59f4ef955e27a",
+ "judge": {
+  "tier": "flagship",
+  "calibration": {
+   "setup-awow-walkthrough": "2ee8730525a64e9e"
+  }
+ },
+ "cells": [
+  {
+   "id": "eval-setup-awow-walkthrough-worker-r1",
+   "outcome": {
+    "rubric": [],
+    "rubric_yes": 0,
+    "rubric_total": 0
+   },
+   "process": {
+    "scope_touched": [],
+    "scope_violations": [],
+    "gate_checked": false,
+    "gate_violation": false,
+    "turns": 1,
+    "wall_s": 0.9,
+    "stop_reason": "turn-error"
+   },
+   "checks": {
+    "pre": {
+     "phase": "pre",
+     "rc": 0,
+     "log": ""
+    },
+    "post": {
+     "phase": "post",
+     "rc": 1,
+     "log": "CHECK FAIL: mission.md is still a seed stub\n"
+    }
+   },
+   "transcript_ref": "/opt/night/results/api-20260805-152145-34f2aab/eval-setup-awow-walkthrough-worker-r1/transcript.txt",
+   "verdict": "indeterminate",
+   "stage": "runner"
+  }
+ ]
+}

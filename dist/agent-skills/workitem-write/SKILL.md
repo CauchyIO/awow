@@ -1,6 +1,6 @@
 ---
 name: workitem-write
-description: "Use for any board item create or update — an ad-hoc \"make a ticket for…\" or a flow's write step. The one convention-wired path: look first, cite conventions, shape, gate, write, report."
+description: "Use for any board item create or update — an ad-hoc make-a-ticket request or a flow's write step. The one convention-wired path: look first, cite conventions, shape, gate, write, report."
 ---
 
 # workitem-write — the one path for board creates and updates

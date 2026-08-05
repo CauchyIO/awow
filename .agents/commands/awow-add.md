@@ -11,11 +11,23 @@ Promote a phase-tagged command from "documented but inactive" to "wired up and r
 
 ## Inputs
 
-- The command name (e.g. `daily-digest`, `coaching-review`, `daily-checkin`)
+- A command name (e.g. `daily-digest`, `coaching-review`, `daily-checkin`), or a pack name to add its commands in one pass.
+
+## Packs
+
+Named bundles of opt-in commands that travel together. Given a pack name, run the steps below once per member command, batching the briefs into one page and the approval into one gate.
+
+| Pack | Commands |
+|---|---|
+| `department` | okr-cascade, setup-department |
+| `knowledge` | kb-mine, kb-synthesize |
+| `design` | solution-design-flow |
+| `artifact` | artifact, design-system |
+| `coaching` | coaching-review, process-retro |
 
 ## Steps
 
-1. Locate the command file at `.agents/commands/<name>.md`. Confirm its frontmatter declares `phase: spread` or `phase: standardise` (seed commands are wired up by `/setup-awow`, not added here). If not found, list available options grouped by phase.
+1. Locate the command file at `.agents/commands/<name>.md`. Confirm its frontmatter declares `phase: spread` or `phase: standardise` (seed commands are wired up by `/setup-awow`, not added here). If not found, list available options grouped by pack (unpacked commands last, by phase).
 2. **Stub guard.** Check whether the body matches the stub sentinel — a line beginning with `Stub.` followed by a version string (e.g. `Stub. v0.2 ships the working version.`). If it does, tell the user the command is documented but not yet implemented, name the version that ships it, and stop. Do not write a brief and do not copy the file. The team can re-run `/awow-add <name>` once the working version lands.
 3. **Parked guard.** Check whether the body carries a `> **Parked` banner. If it does, tell the user the command is parked, quote the banner's revisit condition, and stop unless they explicitly override.
 4. Read the frontmatter `prerequisites:` block.

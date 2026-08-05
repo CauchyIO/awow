@@ -1,6 +1,6 @@
 ---
 name: update-context
-description: "Use when a work session is wrapping up — a commit, a PR, an end-of-day sign-off — and the user stated a durable rule about how the team works along the way, so it lands in the context tree instead of evaporating with the session."
+description: "Use when a session is wrapping up — a commit, a PR, a sign-off — and the user stated a durable rule about how the team works, so it lands in the context tree."
 ---
 
 # /update-context — land a rule stated in passing into the context tree

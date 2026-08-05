@@ -1,0 +1,14 @@
+# Gather-generated mirrors of .agents/ (tools/gather.py). linguist-generated
+# collapses them in GitHub PR diffs and drops them from diff stats — the
+# reviewable change lives in .agents/; these are derived, byte-verified by
+# `gather.py --check` in CI. Hand-written files (.github/workflows/, this file)
+# stay expanded.
+dist/** linguist-generated=true
+dist-telemetry/** linguist-generated=true
+.claude/** linguist-generated=true
+.opencode/** linguist-generated=true
+.github/AGENTS.md linguist-generated=true
+.github/copilot-instructions.md linguist-generated=true
+.github/prompts/** linguist-generated=true
+.github/skills/** linguist-generated=true
+.github/plugin/** linguist-generated=true

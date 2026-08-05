@@ -320,14 +320,7 @@ Phase 3 runs over the action items extracted from **fallback segments only**. Sp
 
 ### 3.1 Search strategy
 
-Search the team's board (per `{HUB}/context/tooling/board.md`) for existing work items using:
-
-1. Keywords from decisions, action items, and discussed topics
-2. People mentioned as owners — check their assigned items
-3. Project / area scope — scope to the team if identifiable
-4. Recent items — items updated in the last 2 cycles are most relevant
-
-Note match confidence: exact / likely related / weak signal.
+Search the team's board per `workitem-write` step 1 — the four axes and match-confidence grading live there. Keywords come from decisions, action items, and discussed topics.
 
 ### 3.2 Cross-team blocker detection
 
@@ -347,7 +340,7 @@ For every blocker or dependency surfaced:
 
 ### 3.4 Propose actions
 
-Per `{HUB}/context/team/conventions/REQUIRED/output-discipline.md` — every section is labelled by placement (story / comment / knowledge base) before any board write.
+Shape and placement per `workitem-write` steps 2–3 — every section labelled by placement (story / comment / knowledge base) before any board write.
 
 **Updates** to existing items:
 
@@ -359,20 +352,7 @@ UPDATE #[ID] — [Title]
     - [context, decisions, next steps from the meeting]
 ```
 
-**New items** to create:
-
-```
-CREATE [Type]
-  Title: [verb-first, per conventions/REQUIRED/issue-titles.md]
-  Area / Project: [scope]
-  Iteration / Cycle: [current / backlog]
-  Assignee: [if discussed]
-  Parent: #[ID] (if applicable)
-  Description: [intent + acceptance criteria — per output-discipline.md]
-  Acceptance criteria:
-    - [ ] ...
-  Labels: [type:, area:, status: — per conventions/REQUIRED/labels.md]
-```
+**New items** to create — title, labels, body, and container per `workitem-write` steps 2–3. Present each as `CREATE [Type] "[Title]"` with the shaped draft and its cited conventions available at the gate. Assignee and cycle only if discussed in the meeting; parent if applicable.
 
 **Cross-team escalations**:
 
@@ -413,38 +393,15 @@ Actions:
   ESCALATE 1. [blocker] → [action]
   KB       1. [path] — [one-line]
   HOUSEKEEPING 1. [one-line]
-
-Options:
-  "go" — execute all
-  "skip 2,3" — execute all except listed
-  "review" — walk through each
-  "cancel" — no changes
 ```
 
-**Wait for user response.** Only proceed with explicitly approved actions.
+Present the standard options, then gate per `workitem-write` step 4.
 
 ---
 
 ## Phase 4 — Execute
 
-Execute approved actions one at a time. Confirm each briefly (ID + what changed). If an action fails, report the error and continue. If an item changed unexpectedly since the meeting (updated by someone else, state already moved), pause and ask.
-
-After all actions:
-
-```
-DONE
-
-Executed:
-- #[ID]: [what changed]
-- Created #[ID]: [title]
-- Wrote {HUB}/context/knowledge-base/<path>: [summary]
-
-Skipped: [list or "none"]
-Failed: [list or "none"]
-
-Manual follow-up needed:
-- [cross-team escalation] → contact [Name] on [Team X]
-```
+Execute and report per `workitem-write` step 5 — one action at a time, re-verify before touching, pause if an item changed since the meeting. The DONE report also lists knowledge-base writes (`{HUB}/context/knowledge-base/<path>`) and cross-team escalations as manual follow-ups.
 
 ---
 

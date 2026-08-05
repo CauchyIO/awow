@@ -13,7 +13,7 @@ You will execute a command prompt against fresh scratch workspaces with scripted
 
 ## Discover suites and scenarios
 
-A suite is a directory `tests/<suite>/` containing a `suite.md` whose frontmatter names the `command:` under test. If the user named a suite, use it; if exactly one suite exists, use that; otherwise list the suites and stop for the user to pick.
+A suite is a directory `tests/<suite>/` containing a `suite.md` whose frontmatter names the prompt under test — a `command:` (resolving to `.agents/commands/<name>.md`) or a `skill:` (resolving to `.agents/skills/<name>/SKILL.md`, falling back to `.agents/skills/<name>.md`). If the user named a suite, use it; if exactly one suite exists, use that; otherwise list the suites and stop for the user to pick.
 
 Within the suite: if the user named a scenario, run only that one. Otherwise list every `<name>` that has both `tests/<suite>/scripts/<name>.txt` and `tests/<suite>/rubrics/<name>.md`, and run them in alphabetical order.
 
@@ -53,7 +53,7 @@ Record the exit code and the `CHECK` lines verbatim.
 
 Print exactly: `=== Phase 3: command run begins ===`
 
-1. **Resolve the command under test:** read `tests/<suite>/suite.md` frontmatter → `command: <name>`. Then `Read .agents/commands/<name>.md` and print one confirmation line of the form:
+1. **Resolve the prompt under test:** read `tests/<suite>/suite.md` frontmatter → `command: <name>` or `skill: <name>`. Then `Read` the file it resolves to (see Discover above) and print one confirmation line of the form:
    ```
    (<name>.md read — first heading: <copy the first ## heading verbatim>)
    ```

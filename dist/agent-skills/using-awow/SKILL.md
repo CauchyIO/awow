@@ -21,7 +21,7 @@ The board is the single source of truth for planning, and awow exists to keep it
 
 ## Paths
 
-`{HUB}` is the team context root, `{PROJECT}` this project's; both resolve to the repo root here (a hub-connected spoke's hub pointer wins). Machinery reads `{HUB}` first, then `{AWOW_ROOT}`. Unresolvable `{HUB}`? Stop and say so. Several candidate installations or boards? Resolve per §Context resolution in AGENTS.md — never guess across a repo boundary.
+`{HUB}` is the team context root, `{PROJECT}` this project's; both resolve to the repo root here (a hub-connected spoke's hub pointer wins). Machinery reads `{HUB}` first, then `{AWOW_ROOT}` (its scripts at `{AWOW_TOOLS}`). Unresolvable `{HUB}`? Stop and say so. Several candidate installations or boards? Resolve per §Context resolution in AGENTS.md — never guess across a repo boundary.
 
 ## Board first
 
@@ -33,7 +33,7 @@ Before work with a discernible outcome, read `{HUB}/context/tooling/board.md` an
 
 ## Route to the moment
 
-Meeting notes in hand → `/process-transcript`. A board item to execute → `/process-workitem`. Day wrapping up → `/daily-checkin`. "What did we ship?" → `/daily-digest`. A locked design to sequence → `/project-plan`. Lost track of your plate → `/my-work`. Reach for the catalog in your skill listing before hand-rolling.
+Meeting notes in hand → `/process-transcript`. A board item to execute → `/process-workitem`. A board item to create or update → the `workitem-write` skill. Day wrapping up → `/daily-checkin`. "What did we ship?" → `/daily-digest`. A locked design to sequence → `/project-plan`. Lost track of your plate → `/my-work`. Reach for the catalog in your skill listing before hand-rolling.
 
 ## Engines and rules in passing
 

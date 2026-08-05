@@ -1,7 +1,6 @@
 ---
 description: "Use when the user points at or pastes a retrospective transcript or recording notes, or asks to turn a retro into named anti-patterns, owned actions, and diffs to their agent instructions."
-autofire: true
-phase: seed
+phase: spread
 prerequisites:
   - "Step 0 of /setup-awow complete (board MCP wired)"
 removes_pain: "the team-keeps-tripping-over-the-same-things problem"

@@ -1,6 +1,6 @@
 ---
 name: board-aware-development
-description: "The seam between awow's board-linkage discipline and an inner-loop build engine (superpowers, spec-kit). Rivets each board state transition onto the lifecycle skill that already fires at that moment — brainstorm → ticket, writing-plans → acceptance criteria + knowledge-base link, verification-before-completion → the gate before In Review/Done, requesting-code-review → In Review, finishing-a-development-branch → Done. Read or invoke this when a build engine is present and you are working a real initiative directly (outside /process-workitem), so the board stays current as a byproduct rather than a chore. The PreToolUse hook fires the matching one-line reminder automatically; this skill is the full crosswalk behind it."
+description: "The seam between awow's board discipline and an inner-loop build engine: each lifecycle skill moment (brainstorm, plan, verify, finish) maps to its board transition. Read when working an initiative directly with an engine installed."
 ---
 
 # Board-aware development

@@ -1,6 +1,5 @@
 ---
 description: "Use when the user has a feature brief, quarterly slidedeck, or board issue and wants it broken into right-sized stories before a refinement session, or asks to prep work for the next refinement."
-autofire: true
 phase: seed
 layer: team
 prerequisites:

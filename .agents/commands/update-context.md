@@ -3,7 +3,7 @@ phase: standardise
 prerequisites:
   - "Step 2 of /setup-awow complete ({HUB}/context/team/conventions/ exists — this command routes into it, never creates it)"
 removes_pain: "a rule someone states in passing evaporating with the session instead of reaching the context tree"
-description: "Use when a work session is wrapping up — a commit, a PR, an end-of-day sign-off — and the user stated a durable rule about how the team works along the way, so it lands in the context tree instead of evaporating with the session."
+description: "Use when a session is wrapping up — a commit, a PR, a sign-off — and the user stated a durable rule about how the team works, so it lands in the context tree."
 autofire: true
 ---
 

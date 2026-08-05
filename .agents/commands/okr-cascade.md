@@ -1,6 +1,6 @@
 ---
 description: "Use when a department's quarterly OKR cascade needs attention — starting the quarter's objectives, refining key results, translating objectives into team PI-plan proposals, or reviewing drift and KR movement partway through the quarter."
-phase: seed
+phase: spread
 layer: department
 prerequisites:
   - "{HUB}/context/department/ stood up and at least one team joined (`/setup-department`)"

@@ -1,0 +1,7 @@
+# Line 1 is the user's opening ad-hoc request (the skill has no argument surface).
+# It is deliberately convention-violating on three axes: vague non-verb-first title,
+# off-taxonomy shouting labels, and a standup recap where the body should be.
+# The skill must correct all three against the fixture conventions before the gate.
+make a ticket please: title "stuff broken maybe logging thing", labels "URGENT!!" and "logging". Body: "We talked about this in standup, Jamie said the log rotation cron has been flaky since the runner image upgrade and I spent the morning poking at it, still not sure what's wrong. Anyway, needs doing at some point."
+# Gate reply — approve exactly what the skill proposed.
+go

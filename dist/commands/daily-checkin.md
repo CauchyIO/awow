@@ -19,9 +19,7 @@ You are not evaluating performance. You are not doing strategic forecasting. You
 
 **Bias hard against noise — this is the point of the command, not a footnote.** A daily check-in run every day is a noise machine if you let it be: duplicate tickets, verbose recaps, a new issue for every passing thought. Your default is the opposite. Advance work that is *already* tracked — comment on or move an existing issue. Treat creating a new issue as the exception that must justify itself, never the reflex. Keep every proposed board write to the minimum useful text.
 
-**The team has already written down how it works with its board — defer to it, don't reinvent it.** `{HUB}/context/tooling/board.md` is the mechanics: write surface, states, and the board's limitations. the repo's agent instructions (`AGENTS.md`) carry the look-first, never-duplicate rule; `{HUB}/context/team/style/board-output.md` carries placement and minimum-useful discipline. Read those before proposing anything, and when in doubt, propose less.
-
-**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{HUB}/context/tooling/board.md` yourself.
+**Every proposed board write routes through the `workitem-write` skill.** It owns the look-first search, the convention inventory, placement, the approval gate, and execution — including the absent-`board.md` fallback. This command's job is the day: what happened, what it maps to, and what genuinely needs the board. When in doubt, propose less.
 
 **Writes to the board — but only after a gate.** Everything up to Section 5 is read-only synthesis. No issue is created, moved, or commented on until the user explicitly approves in Section 5.
 
@@ -119,7 +117,7 @@ Translate abstract descriptions into tangible outputs, decisions made, changes c
 
 ### C. Board discovery
 
-Search the board for project / area names, keywords, related topics, and recently updated issues, then map today's work onto existing issues. Apply the team's board doctrine here — don't re-derive it: the look-first, never-duplicate rule in the repo's agent instructions (`AGENTS.md`), the placement and minimum-useful rules in `{HUB}/context/team/style/board-output.md`, and the query/write mechanics and limitations in `{HUB}/context/tooling/board.md`. **Never require the user to provide issue IDs.**
+Search the board for project / area names, keywords, related topics, and recently updated issues, then map today's work onto existing issues — per `workitem-write` step 1 (look-first, smallest footprint). **Never require the user to provide issue IDs.**
 
 ### D. Code cross-reference
 
@@ -203,20 +201,13 @@ After clarification, ask:
 
 > Should I execute these updates on the board?
 
-Rules:
-
-- **Never write to the board without explicit confirmation.**
-- If the user confirms:
-  - Re-verify each issue match before touching it.
-  - Execute updates exactly as approved — add comments in the standardized format, move states only if confirmed, create new issues only if approved.
-  - Confirm each action taken.
-- If ambiguity surfaces mid-execution, stop and ask before proceeding. No silent changes.
+Gate and execution per `workitem-write` steps 4–5: explicit approval, re-verify each match, execute exactly as approved, confirm each action, stop on mid-execution ambiguity.
 
 ---
 
 ## Section 6 — Behavioral boundaries
 
-- **Smallest board footprint wins.** Prefer commenting on or advancing an existing issue over creating a new one; prefer minimum-useful text over a recap. Do not create issues, write long comments, or surface gaps to appear thorough. Noise is the failure mode this command must actively prevent — see `{HUB}/context/tooling/board.md` and `{HUB}/context/team/style/board-output.md`.
+- **Smallest board footprint wins** (per `workitem-write`). Do not create issues, write long comments, or surface gaps to appear thorough. Noise is the failure mode this command must actively prevent.
 - **Stay source-grounded.** Synthesize only from the user's account (if any), code activity, and processed transcript. Never fabricate activity or attribute work incorrectly — and never invent a richer day than the sources support to compensate for a sparse or missing account.
 - **No silent guessing** on garbled proper nouns — disambiguate at the gate in Section 0.A (voice input only).
 - **No performance evaluation, no strategic forecasting.** Surface structure and gaps; let the human decide.

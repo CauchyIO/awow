@@ -83,7 +83,7 @@ Mark inferred edges as inferred and never apply a correction silently — graph 
 End with concrete follow-ups you *could* take, grouped by type, and take none without explicit approval:
 
 - **Check-ins to send** — the per-person messages drafted in Section 3, shown verbatim so the user can approve the wording before any go out.
-- **Graph corrections** — the missing tickets, dependency edges, owners, and acceptance criteria from Sections 4 and 6, and any board state that drifted from reality. Follow the team's board-output rules (`{HUB}/context/team/style/board-output.md`); keep every write to minimum-useful text.
+- **Graph corrections** — the missing tickets, dependency edges, owners, and acceptance criteria from Sections 4 and 6, and any board state that drifted from reality. Every board write is shaped per `workitem-write` steps 2–3.
 - **Nudges / board actions** — a comment recording a blocker, a move for an item whose real state has drifted.
 - **Escalations** — the items only management can unblock, each stated as the decision needed, not just the problem.
 
@@ -91,7 +91,7 @@ Then ask:
 
 > Should I execute these — send the check-ins, apply the graph corrections and board actions, raise the escalations?
 
-Re-verify each item match before touching it. Execute exactly what was approved; if ambiguity surfaces mid-execution, stop and ask. No silent changes.
+Board writes gate and execute per `workitem-write` steps 4–5. Check-in messages and escalations go out exactly as approved — stop on ambiguity, no silent changes.
 
 ## Output template — coordination read
 

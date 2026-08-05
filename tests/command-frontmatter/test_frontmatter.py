@@ -39,15 +39,17 @@ SHIPPED = [
 ]
 
 
-# The autofire set (design spec 4.5 Layer 3). The rule, not the list: a command
-# autofires unless a misfire is damage (consequential and hard to reverse) or
-# noise (trigger too broad). Excluded on those grounds: my-work, daily-digest,
-# kb-mine (too broad); setup-awow, awowify, design-system, kb-synthesize
-# (consequential).
+# The autofire set (design spec 4.5 Layer 3, slimmed by AWO-120 — see
+# proposals/AWO-120.md). The rule, not the list: a command autofires unless a
+# misfire is damage (consequential and hard to reverse) or noise (trigger too
+# broad). Excluded on those grounds: my-work, daily-digest, kb-mine, artifact,
+# coaching-review, process-retro, refinement-prep, solution-design-flow (too
+# broad); setup-awow, awowify, design-system, kb-synthesize (consequential).
+# The 6th always-available surface, workitem-write, is a skill under
+# .agents/skills/ — not a command, so it is not elected here.
 AUTOFIRE = [
-    "artifact", "coaching-review", "daily-checkin", "process-retro",
-    "process-transcript", "process-workitem", "project-plan",
-    "refinement-prep", "solution-design-flow", "update-context",
+    "daily-checkin", "process-transcript", "process-workitem",
+    "project-plan", "update-context",
 ]
 
 # update-context ships in PR 5. Selecting by frontmatter rather than a

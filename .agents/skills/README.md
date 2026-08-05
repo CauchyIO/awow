@@ -34,7 +34,7 @@ Examples shipped with the starter pack:
 
 ### Two plugins, one source tree
 
-Skills marked `channel: telemetry` in their frontmatter build into the separate **`awow-telemetry`** plugin rather than into `awow` — `mlflow-export`, `prompt-skill-analysis`, `project-timeline`, `awow-usage-coach`, `session-export`. The base plugin keeps the four behavioural skills: `using-awow`, `board-aware-development`, `architecture-aware-development`, `user-story-template`. Different audience, different dependency profile, different privacy posture; and every skill description loads into every session, so a telemetry surface nobody uses is a tax on everybody.
+Skills marked `channel: telemetry` in their frontmatter build into the separate **`awow-telemetry`** plugin rather than into `awow` — `mlflow-export`, `prompt-skill-analysis`, `project-timeline`, `awow-usage-coach`, `session-export`. The base plugin keeps the five behavioural skills: `using-awow`, `workitem-write`, `board-aware-development`, `architecture-aware-development`, `user-story-template`. Different audience, different dependency profile, different privacy posture; and every skill description loads into every session, so a telemetry surface nobody uses is a tax on everybody.
 
 The source stays here either way — `channel:` selects the payload, not the location. Install with `/plugin install awow-telemetry@awow`. **Claude Code only this release:** `tools/sync-dist.sh` publishes only `dist/` to `awow-dist`, which is the Codex and Pi install source, so telemetry does not reach those harnesses.
 

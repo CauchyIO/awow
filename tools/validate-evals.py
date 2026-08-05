@@ -1,7 +1,8 @@
 """Statically validate the eval suites under tests/ — no LLM, no credentials.
 
 Checks, per suite (a directory tests/<suite>/ containing suite.md):
-  - suite.md frontmatter names a `command:` that resolves to .agents/commands/<command>.md
+  - suite.md frontmatter names a `command:` that resolves to .agents/commands/<command>.md,
+    or a `skill:` that resolves to .agents/skills/<skill>/SKILL.md (or .agents/skills/<skill>.md)
   - every scenario (scripts/*.txt ∩ rubrics/*.md) has a fixtures/<name>/ dir and a checks/<name>.sh
   - scripts without a rubric (and vice versa) are reported — a one-sided scenario never runs
   - checks/<name>.sh is NOT executable (it is sourced), passes `bash -n`, and defines pre() and post()
@@ -36,10 +37,12 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TESTS_DIR = REPO_ROOT / "tests"
 COMMANDS_DIR = REPO_ROOT / ".agents" / "commands"
+SKILLS_DIR = REPO_ROOT / ".agents" / "skills"
 
 INVARIANT_TAG = re.compile(r"\(invariant\s+([^)]*)\)")
 QUESTION_LINE = re.compile(r"^\d+\.\s+\S", re.MULTILINE)
 FRONTMATTER_COMMAND = re.compile(r"^command:\s*(\S+)\s*$", re.MULTILINE)
+FRONTMATTER_SKILL = re.compile(r"^skill:\s*(\S+)\s*$", re.MULTILINE)
 PHASE_FUNC = {phase: re.compile(rf"^\s*{phase}\(\)\s*{{", re.MULTILINE) for phase in ("pre", "post")}
 
 
@@ -54,15 +57,17 @@ def is_executable(path: Path) -> bool:
     return os.access(path, os.X_OK)
 
 
-def frontmatter_command(suite_md: Path) -> str | None:
+def frontmatter_target(suite_md: Path) -> tuple[str | None, str | None]:
+    """Return (command, skill) named in the suite frontmatter — each None if absent."""
     text = suite_md.read_text(encoding="utf-8")
     if not text.startswith("---"):
-        return None
+        return None, None
     end = text.find("---", 3)
     if end == -1:
-        return None
-    match = FRONTMATTER_COMMAND.search(text[3:end])
-    return match.group(1) if match else None
+        return None, None
+    command = FRONTMATTER_COMMAND.search(text[3:end])
+    skill = FRONTMATTER_SKILL.search(text[3:end])
+    return (command.group(1) if command else None, skill.group(1) if skill else None)
 
 
 def check_shared_machinery(findings: list[str]) -> None:
@@ -141,12 +146,20 @@ def check_suite(suite_md: Path, findings: list[str]) -> int:
     suite_dir = suite_md.parent
     suite = suite_dir.name
 
-    command = frontmatter_command(suite_md)
-    if command is None:
-        findings.append(f"{suite}/suite.md has no `command:` in its frontmatter")
-    elif not (COMMANDS_DIR / f"{command}.md").is_file():
+    command, skill = frontmatter_target(suite_md)
+    if command is None and skill is None:
+        findings.append(f"{suite}/suite.md has neither `command:` nor `skill:` in its frontmatter")
+    elif command is not None and skill is not None:
+        findings.append(f"{suite}/suite.md names both `command:` and `skill:` — pick one prompt under test")
+    elif command is not None and not (COMMANDS_DIR / f"{command}.md").is_file():
         findings.append(
             f"{suite}/suite.md names command `{command}` but .agents/commands/{command}.md does not exist"
+        )
+    elif skill is not None and not (
+        (SKILLS_DIR / skill / "SKILL.md").is_file() or (SKILLS_DIR / f"{skill}.md").is_file()
+    ):
+        findings.append(
+            f"{suite}/suite.md names skill `{skill}` but neither .agents/skills/{skill}/SKILL.md nor .agents/skills/{skill}.md exists"
         )
 
     scripts = {p.stem for p in (suite_dir / "scripts").glob("*.txt")}

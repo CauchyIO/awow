@@ -38,5 +38,7 @@ jobs:
         run: python3 -m unittest discover -s tests/awow-lock
       - name: Eval gate tests (gate_errors + derive_gate)
         run: python3 tests/eval-gate/test_gate.py
+      - name: Eval submit/poll retry tests (real loopback server)
+        run: python3 tests/eval-run-retry/test_retry.py
       - name: Harness wiring checks (Layer 1, no model)
         run: bash tests/harness/run-harness-tests.sh all

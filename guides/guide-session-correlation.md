@@ -17,7 +17,7 @@ Agent-authored issues and PRs normally have **no provenance**: you can read *wha
 - **Auditability.** "An agent wrote this" is only credible if you can open the session behind it.
 - **Coaching.** `awow-usage-coach` and `prompt-skill-analysis` assess *how* people prompt; they can
   only tie feedback to outcomes when board entries name their session.
-- **Digests.** `daily-digest` and `weekly-digest` join board activity to session data. Without the
+- **Digests.** `daily-digest` joins board activity to session data, at either window. Without the
   id the two surfaces stay disconnected.
 
 ## How it works

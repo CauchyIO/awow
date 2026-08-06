@@ -50,6 +50,10 @@ Be specific or stay silent. *"A's rate-limit work could inform B's gateway redes
 *"everyone should stay aligned"* is noise. Per-person sections follow the same rule — an empty one
 is fine, don't force relevance.
 
+The day's file lands in a fixed shape: data sources and their status, a day-at-a-glance metric
+table, a 6–12 sentence team narrative, a per-project snapshot (today · trajectory · key signal),
+cross-team connections, code activity, per-person takeaways, and structural observations.
+
 ## The pipeline
 
 ```
@@ -74,6 +78,10 @@ stale credentials — not as truth. `skip chat` and `skip code` are honoured; th
 from whatever returned.
 
 ### What the week window adds
+
+The week asks its own questions: what actually *moved* (outcomes, not activity), what shifted
+Monday→Friday, where the team spent its time, and what patterns are emerging. Three inputs feed
+them:
 
 - **The week's dailies**, read in full — already-synthesised narratives, snapshots, connections. A
   *missing* daily is a data-coverage gap to name, never a day to silently skip.

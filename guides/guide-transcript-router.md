@@ -54,6 +54,9 @@ Skip this if the repo was bootstrapped with `/setup-awow`.
 attribution, segment boundaries, and ordering. Plain text, Markdown, and `.srt` also work. From
 Teams: open the meeting, **Transcript** tab, **Download → .vtt**.
 
+**On a Cloud PC:** if your editor runs on a Cloud PC but the recording downloads to your laptop,
+copy the VTT across (OneDrive, email-to-self, or clipboard paste) before you point the prompt at it.
+
 Name the file descriptively — `refinement-payments-rewrite.vtt` beats `meeting1.vtt`; the filename
 is a classification hint. Paste an agenda alongside it and the router notes which items the meeting
 actually covered. It never fetches transcripts or agendas for you.
@@ -204,4 +207,4 @@ command in [`.agents/commands/README.md`](../.agents/commands/README.md).
 - [`.agents/commands/solution-design-flow.md`](../.agents/commands/solution-design-flow.md), [`.agents/commands/process-retro.md`](../.agents/commands/process-retro.md) — the other transcript-consuming leaves
 - [`.agents/commands/README.md`](../.agents/commands/README.md) — the full command catalogue this guide deliberately is not
 - `context/tooling/board.md` — the board surface Gate 2 writes through; written by `/setup-awow`
-- Companion guides: [agentic retro workflow](guide-agentic-retro-workflow.md), [solution-design collaboration](guide-solution-design-collaboration.md), [core delivery loop](guide-core-delivery-loop.md)
+- Companion guides: [agentic retro workflow](guide-agentic-retro-workflow.md) — the retro specialist this dispatches to; [solution-design collaboration](guide-solution-design-collaboration.md) — the design specialist this dispatches to; [core delivery loop](guide-core-delivery-loop.md) — where the items it files get worked

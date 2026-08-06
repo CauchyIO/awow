@@ -24,7 +24,7 @@ the wrong one is the common confusion.
 | --- | --- | --- |
 | `/my-work` | inbound · personal | What the board is asking of *one person* — their queue, surfaced and prioritised. |
 | `/daily-checkin` | outbound · personal | Someone narrates their own day; the agent reconciles it onto the board. |
-| `/daily-digest`, `/weekly-digest` | retrospective · team-wide | What the team already shipped, synthesised at rising altitudes. |
+| `/daily-digest` (a day, or `--week`) | retrospective · team-wide | What the team already shipped, synthesised at one of two altitudes. |
 | `/project-manager` | forward · delivery | Checks in across the team to unblock people, keeps the graph true, surfaces what only management can clear. |
 
 ## What it needs before it can run
@@ -151,4 +151,4 @@ Each command's role in that chain is in [the core delivery loop](guide-core-deli
 - [`.agents/commands/solution-design-flow.md`](../.agents/commands/solution-design-flow.md), [`.agents/commands/process-workitem.md`](../.agents/commands/process-workitem.md) — the upstream chain that builds and honours the graph
 - [`.agents/AGENTS.md`](../.agents/AGENTS.md) — the spine rules, including board-output discipline
 - `context/tooling/board.md` — the board surface it reads and writes through; written by `/setup-awow`
-- Companion guide: [the core delivery loop](guide-core-delivery-loop.md)
+- Companion guides: [the core delivery loop](guide-core-delivery-loop.md) — the per-story loop this coordinates across

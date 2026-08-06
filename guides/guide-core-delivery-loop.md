@@ -171,4 +171,4 @@ they feed forward.
 - [`.agents/commands/solution-design-flow.md`](../.agents/commands/solution-design-flow.md), [`.agents/commands/project-plan.md`](../.agents/commands/project-plan.md), [`.agents/commands/project-manager.md`](../.agents/commands/project-manager.md) — the design-and-coordination layer
 - [`.agents/commands/_workitem-archetypes/`](../.agents/commands/_workitem-archetypes) — per-archetype validation and verification rules
 - [`.agents/AGENTS.md`](../.agents/AGENTS.md) — the spine rules
-- Companion guides: [session correlation](guide-session-correlation.md), [trace analysis](guide-trace-analysis.md)
+- Companion guides: [session correlation](guide-session-correlation.md) — how a board entry this loop writes names the session behind it; [trace analysis](guide-trace-analysis.md) — reading those sessions back as prompt-quality and coaching reports

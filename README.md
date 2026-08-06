@@ -57,6 +57,9 @@ does not rather than stopping.
 
 ## Going deeper
 
+The guides live in [`guides/`](guides/README.md) — plain markdown, readable
+directly on GitHub or as agent context.
+
 `/setup-awow` wires your board (Linear, Jira, Azure DevOps, GitHub Issues) and
 writes your mission, conventions, and members into `context/`. It is incremental
 and resumable. Commands work better with it, and none require it.
@@ -78,9 +81,6 @@ v0.6. The four installs, the command set, the session context, and the build
 with its drift check in CI are working. `/awowify`, which vendors the prompts
 into your repo as editable files, runs from a clone rather than as a plugin
 command. `awow-telemetry` runs on Claude Code only.
-
-The guides live in [`guides/`](guides/README.md) — plain markdown, readable
-directly on GitHub or as agent context.
 
 ## License
 

@@ -33,7 +33,7 @@ the work actually unfolded.
 | **Concurrency strip** | A band across the top counting how many sessions ran **simultaneously** at each moment — the fan-out / contract rhythm made visible. |
 | **Handoff arrows** | An arrow from an earlier session to a later one when the later session edited files the earlier one last wrote (inferred per-file last-writer). |
 | **Idle gaps** | Grey bands where **no session logged any event** — the difference between active time and elapsed time. |
-| **Peak context** | Per session, the input + cache tokens at its fullest turn plus total output tokens. Sessions past the standard 200K window are flagged. |
+| **Peak context** | Per session, the input + cache tokens at its fullest turn plus total output tokens. Sessions past the standard 200K window are flagged — compaction / large-context territory, where quality and cost both shift. |
 | **Detail panel** | Click any bar for that session's area, duration, peak context, file footprint, and handoff links. |
 
 Three of those repay a closer look:
@@ -93,7 +93,8 @@ python tools/session_timeline.py \
     --out coach_reviews/<repo>-retrospective
 ```
 
-Then double-click `timeline.html`. No build step, no local server, no network. Both embed inputs
+Then double-click `timeline.html`. No build step, no local server, no network. `sessions.json`
+stays next to it for any other tool that wants the parsed data. Both embed inputs
 are markdown you bring — the tool only renders and places them, which keeps the picture and the
 prose separable while letting them appear in one view.
 

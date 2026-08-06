@@ -8,7 +8,7 @@ Three mechanisms across the team↔pillar seam — and why a pillar is a differe
 > a different **archetype**, an internal node rather than a leaf, and it turns on **one
 > activity×team RACI**: services distil up from it, project routing decomposes down through it.
 
-Draft, for review.
+Draft, for review. Team names and activities throughout are placeholders.
 
 ## The problems this must solve
 
@@ -143,5 +143,3 @@ no new human role.
 - `context/services/` — a pillar's activity map, service distillation, and exceptions log (not shipped; the required setup)
 - [`.agents/commands/okr-cascade.md`](../.agents/commands/okr-cascade.md) — the department-tier read surface the up-aggregation feeds
 - Companion guides: [program portfolio view](program-portfolio-view.md) — the up-aggregation rendered; [delivery coordination](guide-delivery-coordination.md) — the leaf-tier loop below
-
-Team names and activities are placeholders.

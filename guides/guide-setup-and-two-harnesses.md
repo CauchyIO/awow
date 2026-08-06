@@ -150,4 +150,4 @@ the team also uses the other.
 - [`README.md`](../README.md) — "Day one", "What's in this repo", "One source of truth, two harness surfaces", "Adopting & contributing back"
 - [`.agents/AGENTS.md`](../.agents/AGENTS.md) — the bootstrap stub
 - [`tools/gather.py`](../tools/gather.py) — the stub generator and `--check` drift gate
-- Companion guides: [Board & MCP integration](guide-board-and-mcp.md), [Updating awow](guide-update-and-versioning.md)
+- Companion guides: [board & MCP integration](guide-board-and-mcp.md) — what Step 1 wires and how an MCP joins it; [updating awow](guide-update-and-versioning.md) — pulling newer awow against the lockfile

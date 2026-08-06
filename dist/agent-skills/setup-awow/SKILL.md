@@ -262,7 +262,18 @@ Walk the user through `context/knowledge-base/README.md` — what lives there vs
 
 **Locations (optional).** The two KB folders — `kb_root` (default `context/knowledge-base/`) and `inbox` (default `context/kb-inbox/`) — are declared in `context/tooling/knowledge-base.md`. Ask whether the team wants them elsewhere (e.g. a top-level `docs/kb/`, or an existing wiki/vault path). If **yes**: update the two paths in that config **and move the folders to match** (`git mv` the existing `context/knowledge-base/` and `context/kb-inbox/` contents). The contracts and commands resolve locations from the config, so nothing else needs editing. If **no**, leave the defaults. Keep the two folders distinct — the drain moves files from `inbox` into `kb_root`.
 
-Nothing is required here — the spine works on its defaults. The only optional knobs are the `selectivity` dial and these two paths. Record in `setup-progress.md` whether the default policy and locations were kept or adjusted.
+**Canonical sources (optional).** Ask whether important knowledge remains canonical in another
+repository, SharePoint, a vector-backed retrieval system, or another provider. If yes, read
+`context/tooling/knowledge-sources.md` and draft one OKF source record per system under
+`proposals/setup/step-6/knowledge-sources/`. Each record captures a description, routing signals,
+canonical remote URI, and read capability — never source content or a machine-local clone path.
+After approval, ensure `context/knowledge-sources/index.md` exists with `okf_version: "0.2"`, land
+the records beside it, and link them from that index. Do not test access by writing to an external
+source. If no, leave an existing empty catalog alone; when no catalog exists, routing stays inert.
+
+Nothing is required here — the spine works on its defaults. The optional choices are the
+`selectivity` dial, the two KB paths, and canonical-source records. Record in `setup-progress.md`
+whether the defaults were kept or adjusted and whether external sources were cataloged.
 
 ## Step 7 — Neighbouring teams
 

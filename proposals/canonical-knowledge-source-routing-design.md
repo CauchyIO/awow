@@ -1,6 +1,6 @@
 # Design — canonical knowledge-source routing: reference before capture
 
-**Status:** Draft — design approved in-session on 2026-08-06; awaiting written-spec review.
+**Status:** Accepted — Markdown-first MVP implemented on 2026-08-06.
 **Scope:** Make awow sessions discover and read relevant canonical knowledge outside the hub without copying it into the hub. Repository spokes are one source kind; SharePoint, vector-backed retrieval, and other native knowledge systems follow the same routing contract.
 **Inputs:** [`hub-and-spoke-design.md`](hub-and-spoke-design.md), the existing `overnight` OKF project-map implementation, the unmerged `adopting-okf` v0.1 skill on `linear`'s `casper/okf-adoption-skill` branch, and the [Open Knowledge Format v0.2 specification](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md).
 
@@ -69,7 +69,7 @@ Knowledge resolver
 
 ### 3.1 Canonical-source resolver
 
-`{HUB}/context/knowledge-sources/index.md` is a compact OKF index. The shared `using-awow` reflex reads it once at session start. Its generated entries expose the title, one-line description, aliases, and routing signals for each source without loading the source records or their contents.
+`{HUB}/context/knowledge-sources/index.md` is a compact OKF index. The shared `using-awow` reflex reads it at the first HUB-context use in a task. Its entries expose the title, one-line description, aliases, and routing signals for each source without loading the source records or their contents.
 
 As the session evolves, the agent maintains zero or more active sources:
 
@@ -153,13 +153,13 @@ The record for a retrieval index states whether results provide underlying canon
 
 ### 5.1 OKF adoption capability
 
-Update and land the existing `adopting-okf` prior art against OKF v0.2. It formats existing repository documentation as a bundle, preserves tool-consumed frontmatter and document bodies, adds conformance and freshness checks, and exposes a stable root index.
+Update and land the existing `adopting-okf` prior art against OKF v0.2. It formats existing repository documentation as a bundle, preserves tool-consumed frontmatter and document bodies, requires a conformance and freshness review, and exposes a stable root index.
 
 Adoption does not invent missing documentation. A documentation-poor repository first gets a separately approved enrichment pass, one concept per subsystem or bounded context rather than a file-tree mirror.
 
 ### 5.2 Catalog management capability
 
-Setup creates the empty catalog skeleton. Adding or changing a source is a governed `{HUB}` context write: draft the source record, show its routing metadata and placement, obtain approval, then regenerate the index. The flow validates the canonical URI and declared capability without copying any source material.
+Setup creates the empty catalog skeleton. Adding or changing a source is a governed `{HUB}` context write: draft the source record, show its routing metadata and placement, obtain approval, then update the compact index. The flow reviews the canonical URI and declared capability without copying any source material.
 
 ### 5.3 Shared routing reflex
 
@@ -204,13 +204,13 @@ All routed access is read-only. No error path authorizes a clone, mirror, extern
 
 The MVP proves the shared routing seam without creating a new content platform:
 
-1. Define and validate the awow OKF v0.2 source-record profile.
-2. Generate the compact catalog index deterministically from source records.
+1. Define the awow OKF v0.2 source-record profile in the shared routing contract.
+2. Provide a compact, human-maintained catalog index whose entries expose only routing metadata.
 3. Update the `using-awow` reflex with source discovery, confidence, provenance, and degradation rules.
 4. Land the updated `adopting-okf` capability for participating repositories.
-5. Define the source-neutral access contract and implement repository/OKF traversal through available local or remote read capabilities.
+5. Define repository/OKF traversal through available local or remote read capabilities.
 6. Allow SharePoint and vector-backed records to route to installed native capabilities without embedding their content or provider logic into the catalog.
-7. Add the reference-before-capture seam to representative hub-writing flows, then centralize it for reuse.
+7. Centralize the reference-before-capture seam in the injected reflex so current and future HUB-writing flows inherit it.
 8. Render and verify the same behavior across Claude Code, Codex, and Pi.
 
 The MVP does not:
@@ -224,21 +224,24 @@ The MVP does not:
 
 ## 9. Verification
 
-### 9.1 Deterministic tests
+### 9.1 Deterministic checks
 
-- Parse and validate every required source-record field and a non-empty source kind; tolerate unknown kinds and report an unavailable capability rather than rejecting the record.
-- Normalize repository remote identities without producing local paths.
-- Generate stable catalog indexes from record frontmatter.
-- Traverse OKF v0.2 absolute and relative links by exact path.
-- Preserve unknown OKF extension fields and existing tool-consumed frontmatter.
-- Exercise missing, malformed, broken-link, stale, deprecated, and unsupported-version cases.
-- Prove routed access exposes no write operation and produces no clone or mirrored file tree.
+- Validate both skill manifests.
+- Classify the routing contract as payload and the source catalog as HUB team data.
+- Regenerate and drift-check Claude Code, Codex, Pi, opencode, and Copilot surfaces.
+- Run the existing path-token, context-write, packaging, and harness-wiring suites.
 
-### 9.2 Behavioral fixtures
+The MVP deliberately adds no parser, generator, daemon, local registry, or retrieval code. Those
+would automate Markdown that agents can already read and write, while adding a second behavior
+surface to keep consistent. Add deterministic catalog tooling only after real usage demonstrates
+a recurring structural failure it would prevent.
 
-Use synthetic public-safe hub/source fixtures to prove:
+### 9.2 Behavioral acceptance
 
-1. Session start loads only compact catalog descriptions.
+Exercise these cases during real usage and add synthetic fixtures when repeated failures justify
+the extra surface:
+
+1. First HUB-context use loads only compact catalog descriptions.
 2. Explicit and implied terms activate the intended source.
 3. Ambiguity is surfaced rather than guessed.
 4. Multiple sources remain provenance-separated.
@@ -261,4 +264,4 @@ An engineer can begin in the hub, imply a domain or project in ordinary conversa
 - The current transcript router is a useful acceptance case, not the implementation home.
 - `using-awow` is the cross-command implementation home for session discovery.
 - The `overnight` OKF bundle and navigation script are implementation prior art, not content to vendor.
-- The unmerged `adopting-okf` skill is reusable prior art but must be reconciled with OKF v0.2 before landing.
+- The landed `adopting-okf` skill is the OKF v0.2 reconciliation of that prior art.

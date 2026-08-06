@@ -190,6 +190,7 @@ PAYLOAD_CONTEXT_PATHS = [
     "knowledge-base/mining-policy.md",    # template — selectivity: 2
     "tooling/design-system.md",           # template — mode: absent
     "tooling/knowledge-base.md",          # template — default kb_root
+    "tooling/knowledge-sources.md",       # contract — canonical-source routing
     "tooling/department.md",              # template — default department indirection
     "department/templates",               # contract (subtree — OKR and PI skeletons)
     "tooling/m365",                       # template — default agent identity/branding, tuned per adopter
@@ -211,6 +212,7 @@ TEAM_DATA_CONTEXT_PATHS = [
     "knowledge-base/glossary.md",
     "knowledge-base/patterns",
     "knowledge-base/runbooks",
+    "knowledge-sources",
     "quarterly",
     "team",
     "tooling/architecture.md",

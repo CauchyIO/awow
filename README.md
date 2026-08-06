@@ -52,8 +52,9 @@ describe what you need instead of typing the command name.
 
 Every session starts by reading awow's working rules: go to the board before
 starting work, write or update the ticket, and keep the admin current while you
-work. Commands read your team context where it exists, and ask you once where it
-does not rather than stopping.
+work. Commands read your team context where it exists. An optional OKF catalog
+routes them to canonical repositories, SharePoint, or vector-backed sources
+without copying that material into the HUB.
 
 ## Going deeper
 
@@ -79,10 +80,11 @@ board commands ask you once and carry on.
 
 ## Status
 
-v0.6. The four installs, the command set, the session context, and the build
-with its drift check in CI are working. `/awowify`, which vendors the prompts
-into your repo as editable files, runs from a clone rather than as a plugin
-command. `awow-telemetry` runs on Claude Code only.
+v0.8. The four installs, the command set, canonical knowledge-source routing,
+the session context, and the build with its drift check in CI are working.
+`/awowify`, which vendors the prompts into your repo as editable files, runs
+from a clone rather than as a plugin command. `awow-telemetry` runs on Claude
+Code only.
 
 ## License
 

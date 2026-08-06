@@ -79,8 +79,8 @@ with its drift check in CI are working. `/awowify`, which vendors the prompts
 into your repo as editable files, runs from a clone rather than as a plugin
 command. `awow-telemetry` runs on Claude Code only.
 
-The visual tour is [`guides/index.html`](guides/index.html). Self-contained HTML,
-no agent session needed.
+The guides live in [`guides/`](guides/README.md) — plain markdown, readable
+directly on GitHub or as agent context.
 
 ## License
 

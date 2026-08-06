@@ -14,7 +14,7 @@ The engine is `{AWOW_TOOLS}/session_timeline.py` (with `session_timeline_templat
 
 When sessions span **more than one day**, each dashboard switches to a **calendar mode**: a day-navigator strip (empty gaps collapsed) above a per-day detail timeline — click a day or press ←/→ to page through. When a project has **more than one user**, each dashboard carries an in-UI **user** filter that re-scopes the whole view; you usually don't need `--user`.
 
-Read the `awow-usage-coach` skill before coaching; it owns the intent taxonomy and the Mode B voice. Read [`guides/guide-session-timeline.html`](../../../guides/guide-session-timeline.html) if you need to explain what the view shows.
+Read the `awow-usage-coach` skill before coaching; it owns the intent taxonomy and the Mode B voice. Read [`guides/guide-session-timeline.md`](../../../guides/guide-session-timeline.md) if you need to explain what the view shows.
 
 ## Inputs
 

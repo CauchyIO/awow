@@ -59,8 +59,6 @@ chat queries and applies the private-team gate once.
 
 **An absent board pointer is a question, not a stop.** If `{HUB}/context/tooling/board.md` is missing, infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess a board from a GitLab, Bitbucket, or Azure DevOps remote; those map to several products. With no remote, or with `gh` absent or unauthenticated, ask the user once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line, and read it instead of asking again — ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make the answer durable; never write `{HUB}/context/tooling/board.md` yourself.
 
-**Several `board.md` candidates, or an index-form `board.md`?** Resolve per §Context resolution in the agent instructions (AGENTS.md) before any board read or write: the nearest installation inside the repo boundary — never a parent or sibling repo's — then, for an index, the ladder (explicit reference → scope match → session pin → picker), recording the answer in `.awow/board-session.md` beside the absent-board note. Announce a silently-resolved target with `targeting board: <name>` before the first write.
-
 This relaxation covers an absent pointer only. **A fatal auth failure on a data source still stops the run** — surface it and do not mine from a half-snapshot.
 
 If the snapshot still cannot be produced for any other reason, stop and surface it.

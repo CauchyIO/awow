@@ -1,6 +1,6 @@
 ---
 name: architecture-aware-development
-description: "The seam between awow's lifecycle and the architecture plane — ratified ADRs, solution-design records, and durable pattern notes, consulted through a KB agent. The sibling of board-aware-development: it rivets a KB-alignment action onto each inner-loop lifecycle moment — brainstorming → prior-art reuse, writing-plans → align + flag governed tasks, executing → re-check the flagged tasks. Opt-in and config-gated: it does nothing unless the repo declares an architecture plane in {PROJECT}/context/tooling/architecture.md. Read or invoke this when a build engine is present, that pointer exists, and you are forming a plan — so the plan reuses settled decisions and does not silently contradict a ratified ADR. The PreToolUse hook fires the matching one-line reminder automatically; this skill is the full crosswalk behind it."
+description: "Rivets a KB-alignment action onto each lifecycle moment — reuse prior art, align plans with ratified ADRs, re-check governed tasks. Config-gated: inert unless {PROJECT}/context/tooling/architecture.md declares an architecture plane. Read when forming a plan there."
 ---
 
 # Architecture-aware development

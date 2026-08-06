@@ -32,8 +32,6 @@ Read-only until an explicit gate. You check in, triage, and propose; you do not 
 - Optional `--report` — produce the **weekly MT roll-up** (Section 8) instead of the operational loop. Default: the loop.
 - The delivery graph itself — the `/project-plan` plan artefact (`{PROJECT}/proposals/plans/<initiative>.md`) and the board it was published to (surface per `{HUB}/context/tooling/board.md`). The plan states the graph in full; the board carries it as native links or body `Blocked by:` lines. Where neither is present, reconstruct edges from the `/solution-design-flow` design and from issue titles and bodies — content-level relations are often recoverable even when the board has no formal dependency field.
 
-**Several `board.md` candidates, or an index-form `board.md`?** Resolve per §Context resolution in the agent instructions (AGENTS.md) before any board read or write: the nearest installation inside the repo boundary — never a parent or sibling repo's — then, for an index, the ladder (explicit reference → scope match → session pin → picker), recording the answer in `.awow/board-session.md` beside the absent-board note. Announce a silently-resolved target with `targeting board: <name>` before the first write.
-
 ---
 
 ## 1. Resolve scope and cadence
@@ -85,7 +83,7 @@ Mark inferred edges as inferred and never apply a correction silently — graph 
 End with concrete follow-ups you *could* take, grouped by type, and take none without explicit approval:
 
 - **Check-ins to send** — the per-person messages drafted in Section 3, shown verbatim so the user can approve the wording before any go out.
-- **Graph corrections** — the missing tickets, dependency edges, owners, and acceptance criteria from Sections 4 and 6, and any board state that drifted from reality. Follow the team's board-output rules (`{HUB}/context/team/style/board-output.md`); keep every write to minimum-useful text.
+- **Graph corrections** — the missing tickets, dependency edges, owners, and acceptance criteria from Sections 4 and 6, and any board state that drifted from reality. Every board write is shaped per `workitem-write` steps 2–3.
 - **Nudges / board actions** — a comment recording a blocker, a move for an item whose real state has drifted.
 - **Escalations** — the items only management can unblock, each stated as the decision needed, not just the problem.
 
@@ -93,7 +91,7 @@ Then ask:
 
 > Should I execute these — send the check-ins, apply the graph corrections and board actions, raise the escalations?
 
-Re-verify each item match before touching it. Execute exactly what was approved; if ambiguity surfaces mid-execution, stop and ask. No silent changes.
+Board writes gate and execute per `workitem-write` steps 4–5. Check-in messages and escalations go out exactly as approved — stop on ambiguity, no silent changes.
 
 ## Output template — coordination read
 

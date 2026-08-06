@@ -3,7 +3,7 @@ phase: standardise
 prerequisites:
   - "Step 2 of /setup-awow complete ({HUB}/context/team/conventions/ exists — this command routes into it, never creates it)"
 removes_pain: "a rule someone states in passing evaporating with the session instead of reaching the context tree"
-description: "Use when a work session is wrapping up — a commit, a PR, an end-of-day sign-off — and the user stated a durable rule about how the team works along the way, so it lands in the context tree instead of evaporating with the session."
+description: "Use when a session is wrapping up — a commit, a PR, a sign-off — and the user stated a durable rule about how the team works, so it lands in the context tree."
 autofire: true
 ---
 
@@ -125,8 +125,6 @@ A destination that is documented but absent is tier 3. `{HUB}/context/tooling/bo
 and `{HUB}/context/tooling/architecture.md` are referenced across the command set and may
 not exist in this repo. Stage `UNROUTED` and name the step that creates them —
 `/setup-awow` Step 1 for the board pointer, Step 8 for the architecture plane.
-
-**Several `board.md` candidates, or an index-form `board.md`?** Resolve per §Context resolution in the agent instructions (AGENTS.md) before any board read or write: the nearest installation inside the repo boundary — never a parent or sibling repo's — then, for an index, the ladder (explicit reference → scope match → session pin → picker), recording the answer in `.awow/board-session.md` beside the absent-board note. Announce a silently-resolved target with `targeting board: <name>` before the first write.
 
 ### Accretion duty
 

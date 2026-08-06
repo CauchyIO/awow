@@ -1,6 +1,5 @@
 ---
 description: "Use when the user has a feature brief, quarterly slidedeck, or board issue and wants it broken into right-sized stories before a refinement session, or asks to prep work for the next refinement."
-autofire: true
 phase: seed
 layer: team
 prerequisites:
@@ -47,33 +46,16 @@ The user provides one of:
 Read:
 
 - `{HUB}/context/team/mission.md` — the feature must serve the mission. If you cannot see how, ask the user before drafting.
-- `{HUB}/context/team/conventions/REQUIRED/issue-titles.md` — story title verbs and patterns
-- `{HUB}/context/team/conventions/REQUIRED/labels.md` — label taxonomy
-- `{HUB}/context/team/conventions/REQUIRED/output-discipline.md` — story body rules (short!)
-- `{HUB}/context/team/style/board-output.md` — voice and shape
+- The convention set the `workitem-write` skill reads in steps 2–3 — issue titles, labels, output discipline, board voice.
 - `{HUB}/context/knowledge-base/glossary.md` — domain terms; use these consistently
 - `{HUB}/context/knowledge-base/patterns/` — link to existing patterns rather than restating
-- `{HUB}/context/tooling/board.md` — sizing rules per board family
-
-**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{HUB}/context/tooling/board.md` yourself.
-
-**Several `board.md` candidates, or an index-form `board.md`?** Resolve per §Context resolution in the agent instructions (AGENTS.md) before any board read or write: the nearest installation inside the repo boundary — never a parent or sibling repo's — then, for an index, the ladder (explicit reference → scope match → session pin → picker), recording the answer in `.awow/board-session.md` beside the absent-board note. Announce a silently-resolved target with `targeting board: <name>` before the first write.
+- `{HUB}/context/tooling/board.md` — sizing rules per board family; absent-`board.md` fallback per `workitem-write` step 1
 
 ### 2. Check for duplicates and overlap (REQUIRED before drafting)
 
-Search the board for existing work using keywords extracted from the brief. Identify:
+Search the board per `workitem-write` step 1, using keywords extracted from the brief. Identify stories that duplicate or overlap with what you are about to draft, a parent feature / epic the new work should attach to, and related work that should inform scope.
 
-- Stories that duplicate or overlap with what you are about to draft
-- A parent feature / epic the new work should attach to
-- Related work that should inform scope
-
-If duplicates exist, report them to the user with IDs and titles. Ask whether to:
-
-- Proceed with new stories anyway
-- Link to / extend existing issues instead
-- Cancel and let the user reconcile
-
-Do not draft if potential duplicates exist without confirmation.
+If duplicates exist, report them to the user with IDs and titles, and ask whether to proceed with new stories anyway, link to / extend existing issues instead, or cancel and reconcile. Do not draft if potential duplicates exist without confirmation.
 
 ### 3. Draft
 
@@ -90,16 +72,9 @@ Split anything that fails these.
 
 Hard rules — a draft violating any of these is malformed:
 
-- **No invented specifics.** An acceptance criterion may not name a technology, storage
-  location, endpoint path, retry count, timeout, size limit, SLA number, or time window
-  unless it appears in the source material (brief, plan, transcript) or under `{HUB}/context/`.
-  Those are design decisions: put them under Open questions instead.
-- **Every mechanism must trace to the input.** Before adding any mechanism the source
-  did not mention (a code/label scheme, a notification, an extra screen, a document to
-  generate, an eligibility rule), stop — it is not yours to add. Surface it as an open
-  question if it seems needed.
-- **Never fill in Owner or Cycle.** Leave both literally blank unless the user named
-  them. A guessed sprint is worse than an empty field.
+- **The `workitem-write` shaping rules apply in full** (step 3 there): no invented
+  specifics, no mechanism the source material did not mention — surface those as open
+  questions instead — and never fill in Owner or Cycle unless the user named them.
 - **The Draft state section is not optional.** Every draft opens with it, even when
   everything checked out.
 - **A referenced context file that does not exist is a finding, not a quest.** Record

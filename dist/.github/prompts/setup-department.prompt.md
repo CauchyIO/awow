@@ -1,6 +1,6 @@
 ---
 description: "Use when a department repo has no identity or OKR surface yet, or the user asks to stand up a department, register a team submodule, or scaffold the department's quarterly OKR doc."
-phase: seed
+phase: spread
 layer: department
 prerequisites:
   - "{HUB}/context/department/ scaffolding present (definition.md, teams.md, templates/) — ships with the department layer"

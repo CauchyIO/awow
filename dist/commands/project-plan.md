@@ -47,11 +47,7 @@ Phase 3 ─ Publish & report
 
 Read the design artefact and its decomposed work items: parent, children, each child's scope, acceptance criteria, and any dependency notes the design already carries. Read `{HUB}/context/tooling/board.md` for the write surface and **whether the board supports dependency links** (a native blocked-by relation) or not — this decides how the graph is encoded in Phase 2.
 
-**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{HUB}/context/tooling/board.md` yourself.
-
-**Several `board.md` candidates, or an index-form `board.md`?** Resolve per §Context resolution in the agent instructions (AGENTS.md) before any board read or write: the nearest installation inside the repo boundary — never a parent or sibling repo's — then, for an index, the ladder (explicit reference → scope match → session pin → picker), recording the answer in `.awow/board-session.md` beside the absent-board note. Announce a silently-resolved target with `targeting board: <name>` before the first write.
-
-Search the board for items that already exist for this initiative; plan against them rather than creating duplicates. Read `{HUB}/context/team/style/board-output.md` and the REQUIRED conventions before proposing any write.
+Search the board for items that already exist for this initiative; plan against them rather than creating duplicates. Discovery, the convention inventory, and the absent-`board.md` fallback follow `workitem-write` steps 1–2.
 
 ## Phase 1 — Build the dependency graph
 
@@ -105,7 +101,7 @@ Turn the confirmed graph into a concrete, ordered set of board actions, and asse
 
 **Board actions** — one per node and edge:
 
-- **Create or link** each node: create a new item, or link to the existing one found in Phase 0. Follow `{HUB}/context/team/conventions/REQUIRED/*.md` for titles, labels, and body discipline — keep each body to minimum-useful text.
+- **Create or link** each node: create a new item, or link to the existing one found in Phase 0. Titles, labels, and body shape per `workitem-write` steps 2–3.
 - **Encode the edges.** If the board supports a native blocked-by relation, set it. If it does not, record the dependency in the item body under a `Blocked by:` line and state the full graph in the plan artefact — the graph must be recoverable even when the board cannot hold edges.
 - **Rank by the sequence** so the board ordering reflects the layers.
 
@@ -157,15 +153,9 @@ Edge encoding: [native blocked-by links | body "Blocked by:" lines — board has
 
 Cross-team escalations:
   ESCALATE [edge] → [neighbouring team / contact]
-
-Options:
-  "go"       — execute all
-  "skip 2,3" — execute all except listed
-  "review"   — walk through each
-  "cancel"   — no changes
 ```
 
-Wait for user response. Execute only explicitly approved actions; re-verify each item match before touching it. No silent writes.
+Present the standard options, then gate and execute per `workitem-write` steps 4–5.
 
 ## Phase 3 — Publish & report
 

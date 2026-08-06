@@ -100,6 +100,19 @@ class TestIncludedCommands(unittest.TestCase):
             self.assertEqual(entries[0].starter, "Draft a feature")
             self.assertEqual(entries[0].description, "a demo command")
 
+    def test_skips_non_invocable_handler_registries(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            cmds = root / ".agents" / "commands"
+            (cmds / "_workitem-archetypes").mkdir(parents=True)
+            (cmds / "_meeting-archetypes").mkdir(parents=True)
+            (cmds / "in.md").write_text(FM)
+            (cmds / "_workitem-archetypes" / "feature.md").write_text(FM)
+            (cmds / "_meeting-archetypes" / "refinement.md").write_text(FM)
+            entries = gather_m365.included_commands(root)
+            self.assertEqual([e.name for e in entries], ["in"])
+
     def test_sorted_by_name_not_path(self):
         import tempfile
         with tempfile.TemporaryDirectory() as td:

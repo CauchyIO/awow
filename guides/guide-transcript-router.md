@@ -3,10 +3,9 @@
 One entry point: the router reads the transcript, recommends a specialist, and walks you through gated review — meeting to board in minutes.
 
 > **TL;DR** — `/process-transcript` is the only command you type. It reads the transcript, names
-> what kind of session it was (or which segments were which kinds), recommends specialists with a
-> rationale, and stops at Gate 1. Matched segments are dispatched to their specialist; segments
-> that fall through get templated extraction and a second gate before any board write. Adding a
-> specialist is a registry entry, not a re-training event.
+> every generic meeting lens that applies to each segment, adds any sparse team guidance,
+> recommends specialists with a rationale, and stops at Gate 1. Matched segments are dispatched
+> to their specialist; the rest are analysed with the composed lenses before any board write.
 
 ## The shape — one entry, many specialists
 
@@ -19,7 +18,7 @@ flowchart TD
   router --> action["Action-output — what should we DO about this?"]
   router --> pattern["Pattern-output — how did this session GO?"]
   router --> signal["Specialised signal — what does this specifically tell us?"]
-  action --> fallback["templated fallback, stays in the router:<br>actions, owners, follow-ups"]
+  action --> fallback["local analysis, stays in the router:<br>generic lenses + team guidance"]
   pattern --> retro["/process-retro — retrospective"]
   pattern --> coach["/coaching-review — teacher/learner session"]
   signal --> design["/solution-design-flow — design session"]
@@ -68,6 +67,7 @@ Read before the transcript; this is what turns best-effort guessing into accurat
 | Context file | What it buys you |
 | --- | --- |
 | `context/team/members.md` | Speaker disambiguation — a garbled name that sounds like a known member resolves to that member. |
+| `context/team/meetings/*.md` | Sparse differences in how this team runs familiar rituals, plus any custom recurring meetings. |
 | `context/knowledge-base/glossary.md` | Domain terms and abbreviations survive voice-to-text mangling. |
 | `context/company/neighbouring-teams.md` | Cross-team blocker detection — dependencies traced to the right board. |
 | `context/tooling/board.md` | The board family and read/write surface, so proposed actions match your hierarchy. |
@@ -93,7 +93,7 @@ flowchart LR
   p2 -. every segment dispatched .-> done[Done — no Gate 2]
 ```
 
-Phases 3–4 run only when a segment falls through to templated extraction.
+Phases 3–4 run only when a segment stays in the router for lens-driven analysis.
 
 ### Gate 1 — detected & recommended
 
@@ -101,8 +101,10 @@ Phases 3–4 run only when a segment falls through to templated extraction.
 GATE 1 — DETECTED & RECOMMENDED
 
 Detected 2 segment(s):
-  00:00–00:32  retrospective       (8 participants, confidence: clear)
-  00:32–01:01  solution design     (4 participants, confidence: likely)
+  00:00–00:32  generic: retrospective, ad-hoc (confidence: clear, likely)
+                 team guidance: retrospective.md
+  00:32–01:01  generic: architecture discovery (confidence: likely)
+                 team guidance: none
 
 Recommended dispatch:
   /process-retro          on segment 1  — looking-back framing, peer dynamic
@@ -115,14 +117,14 @@ Disambiguation: "S-D-W" → SDW (glossary); "Sam" turn at 00:14 likely Pat
 Check four things: segment classification, participant names, *decided* separated from *merely
 explored*, and whether garbled words and mis-attributions were corrected sensibly. Correct it in
 plain language — *"the person labelled Sam around 00:14 is actually Pat; on segment 2 we landed on
-option B, not A"* — then reply `go`, `--as=<skill>` to override a segment, or `fallback` to skip
-dispatch entirely. The router asks at most two clarifying questions, and only when a wrong answer
+option B, not A"* — then reply `go`, `--as=<skill>` to override a segment, or `local` to skip
+specialist dispatch. The router asks at most two clarifying questions, and only when a wrong answer
 would change a board write.
 
 ### Gate 2 — board actions, or a proposal
 
 Dispatched segments run their own pipelines, own their own board writes, and get stitched into one
-composite report. Gate 2 fires only for segments that fell through; for those the router does board
+composite report. Gate 2 fires only for segments analysed locally; for those the router does board
 discovery — matching existing items, detecting cross-team blockers, spotting gaps:
 
 ```
@@ -199,6 +201,12 @@ and matches segments against frontmatter, so there is no central registry file t
 
 After landing the source, run `python tools/gather.py` to refresh the mirrors, then list the new
 command in [`.agents/commands/README.md`](../.agents/commands/README.md).
+
+## Teaching the router about meetings
+
+Generic meeting lenses live under [`.agents/commands/_meeting-archetypes/`](../.agents/commands/_meeting-archetypes/README.md). They describe how to recognise a meeting shape, what to extract, what may be missing, and common interpretation mistakes. A segment can use several lenses at once.
+
+Do not copy a generic lens to customise it. Add a small plain-Markdown file under `context/team/meetings/` only when the team's ritual meaningfully differs. Name a familiar ritual after the generic kind, or describe a custom meeting with `How to recognise it`, `What matters in this meeting`, and `What useful output looks like`. The team can edit these files directly or let `/setup-awow` draft them; no file means the generic behaviour already fits.
 
 ## Sources of truth
 

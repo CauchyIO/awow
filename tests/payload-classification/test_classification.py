@@ -110,20 +110,27 @@ def main() -> int:
     for extra in sorted(shipped - wanted):
         FAILURES.append(f"shipped but not classified payload: dist/context/{extra}")
 
-    # The work-item archetypes are handlers, not commands: excluded from the
-    # picker by SKIP_DIR_PARTS, but /process-workitem reads them at runtime, so
-    # they must ship as data.
-    arch_src = gather.AGENTS_DIR / "commands" / "_workitem-archetypes"
-    arch_dst = gather.DIST_DIR / "commands" / "_workitem-archetypes"
-    want_arch = {p.name for p in arch_src.glob("*.md")}
-    got_arch = {p.name for p in arch_dst.glob("*.md")} if arch_dst.is_dir() else set()
-    for missing in sorted(want_arch - got_arch):
-        FAILURES.append(f"archetype not shipped: {missing}")
-    for extra in sorted(got_arch - want_arch):
-        FAILURES.append(f"archetype shipped but not in source: {extra}")
-    # They must NOT become picker entries.
-    if (gather.DIST_DIR / "commands" / "bugfix.md").exists():
-        FAILURES.append("archetype leaked into dist/commands/ as a top-level command")
+    # Archetypes are handlers, not commands: excluded from picker surfaces,
+    # but their routers read them at runtime, so both registries ship as data.
+    registries = {
+        "_workitem-archetypes": "bugfix.md",
+        "_meeting-archetypes": "refinement.md",
+    }
+    for registry, representative in registries.items():
+        arch_src = gather.AGENTS_DIR / "commands" / registry
+        arch_dst = gather.DIST_DIR / "commands" / registry
+        want_arch = {p.name for p in arch_src.glob("*.md")}
+        got_arch = {p.name for p in arch_dst.glob("*.md")} if arch_dst.is_dir() else set()
+        if not want_arch:
+            FAILURES.append(f"handler registry is empty or missing: {registry}")
+        for missing in sorted(want_arch - got_arch):
+            FAILURES.append(f"{registry} handler not shipped: {missing}")
+        for extra in sorted(got_arch - want_arch):
+            FAILURES.append(f"{registry} handler shipped but not in source: {extra}")
+        if (gather.DIST_DIR / "commands" / representative).exists():
+            FAILURES.append(
+                f"{registry} handler leaked into dist/commands/: {representative}"
+            )
 
     for f in FAILURES:
         print(f"FAIL {f}")

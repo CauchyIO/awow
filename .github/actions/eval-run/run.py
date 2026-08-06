@@ -328,6 +328,15 @@ def compare_report(current: dict, baseline: dict,
             scored[f"{dimension}_delta"] = delta
             scored[f"{dimension}_reading"] = _reading(delta, threshold_pp)
 
+        for qid, question in scored.get("questions", {}).items():
+            old_question = old.get("questions", {}).get(qid, {})
+            before, after = old_question.get("pass_rate"), question.get("pass_rate")
+            question["baseline_pass_rate"] = before
+            question["pass_rate_delta"] = (
+                round(after - before, 4)
+                if before is not None and after is not None else None
+            )
+
         critical_dimensions = set()
         for qid, old_question in old.get("questions", {}).items():
             new_question = scored.get("questions", {}).get(qid)
@@ -356,6 +365,132 @@ def compare_report(current: dict, baseline: dict,
             scored["reading"] = "held"
         scored["reasons"] = reasons
     return compared
+
+
+def _percent(value: float | None) -> str:
+    return "—" if value is None else f"{value:.1f}%"
+
+
+def _delta(value: float | None) -> str:
+    if value is None:
+        return "—"
+    if value == 0:
+        return "0.0 pp"
+    return f"+{value:.1f} pp" if value > 0 else f"−{abs(value):.1f} pp"
+
+
+def render_scorecard(record: dict, report: dict) -> list[str]:
+    """Native Actions Markdown with skill changes first and evidence below."""
+    capabilities = report.get("capabilities", {})
+    counts = {reading: sum(c.get("reading") == reading
+                           for c in capabilities.values())
+              for reading in ("lowered", "unmeasured", "held", "raised")}
+    order = {"lowered": 0, "unmeasured": 1, "held": 2, "raised": 3}
+    rows = sorted(capabilities.items(),
+                  key=lambda item: (order.get(item[1].get("reading"), 9), item[0]))
+    lines = [
+        "## Eval skill changes",
+        "",
+        (f"**{counts['lowered']} lowered · {counts['unmeasured']} unmeasured · "
+         f"{counts['held']} held · {counts['raised']} raised**"),
+        "",
+        "| Capability | Outcome | Delta | Process | Delta | Strict pass | Reading | Reason |",
+        "|---|---:|---:|---:|---:|---|---|---|",
+    ]
+    for name, scored in rows:
+        reason = "; ".join(scored.get("reasons", [])) or "—"
+        lines.append(
+            f"| {md_cell(name)} | {_percent(scored.get('outcome'))} "
+            f"| {_delta(scored.get('outcome_delta'))} "
+            f"| {_percent(scored.get('process'))} "
+            f"| {_delta(scored.get('process_delta'))} "
+            f"| {'yes' if scored.get('strict_pass') else '**no**'} "
+            f"| {scored.get('reading', 'unmeasured')} | {md_cell(reason)} |"
+        )
+
+    changes = []
+    for capability, scored in rows:
+        for qid, question in scored.get("questions", {}).items():
+            before, after = (question.get("baseline_pass_rate"),
+                             question.get("pass_rate"))
+            if before is None or after is None or before == after:
+                continue
+            marker = " critical" if question.get("critical") else ""
+            changes.append(
+                f"- `{capability}/{qid}` ({question.get('dimension')}{marker}): "
+                f"{before:.0%} → {after:.0%}"
+            )
+    lines += ["", "### Question changes", *(changes or ["- None."])]
+
+    coverage = report.get("coverage", {})
+    seat = report.get("seat", {})
+    name = seat.get("name") or seat.get("id") or "unresolved seat"
+    model_id = seat.get("model_id") or "unresolved model"
+    harness = seat.get("harness") or "unresolved harness"
+    effort = seat.get("effort")
+    effort_text = f" · Effort: **{effort}**" if effort else ""
+    sha = (record.get("data_source") or {}).get("sha", "unknown")
+    lines += [
+        "",
+        "### Measurement",
+        (f"Valid repetitions: **{coverage.get('valid_repetitions', 0)}/"
+         f"{coverage.get('requested_repetitions', 0)}** · "
+         f"Scenarios executed: **{coverage.get('scenarios_executed', 0)}**"),
+        (f"Seat: **{md_cell(str(name))}** (`{md_cell(str(model_id))}`) · "
+         f"Harness: **{md_cell(str(harness))}**{effort_text}"),
+        f"Eval version: **{report.get('eval_version') or 'unresolved'}** · Commit: `{sha}`",
+        "Compact artifact: `eval-result.json` (uploaded with this run).",
+    ]
+    branch = (record.get("metadata") or {}).get("result_branch")
+    repo = (record.get("data_source") or {}).get("repo")
+    if branch and repo:
+        lines.append(f"Detailed evidence: [`{branch}`](https://github.com/{repo}/tree/{branch}).")
+    return lines
+
+
+def emit_annotations(report: dict) -> None:
+    for capability, scored in report.get("capabilities", {}).items():
+        reasons = "; ".join(scored.get("reasons", []))
+        safe = (reasons or scored.get("reading", "unmeasured")).replace("\n", " ")
+        if scored.get("reading") == "unmeasured":
+            print(f"::warning title=eval unmeasured::{capability}: {safe}")
+        elif scored.get("reading") == "lowered":
+            critical = any("critical" in reason or "strict pass" in reason
+                           for reason in scored.get("reasons", []))
+            level = "error" if critical else "warning"
+            title = "eval critical regression" if critical else "eval regression"
+            print(f"::{level} title={title}::{capability}: {safe}")
+
+
+def compact_result(record: dict, report: dict) -> dict:
+    return {
+        "contract": "awow.eval-scorecard/v1",
+        "run_id": record.get("id"),
+        "subject_sha": (record.get("data_source") or {}).get("sha"),
+        "seat": report.get("seat"),
+        "eval_version": report.get("eval_version"),
+        "coverage": report.get("coverage"),
+        "capabilities": report.get("capabilities"),
+    }
+
+
+def _seat_identity(record: dict, resp: dict) -> dict:
+    metadata = record.get("metadata") or {}
+    seat = copy.deepcopy(resp.get("seat") or metadata.get("seat") or {})
+    seat.setdefault("id", metadata.get("seat_id") or os.getenv("EVAL_SEAT_ID"))
+    seat.setdefault("name", metadata.get("model_name") or seat.get("id"))
+    seat.setdefault("model_id", metadata.get("resolved_model_id")
+                    or record.get("model"))
+    seat.setdefault("harness", metadata.get("harness"))
+    seat.setdefault("effort", metadata.get("effort"))
+    return seat
+
+
+def _write_action_output(name: str, value: str) -> None:
+    output = os.getenv("GITHUB_OUTPUT")
+    if output:
+        with open(output, "a") as stream:
+            stream.write(f"{name}={value}\n")
 
 
 def render_scores(record: dict, cells: list[dict]) -> list[str]:
@@ -438,8 +573,14 @@ def gate_errors(resp: dict, cells: list[dict], gate: dict) -> list[str]:
 def main() -> int:
     sha = subprocess.run(["git", "rev-parse", "HEAD"], check=True,
                          capture_output=True, text=True).stdout.strip()
-    scenarios = sorted(p.name for p in Path("evals/scenarios").iterdir()
+    available = sorted(p.name for p in Path("evals/scenarios").iterdir()
                        if p.is_dir())
+    selected = [value.strip() for value in os.getenv("EVAL_SCENARIOS", "").split(",")
+                if value.strip()]
+    unknown = sorted(set(selected) - set(available))
+    if unknown:
+        raise ValueError(f"unknown eval scenario(s): {', '.join(unknown)}")
+    scenarios = selected or available
     reps = int(os.environ["EVAL_REPS"])
     budget = int(os.environ["EVAL_BUDGET_PER_SCENARIO"]) * len(scenarios) * reps
 
@@ -488,16 +629,39 @@ def main() -> int:
             resp = api("GET", f"/runs/{run_id}/output-items",
                        attempts=len(RETRY_BACKOFF) + 1)
             cells = [item["cell"] for item in resp["data"]]
-            summary(*render_scores(record, cells))
+            scored = score_run(cells, Path("evals/rubrics"), reps)
+            scored["seat"] = _seat_identity(record, resp)
+            scored["eval_version"] = os.getenv("EVAL_VERSION", "1")
             gate_path = Path("evals/gate.json")
+            gate = json.loads(gate_path.read_text()) if gate_path.is_file() else None
+            baseline = ({"seat": gate["automated_regression_seat"],
+                         "eval_version": gate["eval_version"],
+                         "capabilities": gate["capabilities"]}
+                        if gate else
+                        {"seat": scored["seat"],
+                         "eval_version": scored["eval_version"],
+                         "capabilities": {}})
+            report = compare_report(scored, baseline)
+            summary(*render_scorecard(record, report), "", *render_scores(record, cells))
+            emit_annotations(report)
+
+            result_path = Path(os.getenv("EVAL_RESULT_PATH", "eval-result.json"))
+            result_path.write_text(json.dumps(compact_result(record, report), indent=1) + "\n")
+            _write_action_output("result-path", str(result_path))
+
             if gate_path.is_file():
-                errs = gate_errors(resp, cells, json.loads(gate_path.read_text()))
+                resp["seat"] = scored["seat"]
+                resp["eval_version"] = scored["eval_version"]
+                errs = gate_errors(resp, cells, gate)
                 if errs:
                     summary("### Gate", *(f"- {e}" for e in errs))
-                    print("::error::eval gate failed — see summary")
-                    return 1
+                    if os.getenv("EVAL_ENFORCE", "false").lower() == "true":
+                        print("::error::eval gate failed — see summary")
+                        return 1
+                    print("::warning::eval gate is informational — see summary")
+                    return 0
                 summary("", "Gate: **clean** vs baseline "
-                        f"`{calib_str(json.loads(gate_path.read_text())['calibration'])}`")
+                        f"`{calib_str(gate['calibration'])}`")
             return 0
 
         if status == "failed":

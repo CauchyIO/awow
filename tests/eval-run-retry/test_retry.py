@@ -123,18 +123,24 @@ class TestRetryPolicy(ServerFixture):
             eval_run.api("GET", "/runs/r1", attempts=2)
 
 
-RECORD = {"status": "completed",
-          "metadata": {"result_branch": "night/eval-x"},
-          "data_source": {"repo": "CauchyIO/awow"}}
+RECORD = {"id": "r1", "status": "completed",
+          "metadata": {"result_branch": "night/eval-x",
+                       "seat_id": "glm-5-2",
+                       "resolved_model_id": "z-ai/glm-5.2",
+                       "harness": "Pi", "effort": "pinned"},
+          "data_source": {"repo": "CauchyIO/awow", "sha": "a" * 40}}
 
 ITEMS = {"judge": {"calibration": {"setup-awow-walkthrough": "abc"}},
          "data": [{"cell": {
              "id": "eval-setup-awow-walkthrough-worker-r1",
              "outcome": {"rubric_yes": 5, "rubric_total": 6,
-                         "rubric": [{"question": "Q1", "answer": True,
-                                     "evidence": "because"}]},
+                         "rubric": [
+                             {"question": f"**Q{i}** — question {i}?",
+                              "answer": i != 6, "evidence": "because"}
+                             for i in range(1, 7)]},
              "process": {"stop_reason": "persona-done",
-                         "scope_violations": []}}}]}
+                         "scope_violations": [], "gate_violation": False},
+             "checks": {"post": {"rc": 0, "log": ""}}}}]}
 
 
 class TestPollLoop(ServerFixture):
@@ -143,13 +149,20 @@ class TestPollLoop(ServerFixture):
     def drive(self, script: dict[str, list]) -> int:
         self.serve(script)
         env = {"EVAL_MODEL": "worker", "EVAL_REPS": "1",
-               "EVAL_BUDGET_PER_SCENARIO": "400000"}
+               "EVAL_BUDGET_PER_SCENARIO": "400000",
+               "EVAL_SEAT_ID": "glm-5-2", "EVAL_VERSION": "1",
+               "EVAL_SCENARIOS": "setup-awow-walkthrough",
+               "EVAL_ENFORCE": "false"}
         for k, v in env.items():
             os.environ[k] = v
-        out = Path(tempfile.mkdtemp()) / "summary.md"
+        temp = Path(tempfile.mkdtemp())
+        out = temp / "summary.md"
         out.touch()
         os.environ["GITHUB_STEP_SUMMARY"] = str(out)
+        os.environ["GITHUB_OUTPUT"] = str(temp / "github-output")
+        os.environ["EVAL_RESULT_PATH"] = str(temp / "eval-result.json")
         self.summary_path = out
+        self.result_path = temp / "eval-result.json"
         os.chdir(REPO)  # main() reads evals/scenarios and git HEAD
         return eval_run.main()
 
@@ -162,6 +175,9 @@ class TestPollLoop(ServerFixture):
         self.assertEqual(rc, 0)
         self.assertEqual(self.calls("/runs/r1"), 4)
         self.assertIn("5/6", self.summary_path.read_text())
+        result = json.loads(self.result_path.read_text())
+        self.assertEqual(result["contract"], "awow.eval-scorecard/v1")
+        self.assertNotIn("transcript", self.result_path.read_text().lower())
 
     def test_poll_gives_up_after_consecutive_cap(self):
         self.assertEqual(eval_run.MAX_CONSECUTIVE_POLL_FAILURES, 5)

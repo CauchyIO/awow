@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 
 
@@ -172,6 +174,82 @@ class TestComparison(unittest.TestCase):
             report("provider/model@2", 99.0, 99.0), baseline)
         self.assertEqual(
             incompatible["capabilities"]["flow"]["reading"], "unmeasured")
+
+    def test_question_comparison_keeps_the_previous_rate_for_explanations(self):
+        baseline = report("provider/model@1", 80.0, 90.0)
+        compared = eval_run.compare_report(
+            report("provider/model@1", 99.0, 99.0, question_rate=0.8), baseline)
+        question = compared["capabilities"]["flow"]["questions"]["Q1"]
+        self.assertEqual(question["baseline_pass_rate"], 1.0)
+        self.assertEqual(question["pass_rate_delta"], -0.2)
+
+
+def compared_report(critical_regression: bool = False) -> dict:
+    reason = (["Q4 critical requirement regressed"]
+              if critical_regression else ["Q4 newly failed"])
+    return {
+        "seat": {"id": "glm-5-2", "name": "GLM 5.2",
+                 "model_id": "provider/model@revision",
+                 "harness": "Pi", "effort": "pinned"},
+        "eval_version": "1",
+        "coverage": {"scenarios_executed": 2, "valid_repetitions": 9,
+                     "requested_repetitions": 10},
+        "scenarios": {},
+        "capabilities": {
+            "setup-awow": {
+                "outcome": 90.0, "process": 95.0, "balanced": 92.5,
+                "outcome_delta": 6.0, "process_delta": 1.0,
+                "outcome_reading": "raised", "process_reading": "held",
+                "reading": "raised", "strict_pass": True,
+                "valid_runs": 5, "requested_runs": 5, "reasons": [],
+                "questions": {},
+            },
+            "daily-digest": {
+                "outcome": 70.0, "process": 88.0, "balanced": 79.0,
+                "outcome_delta": -8.0, "process_delta": 0.0,
+                "outcome_reading": "lowered", "process_reading": "held",
+                "reading": "lowered", "strict_pass": False,
+                "valid_runs": 4, "requested_runs": 5, "reasons": reason,
+                "questions": {"Q4": {
+                    "pass_rate": 0.5, "baseline_pass_rate": 1.0,
+                    "pass_rate_delta": -0.5,
+                    "dimension": "outcome",
+                    "critical": critical_regression,
+                }},
+            },
+        },
+    }
+
+
+def run_record() -> dict:
+    return {
+        "id": "api-run-1", "status": "completed",
+        "metadata": {"result_branch": "night/eval-api-run-1"},
+        "data_source": {"repo": "CauchyIO/awow", "sha": "a" * 40},
+    }
+
+
+class TestActionsScorecard(unittest.TestCase):
+    def test_skill_changes_are_first_and_regressions_sort_first(self):
+        text = "\n".join(eval_run.render_scorecard(
+            run_record(), compared_report()))
+        self.assertLess(text.index("1 lowered"), text.index("| Capability |"))
+        self.assertLess(text.index("daily-digest"), text.index("setup-awow"))
+        self.assertIn("| Outcome | Delta | Process | Delta |", text)
+        self.assertIn("Q4", text)
+        self.assertIn("Valid repetitions", text)
+        self.assertIn("Pi", text)
+        self.assertIn("provider/model@revision", text)
+        self.assertNotIn("−0.0 pp", text)
+        self.assertNotIn("OpenRouter", text)
+        self.assertNotIn("APIM", text)
+
+    def test_critical_regression_emits_error_annotation(self):
+        output = io.StringIO()
+        with redirect_stdout(output):
+            eval_run.emit_annotations(compared_report(critical_regression=True))
+        self.assertIn("::error title=eval critical regression::",
+                      output.getvalue())
 
 
 if __name__ == "__main__":

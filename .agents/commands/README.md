@@ -12,7 +12,7 @@ Slash commands the agent can run. The files are **flat** — one `<name>.md` per
 
 `_workitem-archetypes/` is the one remaining subfolder — it holds handlers loaded by `process-workitem`, not directly invocable commands.
 
-Two of these commands are routers that dispatch to sub-prompts: `process-workitem` dispatches to the archetype handlers in `_workitem-archetypes/`, and `process-transcript` routes a transcript to a specialist command (`coaching-review`, `solution-design-flow`). `guides/guide-transcript-router.html` documents the transcript-routing model — it is scoped to transcript-consuming commands, not a catalogue of every prompt.
+Two of these commands are routers that dispatch to sub-prompts: `process-workitem` dispatches to the archetype handlers in `_workitem-archetypes/`, and `process-transcript` routes a transcript to a specialist command (`coaching-review`, `solution-design-flow`). `guides/guide-transcript-router.md` documents the transcript-routing model — it is scoped to transcript-consuming commands, not a catalogue of every prompt.
 
 Plus the top-level meta commands:
 

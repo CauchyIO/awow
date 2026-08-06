@@ -113,12 +113,21 @@ def run_seat(seat: dict, args) -> Path:
     """Generate existing bundles, invoke the existing evaluator, compact once."""
     seat_dir = args.out / seat["id"]
     compact_path = seat_dir / "eval-result.json"
+    resolved_model_id = _resolution(args, seat["id"])
+    identity = {"id": seat["id"], "name": seat["name"],
+                "model_id": resolved_model_id, "harness": seat["harness"],
+                "effort": seat["effort"]}
     if compact_path.is_file():
         existing = json.loads(compact_path.read_text())
         expected_runs = len(args.scenarios) * args.reps
-        compatible = (existing.get("subject_sha") == args.subject_sha
+        compatible = (existing.get("contract") == "awow.eval-scorecard/v1"
+                      and existing.get("subject_sha") == args.subject_sha
                       and existing.get("eval_version") == args.eval_version
-                      and existing.get("seat", {}).get("id") == seat["id"]
+                      and existing.get("awow_version") == args.awow_version
+                      and existing.get("profile") == args.profile
+                      and existing.get("scenarios") == args.scenarios
+                      and existing.get("requested_model") == seat["model"]
+                      and existing.get("seat") == identity
                       and existing.get("coverage", {}).get(
                           "requested_repetitions") == expected_runs)
         if not compatible:
@@ -160,21 +169,16 @@ def run_seat(seat: dict, args) -> Path:
     if local.get("request_sha") not in (None, args.subject_sha):
         raise RuntimeError(f"{local_result}: result is for another subject")
     cells = local.get("cells") or []
-    resolved_model_id = _resolution(args, seat["id"])
-    reported = {cell.get("process", {}).get("resolved_model_id") for cell in cells}
-    reported.discard(None)
-    if reported and reported != {resolved_model_id}:
-        raise RuntimeError(
-            f"{seat['id']}: evaluator reported {sorted(reported)}, "
-            f"expected {resolved_model_id!r}")
-    scored = _load_runner().score_run(cells, RUBRICS, args.reps)
-    identity = {"id": seat["id"], "name": seat["name"],
-                "model_id": resolved_model_id, "harness": seat["harness"],
-                "effort": seat["effort"]}
+    runner = _load_runner()
+    runner.validate_resolved_model(cells, identity)
+    scored = runner.score_run(cells, RUBRICS, args.reps)
     compact = {
         "contract": "awow.eval-scorecard/v1",
         "subject_sha": args.subject_sha,
         "eval_version": args.eval_version,
+        "awow_version": args.awow_version,
+        "profile": args.profile,
+        "scenarios": args.scenarios,
         "seat": identity,
         "requested_model": seat["model"],
         "coverage": scored["coverage"],
@@ -194,15 +198,20 @@ def merge_campaign(paths: list[Path]) -> dict:
         raise ValueError("campaign input has an unknown contract")
     subjects = {run.get("subject_sha") for run in runs}
     versions = {run.get("eval_version") for run in runs}
+    awow_versions = {run.get("awow_version") for run in runs}
+    profiles = {run.get("profile") for run in runs}
+    scenarios = {tuple(run.get("scenarios") or []) for run in runs}
     ids = [run.get("seat", {}).get("id") for run in runs]
-    if len(subjects) != 1 or len(versions) != 1:
-        raise ValueError("campaign inputs mix subject SHA or eval version")
+    if any(len(values) != 1 or None in values for values in
+           (subjects, versions, awow_versions, profiles)) or len(scenarios) != 1:
+        raise ValueError("campaign inputs mix subject, version, profile, or scenarios")
     if None in ids or len(ids) != len(set(ids)):
         raise ValueError("campaign inputs have a missing or duplicate seat ID")
     order = {seat["id"]: index for index, seat in enumerate(load_seats(SEATS_PATH))}
     runs.sort(key=lambda run: order.get(run["seat"]["id"], len(order)))
     return {"contract": "awow.eval-campaign/v1",
             "subject_sha": subjects.pop(), "eval_version": versions.pop(),
+            "awow_version": awow_versions.pop(), "profile": profiles.pop(),
             "runs": runs}
 
 
@@ -259,6 +268,64 @@ def _reading(run: dict, previous: dict | None) -> str:
     return "unmeasured"
 
 
+def validate_campaign(campaign: dict) -> tuple[list[dict], dict[str, dict]]:
+    if campaign.get("contract") != "awow.eval-campaign/v1":
+        raise ValueError("unsupported campaign contract")
+    profile = campaign.get("profile")
+    if profile not in PROFILES:
+        raise ValueError(f"unsupported campaign profile {profile!r}")
+
+    config = json.loads(SEATS_PATH.read_text())
+    roster = load_seats(SEATS_PATH)
+    roster_by_id = {seat["id"]: seat for seat in roster}
+    expected_ids = set(roster_by_id)
+    runs = campaign.get("runs")
+    if not isinstance(runs, list):
+        raise ValueError("campaign runs must be a list")
+    ids = [run.get("seat", {}).get("id") for run in runs]
+    if len(ids) != len(set(ids)):
+        raise ValueError("campaign has duplicate seat IDs")
+    missing, extra = expected_ids - set(ids), set(ids) - expected_ids
+    if missing or extra:
+        raise ValueError(f"campaign roster mismatch; missing={sorted(missing)}, "
+                         f"extra={sorted(extra)}")
+
+    resolution = validate_model_resolution(roster, campaign.get("model_resolution"))
+    if set(resolution) != expected_ids:
+        raise ValueError("campaign model resolution must match the fixed roster")
+    subject = campaign.get("subject_sha")
+    eval_version = campaign.get("eval_version")
+    awow_version = campaign.get("awow_version")
+    if eval_version != config["eval_version"]:
+        raise ValueError("campaign eval version is not current")
+    if not isinstance(subject, str) or not subject or not awow_version:
+        raise ValueError("campaign subject or awow version is missing")
+
+    expected_scenarios = PROFILES[profile]["scenarios"]
+    expected_runs = len(expected_scenarios) * PROFILES[profile]["reps"]
+    by_id = {}
+    for run in runs:
+        seat_id = run["seat"]["id"]
+        seat = roster_by_id[seat_id]
+        identity = {"id": seat_id, "name": seat["name"],
+                    "model_id": resolution[seat_id],
+                    "harness": seat["harness"], "effort": seat["effort"]}
+        if run.get("contract") != "awow.eval-scorecard/v1":
+            raise ValueError(f"{seat_id}: unsupported scorecard contract")
+        if run.get("seat") != identity or run.get("requested_model") != seat["model"]:
+            raise ValueError(f"{seat_id}: scorecard seat identity drifted")
+        if (run.get("subject_sha") != subject
+                or run.get("eval_version") != eval_version
+                or run.get("awow_version") != awow_version
+                or run.get("profile") != profile
+                or run.get("scenarios") != expected_scenarios):
+            raise ValueError(f"{seat_id}: scorecard provenance is incompatible")
+        if run.get("coverage", {}).get("requested_repetitions") != expected_runs:
+            raise ValueError(f"{seat_id}: scorecard repetition count is incompatible")
+        by_id[seat_id] = run
+    return roster, by_id
+
+
 def render_weekly_summary(runs: list[dict], previous: list[dict] | None = None) -> str:
     roster = [seat for seat in load_seats(SEATS_PATH) if seat["weekly"]]
     current = {run.get("seat", {}).get("id"): run for run in runs}
@@ -288,12 +355,7 @@ def render_weekly_summary(runs: list[dict], previous: list[dict] | None = None) 
 
 def render_readme_snapshot(campaign: dict, performance_id: str,
                            automated_id: str) -> str:
-    runs = campaign.get("runs") or []
-    by_id = {run.get("seat", {}).get("id"): run for run in runs}
-    roster = load_seats(SEATS_PATH)
-    missing = [seat["id"] for seat in roster if seat["id"] not in by_id]
-    if missing:
-        raise ValueError("campaign missing fixed seats: " + ", ".join(missing))
+    roster, by_id = validate_campaign(campaign)
     for role, seat_id in (("performance baseline", performance_id),
                           ("automated regression", automated_id)):
         if seat_id not in by_id:
@@ -307,13 +369,10 @@ def render_readme_snapshot(campaign: dict, performance_id: str,
                                 if seat["id"] != performance_id]
     summaries = {seat_id: summarize_run(by_id[seat_id]) for seat_id in order}
     reps = {summary["requested_runs"] for summary in summaries.values()}
-    if len(reps) != 1:
-        raise ValueError("campaign mixes repetition counts")
-    version = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())["version"]
     performance = summaries[performance_id]
     lines = ["### Latest full model snapshot", "",
              f"Run date: {campaign['run_date']}",
-             f"awow version: {version} (`{campaign['subject_sha']}`)",
+             f"awow version: {campaign['awow_version']} (`{campaign['subject_sha']}`)",
              f"Eval version: {campaign['eval_version']} · Repetitions: {reps.pop()}",
              (f"**Performance baseline**: {performance['name']} / "
               f"{performance['effort']} — {performance['harness']}")]
@@ -394,6 +453,8 @@ def main() -> int:
     profile = PROFILES[args.profile]
     args.subject_root = ROOT
     args.subject_sha = _subject_sha(ROOT)
+    args.awow_version = json.loads(
+        (ROOT / ".claude-plugin" / "plugin.json").read_text())["version"]
     args.scenarios = profile["scenarios"]
     args.reps = profile["reps"]
     args.model_resolution = json.loads(args.model_resolution.read_text())
@@ -403,8 +464,10 @@ def main() -> int:
     validate_model_resolution(seats, args.model_resolution)
     paths = [run_seat(seat, args) for seat in seats]
     merged = merge_campaign(paths)
-    merged.update({"profile": args.profile,
-                   "run_date": dt.datetime.now(dt.timezone.utc).date().isoformat()})
+    merged.update({
+        "run_date": dt.datetime.now(dt.timezone.utc).date().isoformat(),
+        "model_resolution": args.model_resolution,
+    })
     args.out.mkdir(parents=True, exist_ok=True)
     output = args.out / "campaign.json"
     output.write_text(json.dumps(merged, indent=1) + "\n")

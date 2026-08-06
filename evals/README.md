@@ -87,6 +87,9 @@ Maintainers run the complete twelve-seat snapshot locally, roughly biweekly:
 python3 evals/campaign.py run --evaluator-root /path/to/overnight/harness --model-resolution /path/to/model-resolution.json --profile snapshot --out /tmp/awow-evals
 ```
 
+The resolution file is a flat JSON object mapping each of the twelve seat IDs
+to the exact model ID used for that run; it is captured in `campaign.json`.
+
 After reviewing `campaign.json` and explicitly choosing qualifying roles, publish
 only the clean README table:
 

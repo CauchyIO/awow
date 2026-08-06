@@ -77,8 +77,9 @@ board commands ask you once and carry on.
 The eval scores measure compliance with the current fixtures, deterministic
 checks, and rubrics; they are not a golden-answer benchmark. Outcome measures
 what the skill achieved, Process measures how it worked, and Balanced is their
-display average. Strict pass requires every scored requirement to pass; valid
-runs shows how much of the requested sample produced usable evidence.
+display average. Strict pass additionally requires complete requested coverage,
+every critical rubric requirement, deterministic checks, and process gates to
+pass; valid runs shows how much of the requested sample produced usable evidence.
 
 <!-- eval-snapshot:start -->
 Latest full model snapshot: not yet established.

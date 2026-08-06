@@ -25,10 +25,13 @@ def load_campaign():
 def compact_run(seat, outcome=82.0, process=88.0, valid=10, requested=10):
     return {
         "contract": "awow.eval-scorecard/v1", "subject_sha": "a" * 40,
-        "eval_version": "1",
+        "eval_version": "1", "awow_version": "0.7.0",
+        "profile": "establishment",
+        "scenarios": ["setup-awow-walkthrough"],
         "seat": {"id": seat["id"], "name": seat["name"],
                  "model_id": f"provider/{seat['id']}",
                  "harness": seat["harness"], "effort": seat["effort"]},
+        "requested_model": seat["model"],
         "coverage": {"scenarios_executed": 1,
                      "valid_repetitions": valid,
                      "requested_repetitions": requested},
@@ -45,10 +48,13 @@ def compact_run(seat, outcome=82.0, process=88.0, valid=10, requested=10):
 
 def fixture_campaign(module):
     seats = module.load_seats(REPO / "evals" / "model-seats.json")
+    runs = [compact_run(seat) for seat in seats]
     return {"contract": "awow.eval-campaign/v1", "subject_sha": "a" * 40,
             "eval_version": "1", "profile": "establishment",
-            "run_date": "2026-08-06",
-            "runs": [compact_run(seat) for seat in seats]}
+            "awow_version": "0.7.0", "run_date": "2026-08-06",
+            "model_resolution": {
+                run["seat"]["id"]: run["seat"]["model_id"] for run in runs},
+            "runs": runs}
 
 
 class TestRoster(unittest.TestCase):
@@ -119,6 +125,43 @@ class TestMerge(unittest.TestCase):
 
 
 class TestRunSeat(unittest.TestCase):
+    def test_resume_refuses_stale_profile_or_seat_identity(self):
+        campaign = load_campaign()
+        seat = next(seat for seat in campaign.load_seats(
+            REPO / "evals" / "model-seats.json") if seat["id"] == "glm-5-2")
+        base = compact_run(seat, valid=5, requested=5)
+        base.update({
+            "profile": "snapshot",
+            "scenarios": ["setup-awow-walkthrough"],
+            "awow_version": "0.7.0",
+            "requested_model": "glm-5-2",
+        })
+        base["seat"]["model_id"] = "z-ai/glm-5.2"
+        mutations = {
+            "profile": lambda run: run.update(profile="establishment"),
+            "scenarios": lambda run: run.update(scenarios=["daily-digest-review-gate"]),
+            "requested model": lambda run: run.update(requested_model="old-glm-route"),
+            "resolved model": lambda run: run["seat"].update(model_id="old/glm"),
+            "harness": lambda run: run["seat"].update(harness="OpenRouter"),
+            "effort": lambda run: run["seat"].update(effort="old-setting"),
+        }
+        for label, mutate in mutations.items():
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as td:
+                root = Path(td)
+                stale = json.loads(json.dumps(base))
+                mutate(stale)
+                result = root / "out" / seat["id"] / "eval-result.json"
+                result.parent.mkdir(parents=True)
+                result.write_text(json.dumps(stale))
+                args = SimpleNamespace(
+                    out=root / "out", subject_sha="a" * 40,
+                    scenarios=["setup-awow-walkthrough"], reps=5,
+                    model_resolution={"glm-5-2": "z-ai/glm-5.2"},
+                    eval_version="1", profile="snapshot",
+                    awow_version="0.7.0")
+                with self.assertRaisesRegex(RuntimeError, "another campaign"):
+                    campaign.run_seat(seat, args)
+
     def test_real_fake_subprocesses_produce_one_compact_result(self):
         campaign = load_campaign()
         with tempfile.TemporaryDirectory() as td:
@@ -162,12 +205,16 @@ class TestRunSeat(unittest.TestCase):
                 subject_root=REPO, subject_sha="a" * 40,
                 scenarios=["setup-awow-walkthrough"], reps=1,
                 model_resolution={"glm-5-2": "z-ai/glm-5.2"},
-                eval_version="1")
+                eval_version="1", profile="snapshot",
+                awow_version="0.7.0")
             path = campaign.run_seat(seat, args)
             result = json.loads(path.read_text())
             self.assertNotIn("transcript", path.read_text().lower())
             self.assertEqual(result["seat"]["harness"], "Pi")
             self.assertEqual(result["seat"]["model_id"], "z-ai/glm-5.2")
+            self.assertEqual(result["profile"], "snapshot")
+            self.assertEqual(result["scenarios"], ["setup-awow-walkthrough"])
+            self.assertEqual(result["awow_version"], "0.7.0")
             self.assertEqual(result["coverage"]["valid_repetitions"], 1)
             self.assertEqual(result["metrics"], {
                 "tokens": 123, "cost_usd": 0.0042, "wall_s": 12.3})
@@ -210,6 +257,14 @@ class TestPublication(unittest.TestCase):
                       "strict_pass": True, "systematic_failure": False}
             self.assertEqual(campaign.qualifies(result), (True, []), seat["id"])
 
+    def test_failed_strict_pass_has_one_readable_reason(self):
+        campaign = load_campaign()
+        result = {"valid_runs": 10, "requested_runs": 10,
+                  "outcome": 82.0, "process": 88.0,
+                  "strict_pass": False, "systematic_failure": False}
+        self.assertEqual(campaign.qualifies(result),
+                         (False, ["strict pass failed"]))
+
     def test_readme_snapshot_is_clean_and_baseline_first(self):
         campaign = load_campaign()
         block = campaign.render_readme_snapshot(
@@ -224,6 +279,52 @@ class TestPublication(unittest.TestCase):
         self.assertNotIn("Lowered", block)
         self.assertNotIn("OpenRouter", block)
         self.assertNotIn("APIM", block)
+
+    def test_snapshot_uses_the_version_captured_with_the_evaluated_commit(self):
+        campaign = load_campaign()
+        snapshot = fixture_campaign(campaign)
+        snapshot["awow_version"] = "0.6.9"
+        for run in snapshot["runs"]:
+            run["awow_version"] = "0.6.9"
+        block = campaign.render_readme_snapshot(
+            snapshot, "gpt-5-6-sol-xhigh", "glm-5-2")
+        self.assertIn("awow version: 0.6.9", block)
+
+    def test_publication_rejects_campaign_or_roster_drift(self):
+        campaign = load_campaign()
+
+        def add_duplicate(value):
+            value["runs"].append(json.loads(json.dumps(value["runs"][0])))
+
+        def add_extra(value):
+            extra = json.loads(json.dumps(value["runs"][0]))
+            extra["seat"]["id"] = "unconfigured-seat"
+            value["runs"].append(extra)
+
+        mutations = {
+            "campaign contract": lambda value: value.update(contract="other/v1"),
+            "profile": lambda value: value.update(profile="ad-hoc"),
+            "duplicate seat": add_duplicate,
+            "extra seat": add_extra,
+            "seat harness": lambda value: value["runs"][6]["seat"].update(
+                harness="OpenRouter"),
+            "requested model": lambda value: value["runs"][0].update(
+                requested_model="stale-model"),
+            "resolved model": lambda value: value["runs"][0]["seat"].update(
+                model_id="stale/provider-model"),
+            "subject": lambda value: value["runs"][0].update(subject_sha="b" * 40),
+            "eval version": lambda value: value["runs"][0].update(eval_version="0"),
+            "run profile": lambda value: value["runs"][0].update(profile="snapshot"),
+            "scenarios": lambda value: value["runs"][0].update(
+                scenarios=["daily-digest-review-gate"]),
+        }
+        for label, mutate in mutations.items():
+            with self.subTest(label=label):
+                snapshot = fixture_campaign(campaign)
+                mutate(snapshot)
+                with self.assertRaises(ValueError):
+                    campaign.render_readme_snapshot(
+                        snapshot, "gpt-5-6-sol-xhigh", "glm-5-2")
 
     def test_marker_replacement_changes_only_the_snapshot_body(self):
         campaign = load_campaign()

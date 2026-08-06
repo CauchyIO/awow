@@ -139,7 +139,8 @@ ITEMS = {"judge": {"calibration": {"setup-awow-walkthrough": "abc"}},
                               "answer": i != 6, "evidence": "because"}
                              for i in range(1, 7)]},
              "process": {"stop_reason": "persona-done",
-                         "scope_violations": [], "gate_violation": False},
+                         "scope_violations": [], "gate_violation": False,
+                         "resolved_model_id": "z-ai/glm-5.2"},
              "checks": {"post": {"rc": 0, "log": ""}}}}]}
 
 

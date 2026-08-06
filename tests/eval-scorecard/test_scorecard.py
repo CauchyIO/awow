@@ -261,9 +261,21 @@ class TestActionsScorecard(unittest.TestCase):
             "tokens": 200, "cost_usd": 0.005, "wall_s": 20.0})
 
     def test_fixed_seat_refuses_resolved_model_drift(self):
-        seat = {"model_id": "z-ai/glm-5.2"}
+        seat = {"model_id": "z-ai/glm-5.2", "harness": "Pi"}
         cells = [{"process": {"resolved_model_id": "other/model"}}]
         with self.assertRaises(RuntimeError):
+            eval_run.validate_resolved_model(cells, seat)
+
+    def test_fixed_pi_seat_requires_identity_on_every_scored_cell(self):
+        seat = {"model_id": "z-ai/glm-5.2", "harness": "Pi"}
+        cells = [
+            {"id": "scored-with-id", "verdict": "pass",
+             "process": {"resolved_model_id": "z-ai/glm-5.2"}},
+            {"id": "scored-without-id", "verdict": "fail", "process": {}},
+            {"id": "runner-failure", "verdict": "indeterminate",
+             "stage": "runner", "process": {}},
+        ]
+        with self.assertRaisesRegex(RuntimeError, "scored-without-id"):
             eval_run.validate_resolved_model(cells, seat)
 
 

@@ -93,45 +93,40 @@ def verdict_note(c: dict) -> str:
 
 
 def parse_rubric(path: Path) -> dict:
-    """Parse the small human-readable rubric contract; no schema layer."""
     text = path.read_text()
-    capabilities = CAPABILITY.findall(text)
-    critical_lines = CRITICAL.findall(text)
+    capabilities, critical_lines = CAPABILITY.findall(text), CRITICAL.findall(text)
     if len(capabilities) != 1:
         raise ValueError(f"{path}: expected exactly one Capability")
     if len(critical_lines) != 1:
         raise ValueError(f"{path}: expected exactly one Critical line")
     critical = set(re.findall(r"`(Q\d+)`", critical_lines[0]))
-    questions, dimension = {}, None
-    seen_dimensions = set()
+    questions, section = {}, None
+    headings = {"outcome": 0, "process": 0}
     for line in text.splitlines():
-        if line == "## Outcome":
-            dimension = "outcome"
-            seen_dimensions.add(dimension)
-        elif line == "## Process":
-            dimension = "process"
-            seen_dimensions.add(dimension)
+        if line in ("## Outcome", "## Process"):
+            section = line[3:].lower()
+            headings[section] += 1
         elif line.startswith("## "):
-            dimension = None
+            section = None
         elif line.startswith("- "):
             match = QUESTION_ID.search(line)
-            if not match or dimension is None:
+            if not match or section is None:
                 raise ValueError(f"{path}: unlabeled rubric question: {line}")
             qid = match.group(1)
             if qid in questions:
                 raise ValueError(f"{path}: duplicate rubric question {qid}")
-            questions[qid] = {"dimension": dimension,
-                              "critical": qid in critical}
+            questions[qid] = {"dimension": section, "critical": qid in critical}
     expected = [f"Q{i}" for i in range(1, len(questions) + 1)]
-    if set(seen_dimensions) != {"outcome", "process"}:
-        raise ValueError(f"{path}: requires Outcome and Process sections")
+    if headings != {"outcome": 1, "process": 1}:
+        raise ValueError(f"{path}: requires exactly one Outcome and Process section")
     if not questions or list(questions) != expected:
         raise ValueError(f"{path}: question IDs must be consecutive from Q1")
     if not critical or not critical <= questions.keys():
         raise ValueError(f"{path}: missing or unknown critical question")
-    for wanted in ("outcome", "process"):
-        if not any(q["dimension"] == wanted for q in questions.values()):
-            raise ValueError(f"{path}: {wanted.title()} has no questions")
+    empty = [name for name in headings
+             if not any(q["dimension"] == name for q in questions.values())]
+    if empty:
+        raise ValueError(f"{path}: {empty[0].title()} has no questions")
     return {"capability": capabilities[0], "critical": critical,
             "questions": questions}
 
@@ -140,16 +135,11 @@ def _mean(values: list[float]) -> float | None:
     return round(sum(values) / len(values), 2) if values else None
 
 
-def _scenario_name(cell_id: str, rubric_names: set[str]) -> str:
-    matches = [name for name in rubric_names
-               if cell_id.startswith(f"eval-{name}-")]
+def _scenario_name(cell_id: str, names) -> str:
+    matches = [name for name in names if cell_id.startswith(f"eval-{name}-")]
     if not matches:
         raise ValueError(f"{cell_id}: no matching scenario rubric")
-    longest = max(len(name) for name in matches)
-    winners = [name for name in matches if len(name) == longest]
-    if len(winners) != 1:
-        raise ValueError(f"{cell_id}: ambiguous scenario rubric {winners}")
-    return winners[0]
+    return max(matches, key=len)
 
 
 def _question_key(question: str) -> str:
@@ -161,65 +151,52 @@ def _question_key(question: str) -> str:
 
 def score_run(cells: list[dict], rubric_dir: Path,
               requested_reps: int) -> dict:
-    """Aggregate valid cells within scenarios, then scenarios within skills."""
     if requested_reps < 1:
         raise ValueError("requested_reps must be positive")
     rubrics = {path.stem: parse_rubric(path)
                for path in sorted(rubric_dir.glob("*.md"))}
     grouped: dict[str, list[dict]] = {}
     for cell in cells:
-        scenario = _scenario_name(cell["id"], set(rubrics))
-        grouped.setdefault(scenario, []).append(cell)
+        grouped.setdefault(_scenario_name(cell["id"], rubrics), []).append(cell)
 
     scenarios = {}
     for scenario, scenario_cells in sorted(grouped.items()):
         rubric = rubrics[scenario]
-        dimension_scores = {"outcome": [], "process": []}
-        question_answers = {qid: [] for qid in rubric["questions"]}
-        valid, strict_cells = 0, []
-        for cell in scenario_cells:
-            if cell.get("verdict") == "indeterminate":
-                continue
-            valid += 1
+        scores = {"outcome": [], "process": []}
+        question_values = {qid: [] for qid in rubric["questions"]}
+        valid_cells = [c for c in scenario_cells
+                       if c.get("verdict") != "indeterminate"]
+        strict = []
+        for cell in valid_cells:
             answers = {_question_key(a["question"]): a.get("answer")
                        for a in cell["outcome"]["rubric"]}
-            missing = set(rubric["questions"]) - answers.keys()
-            unknown = answers.keys() - set(rubric["questions"])
-            if missing or unknown:
-                raise ValueError(
-                    f"{cell['id']}: rubric answer mismatch; "
-                    f"missing={sorted(missing)}, unknown={sorted(unknown)}")
-            applicable = {"outcome": [], "process": []}
+            if set(answers) != set(rubric["questions"]):
+                raise ValueError(f"{cell['id']}: rubric answer mismatch")
+            by_dimension = {"outcome": [], "process": []}
             for qid, meta in rubric["questions"].items():
                 answer = answers[qid]
-                if answer is None or (isinstance(answer, str)
-                                      and answer.lower() == "n/a"):
+                if answer is None or answer == "n/a":
                     continue
-                if not isinstance(answer, bool):
+                if type(answer) is not bool:
                     raise ValueError(f"{cell['id']}: invalid answer for {qid}")
-                applicable[meta["dimension"]].append(answer)
-                question_answers[qid].append(answer)
-            for dimension in ("outcome", "process"):
-                values = applicable[dimension]
+                by_dimension[meta["dimension"]].append(answer)
+                question_values[qid].append(answer)
+            for dimension, values in by_dimension.items():
                 if values:
-                    dimension_scores[dimension].append(
-                        100.0 * sum(values) / len(values))
+                    scores[dimension].append(100 * sum(values) / len(values))
             process = cell.get("process") or {}
             post = (cell.get("checks") or {}).get("post")
-            strict_cells.append(
+            strict.append(
                 all(answers.get(qid) is True for qid in rubric["critical"])
                 and (post is None or post.get("rc") == 0)
                 and not process.get("scope_violations")
-                and not process.get("gate_violation", False)
-            )
-        outcome = _mean(dimension_scores["outcome"])
-        process_score = _mean(dimension_scores["process"])
-        questions = {}
-        for qid, values in question_answers.items():
-            questions[qid] = {
-                "pass_rate": round(sum(values) / len(values), 4) if values else None,
-                **rubric["questions"][qid],
-            }
+                and not process.get("gate_violation", False))
+        outcome, process_score = _mean(scores["outcome"]), _mean(scores["process"])
+        questions = {qid: {
+            "pass_rate": round(sum(values) / len(values), 4) if values else None,
+            **rubric["questions"][qid]}
+            for qid, values in question_values.items()}
+        valid = len(valid_cells)
         scenarios[scenario] = {
             "capability": rubric["capability"],
             "outcome": outcome,
@@ -227,30 +204,23 @@ def score_run(cells: list[dict], rubric_dir: Path,
             "balanced": (round((outcome + process_score) / 2, 2)
                          if outcome is not None and process_score is not None
                          else None),
-            "strict_pass": (valid == requested_reps
-                            and len(strict_cells) == requested_reps
-                            and all(strict_cells)),
+            "strict_pass": valid == requested_reps and all(strict),
             "valid_runs": valid,
             "requested_runs": requested_reps,
             "questions": questions,
         }
 
     capabilities = {}
-    by_capability: dict[str, list[tuple[str, dict]]] = {}
-    for scenario, scored in scenarios.items():
-        by_capability.setdefault(scored["capability"], []).append(
-            (scenario, scored))
-    for capability, scored_scenarios in sorted(by_capability.items()):
-        outcome = _mean([s["outcome"] for _, s in scored_scenarios
-                         if s["outcome"] is not None])
-        process_score = _mean([s["process"] for _, s in scored_scenarios
+    for capability in sorted({s["capability"] for s in scenarios.values()}):
+        members = [(name, score) for name, score in scenarios.items()
+                   if score["capability"] == capability]
+        outcome = _mean([s["outcome"] for _, s in members if s["outcome"] is not None])
+        process_score = _mean([s["process"] for _, s in members
                                if s["process"] is not None])
-        occurrences = {}
-        for _, scored in scored_scenarios:
-            for qid in scored["questions"]:
-                occurrences[qid] = occurrences.get(qid, 0) + 1
+        occurrences = {qid: sum(qid in s["questions"] for _, s in members)
+                       for _, s in members for qid in s["questions"]}
         questions = {}
-        for scenario, scored in scored_scenarios:
+        for scenario, scored in members:
             for qid, value in scored["questions"].items():
                 key = qid if occurrences[qid] == 1 else f"{scenario}:{qid}"
                 questions[key] = value
@@ -260,22 +230,20 @@ def score_run(cells: list[dict], rubric_dir: Path,
             "balanced": (round((outcome + process_score) / 2, 2)
                          if outcome is not None and process_score is not None
                          else None),
-            "strict_pass": all(s["strict_pass"] for _, s in scored_scenarios),
-            "valid_runs": sum(s["valid_runs"] for _, s in scored_scenarios),
-            "requested_runs": sum(s["requested_runs"]
-                                  for _, s in scored_scenarios),
+            "strict_pass": all(s["strict_pass"] for _, s in members),
+            "valid_runs": sum(s["valid_runs"] for _, s in members),
+            "requested_runs": sum(s["requested_runs"] for _, s in members),
             "questions": questions,
         }
 
     first = cells[0] if cells else {}
-    requested_total = requested_reps * len(scenarios)
     return {
         "seat": copy.deepcopy(first.get("seat", {})),
         "eval_version": first.get("eval_version"),
         "coverage": {
             "scenarios_executed": len(scenarios),
             "valid_repetitions": sum(s["valid_runs"] for s in scenarios.values()),
-            "requested_repetitions": requested_total,
+            "requested_repetitions": requested_reps * len(scenarios),
         },
         "scenarios": scenarios,
         "capabilities": capabilities,
@@ -294,23 +262,19 @@ def _reading(delta: float | None, threshold_pp: float) -> str:
 
 def compare_report(current: dict, baseline: dict,
                    threshold_pp: float = DELTA_THRESHOLD_PP) -> dict:
-    """Add model-pinned per-dimension change readings to a scored report."""
     compared = copy.deepcopy(current)
     current_seat, baseline_seat = current.get("seat", {}), baseline.get("seat", {})
-    identity_keys = ("id", "model_id", "harness", "effort")
-    incompatible = [key for key in identity_keys
+    incompatible = [key for key in ("id", "model_id", "harness", "effort")
                     if current_seat.get(key) != baseline_seat.get(key)]
     if current.get("eval_version") != baseline.get("eval_version"):
         incompatible.append("eval_version")
 
     for capability, scored in compared.get("capabilities", {}).items():
         old = baseline.get("capabilities", {}).get(capability)
-        reasons = []
-        if incompatible:
-            reasons.append("incompatible " + ", ".join(incompatible))
-        elif old is None:
+        reasons = (["incompatible " + ", ".join(incompatible)] if incompatible else [])
+        if not reasons and old is None:
             reasons.append("capability absent from baseline")
-        elif scored.get("valid_runs", 0) < old.get("valid_runs", 0):
+        elif not reasons and scored.get("valid_runs", 0) < old.get("valid_runs", 0):
             reasons.append("fewer valid repetitions than baseline")
         if reasons:
             scored.update({
@@ -329,15 +293,13 @@ def compare_report(current: dict, baseline: dict,
             scored[f"{dimension}_reading"] = _reading(delta, threshold_pp)
 
         for qid, question in scored.get("questions", {}).items():
-            old_question = old.get("questions", {}).get(qid, {})
-            before, after = old_question.get("pass_rate"), question.get("pass_rate")
+            before = old.get("questions", {}).get(qid, {}).get("pass_rate")
+            after = question.get("pass_rate")
             question["baseline_pass_rate"] = before
-            question["pass_rate_delta"] = (
-                round(after - before, 4)
-                if before is not None and after is not None else None
-            )
+            question["pass_rate_delta"] = (round(after - before, 4)
+                                           if None not in (before, after) else None)
 
-        critical_dimensions = set()
+        critical_dimensions = []
         for qid, old_question in old.get("questions", {}).items():
             new_question = scored.get("questions", {}).get(qid)
             if (old_question.get("critical")
@@ -345,16 +307,15 @@ def compare_report(current: dict, baseline: dict,
                     and (new_question is None
                          or new_question.get("pass_rate") is None
                          or new_question.get("pass_rate") < 1.0)):
-                dimension = old_question["dimension"]
-                critical_dimensions.add(dimension)
+                critical_dimensions.append(old_question["dimension"])
                 reasons.append(f"{qid} critical requirement regressed")
         if old.get("strict_pass") and not scored.get("strict_pass"):
             reasons.append("strict pass regressed")
         for dimension in critical_dimensions:
             scored[f"{dimension}_reading"] = "lowered"
 
-        dimension_readings = [scored["outcome_reading"],
-                              scored["process_reading"]]
+        dimension_readings = [scored[f"{name}_reading"]
+                              for name in ("outcome", "process")]
         if reasons or "lowered" in dimension_readings:
             scored["reading"] = "lowered"
         elif "unmeasured" in dimension_readings:
@@ -367,13 +328,11 @@ def compare_report(current: dict, baseline: dict,
     return compared
 
 
-def _percent(value: float | None) -> str:
-    return "—" if value is None else f"{value:.1f}%"
-
-
-def _delta(value: float | None) -> str:
+def _format_score(value: float | None, delta: bool = False) -> str:
     if value is None:
         return "—"
+    if not delta:
+        return f"{value:.1f}%"
     if value == 0:
         return "0.0 pp"
     return f"+{value:.1f} pp" if value > 0 else f"−{abs(value):.1f} pp"
@@ -382,12 +341,11 @@ def _delta(value: float | None) -> str:
 def render_scorecard(record: dict, report: dict) -> list[str]:
     """Native Actions Markdown with skill changes first and evidence below."""
     capabilities = report.get("capabilities", {})
-    counts = {reading: sum(c.get("reading") == reading
-                           for c in capabilities.values())
-              for reading in ("lowered", "unmeasured", "held", "raised")}
     order = {"lowered": 0, "unmeasured": 1, "held": 2, "raised": 3}
     rows = sorted(capabilities.items(),
                   key=lambda item: (order.get(item[1].get("reading"), 9), item[0]))
+    counts = {name: sum(c.get("reading") == name for c in capabilities.values())
+              for name in order}
     lines = [
         "## Eval skill changes",
         "",
@@ -400,26 +358,22 @@ def render_scorecard(record: dict, report: dict) -> list[str]:
     for name, scored in rows:
         reason = "; ".join(scored.get("reasons", [])) or "—"
         lines.append(
-            f"| {md_cell(name)} | {_percent(scored.get('outcome'))} "
-            f"| {_delta(scored.get('outcome_delta'))} "
-            f"| {_percent(scored.get('process'))} "
-            f"| {_delta(scored.get('process_delta'))} "
+            f"| {md_cell(name)} | {_format_score(scored.get('outcome'))} "
+            f"| {_format_score(scored.get('outcome_delta'), True)} "
+            f"| {_format_score(scored.get('process'))} "
+            f"| {_format_score(scored.get('process_delta'), True)} "
             f"| {'yes' if scored.get('strict_pass') else '**no**'} "
             f"| {scored.get('reading', 'unmeasured')} | {md_cell(reason)} |"
         )
 
-    changes = []
-    for capability, scored in rows:
-        for qid, question in scored.get("questions", {}).items():
-            before, after = (question.get("baseline_pass_rate"),
-                             question.get("pass_rate"))
-            if before is None or after is None or before == after:
-                continue
-            marker = " critical" if question.get("critical") else ""
-            changes.append(
-                f"- `{capability}/{qid}` ({question.get('dimension')}{marker}): "
-                f"{before:.0%} → {after:.0%}"
-            )
+    changes = [
+        f"- `{capability}/{qid}` ({question['dimension']}"
+        f"{' critical' if question.get('critical') else ''}): {before:.0%} → {after:.0%}"
+        for capability, scored in rows
+        for qid, question in scored.get("questions", {}).items()
+        for before, after in [(question.get("baseline_pass_rate"),
+                               question.get("pass_rate"))]
+        if before is not None and after is not None and before != after]
     lines += ["", "### Question changes", *(changes or ["- None."])]
 
     coverage = report.get("coverage", {})
@@ -463,15 +417,10 @@ def emit_annotations(report: dict) -> None:
 
 
 def compact_result(record: dict, report: dict) -> dict:
-    return {
-        "contract": "awow.eval-scorecard/v1",
-        "run_id": record.get("id"),
-        "subject_sha": (record.get("data_source") or {}).get("sha"),
-        "seat": report.get("seat"),
-        "eval_version": report.get("eval_version"),
-        "coverage": report.get("coverage"),
-        "capabilities": report.get("capabilities"),
-    }
+    return {"contract": "awow.eval-scorecard/v1", "run_id": record.get("id"),
+            "subject_sha": (record.get("data_source") or {}).get("sha"),
+            **{key: report.get(key) for key in
+               ("seat", "eval_version", "coverage", "capabilities")}}
 
 
 def _seat_identity(record: dict, resp: dict) -> dict:
@@ -494,34 +443,16 @@ def _write_action_output(name: str, value: str) -> None:
 
 
 def render_scores(record: dict, cells: list[dict]) -> list[str]:
-    lines = ["### Eval scores", *(
-        f"- `{c['id']}`: **{c['outcome']['rubric_yes']}"
-        f"/{c['outcome']['rubric_total']}**{verdict_note(c)} "
-        f"(stop: {c['process']['stop_reason']}; "
-        f"scope violations: {len(c['process']['scope_violations'])})"
-        for c in cells)]
-
-    branch = record["metadata"]["result_branch"]
-    repo = record["data_source"]["repo"]
-    lines += ["", f"Transcripts + judge output: [`{branch}`]"
-              f"(https://github.com/{repo}/tree/{branch})" if branch else
-              "Transcripts: result branch missing from the run record"]
-
-    for c in cells:
-        lines += ["", "<details><summary><code>"
-                  f"{c['id']}</code> — {c['outcome']['rubric_yes']}"
-                  f"/{c['outcome']['rubric_total']}</summary>", "",
-                  "| rubric question | answer | judge's evidence |",
-                  "|---|---|---|", *(
-                  f"| {md_cell(a['question'])} "
-                  f"| {'yes' if a['answer'] else '**no**'} "
-                  f"| {md_cell(a['evidence'])} |"
-                  for a in c["outcome"]["rubric"])]
-        post = (c.get("checks") or {}).get("post")
-        if post and post.get("rc") not in (0, None):
-            lines += ["", f"Deterministic witness (rc={post['rc']}):", "",
-                      *(f"> {md_cell(l)}" for l in post["log"].splitlines() if l)]
-        lines += ["", "</details>"]
+    branch, repo = record["metadata"].get("result_branch"), record["data_source"]["repo"]
+    lines = ["### Cell evidence", "", "<details><summary>Per-cell scores</summary>", ""]
+    for cell in cells:
+        outcome = cell["outcome"]
+        lines.append(f"- `{cell['id']}`: **{outcome['rubric_yes']}/"
+                     f"{outcome['rubric_total']}**{verdict_note(cell)}")
+    lines += ["", "</details>", "",
+              (f"Transcripts + judge output: [`{branch}`]"
+               f"(https://github.com/{repo}/tree/{branch})" if branch else
+               "Transcripts: result branch missing from the run record")]
     return lines
 
 

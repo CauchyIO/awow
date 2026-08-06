@@ -15,7 +15,7 @@ as a bad scenario. T2 trigger-corpus validation lands with the T2 runner
 from __future__ import annotations
 
 import json
-import re
+import importlib.util
 import shutil
 import subprocess
 import sys
@@ -23,9 +23,8 @@ import tempfile
 from pathlib import Path
 
 PRE_CHECK_TIMEOUT_S = 60
-QUESTION_ID = re.compile(r"\*\*(Q\d+)\*\*")
-CAPABILITY = re.compile(r"^Capability:\s*`([^`]+)`\s*$", re.MULTILINE)
-CRITICAL = re.compile(r"^Critical:\s*(.+)$", re.MULTILINE)
+RUNNER_PATH = (Path(__file__).resolve().parent.parent / ".github" / "actions" /
+               "eval-run" / "run.py")
 
 
 def _check_pre_against_pristine_fixture(name: str, checks: Path,
@@ -61,56 +60,14 @@ def _rubric_question_count(rubric: Path) -> int:
 
 
 def _validate_rubric_contract(name: str, rubric: Path) -> list[str]:
-    text = rubric.read_text()
-    errors = []
-    if len(CAPABILITY.findall(text)) != 1:
-        errors.append(f"{name}: rubric requires exactly one Capability")
-    critical_lines = CRITICAL.findall(text)
-    if len(critical_lines) != 1:
-        errors.append(f"{name}: rubric requires exactly one Critical line")
-        critical = set()
-    else:
-        critical = set(re.findall(r"`(Q\d+)`", critical_lines[0]))
-
-    dimensions = {"outcome": [], "process": []}
-    questions, dimension = [], None
-    heading_counts = {"outcome": 0, "process": 0}
-    for line in text.splitlines():
-        if line == "## Outcome":
-            dimension = "outcome"
-            heading_counts[dimension] += 1
-        elif line == "## Process":
-            dimension = "process"
-            heading_counts[dimension] += 1
-        elif line.startswith("## "):
-            dimension = None
-        elif line.startswith("- "):
-            match = QUESTION_ID.search(line)
-            if not match or dimension is None:
-                errors.append(f"{name}: unlabeled rubric question: {line}")
-                continue
-            qid = match.group(1)
-            questions.append(qid)
-            dimensions[dimension].append(qid)
-
-    for dimension_name in ("outcome", "process"):
-        label = dimension_name.title()
-        if heading_counts[dimension_name] != 1:
-            errors.append(f"{name}: rubric requires exactly one ## {label}")
-        if not dimensions[dimension_name]:
-            errors.append(f"{name}: rubric ## {label} has no questions")
-    if len(questions) != len(set(questions)):
-        errors.append(f"{name}: rubric question IDs must be unique")
-    expected = [f"Q{i}" for i in range(1, len(questions) + 1)]
-    if questions != expected:
-        errors.append(f"{name}: rubric question IDs must be consecutive from Q1")
-    if not critical:
-        errors.append(f"{name}: rubric requires at least one critical question")
-    unknown = critical - set(questions)
-    if unknown:
-        errors.append(f"{name}: unknown critical question(s): "
-                      f"{', '.join(sorted(unknown))}")
-    return errors
+    spec = importlib.util.spec_from_file_location("eval_run_for_validation", RUNNER_PATH)
+    runner = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runner)
+    try:
+        runner.parse_rubric(rubric)
+        return []
+    except ValueError as error:
+        return [f"{name}: {error}"]
 
 
 def _validate_sabotage_flow(flow: Path, root: Path) -> list[str]:

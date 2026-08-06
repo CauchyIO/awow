@@ -1,0 +1,18 @@
+{
+ "schema": 1,
+ "eval_version": "1",
+ "seats": [
+  {"id":"gpt-5-6-sol-xhigh","name":"GPT-5.6 Sol","model":"gpt-5.6-sol","effort":"xhigh","harness":"Codex","manual":true,"weekly":false,"baseline_eligible":true},
+  {"id":"gpt-terra-high","name":"GPT Terra","model":"gpt-terra","effort":"high","harness":"Codex","manual":true,"weekly":false,"baseline_eligible":true},
+  {"id":"gpt-luna-high","name":"GPT Luna","model":"gpt-luna","effort":"high","harness":"Codex","manual":true,"weekly":false,"baseline_eligible":true},
+  {"id":"fable-5-high","name":"Fable 5","model":"fable","effort":"high","harness":"Claude Code","manual":true,"weekly":false,"baseline_eligible":true},
+  {"id":"opus-5-high","name":"Opus 5","model":"opus","effort":"high","harness":"Claude Code","manual":true,"weekly":false,"baseline_eligible":true},
+  {"id":"sonnet-5-high","name":"Sonnet 5","model":"sonnet","effort":"high","harness":"Claude Code","manual":true,"weekly":false,"baseline_eligible":true},
+  {"id":"kimi-k3","name":"Kimi K3","model":"kimi-k3","effort":"pinned","harness":"Pi","manual":true,"weekly":true,"baseline_eligible":true},
+  {"id":"glm-5-2","name":"GLM 5.2","model":"glm-5-2","effort":"pinned","harness":"Pi","manual":true,"weekly":true,"baseline_eligible":true},
+  {"id":"deepseek-flash-v4-0731","name":"DeepSeek Flash V4 0731","model":"deepseek-flash-v4-0731","effort":"pinned","harness":"Pi","manual":true,"weekly":true,"baseline_eligible":true},
+  {"id":"gemma-4-26b","name":"Gemma 4 26B","model":"gemma-4-26b","effort":"pinned","harness":"Pi","manual":true,"weekly":true,"baseline_eligible":true},
+  {"id":"qwen-3-6","name":"Qwen 3.6","model":"qwen-3-6","effort":"pinned","harness":"Pi","manual":true,"weekly":true,"baseline_eligible":true},
+  {"id":"poolside-laguna-s2-1","name":"Poolside Laguna S 2.1","model":"poolside-laguna-s2-1","effort":"pinned","harness":"Pi","manual":true,"weekly":true,"baseline_eligible":true}
+ ]
+}

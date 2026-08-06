@@ -397,10 +397,7 @@ def calib_str(calib) -> str:
 
 
 def gate_errors(resp: dict, cells: list[dict], gate: dict) -> list[str]:
-    """Regression is a score below the baselined floor; indeterminate is
-    no-data and trips its own cap, never a fail. An unqualified or drifted
-    calibration refuses to gate at all (spec §8/§9). Calibration compares as
-    a whole per-flow map: any rubric edit or flow addition re-baselines."""
+    """Return capability regressions or unmeasured required capabilities."""
     run_calib = (resp.get("judge") or {}).get("calibration")
     if not gate.get("sabotage_pass"):
         return ["gate.json has no sabotage_pass — the judge is unqualified; "
@@ -408,27 +405,34 @@ def gate_errors(resp: dict, cells: list[dict], gate: dict) -> list[str]:
     if run_calib != gate["calibration"]:
         return [f"run calibration {calib_str(run_calib)} != gate "
                 f"{calib_str(gate['calibration'])} — re-baseline before gating"]
-    per, indeterminate = {}, 0
-    for c in cells:
-        scen = c["id"].removeprefix("eval-").rsplit("-", 2)[0]
-        if c.get("verdict") == "indeterminate":
-            indeterminate += 1
-        else:
-            per.setdefault(scen, []).append(c["outcome"]["rubric_yes"])
-    errs = []
-    if indeterminate > gate["max_indeterminate"]:
-        errs.append(f"{indeterminate} indeterminate cell(s) > cap "
-                    f"{gate['max_indeterminate']} — no-data, not regression")
-    for scen, g in gate["scenarios"].items():
-        scores = per.get(scen)
-        if scores:
-            mean = sum(scores) / len(scores)
-            if mean < g["min_mean"]:
-                errs.append(f"{scen}: mean {mean:.2f} < gate {g['min_mean']}")
-        else:
-            errs.append(f"{scen}: 0 judged cells in this run — every "
-                        "baselined scenario must produce data to gate")
-    return errs
+    if gate.get("schema") != 2:
+        return ["gate.json is not schema 2 — re-derive the model-pinned baseline"]
+
+    current = score_run(cells, Path("evals/rubrics"), gate["requested_reps"])
+    current["seat"] = copy.deepcopy(resp.get("seat", {}))
+    current["eval_version"] = resp.get("eval_version")
+    baseline = {
+        "seat": gate["automated_regression_seat"],
+        "eval_version": gate["eval_version"],
+        "capabilities": gate["capabilities"],
+    }
+    compared = compare_report(current, baseline)
+    errors = []
+    for capability in gate["capabilities"]:
+        scored = compared["capabilities"].get(capability)
+        if scored is None:
+            errors.append(f"{capability}: unmeasured — no scored cells")
+            continue
+        if scored["reading"] == "unmeasured":
+            reason = "; ".join(scored["reasons"]) or "incomplete measurement"
+            errors.append(f"{capability}: unmeasured — {reason}")
+        elif scored["reading"] == "lowered":
+            dimensions = [name for name in ("outcome", "process")
+                          if scored[f"{name}_reading"] == "lowered"]
+            reason = "; ".join(scored["reasons"])
+            detail = f" ({reason})" if reason else ""
+            errors.append(f"{capability}: lowered {', '.join(dimensions)}{detail}")
+    return errors
 
 
 def main() -> int:

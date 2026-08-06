@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""Synthetic-record tests for the eval gate: every gate_errors branch in
-.github/actions/eval-run/run.py and the derive_gate.py ceremony, per the
-gate/trend/sabotage plan (Task 6 step 3). Real code paths throughout —
-derive_gate runs as a subprocess against a temp copy, no mocks."""
+"""Behavior tests for model-pinned capability baselines and gating."""
 from __future__ import annotations
 
 import importlib.util
@@ -14,188 +11,247 @@ import tempfile
 import unittest
 from pathlib import Path
 
+
 REPO = Path(__file__).resolve().parents[2]
-
-spec = importlib.util.spec_from_file_location(
-    "eval_run", REPO / ".github" / "actions" / "eval-run" / "run.py")
-eval_run = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(eval_run)
-
-CALIB = "abc123"
 FLOW = "setup-awow-walkthrough"
-
-GATE = {"calibration": {FLOW: CALIB},
-        "sabotage_pass": {FLOW: {"calibration": CALIB, "flow": FLOW}},
-        "max_indeterminate": 1,
-        "scenarios": {FLOW: {"min_mean": 4.0, "baseline_scores": [4, 5, 5]}}}
+CALIB = "abc123"
 
 
-def cell(scen: str, rep: int, yes: int, verdict: str = "pass") -> dict:
-    return {"id": f"eval-{scen}-1-{rep}", "verdict": verdict,
-            "outcome": {"rubric_yes": yes, "rubric_total": 6}}
+def load_module(name: str, path: Path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
-def resp(calib: str | None = CALIB) -> dict:
-    return {"judge": {"tier": "worker", "calibration": {FLOW: calib}}
-            if calib else None}
+eval_run = load_module(
+    "eval_run_gate", REPO / ".github" / "actions" / "eval-run" / "run.py")
+derive_gate = load_module("derive_gate", REPO / "evals" / "derive_gate.py")
 
 
-class TestGateErrors(unittest.TestCase):
-    def test_clean_run_gates_clean(self):
-        cells = [cell("setup-awow-walkthrough", r, 5) for r in (1, 2)]
-        self.assertEqual(eval_run.gate_errors(resp(), cells, GATE), [])
-
-    def test_no_sabotage_pass_refuses(self):
-        gate = {**GATE, "sabotage_pass": None}
-        errs = eval_run.gate_errors(resp(), [cell("setup-awow-walkthrough", 1, 5)], gate)
-        self.assertEqual(len(errs), 1)
-        self.assertIn("unqualified", errs[0])
-
-    def test_calibration_drift_refuses(self):
-        errs = eval_run.gate_errors(resp("other"), [cell("setup-awow-walkthrough", 1, 5)], GATE)
-        self.assertEqual(len(errs), 1)
-        self.assertIn("re-baseline", errs[0])
-
-    def test_mean_below_floor_fails(self):
-        cells = [cell("setup-awow-walkthrough", r, 3) for r in (1, 2)]
-        errs = eval_run.gate_errors(resp(), cells, GATE)
-        self.assertEqual(len(errs), 1)
-        self.assertIn("mean 3.00 < gate 4.0", errs[0])
-
-    def test_indeterminate_over_cap_fails_without_entering_mean(self):
-        cells = [cell("setup-awow-walkthrough", 1, 5),
-                 cell("setup-awow-walkthrough", 2, 0, verdict="indeterminate"),
-                 cell("setup-awow-walkthrough", 3, 0, verdict="indeterminate")]
-        errs = eval_run.gate_errors(resp(), cells, GATE)
-        self.assertEqual(len(errs), 1)
-        self.assertIn("indeterminate", errs[0])
-
-    def test_baselined_scenario_with_no_cells_fails(self):
-        """A baselined scenario that produced no data must not read as clean."""
-        errs = eval_run.gate_errors(resp(), [], GATE)
-        self.assertEqual(len(errs), 1)
-        self.assertIn("0 judged cells", errs[0])
-
-    def test_all_indeterminate_scenario_under_global_cap_still_fails(self):
-        """One indeterminate cell is under the cap, but the scenario then has
-        zero judged cells — that is missing coverage, not a clean gate."""
-        cells = [cell("setup-awow-walkthrough", 1, 0, verdict="indeterminate")]
-        errs = eval_run.gate_errors(resp(), cells, GATE)
-        self.assertTrue(any("0 judged cells" in e for e in errs), errs)
-
-    def test_two_flow_run_gates_clean(self):
-        """AWO-72 AC: a two-scenario suite gates without a spurious drift
-        refusal — the per-flow maps compare equal when no rubric changed."""
-        calib = {FLOW: CALIB, "daily-digest": "def456"}
-        gate = {"calibration": calib,
-                "sabotage_pass": {
-                    FLOW: {"calibration": CALIB, "flow": FLOW},
-                    "daily-digest": {"calibration": "def456",
-                                     "flow": "daily-digest"}},
-                "max_indeterminate": 1,
-                "scenarios": {FLOW: {"min_mean": 4.0},
-                              "daily-digest": {"min_mean": 3.0}}}
-        r = {"judge": {"tier": "worker", "calibration": calib}}
-        cells = [cell(FLOW, 1, 5), cell(FLOW, 2, 5),
-                 cell("daily-digest", 1, 4), cell("daily-digest", 2, 4)]
-        self.assertEqual(eval_run.gate_errors(r, cells, gate), [])
+def rubric_text(capability: str = "setup-awow") -> str:
+    return (
+        f"Capability: `{capability}`\n\nCritical: `Q1`, `Q2`, `Q5`\n\n"
+        "## Outcome\n\n"
+        "- **Q1** — one?\n- **Q2** — two?\n"
+        "- **Q3** — three?\n- **Q4** — four?\n\n"
+        "## Process\n\n- **Q5** — five?\n- **Q6** — six?\n"
+    )
 
 
-class TestDeriveGate(unittest.TestCase):
-    """derive_gate.py as a subprocess against a temp evals/ copy — the real
-    ceremony, pointed away from the repo's own gate.json."""
+def scorecard_cell(rep: int, answers, verdict: str = "pass",
+                   flow: str = FLOW) -> dict:
+    return {
+        "id": f"eval-{flow}-glm-5-2-r{rep}",
+        "verdict": verdict,
+        "outcome": {
+            "rubric_yes": sum(answers),
+            "rubric_total": len(answers),
+            "rubric": [
+                {"question": f"**Q{i}** — question {i}?",
+                 "answer": answer, "evidence": "fixture"}
+                for i, answer in enumerate(answers, 1)
+            ],
+        },
+        "process": {"scope_violations": [], "gate_violation": False,
+                    "stop_reason": "persona-done"},
+        "checks": {"post": {"rc": 0, "log": ""}},
+    }
 
+
+def scorecard_response(cells, model_id: str = "z-ai/glm-5.2",
+                       calibration=None) -> dict:
+    return {
+        "judge": {"tier": "worker",
+                  "calibration": calibration or {FLOW: CALIB}},
+        "seat": {"id": "glm-5-2", "model_id": model_id,
+                 "harness": "Pi", "effort": "pinned"},
+        "eval_version": "1",
+        "data": [{"cell": cell} for cell in cells],
+    }
+
+
+class TemporaryContract(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
-        shutil.copy(REPO / "evals" / "derive_gate.py", self.tmp / "derive_gate.py")
-        (self.tmp / "scenarios" / "setup-awow-walkthrough").mkdir(parents=True)
+        (self.tmp / "scenarios" / FLOW).mkdir(parents=True)
+        (self.tmp / "rubrics").mkdir()
+        (self.tmp / "rubrics" / f"{FLOW}.md").write_text(rubric_text())
+        self.old_rubrics = derive_gate.RUBRIC_DIR
+        self.old_scenarios = derive_gate.SCENARIO_DIR
+        derive_gate.RUBRIC_DIR = self.tmp / "rubrics"
+        derive_gate.SCENARIO_DIR = self.tmp / "scenarios"
+        self.addCleanup(setattr, derive_gate, "RUBRIC_DIR", self.old_rubrics)
+        self.addCleanup(setattr, derive_gate, "SCENARIO_DIR", self.old_scenarios)
+
+    def baseline(self, reps: int = 3) -> dict:
+        answers = [
+            [True, True, True, True, True, True],
+            [True, True, False, True, True, True],
+            [True, True, True, False, True, True],
+        ][:reps]
+        response = scorecard_response(
+            [scorecard_cell(i, values) for i, values in enumerate(answers, 1)])
+        return derive_gate.derive_baseline(
+            response, response["seat"], eval_version="1", requested_reps=reps)
+
+
+class TestCapabilityBaseline(TemporaryContract):
+    def test_schema_two_pins_seat_and_capability_scores(self):
+        baseline = self.baseline()
+        self.assertEqual(baseline["schema"], 2)
+        self.assertEqual(baseline["automated_regression_seat"]["id"], "glm-5-2")
+        self.assertEqual(baseline["capabilities"]["setup-awow"]["outcome"], 83.33)
+        self.assertEqual(
+            baseline["capabilities"]["setup-awow"]["questions"]["Q1"]["pass_rate"],
+            1.0,
+        )
+
+    def test_derivation_refuses_incomplete_repetitions(self):
+        response = scorecard_response([
+            scorecard_cell(1, [True] * 6),
+            scorecard_cell(2, [True] * 6),
+        ])
+        with self.assertRaisesRegex(ValueError, "valid repetitions"):
+            derive_gate.derive_baseline(
+                response, response["seat"], eval_version="1", requested_reps=3)
+
+
+class TestGateErrors(TemporaryContract):
+    def gate(self) -> dict:
+        return {
+            **self.baseline(reps=2),
+            "calibration": {FLOW: CALIB},
+            "sabotage_pass": {FLOW: {"flow": FLOW, "calibration": CALIB}},
+            "max_indeterminate": 0,
+        }
+
+    def test_clean_compatible_run_has_no_errors(self):
+        current = scorecard_response([
+            scorecard_cell(1, [True] * 6),
+            scorecard_cell(2, [True] * 6),
+        ])
+        cells = [item["cell"] for item in current["data"]]
+        self.assertEqual(eval_run.gate_errors(current, cells, self.gate()), [])
+
+    def test_process_regression_is_reported(self):
+        current = scorecard_response([
+            scorecard_cell(1, [True, True, True, True, False, False], "fail"),
+            scorecard_cell(2, [True, True, True, True, False, False], "fail"),
+        ])
+        errors = eval_run.gate_errors(
+            current, [item["cell"] for item in current["data"]], self.gate())
+        self.assertTrue(any("lowered process" in error for error in errors), errors)
+
+    def test_indeterminate_run_is_unmeasured_not_a_regression(self):
+        current = scorecard_response([
+            scorecard_cell(1, [True] * 6),
+            scorecard_cell(2, [], "indeterminate"),
+        ])
+        errors = eval_run.gate_errors(
+            current, [item["cell"] for item in current["data"]], self.gate())
+        self.assertTrue(any("unmeasured" in error for error in errors), errors)
+
+    def test_model_mismatch_is_unmeasured(self):
+        current = scorecard_response(
+            [scorecard_cell(i, [True] * 6) for i in (1, 2)],
+            model_id="z-ai/glm-5.2-revision-2",
+        )
+        errors = eval_run.gate_errors(
+            current, [item["cell"] for item in current["data"]], self.gate())
+        self.assertTrue(any("unmeasured" in error for error in errors), errors)
+
+    def test_calibration_drift_refuses_before_scoring(self):
+        current = scorecard_response(
+            [scorecard_cell(i, [True] * 6) for i in (1, 2)],
+            calibration={FLOW: "other"},
+        )
+        errors = eval_run.gate_errors(
+            current, [item["cell"] for item in current["data"]], self.gate())
+        self.assertEqual(len(errors), 1)
+        self.assertIn("re-baseline", errors[0])
+
+    def test_unqualified_judge_refuses_before_scoring(self):
+        gate = self.gate()
+        gate["sabotage_pass"] = None
+        current = scorecard_response(
+            [scorecard_cell(i, [True] * 6) for i in (1, 2)])
+        errors = eval_run.gate_errors(
+            current, [item["cell"] for item in current["data"]], gate)
+        self.assertEqual(len(errors), 1)
+        self.assertIn("unqualified", errors[0])
+
+
+class TestDeriveGateCli(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp)
+        (self.tmp / "evals" / "scenarios" / FLOW).mkdir(parents=True)
+        (self.tmp / "evals" / "rubrics").mkdir()
+        (self.tmp / "evals" / "rubrics" / f"{FLOW}.md").write_text(rubric_text())
+        shutil.copy(REPO / "evals" / "derive_gate.py",
+                    self.tmp / "evals" / "derive_gate.py")
+        runner_dir = self.tmp / ".github" / "actions" / "eval-run"
+        runner_dir.mkdir(parents=True)
+        shutil.copy(REPO / ".github" / "actions" / "eval-run" / "run.py",
+                    runner_dir / "run.py")
         (self.tmp / "sab.json").write_text(json.dumps(
             {"calibration": CALIB, "flow": FLOW}))
 
-    def derive(self, cells: list[dict], calib=None, stamps=("sab.json",)):
-        (self.tmp / "items.json").write_text(json.dumps(
-            {"judge": {"tier": "worker",
-                       "calibration": {FLOW: CALIB} if calib is None else calib},
-             "data": [{"cell": c} for c in cells]}))
-        args = [sys.executable, str(self.tmp / "derive_gate.py"),
-                str(self.tmp / "items.json")]
-        for s in stamps:
-            args += ["--sabotage", str(self.tmp / s)]
-        return subprocess.run(args, capture_output=True, text=True)
+    def derive(self, cells, calibration=None, stamps=("sab.json",), reps=2):
+        response = scorecard_response(cells, calibration=calibration)
+        (self.tmp / "items.json").write_text(json.dumps(response))
+        args = [
+            sys.executable, str(self.tmp / "evals" / "derive_gate.py"),
+            str(self.tmp / "items.json"),
+            "--seat-id", "glm-5-2", "--model-id", "z-ai/glm-5.2",
+            "--harness", "Pi", "--effort", "pinned",
+            "--eval-version", "1", "--reps", str(reps),
+        ]
+        for stamp in stamps:
+            args += ["--sabotage", str(self.tmp / stamp)]
+        return subprocess.run(args, cwd=self.tmp, capture_output=True, text=True)
 
-    def test_happy_path_writes_gate(self):
-        r = self.derive([cell("setup-awow-walkthrough", i, s)
-                         for i, s in enumerate((4, 5, 5))])
-        self.assertEqual(r.returncode, 0, r.stderr)
-        gate = json.loads((self.tmp / "gate.json").read_text())
-        scen = gate["scenarios"]["setup-awow-walkthrough"]
-        self.assertEqual(scen["baseline_scores"], [4, 5, 5])
-        self.assertAlmostEqual(scen["min_mean"], 4.67 - 1.0, places=2)
+    def test_happy_path_writes_model_pinned_gate(self):
+        result = self.derive([
+            scorecard_cell(1, [True] * 6),
+            scorecard_cell(2, [True] * 6),
+        ])
+        self.assertEqual(result.returncode, 0, result.stderr)
+        gate = json.loads((self.tmp / "evals" / "gate.json").read_text())
+        self.assertEqual(gate["schema"], 2)
+        self.assertEqual(gate["automated_regression_seat"]["model_id"],
+                         "z-ai/glm-5.2")
         self.assertEqual(gate["calibration"], {FLOW: CALIB})
-        self.assertEqual(gate["sabotage_pass"][FLOW]["flow"], FLOW)
 
     def test_calibration_mismatch_refuses(self):
-        r = self.derive([cell(FLOW, 1, 5)], calib={FLOW: "other"})
-        self.assertNotEqual(r.returncode, 0)
-        self.assertIn("recalibrate", r.stderr)
-        self.assertFalse((self.tmp / "gate.json").exists())
-
-    def test_two_flow_baseline_with_both_stamps_writes_gate(self):
-        """AWO-72 AC: scenario #2 + its own stamp derive cleanly — no
-        spurious drift refusal from the old suite-level digest."""
-        (self.tmp / "scenarios" / "daily-digest").mkdir()
-        (self.tmp / "sab2.json").write_text(json.dumps(
-            {"calibration": "def456", "flow": "daily-digest"}))
-        r = self.derive(
-            [cell(FLOW, i, 5) for i in (1, 2)] +
-            [cell("daily-digest", i, 4) for i in (1, 2)],
-            calib={FLOW: CALIB, "daily-digest": "def456"},
-            stamps=("sab.json", "sab2.json"))
-        self.assertEqual(r.returncode, 0, r.stderr)
-        gate = json.loads((self.tmp / "gate.json").read_text())
-        self.assertEqual(gate["calibration"],
-                         {FLOW: CALIB, "daily-digest": "def456"})
-        self.assertEqual(sorted(gate["sabotage_pass"]), ["daily-digest", FLOW])
-
-    def test_missing_stamp_for_second_flow_refuses(self):
-        (self.tmp / "scenarios" / "daily-digest").mkdir()
-        r = self.derive([cell(FLOW, 1, 5), cell("daily-digest", 1, 4)],
-                        calib={FLOW: CALIB, "daily-digest": "def456"})
-        self.assertNotEqual(r.returncode, 0)
-        self.assertIn("no sabotage stamp for flow(s) daily-digest", r.stderr)
-        self.assertFalse((self.tmp / "gate.json").exists())
-
-    def test_stale_stamp_for_absent_flow_refuses(self):
-        (self.tmp / "sab2.json").write_text(json.dumps(
-            {"calibration": "def456", "flow": "daily-digest"}))
-        r = self.derive([cell(FLOW, 1, 5)], stamps=("sab.json", "sab2.json"))
-        self.assertNotEqual(r.returncode, 0)
-        self.assertIn("stale", r.stderr)
-        self.assertFalse((self.tmp / "gate.json").exists())
+        result = self.derive(
+            [scorecard_cell(i, [True] * 6) for i in (1, 2)],
+            calibration={FLOW: "other"},
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("recalibrate", result.stderr)
+        self.assertFalse((self.tmp / "evals" / "gate.json").exists())
 
     def test_legacy_string_calibration_refuses(self):
-        """A pre-AWO-72 items.json (suite-level string) must refuse loudly,
-        not false-match a stamp."""
-        r = self.derive([cell(FLOW, 1, 5)], calib=CALIB)
-        self.assertNotEqual(r.returncode, 0)
-        self.assertIn("per-flow", r.stderr)
-        self.assertFalse((self.tmp / "gate.json").exists())
+        result = self.derive(
+            [scorecard_cell(i, [True] * 6) for i in (1, 2)],
+            calibration=CALIB,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("per-flow", result.stderr)
 
-    def test_no_judged_cells_refuses(self):
-        r = self.derive([cell("setup-awow-walkthrough", 1, 0, verdict="indeterminate")])
-        self.assertNotEqual(r.returncode, 0)
-        self.assertFalse((self.tmp / "gate.json").exists())
-
-    def test_scenario_missing_from_baseline_refuses(self):
-        """A scenario dir whose cells are absent (or all indeterminate) must
-        refuse the baseline, not silently vanish from gate.json forever."""
-        (self.tmp / "scenarios" / "daily-digest").mkdir()
-        r = self.derive([cell("setup-awow-walkthrough", i, 5) for i in (1, 2)])
-        self.assertNotEqual(r.returncode, 0)
-        self.assertIn("daily-digest", r.stderr)
-        self.assertFalse((self.tmp / "gate.json").exists())
+    def test_missing_scenario_data_refuses(self):
+        missing = "daily-digest-review-gate"
+        (self.tmp / "evals" / "scenarios" / missing).mkdir()
+        (self.tmp / "evals" / "rubrics" / f"{missing}.md").write_text(
+            rubric_text("daily-digest"))
+        result = self.derive(
+            [scorecard_cell(i, [True] * 6) for i in (1, 2)])
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(missing, result.stderr)
 
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity=2)

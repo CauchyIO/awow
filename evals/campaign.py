@@ -21,6 +21,8 @@ PROFILES = {
     "snapshot": {"scenarios": ["setup-awow-walkthrough"], "reps": 5},
 }
 HARNESS_IDS = {"Codex": "codex", "Claude Code": "claude-code", "Pi": "pi"}
+SNAPSHOT_START = "<!-- eval-snapshot:start -->"
+SNAPSHOT_END = "<!-- eval-snapshot:end -->"
 
 
 def load_seats(path: Path) -> list[dict]:
@@ -74,6 +76,12 @@ def _metrics(cells: list[dict]) -> dict:
         "cost_usd": round(sum(costs), 8) if costs else None,
         "wall_s": round(sum(p.get("wall_s", 0) for p in processes), 1),
     }
+
+
+def _systematic_failure(cells: list[dict]) -> bool:
+    return bool(cells) and all(cell.get("verdict") == "indeterminate"
+                               and cell.get("stage") == "runner"
+                               for cell in cells)
 
 
 def _resolution(args, seat_id: str) -> str:
@@ -172,6 +180,7 @@ def run_seat(seat: dict, args) -> Path:
         "coverage": scored["coverage"],
         "capabilities": scored["capabilities"],
         "metrics": _metrics(cells),
+        "systematic_failure": _systematic_failure(cells),
     }
     compact_path.write_text(json.dumps(compact, indent=1) + "\n")
     return compact_path
@@ -197,6 +206,155 @@ def merge_campaign(paths: list[Path]) -> dict:
             "runs": runs}
 
 
+def summarize_run(run: dict) -> dict:
+    capabilities = list((run.get("capabilities") or {}).values())
+    values = lambda key: [cap[key] for cap in capabilities
+                          if isinstance(cap.get(key), (int, float))]
+    outcome, process = values("outcome"), values("process")
+    outcome_score = round(sum(outcome) / len(outcome), 2) if outcome else None
+    process_score = round(sum(process) / len(process), 2) if process else None
+    coverage = run.get("coverage") or {}
+    return {**(run.get("seat") or {}),
+            "outcome": outcome_score, "process": process_score,
+            "balanced": (round((outcome_score + process_score) / 2, 2)
+                         if None not in (outcome_score, process_score) else None),
+            "strict_pass": bool(capabilities)
+                           and all(cap.get("strict_pass") for cap in capabilities),
+            "valid_runs": coverage.get("valid_repetitions", 0),
+            "requested_runs": coverage.get("requested_repetitions", 0),
+            "systematic_failure": bool(run.get("systematic_failure")),
+            "metrics": run.get("metrics") or {}}
+
+
+def qualifies(seat_result: dict) -> tuple[bool, list[str]]:
+    reasons = []
+    valid, requested = (seat_result.get("valid_runs", 0),
+                        seat_result.get("requested_runs", 0))
+    if not requested or valid / requested < 0.95:
+        reasons.append("valid runs below 95%")
+    for dimension in ("outcome", "process"):
+        value = seat_result.get(dimension)
+        if not isinstance(value, (int, float)) or value < 80:
+            reasons.append(f"{dimension} below 80")
+    if not seat_result.get("strict_pass"):
+        reasons.append("strict pass failed")
+    if seat_result.get("systematic_failure"):
+        reasons.append("systematic harness or tool failure")
+    return not reasons, reasons
+
+
+def _score(value) -> str:
+    return "—" if not isinstance(value, (int, float)) else f"{value:.1f}%"
+
+
+def _reading(run: dict, previous: dict | None) -> str:
+    if previous is None:
+        return "unmeasured"
+    compared = _load_runner().compare_report(run, previous)
+    readings = [cap.get("reading", "unmeasured")
+                for cap in compared.get("capabilities", {}).values()]
+    for value in ("lowered", "unmeasured", "raised", "held"):
+        if value in readings:
+            return value
+    return "unmeasured"
+
+
+def render_weekly_summary(runs: list[dict], previous: list[dict] | None = None) -> str:
+    roster = [seat for seat in load_seats(SEATS_PATH) if seat["weekly"]]
+    current = {run.get("seat", {}).get("id"): run for run in runs}
+    prior = {run.get("seat", {}).get("id"): run for run in (previous or [])}
+    lines = ["## Weekly model support", "",
+             "| Model / effort | Harness | Outcome | Process | Balanced | Strict pass | Valid runs | Cost | Latency | Reading |",
+             "|---|---|---:|---:|---:|---|---:|---:|---:|---|"]
+    for seat in roster:
+        run = current.get(seat["id"])
+        result = summarize_run(run) if run else {}
+        metrics = result.get("metrics") or {}
+        cost = metrics.get("cost_usd")
+        wall = metrics.get("wall_s")
+        lines.append(
+            f"| {seat['name']} / {seat['effort']} | {seat['harness']} "
+            f"| {_score(result.get('outcome'))} | {_score(result.get('process'))} "
+            f"| {_score(result.get('balanced'))} "
+            f"| {'yes' if result.get('strict_pass') else ('no' if run else '—')} "
+            f"| {result.get('valid_runs', 0)}/{result.get('requested_runs', 0)} "
+            f"| {f'${cost:.4f}' if isinstance(cost, (int, float)) else '—'} "
+            f"| {f'{wall:.1f}s' if isinstance(wall, (int, float)) else '—'} "
+            f"| {_reading(run, prior.get(seat['id'])) if run else 'unmeasured'} |")
+    lines += ["", "A reading is calculated only when a compatible prior weekly "
+              "snapshot is supplied explicitly."]
+    return "\n".join(lines) + "\n"
+
+
+def render_readme_snapshot(campaign: dict, performance_id: str,
+                           automated_id: str) -> str:
+    runs = campaign.get("runs") or []
+    by_id = {run.get("seat", {}).get("id"): run for run in runs}
+    roster = load_seats(SEATS_PATH)
+    missing = [seat["id"] for seat in roster if seat["id"] not in by_id]
+    if missing:
+        raise ValueError("campaign missing fixed seats: " + ", ".join(missing))
+    for role, seat_id in (("performance baseline", performance_id),
+                          ("automated regression", automated_id)):
+        if seat_id not in by_id:
+            raise ValueError(f"unknown {role} seat {seat_id!r}")
+        ok, reasons = qualifies(summarize_run(by_id[seat_id]))
+        if not ok:
+            raise ValueError(f"{role} seat {seat_id!r} does not qualify: "
+                             + "; ".join(reasons))
+
+    order = [performance_id] + [seat["id"] for seat in roster
+                                if seat["id"] != performance_id]
+    summaries = {seat_id: summarize_run(by_id[seat_id]) for seat_id in order}
+    reps = {summary["requested_runs"] for summary in summaries.values()}
+    if len(reps) != 1:
+        raise ValueError("campaign mixes repetition counts")
+    version = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())["version"]
+    performance = summaries[performance_id]
+    lines = ["### Latest full model snapshot", "",
+             f"Run date: {campaign['run_date']}",
+             f"awow version: {version} (`{campaign['subject_sha']}`)",
+             f"Eval version: {campaign['eval_version']} · Repetitions: {reps.pop()}",
+             (f"**Performance baseline**: {performance['name']} / "
+              f"{performance['effort']} — {performance['harness']}")]
+    if automated_id != performance_id:
+        automated = summaries[automated_id]
+        lines.append(f"Automated regression seat: {automated['name']} / "
+                     f"{automated['effort']} — {automated['harness']}")
+    lines += ["", "| Role | Model / effort | Harness | Outcome | Process | Balanced | Strict pass | Valid runs |",
+              "|---|---|---|---:|---:|---:|---|---:|"]
+    for seat_id in order:
+        result = summaries[seat_id]
+        role = ("**Performance baseline**" if seat_id == performance_id else
+                "Automated regression" if seat_id == automated_id else "Candidate")
+        lines.append(f"| {role} | {result['name']} / {result['effort']} "
+                     f"| {result['harness']} | {_score(result['outcome'])} "
+                     f"| {_score(result['process'])} | {_score(result['balanced'])} "
+                     f"| {'yes' if result['strict_pass'] else 'no'} "
+                     f"| {result['valid_runs']}/{result['requested_runs']} |")
+    return "\n".join(lines) + "\n"
+
+
+def replace_snapshot(readme: str, block: str) -> str:
+    if readme.count(SNAPSHOT_START) != 1 or readme.count(SNAPSHOT_END) != 1:
+        raise ValueError("README requires exactly one eval snapshot marker pair")
+    before, tail = readme.split(SNAPSHOT_START)
+    _, after = tail.split(SNAPSHOT_END)
+    return (before + SNAPSHOT_START + "\n" + block.strip() + "\n"
+            + SNAPSHOT_END + after)
+
+
+def _read_results(path: Path) -> list[dict]:
+    paths = [path] if path.is_file() else sorted(path.rglob("eval-result.json"))
+    runs = [json.loads(item.read_text()) for item in paths]
+    if any(run.get("contract") != "awow.eval-scorecard/v1" for run in runs):
+        raise ValueError(f"{path}: unsupported scorecard contract")
+    ids = [run.get("seat", {}).get("id") for run in runs]
+    if None in ids or len(ids) != len(set(ids)):
+        raise ValueError(f"{path}: missing or duplicate seat ID")
+    return runs
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -205,7 +363,33 @@ def main() -> int:
     run.add_argument("--model-resolution", required=True, type=Path)
     run.add_argument("--profile", choices=sorted(PROFILES), required=True)
     run.add_argument("--out", required=True, type=Path)
+    summarize = commands.add_parser("summarize")
+    summarize.add_argument("--mode", choices=("weekly",), required=True)
+    summarize.add_argument("--inputs", required=True, type=Path)
+    summarize.add_argument("--previous", type=Path)
+    summarize.add_argument("--github-summary", required=True, type=Path)
+    publish = commands.add_parser("publish")
+    publish.add_argument("campaign", type=Path)
+    publish.add_argument("--performance-baseline", required=True)
+    publish.add_argument("--automated-seat", required=True)
+    publish.add_argument("--readme", required=True, type=Path)
     args = parser.parse_args()
+
+    if args.command == "summarize":
+        text = render_weekly_summary(
+            _read_results(args.inputs),
+            _read_results(args.previous) if args.previous else None)
+        args.github_summary.parent.mkdir(parents=True, exist_ok=True)
+        with args.github_summary.open("a") as stream:
+            stream.write(text)
+        return 0
+    if args.command == "publish":
+        campaign = json.loads(args.campaign.read_text())
+        block = render_readme_snapshot(campaign, args.performance_baseline,
+                                       args.automated_seat)
+        args.readme.write_text(replace_snapshot(args.readme.read_text(), block))
+        print(f"Review with: git diff -- {args.readme}")
+        return 0
 
     profile = PROFILES[args.profile]
     args.subject_root = ROOT

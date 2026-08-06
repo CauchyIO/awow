@@ -22,6 +22,35 @@ def load_campaign():
     return module
 
 
+def compact_run(seat, outcome=82.0, process=88.0, valid=10, requested=10):
+    return {
+        "contract": "awow.eval-scorecard/v1", "subject_sha": "a" * 40,
+        "eval_version": "1",
+        "seat": {"id": seat["id"], "name": seat["name"],
+                 "model_id": f"provider/{seat['id']}",
+                 "harness": seat["harness"], "effort": seat["effort"]},
+        "coverage": {"scenarios_executed": 1,
+                     "valid_repetitions": valid,
+                     "requested_repetitions": requested},
+        "capabilities": {"setup-awow": {
+            "outcome": outcome, "process": process,
+            "balanced": round((outcome + process) / 2, 2),
+            "strict_pass": True, "valid_runs": valid,
+            "requested_runs": requested, "questions": {},
+        }},
+        "metrics": {"tokens": 1234, "cost_usd": 0.0123, "wall_s": 45.6},
+        "systematic_failure": False,
+    }
+
+
+def fixture_campaign(module):
+    seats = module.load_seats(REPO / "evals" / "model-seats.json")
+    return {"contract": "awow.eval-campaign/v1", "subject_sha": "a" * 40,
+            "eval_version": "1", "profile": "establishment",
+            "run_date": "2026-08-06",
+            "runs": [compact_run(seat) for seat in seats]}
+
+
 class TestRoster(unittest.TestCase):
     def test_roster_is_fixed_twelve_and_every_seat_is_baseline_eligible(self):
         campaign = load_campaign()
@@ -47,6 +76,14 @@ class TestRoster(unittest.TestCase):
         text = json.dumps(seats).lower()
         self.assertNotIn("openrouter", text)
         self.assertNotIn("apim", text)
+
+    def test_weekly_workflow_derives_seats_instead_of_repeating_the_roster(self):
+        workflow = (REPO / ".github" / "workflows" / "evals-weekly.yml").read_text()
+        seats = load_campaign().load_seats(REPO / "evals" / "model-seats.json")
+        self.assertIn("select(.weekly == true)", workflow)
+        for seat in seats:
+            if seat["weekly"]:
+                self.assertNotIn(seat["id"], workflow)
 
     def test_campaign_profiles_are_the_fixed_horizontal_snapshot(self):
         campaign = load_campaign()
@@ -137,6 +174,64 @@ class TestRunSeat(unittest.TestCase):
             seatmap = json.loads(
                 (root / "out" / "glm-5-2" / "seatmap.json").read_text())
             self.assertEqual(seatmap["bulk"], {"seat": "pi", "model": "glm-5-2"})
+
+
+class TestWeeklySummary(unittest.TestCase):
+    def test_weekly_table_is_roster_ordered_and_unmeasured_without_previous(self):
+        campaign = load_campaign()
+        seats = [seat for seat in campaign.load_seats(
+            REPO / "evals" / "model-seats.json") if seat["weekly"]]
+        text = campaign.render_weekly_summary([compact_run(seat) for seat in seats])
+        self.assertLess(text.index("Kimi K3"), text.index("GLM 5.2"))
+        self.assertIn("| Model / effort | Harness | Outcome | Process | Balanced |", text)
+        self.assertIn("$0.0123", text)
+        self.assertIn("45.6s", text)
+        self.assertEqual(text.count("unmeasured"), 6)
+        self.assertNotIn("OpenRouter", text)
+        self.assertNotIn("APIM", text)
+
+    def test_weekly_reading_uses_only_an_explicit_compatible_previous_run(self):
+        campaign = load_campaign()
+        seat = next(seat for seat in campaign.load_seats(
+            REPO / "evals" / "model-seats.json") if seat["id"] == "kimi-k3")
+        previous = compact_run(seat, outcome=82.0)
+        current = compact_run(seat, outcome=88.0)
+        text = campaign.render_weekly_summary([current], [previous])
+        row = next(line for line in text.splitlines() if "Kimi K3" in line)
+        self.assertTrue(row.endswith("| raised |"), row)
+
+
+class TestPublication(unittest.TestCase):
+    def test_every_seat_can_qualify_regardless_of_weekly_flag(self):
+        campaign = load_campaign()
+        for seat in campaign.load_seats(REPO / "evals" / "model-seats.json"):
+            result = {**seat, "valid_runs": 10, "requested_runs": 10,
+                      "outcome": 82.0, "process": 88.0,
+                      "strict_pass": True, "systematic_failure": False}
+            self.assertEqual(campaign.qualifies(result), (True, []), seat["id"])
+
+    def test_readme_snapshot_is_clean_and_baseline_first(self):
+        campaign = load_campaign()
+        block = campaign.render_readme_snapshot(
+            fixture_campaign(campaign), "gpt-5-6-sol-xhigh", "glm-5-2")
+        self.assertIn("Run date: 2026-08-06", block)
+        self.assertIn("awow version: 0.7.0", block)
+        self.assertIn("Eval version: 1", block)
+        self.assertLess(block.index("**Performance baseline**"),
+                        block.index("Automated regression"))
+        self.assertNotIn("Delta", block)
+        self.assertNotIn("Raised", block)
+        self.assertNotIn("Lowered", block)
+        self.assertNotIn("OpenRouter", block)
+        self.assertNotIn("APIM", block)
+
+    def test_marker_replacement_changes_only_the_snapshot_body(self):
+        campaign = load_campaign()
+        readme = ("before\n<!-- eval-snapshot:start -->\nold\n"
+                  "<!-- eval-snapshot:end -->\nafter\n")
+        got = campaign.replace_snapshot(readme, "new")
+        self.assertEqual(got, ("before\n<!-- eval-snapshot:start -->\nnew\n"
+                               "<!-- eval-snapshot:end -->\nafter\n"))
 
 
 if __name__ == "__main__":

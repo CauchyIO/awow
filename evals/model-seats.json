@@ -13,6 +13,6 @@
   {"id":"deepseek-flash-v4-0731","name":"DeepSeek Flash V4 0731","model":"deepseek-flash-v4-0731","effort":"pinned","harness":"Pi","manual":true,"weekly":true,"baseline_eligible":true},
   {"id":"gemma-4-26b","name":"Gemma 4 26B","model":"gemma-4-26b","effort":"pinned","harness":"Pi","manual":true,"weekly":true,"baseline_eligible":true},
   {"id":"qwen-3-6","name":"Qwen 3.6","model":"qwen-3-6","effort":"pinned","harness":"Pi","manual":true,"weekly":true,"baseline_eligible":true},
-  {"id":"poolside-laguna-s2-1","name":"Poolside Laguna S 2.1","model":"poolside-laguna-s2-1","effort":"pinned","harness":"Pi","manual":true,"weekly":true,"baseline_eligible":true}
+  {"id":"poolside-laguna-s2-1","name":"Poolside Laguna S2.1","model":"poolside-laguna-s2-1","effort":"pinned","harness":"Pi","manual":true,"weekly":true,"baseline_eligible":true}
  ]
 }

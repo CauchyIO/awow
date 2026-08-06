@@ -11,7 +11,7 @@ inputs:
     description: Eval API base URL
     default: https://apim-awow.azure-api.net/evals
   model:
-    description: Tier name (bulk | worker | flagship)
+    description: Registered tier or fixed model-seat route
     default: worker
   seat-id:
     description: Stable model-seat ID used to select and compare baselines

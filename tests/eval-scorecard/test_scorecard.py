@@ -251,6 +251,21 @@ class TestActionsScorecard(unittest.TestCase):
         self.assertIn("::error title=eval critical regression::",
                       output.getvalue())
 
+    def test_compact_artifact_carries_usage_cost_and_wall_time(self):
+        cells = [
+            {"process": {"tokens": 120, "cost_usd": 0.003, "wall_s": 10.2}},
+            {"process": {"tokens": 80, "cost_usd": 0.002, "wall_s": 9.8}},
+        ]
+        compact = eval_run.compact_result(run_record(), compared_report(), cells)
+        self.assertEqual(compact["metrics"], {
+            "tokens": 200, "cost_usd": 0.005, "wall_s": 20.0})
+
+    def test_fixed_seat_refuses_resolved_model_drift(self):
+        seat = {"model_id": "z-ai/glm-5.2"}
+        cells = [{"process": {"resolved_model_id": "other/model"}}]
+        with self.assertRaises(RuntimeError):
+            eval_run.validate_resolved_model(cells, seat)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

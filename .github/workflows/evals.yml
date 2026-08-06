@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       model:
-        description: Tier name (bulk | worker | flagship)
+        description: Registered tier or fixed model-seat route
         default: worker
       reps:
         description: Repetitions per scenario

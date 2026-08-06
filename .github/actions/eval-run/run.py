@@ -416,11 +416,26 @@ def emit_annotations(report: dict) -> None:
             print(f"::{level} title={title}::{capability}: {safe}")
 
 
-def compact_result(record: dict, report: dict) -> dict:
+def run_metrics(cells: list[dict]) -> dict:
+    processes = [cell.get("process") or {} for cell in cells]
+    tokens = [p["tokens"] for p in processes
+              if isinstance(p.get("tokens"), (int, float))]
+    costs = [p["cost_usd"] for p in processes
+             if isinstance(p.get("cost_usd"), (int, float))]
+    return {"tokens": sum(tokens) if tokens else None,
+            "cost_usd": round(sum(costs), 8) if costs else None,
+            "wall_s": round(sum(p.get("wall_s", 0) for p in processes), 1)}
+
+
+def compact_result(record: dict, report: dict, cells: list[dict]) -> dict:
     return {"contract": "awow.eval-scorecard/v1", "run_id": record.get("id"),
             "subject_sha": (record.get("data_source") or {}).get("sha"),
             **{key: report.get(key) for key in
-               ("seat", "eval_version", "coverage", "capabilities")}}
+               ("seat", "eval_version", "coverage", "capabilities")},
+            "metrics": run_metrics(cells),
+            "systematic_failure": bool(cells) and all(
+                cell.get("verdict") == "indeterminate"
+                and cell.get("stage") == "runner" for cell in cells)}
 
 
 def _seat_identity(record: dict, resp: dict) -> dict:
@@ -433,6 +448,15 @@ def _seat_identity(record: dict, resp: dict) -> dict:
     seat.setdefault("harness", metadata.get("harness"))
     seat.setdefault("effort", metadata.get("effort"))
     return seat
+
+
+def validate_resolved_model(cells: list[dict], seat: dict) -> None:
+    expected = seat.get("model_id")
+    reported = {cell.get("process", {}).get("resolved_model_id") for cell in cells}
+    reported.discard(None)
+    if reported and expected and reported != {expected}:
+        raise RuntimeError(f"resolved model {sorted(reported)} != expected "
+                           f"{expected!r}")
 
 
 def _write_action_output(name: str, value: str) -> None:
@@ -562,6 +586,7 @@ def main() -> int:
             cells = [item["cell"] for item in resp["data"]]
             scored = score_run(cells, Path("evals/rubrics"), reps)
             scored["seat"] = _seat_identity(record, resp)
+            validate_resolved_model(cells, scored["seat"])
             scored["eval_version"] = os.getenv("EVAL_VERSION", "1")
             gate_path = Path("evals/gate.json")
             gate = json.loads(gate_path.read_text()) if gate_path.is_file() else None
@@ -577,7 +602,8 @@ def main() -> int:
             emit_annotations(report)
 
             result_path = Path(os.getenv("EVAL_RESULT_PATH", "eval-result.json"))
-            result_path.write_text(json.dumps(compact_result(record, report), indent=1) + "\n")
+            result_path.write_text(
+                json.dumps(compact_result(record, report, cells), indent=1) + "\n")
             _write_action_output("result-path", str(result_path))
 
             if gate_path.is_file():

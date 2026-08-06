@@ -1,0 +1,32 @@
+name: eval-run
+description: >
+  Submit this repo's eval suite to the night eval service and wait for scores.
+  The Actions run is the job handle: submit, poll to a terminal status, scores
+  in the step summary. Fails on a failed run or a 30-minute timeout.
+inputs:
+  api-key:
+    description: Tenant subscription key for the eval API
+    required: true
+  base-url:
+    description: Eval API base URL
+    default: https://apim-awow.azure-api.net/evals
+  model:
+    description: Tier name (bulk | worker | flagship)
+    default: worker
+  reps:
+    description: Repetitions per scenario (budget scales with reps)
+    default: "2"
+  budget-per-scenario:
+    description: Token budget per scenario (total scales with suite size)
+    default: "400000"
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        EVAL_API_KEY: ${{ inputs.api-key }}
+        EVAL_BASE_URL: ${{ inputs.base-url }}
+        EVAL_MODEL: ${{ inputs.model }}
+        EVAL_REPS: ${{ inputs.reps }}
+        EVAL_BUDGET_PER_SCENARIO: ${{ inputs.budget-per-scenario }}
+      run: python3 "${{ github.action_path }}/run.py"

@@ -38,6 +38,7 @@ When a proposal's state changes, update its `**Status:**` line *and* the row bel
 | [eval-baseline-and-prompt-cleanup](eval-baseline-and-prompt-cleanup.md) | **Draft** (Phase 1 built, awaiting review) | Dual-witness `/test-awow` runner (checks + blind judge, `indeterminate` verdicts), per-scenario `pre()`/`post()` checks, `tools/validate-evals.py`. Phases 2–4 (new suites, prompt trims, cleanup) still due. |
 | [shared-activity-collection-lenses](shared-activity-collection-lenses.md) | **Draft** (built, awaiting review) | Shared gather (`activity-collection.md`) + `/daily-routine` (one gather → overview + KB candidates) + `/daily-digest` & `/kb-mine` standalone lenses. |
 | [kb-capture-synthesize-spine](kb-capture-synthesize-spine.md) | **Draft** (built, awaiting review) | Committed `context/kb-inbox/` + tunable `mining-policy.md` + gated `synthesis.md` drain, wired into mining/`/daily-routine`/`/setup-awow` Step 6 — the awow-portable half of linear's KB spine. Phase 4 (feeders, autonomous drain, tuning) deferred. |
+| [fikkert-fixture-content-scope](fikkert-fixture-content-scope.md) | **Draft** | AWO-74 pre-build content lock: canon, `_seed/` transform, board/material inventories, Layer-0 drift assertions. Awaiting review (2026-08-03). |
 | [maintainer-meta-instructions](maintainer-meta-instructions.md) | **Parked** (2026-05-25) | Guide-sync tweak; revisit if the prompt catalogue drifts. |
 
 `setup/` holds the `/setup-awow` wizard's per-step drafts — working artefacts, not tracked here.

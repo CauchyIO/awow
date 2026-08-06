@@ -1,0 +1,46 @@
+name: evals
+
+# Submitting an eval run is one authenticated API call against the night eval
+# service; .github/actions/eval-run does it and waits for scores. Triggers: a
+# manual button, and a gate run on PRs that touch the flows or the eval set.
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: Tier name (bulk | worker | flagship)
+        default: worker
+      reps:
+        description: Repetitions per scenario
+        default: "2"
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - evals/**
+      - commands/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: evals-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    # Same-repo PRs and manual runs only — fork PRs never see the key.
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Validate suite (static, zero tokens)
+        run: python3 evals/validate.py
+
+      - uses: ./.github/actions/eval-run
+        with:
+          api-key: ${{ secrets.AWOW_EVAL_API_KEY }}
+          model: ${{ inputs.model || 'worker' }}
+          reps: ${{ inputs.reps || '2' }}

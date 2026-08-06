@@ -1,0 +1,50 @@
+cases:
+  - id: trg-001
+    utterance: "prep the feature for thursday's refinement"
+    workspace: populated
+    expected: refinement-prep
+    category: direct-positive
+    provenance: hand-seeded
+    weight: 1
+
+  - id: trg-002
+    utterance: "can you turn these meeting notes into board tickets"
+    workspace: populated
+    expected: process-transcript
+    category: paraphrase
+    provenance: hand-seeded
+    weight: 1
+
+  - id: trg-003
+    utterance: "summarise this meeting for me quickly"
+    workspace: populated
+    expected: none
+    category: near-miss-negative
+    provenance: hand-seeded
+    weight: 1
+
+  - id: trg-004
+    utterance: "what should I pick up today"
+    workspace: populated
+    expected: my-work
+    category: confusion-pair
+    confusable_with: daily-checkin
+    provenance: hand-seeded
+    weight: 1
+
+  - id: trg-005
+    utterance: "morning! sprint review went fine yesterday btw. anyway before standup — can you check what's on my plate, and oh, remind me to book the retro room"
+    workspace: populated
+    expected: my-work
+    category: buried-intent
+    provenance: hand-seeded
+    weight: 1
+
+  - id: trg-006
+    utterance: "let's do the daily checkin"
+    workspace: stub
+    expected: setup-awow
+    category: state-dependent
+    note: "setup incomplete: routing to setup first is the correct behaviour"
+    provenance: hand-seeded
+    weight: 1

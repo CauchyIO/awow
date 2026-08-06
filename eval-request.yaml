@@ -1,0 +1,7 @@
+contract: eval/v1
+environment: night-standard@1
+suite: evals
+scenarios: [setup-awow-walkthrough]
+tiers: [worker]
+reps: 1
+budget_tokens_total: 400000

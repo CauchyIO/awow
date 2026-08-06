@@ -4,25 +4,22 @@ How a board URL becomes one configured file the agent reads — and how an appro
 
 > **TL;DR** — Give `/setup-awow` Step 1 a board URL. It wires a read/write surface (an MCP, or
 > the `gh` CLI for GitHub), then walks the per-tool `reference/` files one section at a time and
-> writes the team's real spec into `context/tooling/board.md`. From then on, whenever the agent
-> needs to know what a label means, which states are terminal, where a new issue belongs, or
-> whether a duplicate exists, it reads `board.md` — never the reference. MCP servers are governed
-> separately: a server clears an intake, joins `mcps/catalogue.md`, then gets wired into
-> `.mcp.json` (Claude Code) and `.vscode/mcp.json` (Copilot).
+> writes the team's real spec into `context/tooling/board.md` — thereafter the only board file
+> the agent reads. MCP servers are governed separately: a server clears an intake, joins
+> `mcps/catalogue.md`, then gets wired into `.mcp.json` (Claude Code) and `.vscode/mcp.json`
+> (Copilot).
 
 ## The single source of truth
 
-Two kinds of board knowledge, read at two different times by two different actors. The design
-keeps them strictly apart.
+Two kinds of board knowledge, read at two different times by two different actors.
 
 | | Read by | What it is |
 | --- | --- | --- |
 | `<tool>/reference/` under `context/tooling/boards/` | The wizard, at setup time only | Best-practice templates per board tool. `/setup-awow` Step 1 reads them section by section to drive the configuration conversation. **Never consulted at runtime.** |
 | `context/tooling/board.md` | The runtime agent | The team's actual board spec, composed from the reference plus the team's choices. The **one file** the agent reads when it needs to act on the board. |
 
-Keeping the read path to one file means the agent never reconciles a template against a team's
-overrides at runtime — that happened once, at setup, and was baked into `board.md`. The
-references can grow in depth over releases without changing anything the agent reads day to day.
+The split means the references can grow in depth over releases without changing anything the
+agent reads day to day.
 
 ## From URL to the file the agent reads
 
@@ -79,9 +76,6 @@ Step 1b picks a mode automatically by counting closed (or `Done`) issues. The th
 | **A — set up from reference** | <10 closed issues (greenfield or under-configured) | Walks the reference, asks *accept / override / skip* per section, applies choices via the surface where it can mutate config. Where it cannot (Linear Free workflow states, ADO process templates, Jira workflows) it emits a manual checklist and re-verifies after the user confirms. `Divergence from reference` stays empty. |
 | **B — assess & capture current** | ≥10 closed issues (established board) | Pulls the actual state machine, hierarchy, labels, and fields from the surface into `board.md`, then diffs the capture against the reference and surfaces gaps — not to force adoption, but so the team can close, override, or accept each. Resolutions land in `Divergence from reference`. |
 
-Because both modes write the same headings, the runtime agent reads `board.md` without ever
-caring which produced it.
-
 ## The override model — two layers
 
 The reference is a starting point, not a mandate. It is overridable at two layers, applied in
@@ -91,8 +85,6 @@ precedence order; the wizard always says which layer it read from for each secti
 | --- | --- | --- |
 | **1. Enterprise override** (per file) | `.agents-overrides/tooling/boards/<tool>/reference/` | A parent org ships its own board standards next to the adopter's `.agents/`. Files here **supersede** the starter pack's reference of the same name, and the wizard announces it. |
 | **2. Team override** (in `board.md`) | `context/tooling/board.md` itself | The team's accept / override / skip decisions land inline (Mode A) or in `Divergence from reference` (Mode B). **There is no separate team-level override file.** |
-
-Once `board.md` is written, the references are not consulted again until the next wizard run.
 
 ## The `gh` CLI alternative (GitHub only)
 
@@ -129,8 +121,8 @@ A reviewer (security lead + architect) approves or rejects. Only approved server
 
 ## Wiring an approved MCP into both harnesses
 
-Same logical server, two config files with slightly different shapes. Each catalogue entry
-should record the rendered snippet for both so adopters copy without guessing.
+Same logical server, two config files with different shapes. Each catalogue entry should record
+the rendered snippet for both.
 
 | Harness | File | Key | Secrets |
 | --- | --- | --- | --- |
@@ -177,5 +169,5 @@ usable; write-dependent items are marked `pending-write`.
 - [`context/tooling/boards/README.md`](../context/tooling/boards/README.md) — board references and the two modes
 - [`mcps/README.md`](../mcps/README.md) — catalogue, intake, harness wiring
 - [`.agents/commands/setup-awow.md`](../.agents/commands/setup-awow.md) — Step 1, the kickoff flow
-- `context/tooling/board.md` — the runtime read path, written by Step 1 (not present until setup runs)
+- `context/tooling/board.md` — written by Step 1; not present until setup runs
 - Setup counterpart: [Setup & the pointer-stub model](guide-setup-and-two-harnesses.md)

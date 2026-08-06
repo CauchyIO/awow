@@ -2,19 +2,16 @@
 
 What a new adopter hits first: the `/setup-awow` wizard, and how one source tree renders to every harness surface.
 
-> **TL;DR** — `/setup-awow` is a wizard you run inside an agent session. It is incremental and
-> resumable: state lives in `setup-progress.md`, and every invocation reads that file and lays
-> out the whole plan (Steps 0–9), marking each ✓ done, ⧗ pending, or ☐ untouched. Only Step 0
-> (installer) and Step 1 (board kickoff) are required; the rest are recommended-next in any
-> order. Every artefact lands under `proposals/setup/` first and moves to its final path only
-> after you approve. Separately, all agent instructions are authored once under `.agents/`;
-> `tools/gather.py` mirrors them into tiny pointer stubs in `.claude/` and `.github/` so the two
-> harnesses stay in sync and nothing drifts.
+> **TL;DR** — `/setup-awow` is a wizard you run inside an agent session, incremental and
+> resumable against `setup-progress.md`: every invocation lays out the whole plan (Steps 0–9)
+> and resumes where you stopped. Only Steps 0 and 1 are required, and every artefact is drafted
+> under `proposals/setup/` before it lands. Separately, all agent instructions are authored once
+> under `.agents/`; `tools/gather.py` mirrors them into pointer stubs in `.claude/` and
+> `.github/` so the two harnesses cannot drift.
 
 ## How the wizard behaves
 
-It removes the "I cloned the repo — now what?" problem: instead of a wall of setup docs, a
-conversational wizard that does the configuring with you. Four properties define how it runs:
+Four properties define how it runs:
 
 - **Incremental & resumable.** State lives in `setup-progress.md` at the repo root, read on every
   invocation, so you can stop after any step and pick up exactly where you left off.
@@ -89,9 +86,8 @@ looping until you say proceed. Full board mechanics live in
 ## The trap, and awow's answer
 
 A team using both Claude Code and GitHub Copilot hits the same problem: every instruction file,
-prompt, and skill ends up duplicated across `.claude/` and `.github/` — and the copies drift.
-Someone fixes a convention in one place, forgets the other, and the two agents follow different
-rules.
+prompt, and skill ends up duplicated across `.claude/` and `.github/`, someone fixes a convention
+in one copy and forgets the other, and the two agents follow different rules.
 
 The answer is **pointer stubs**. Author everything once under `.agents/`; `tools/gather.py`
 generates tiny redirect files in `.claude/` and `.github/` that each harness discovers natively.
@@ -145,9 +141,8 @@ Step 5 produces out to `.claude/CLAUDE.md` and `.github/AGENTS.md`.
 
 The recommended way to adopt awow is GitHub's *Use this template*, not a fork — so your repo
 starts with no upstream relationship to merge through. The starter ships both `.claude/` and
-`.github/` populated. Step 1 detects which harness you are running inside and asks whether the
-team also uses the other, so the source-of-truth promise scales whether you run one harness or
-both.
+`.github/` populated, and Step 1 detects which harness you are running inside and asks whether
+the team also uses the other.
 
 ## Sources of truth
 

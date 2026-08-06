@@ -3,16 +3,14 @@
 Pull newer awow into a repo that is already set up — without losing anything your team owns.
 
 > **TL;DR** — `/setup-awow` configures a repo once; `/update-awow` keeps the scaffolding current
-> afterwards. Your job is two actions: invoke it, and approve or reject the plan it shows. Under
-> the hood `tools/awow_lock.py` does a 3-way compare per file — lockfile baseline vs your local
-> copy vs upstream — and only starter-owned paths are ever managed. Conflicts are never merged
-> for you: upstream lands beside your file as `<file>.awow`. Nothing is written before you
-> approve, and git is the backstop.
+> afterwards. Your two actions are invoke and approve; `tools/awow_lock.py` does the rest against
+> a lockfile recording what you last reconciled, so only starter-owned paths move, your edits
+> survive, and conflicts land as sidecars you merge by hand.
 
 ## How the update decides what to touch
 
 The lockfile — `tools/awow.lock.json` — records a hash of every starter-owned file as you last
-reconciled it. An update is a 3-way compare per file: baseline, local, upstream.
+reconciled it. Each update compares three versions of each file:
 
 ```mermaid
 flowchart LR
@@ -53,30 +51,28 @@ plan — what updates, what is new, what conflicts — and **writes nothing unti
 After apply it re-mirrors the harness stubs (`tools/gather.py`) and reports the version delta
 plus any `.awow` conflict files left to merge.
 
-Run it on a branch and read the `git diff` as your final review — git is the backstop, so
-nothing an update does is unrecoverable. Add `--check` to see the plan and stop: a zero-risk way
-to ask "how far behind are we?".
+Run it on a branch and read the `git diff` as your final review; git is the backstop. Add
+`--check` to see the plan and stop — "how far behind are we?" without touching anything.
 
 ## First run in an older repo
 
 A repo set up before the update machinery existed has no lockfile and no `tools/awow_lock.py`.
 You prepare nothing: the agent self-bootstraps — copies the tool from the source, then seeds the
 lockfile from your current tree (`backfill`, which establishes "you are here" and changes no
-other file). Your flow is still invoke → approve.
+other file).
 
 **The one first-run caveat.** A freshly seeded baseline equals your local state, so the first
 compare cannot distinguish "we edited this" from "upstream moved" — files your team deliberately
 changed show up as *update (will overwrite)* instead of *conflict*. The agent is instructed to
 walk that list against your known customisations and flag high-risk entries (a real product
-`pyproject.toml`; reference `context/` you filled in) before you approve. Review that first plan
-more carefully than usual; from the second update on, the lockfile holds a true reconciliation
-point and your edits classify as *keep-local* automatically.
+`pyproject.toml`, reference `context/` you filled in) before you approve. From the second update
+on, the lockfile holds a true reconciliation point and your edits classify as *keep-local*.
 
 ## Merging a conflict
 
-A conflict never touches your file. The upstream version lands next to it as `<file>.awow`; you
-diff the two, take what you want, and delete the sidecar. The update is not done until every
-`.awow` is gone — the report lists them so none are forgotten.
+The upstream version lands next to your untouched file as `<file>.awow`; you diff the two, take
+what you want, and delete the sidecar. The update is not done until every `.awow` is gone — the
+report lists them so none are forgotten.
 
 ```bash
 diff .agents/commands/daily-digest.md .agents/commands/daily-digest.md.awow
@@ -92,9 +88,8 @@ rm .agents/commands/daily-digest.md.awow
 | `tools/awow.lock.json` → `awow_version` | The version *your repo* last reconciled against — the "from" side of every plan. |
 | Git tags (`v0.4.0`, …) | Pinnable release points on the awow repo. Pass a tag checkout as `--source` to update to a specific version instead of whatever `main` is. |
 
-Correctness never depends on the numbers — the compare is content-hash based — but the numbers
-carry the meaning: a plan that says `0.3.0 → 0.4.0` tells you you're taking a real release, and a
-repo whose lockfile says `0.4.0` is verifiably current. Maintainers: bump the version in the same
+Correctness never depends on the numbers — the compare is content-hash based — but a plan reading
+`0.3.0 → 0.4.0` tells you you're taking a real release. Maintainers: bump the version in the same
 change that alters starter files, and tag the release commit.
 
 ## Sources of truth

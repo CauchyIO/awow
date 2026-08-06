@@ -2,21 +2,14 @@
 
 The loop one person runs, day to day, that proves awow earns its place.
 
-> **TL;DR** — Two Seed commands run again and again through the day: `/refinement-prep`
-> turns a brief into a right-sized draft the team reviews ahead of a session, and
-> `/process-workitem` walks one story from board to PR through a seven-step frame that
-> iterates on a *plan*, never on production code. At the end of the day the Standardise
-> companion `/daily-checkin` reconciles what actually happened against the board, biasing
-> hard against noise. All three share one spine: look at the board first, never duplicate,
-> draft to cheap markdown under `proposals/`, land only after a human approves.
+> **TL;DR** — Two Seed commands run again and again through the day: `/refinement-prep` drafts
+> a right-sized feature the team reviews ahead of a session, `/process-workitem` walks one
+> story from board to PR through a seven-step frame that iterates on a *plan*, never on
+> production code. The Standardise companion `/daily-checkin` caps the day by reconciling what
+> happened against the board. One spine throughout: board look-first, never duplicate, draft to
+> markdown under `proposals/`, land only after a human approves.
 
 ## The loop
-
-The sequence repeats per feature. `/refinement-prep` drafts the stories, the team agrees
-them in refinement, `/project-plan` sequences them into a dependency graph and creates the
-board items in order, and `/process-workitem` takes each story to PR — cycling once per
-story. `/daily-checkin` caps the day: it reads that activity and proposes board updates. It
-feeds the board, not the code.
 
 ```mermaid
 flowchart LR
@@ -118,20 +111,14 @@ Three principles hold it together:
 
 ## `/daily-checkin` — the daily companion
 
-A Standardise command layered on top of the Seed loop, not part of it. It captures an
-individual's working day, maps it onto the board, cross-references it against code activity,
-and proposes updates.
+Captures an individual's working day, maps it onto the board, cross-references it against code
+activity, and proposes updates. Elastic: a detailed account yields a rich summary, a couple of
+lines yields a lighter one, and nothing at all still works because board and code activity carry
+most of the signal.
 
-Optional and elastic: a detailed account yields a rich summary, a couple of lines yields a
-lighter one, and nothing at all still works because board and code activity carry most of the
-signal. It is not performance evaluation and not forecasting — it enforces structural clarity,
-making sure work that happened is reflected on the board.
-
-**Its whole point is biasing against noise.** Run every day, a check-in is a noise machine if
-you let it be — duplicate tickets, verbose recaps, a new issue for every passing thought. The
-default is the opposite: advance work that is already tracked (comment on or move an existing
-issue), and treat creating a new issue as the exception that must justify itself. If the
-proposed list has more new issues than updates, re-map.
+**It is built to bias against noise.** The default is to advance work that is already tracked
+(comment on or move an existing issue); creating a new issue is the exception that must justify
+itself. If the proposed list has more new issues than updates, re-map.
 
 How it reads the day:
 
@@ -153,10 +140,9 @@ list, and genuine gaps only — "no gaps today" is a fine and common outcome.
 
 ## Where this loop plugs into design and coordination
 
-Two further commands bracket the loop when the work is larger than a single story. All of it
-turns on one shared artefact: a **stated dependency graph**. A design becomes a sequenced plan,
-the plan becomes board items that know what blocks what, and delivery is coordinated against
-that graph rather than a flat list of tickets.
+When the work is larger than a single story, two further commands bracket the loop. All of it
+turns on one shared artefact: a **stated dependency graph**, without which coordination has
+nothing to read.
 
 | Command | Stage | What it adds |
 | --- | --- | --- |
@@ -165,10 +151,8 @@ that graph rather than a flat list of tickets.
 | `/process-workitem` | seed | The same seven-step loop, now checking the graph before starting; it won't silently begin an item whose blockers are still open. |
 | `/project-manager` | standardise | Coordinates delivery *against the published plan*: unblocks people, fires ready handoffs, reconciles plan against work done, keeps the graph correct, rolls up a weekly report. |
 
-The dependency graph is the connective tissue: *stated* by `/project-plan`, *honoured* by
-`/process-workitem`, *steered on* by `/project-manager`, and seeded earlier by
-`/refinement-prep`, which already captures dependencies as edges. Without the graph stated
-somewhere true, coordination has nothing to read.
+`/refinement-prep` seeds the graph earlier still: it already captures dependencies as edges, so
+they feed forward.
 
 ## The spine that runs through all three
 

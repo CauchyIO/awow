@@ -61,7 +61,9 @@ without copying that material into the HUB.
 The guides live in [`guides/`](guides/README.md) — plain markdown, readable
 directly on GitHub or as agent context.
 
-`/setup-awow` wires your board (Linear, Jira, Azure DevOps, GitHub Issues) and
+`/setup-awow` offers either a guided walkthrough or a 25–30 minute team
+workshop whose transcript becomes the same gated setup proposals. It wires
+your board (Linear, Jira, Azure DevOps, GitHub Issues) and
 writes your mission, conventions, and members into `context/`. It is incremental
 and resumable. Commands work better with it, and none require it.
 

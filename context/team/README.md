@@ -11,6 +11,7 @@ The team's identity, conventions, and writing style. This is the most-read part 
 | `members.md` | Roles, responsibilities, focus areas | Recommended |
 | `style/` | Writing-mode guidance (board / comments / prose) | Populated by Step 3 |
 | `conventions/` | Naming and tagging rules (REQUIRED + OPTIONAL) | Populated by Step 2 |
+| `meetings/` | Sparse guidance for rituals that differ from the generic meeting lenses | Optional; populated through `/setup-awow` |
 
 ## How the agent uses this
 
@@ -18,10 +19,11 @@ The team's identity, conventions, and writing style. This is the most-read part 
 - Members lets the agent attribute work, disambiguate transcripts, and respect reporting lines.
 - Style governs what the agent writes — terse on the board, prose elsewhere.
 - Conventions govern *how* the agent names everything — titles, labels, branches, infrastructure resources.
+- Meetings records only the ways this team's recurring conversations differ from the generic defaults, plus any custom rituals.
 
 ## Update cadence
 
-Event-driven, not calendar-driven. When the mission changes, update. When a member joins or leaves, update. When a convention changes, update. If nothing has changed in a month, nothing needs to happen.
+Event-driven, not calendar-driven. When the mission changes, update. When a member joins or leaves, update. When a convention or recurring ritual changes, update. If nothing has changed in a month, nothing needs to happen.
 
 A stale team file does not produce broken agent behaviour — it produces *slightly-wrong* agent behaviour, which is harder to notice. Refresh at retrospectives.
 

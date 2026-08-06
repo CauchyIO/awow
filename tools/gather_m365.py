@@ -16,6 +16,7 @@ from gather import command_description, parse_frontmatter
 
 CONFIG_REL = Path("context/tooling/m365/agent.md")
 INSTRUCTION_BUDGET = 8000
+HANDLER_DIR_PARTS = {"_workitem-archetypes", "_meeting-archetypes"}
 
 
 class M365ConfigError(ValueError):
@@ -116,7 +117,9 @@ def included_commands(repo_root: Path, tracked: set[str] | None = _COMPUTE_TRACK
     entries = []
     commands_root = repo_root / ".agents" / "commands"
     for source in sorted(commands_root.rglob("*.md")):
-        if source.name == "README.md" or "_workitem-archetypes" in source.parts:
+        if source.name == "README.md" or any(
+            part in HANDLER_DIR_PARTS for part in source.parts
+        ):
             continue
         rel_posix = source.relative_to(repo_root).as_posix()
         if tracked is not None and rel_posix not in tracked:
@@ -162,7 +165,7 @@ def build_file_index(
         if not base.is_dir():
             raise M365ConfigError(f"index root does not exist: {base}")
         for path in sorted(base.rglob("*.md")):
-            if "_workitem-archetypes" in path.parts:
+            if any(part in HANDLER_DIR_PARTS for part in path.parts):
                 continue
             rel_posix = path.relative_to(repo_root).as_posix()
             if tracked is not None and rel_posix not in tracked:

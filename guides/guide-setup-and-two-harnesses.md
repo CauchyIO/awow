@@ -3,15 +3,19 @@
 What a new adopter hits first: the `/setup-awow` wizard, and how one source tree renders to every harness surface.
 
 > **TL;DR** — `/setup-awow` is a wizard you run inside an agent session, incremental and
-> resumable against `setup-progress.md`: every invocation lays out the whole plan (Steps 0–9)
-> and resumes where you stopped. Only Steps 0 and 1 are required, and every artefact is drafted
-> under `proposals/setup/` before it lands. Separately, all agent instructions are authored once
+> resumable against `setup-progress.md`. Choose a guided walkthrough or ask it for a 25–30 minute
+> team workshop brief and give it the transcript afterward; both routes produce the same gated
+> proposals. Only Steps 0 and 1 are required for operation. Separately, all agent instructions are authored once
 > under `.agents/`; `tools/gather.py` mirrors them into pointer stubs in `.claude/` and
 > `.github/` so the two harnesses cannot drift.
 
 ## How the wizard behaves
 
 Four properties define how it runs:
+
+- **Workshop or guided.** The optional workshop route lets the team explain its mission, work flow,
+  rituals, and agreements in one conversation. Technical board and harness wiring happens outside
+  the meeting. Teams that do not want a meeting use the guided route unchanged.
 
 - **Incremental & resumable.** State lives in `setup-progress.md` at the repo root, read on every
   invocation, so you can stop after any step and pick up exactly where you left off.
@@ -22,6 +26,13 @@ Four properties define how it runs:
   its final location (e.g. `context/team/mission.md`) only after explicit approval.
 - **Two required, the rest optional.** Steps 0 and 1 make the repo usable. Steps 2–9 are
   recommended-next in any order — the wizard offers the next one and lets you choose.
+
+For the workshop route, `/setup-awow` drafts `proposals/setup/meeting-brief.md` with five short
+conversation blocks. After the meeting, pass the `.vtt`, `.srt`, or notes to `/setup-awow` or
+`/process-transcript`. The synthesis distinguishes current practice, agreed changes, suggestions,
+and unresolved disagreement, then shows one approval gate with the actual proposed diffs. Common
+rituals produce a file under `context/team/meetings/` only when this team materially differs from
+the generic meeting lens; custom recurring meetings can be described there in full.
 
 **Multi-workspace runs.** `/setup-awow --root <path>` resolves `setup-progress.md`,
 `proposals/setup/` and `context/` relative to `<path>/` instead of the repo root. The harness

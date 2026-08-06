@@ -15,9 +15,9 @@ This prompt runs as a pipeline with **three gates**. You stop at each gate, pres
 
 ## Router behaviour
 
-You are the entry point for the transcript-prompt family. When a transcript contains a session another skill handles better (`/coaching-review`, `/solution-design-flow`, future leaves), recommend dispatch with rationale and let the user confirm before invoking the specialist. When no specialist fits, stay here and run the templated pipeline below.
+You are the entry point for the transcript-prompt family. Match each segment against every generic meeting lens, then recommend a specialist when another skill owns the workflow. When no specialist fits, apply the matched lenses here.
 
-**The filesystem is the registry.** Enumerate the awow command catalog: `.agents/commands/**/*.md` in vendored repos, `.claude/commands/*.md` in mirror-only repos, or the awow plugin's `commands/` directory (under the plugin root) when awow is installed as a plugin. Filter to entries whose frontmatter declares `consumes: transcript`. Read each match's `when-to-use` and `when-not-to-use` fields and match against the segments you detect in Phase 1. Skip `README.md` and any path under `_workitem-archetypes/`.
+**The filesystem holds two registries.** Load generic lenses from `{HUB}/.agents/commands/_meeting-archetypes/` when this repo has vendored them; otherwise load `../../commands/_meeting-archetypes/`. Enumerate specialist commands from the awow command catalog and filter to frontmatter declaring `consumes: transcript`. Skip `README.md` and every path under `_workitem-archetypes/` or `_meeting-archetypes/` when building the specialist registry.
 
 **Mode flags** from `$ARGUMENTS`:
 
@@ -31,49 +31,36 @@ Both flags are optional. Default behaviour is detect-then-confirm.
 ## Pipeline overview
 
 ```
-Phase 0 ─ Load team context
+Phase 0 ─ Load interpretation context
 Phase 1 ─ Parse, detect segments, match registry  ──→ GATE 1 (confirm dispatch)
 Phase 2 ─ Dispatch specialists + stitch outputs
-Phase 3 ─ Board discovery on fallback segments    ──→ GATE 2 (approve actions)
+Phase 3 ─ Board discovery on locally analysed segments ──→ GATE 2 (approve actions)
 Phase 4 ─ Execute
 ```
 
-When every segment dispatches to a specialist, Phases 3 and 4 are skipped — each specialist owns its own board writes. Phases 3 and 4 run only when at least one segment fell through to templated extraction.
+When every segment dispatches to a specialist, Phases 3 and 4 are skipped — each specialist owns its own board writes. Phases 3 and 4 run only when at least one segment stays here for lens-driven extraction.
 
 ---
 
-## Phase 0 — Load team context
+## Phase 0 — Load interpretation context
 
-Before touching the transcription, read:
+Before reading the transcript, load the context that shapes what you notice and how you interpret it:
 
-- `{HUB}/context/team/mission.md` — what the team is for
-- `{HUB}/context/team/members.md` — names, roles, focus areas (critical for speaker disambiguation and attribution)
-- `{HUB}/context/team/conventions/REQUIRED/*.md` — naming, labels, output discipline
-- `{HUB}/context/team/style/*.md` — writing modes
-- `{HUB}/context/knowledge-base/glossary.md` — domain terms and abbreviations (helps disambiguate transcription errors)
-- `{HUB}/context/company/neighbouring-teams.md` — needed for cross-team blocker detection
-- `{HUB}/context/tooling/board.md` — board family, MCP wiring
+- `{HUB}/context/team/mission.md` — frame relevance, scope, and the team's purpose.
+- `{HUB}/context/team/members.md` — recognise speakers, roles, responsibilities, and focus areas.
+- `{HUB}/context/knowledge-base/glossary.md` — recognise domain terms and likely transcription errors.
+- `{HUB}/context/team/meetings/*.md`, excluding `README.md` — apply this team's ritual differences and recognise custom meetings.
+- `{HUB}/context/company/neighbouring-teams.md` — recognise team names, ownership boundaries, and likely dependencies.
 
-### Context validation
+Keep output configuration lazy:
 
-Quick sanity check on each:
+- Resolve `board.md` only when a locally analysed segment reaches Phase 3.
+- Let `workitem-write` load conventions and writing modes immediately before drafting actions for Gate 2.
+- Load the knowledge-source routing catalog only when proposing durable knowledge-base content.
 
-1. **Staleness.** If a file was last updated more than ~8 weeks ago, warn the user: "Team context was last updated [date] — board matching may be inaccurate. Continue anyway or update first?"
-2. **Completeness.** If critical sections are missing (no team members, no neighbouring teams), note it. Proceed anyway with a degraded confidence label.
-3. **Currency.** If the current cycle / sprint dates have passed, note it.
+Do not preload board, convention, style, or knowledge-source configuration. When every segment dispatches to a specialist, finish without those later-phase reads.
 
-If files are missing, tell the user: "No team context found. I can still process the meeting, but board matching and cross-team detection will be best-effort. Want me to run `/setup-awow` to generate a starter template?"
-
-Do **not** gate on context — proceed with whatever is available. The context improves accuracy; its absence does not block the pipeline.
-
-**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{HUB}/context/tooling/board.md` yourself.
-
-### How context is used downstream
-
-- **Phase 1 (disambiguation):** member names and glossary terms resolve garbled transcription. A word that doesn't match a known entity but sounds similar to one → assume the known entity.
-- **Phase 1 (classification):** sprint dates and current commitments inform whether this is planning vs mid-cycle refinement.
-- **Phase 3 (board discovery):** team area, active features, and neighbouring-team info scope the search. Without this, search is keyword-only and much noisier.
-- **Phase 3 (cross-team blockers):** neighbouring teams and their known work items are checked against blockers raised in the meeting.
+Validate the interpretation pack when you load it. Treat a file older than ~8 weeks as potentially stale; mention missing or stale context at Gate 1 only when it materially lowers confidence in the interpretation.
 
 ---
 
@@ -99,7 +86,7 @@ In hybrid / in-office meetings, multiple people often share one device. The tran
 - First-person statements contradict the tagged speaker's role or context
 - Rapid back-and-forth appears under a single name with distinct perspectives
 
-When detected, re-attribute using context clues. Mark uncertain attributions as `(likely [Name])`.
+When detected, use transcript evidence together with the preloaded member roles and focus areas. Mark unresolved attributions as `(likely [Name])`.
 
 ### 1.3 Voice transcription disambiguation
 
@@ -108,33 +95,26 @@ Voice-to-text is unreliable. Expect homophones, missing punctuation, and garbled
 Protocol:
 
 1. Read the full transcript before interpreting anything.
-2. Cross-reference all proper nouns against `{HUB}/context/team/members.md`, `neighbouring-teams.md`, the glossary, and the team's active features. These are your primary disambiguation source.
-3. When a word doesn't match a known entity but sounds similar to one, assume the known entity.
-4. Collect ALL ambiguous terms — do not guess silently.
+2. Cross-reference proper nouns against the preloaded members, glossary, and neighbouring teams.
+3. When a word does not match a known entity but sounds similar to one, prefer the known entity and record the correction.
+4. Keep any unresolved term explicit; do not guess silently.
 
-### 1.4 Detect session segments
+### 1.4 Detect session segments and match meeting lenses
 
-A single transcript can contain more than one session type (e.g. 0:00–0:30 retrospective, 0:30–1:00 solution design). Identify segment boundaries from topic shifts, participant changes, agenda transitions, and explicit framing changes ("let's switch gears", "before we wrap, one more thing"). Label each segment with start and end timestamps, primary type, and any secondary trait.
+A single transcript can contain more than one session shape. Identify segment boundaries from topic shifts, participant changes, agenda transitions, and explicit framing changes ("let's switch gears", "before we wrap, one more thing").
 
 For one-type sessions, produce one segment spanning the full transcript. For mixed sessions, produce two or more.
 
-For each segment, classify the primary type from the list below. Real meetings are messy — attach a confidence label (`clear` / `likely` / `weak`) so the dispatch step can fall back when confidence is low.
+Read only the `When this lens applies` section from each generic handler in `_meeting-archetypes/`. Match each segment against every handler and attach a confidence label (`clear` / `likely` / `weak`) to each match; apply all matches rather than choosing one primary type.
 
-**Refinement / Solution Design.** Requirements, architecture options, "how should we build this", estimation, unknowns, spikes.
+Match the preloaded Markdown files under `{HUB}/context/team/meetings/`, excluding `README.md`, semantically:
 
-**Daily standup.** Short per-person updates, "yesterday/today/blocked", round-robin, <20 min.
+- A file named for a generic meeting adds local guidance to that lens.
+- A differently named file may describe a custom recurring meeting; match it from its `How to recognise it` prose.
+- Several team files may apply to one segment.
+- Do not require frontmatter, identifiers, or inheritance syntax.
 
-**Sprint / Cycle planning.** Sprint goal, pulling from backlog, capacity, commitment language, velocity.
-
-**Ad-hoc call / 1:1.** Few participants, no rigid structure, problem-solving or decision-making.
-
-**Retrospective.** "What went well/didn't/change", reflection on past cycle, process improvement.
-
-**Structured interview.** One person asking from a list, the other answering, possible deviations from script.
-
-**Architecture discovery / external stakeholder interview.** Meeting with someone outside the immediate team. Information-gathering about how systems / processes work, mapping integration points and boundaries. Often involves one side explaining their domain while the other probes for architectural implications.
-
-**Board / Strategic.** High-level decisions, financials, partnerships, hiring. Flag as sensitive.
+Compose the generic defaults with the team guidance. Resolve conflicts with this priority: universal pipeline and safety boundaries, team guidance, then generic handler defaults. Team guidance may change what is expected in that team's ritual; it may not remove approval gates, evidence requirements, privacy boundaries, or board-write discipline.
 
 ### 1.5 Match segments against the specialist registry
 
@@ -146,104 +126,52 @@ Produce one disposition per segment:
 
 - **Dispatch** — segment matches exactly one specialist. Record the specialist name, segment range, and a one-sentence rationale grounded in the transcript ("12 participants, peer dynamic, looking-back framing").
 - **Ambiguous** — segment matches two or more specialists. List them and let the user choose at GATE 1.
-- **No match** — segment matches no specialist, or confidence is `weak`. Fall through to templated extraction in 1.6.
+- **No match** — segment matches no specialist, or confidence is `weak`. Keep it here for lens-driven extraction in 1.6.
 
-A transcript can mix dispositions: some segments dispatch, others fall back. That is normal, not a failure.
+A transcript can mix dispositions: some segments dispatch, others stay here for local analysis. That is normal, not a failure.
 
-### 1.6 Extract content
+### 1.6 Extract content with the composed lenses
 
-Use the appropriate template below. Universal rules:
+For each segment that stays here for local analysis, read every matched generic handler fully. Apply each handler's `What to extract`, `Missing topics worth noting`, and `Common interpretation mistakes` sections, using the preloaded relevant team guidance before deciding that a topic is missing or that familiar language carries its usual meaning.
+
+When no generic lens matches but a team-defined meeting does, use that file's stated purpose, recognition cues, important signals, and useful-output description. When nothing matches with useful confidence, use a minimal ad-hoc extraction and say why no lens matched.
+
+Universal rules:
 
 - **Distinguish decisions from discussion.** "We could do X" is exploration. "Let's go with X" (or no objection and moved on) is a decision.
 - **Attribute to speakers.** Not "the team discussed X" — instead "[Name] proposed X, [Name] raised concern Y, group agreed on Z."
 - **Capture reasoning, not just conclusions.** "Chose PostgreSQL over DynamoDB — need complex joins, team has operational experience" is useful. "Chose PostgreSQL" alone is not.
 - **Flag implicit assumptions.** If the conversation assumed something without validating it, note it.
 
-#### Template: Refinement / Solution Design
-
-- **Problem statement.** What's being solved, business context, constraints.
-- **Options explored.** Per option: who proposed, arguments for/against, verdict (chosen/rejected/needs spike).
-- **Decisions made.** Decision — rationale — who confirmed. Flag significant decisions as ADR candidates (`{HUB}/context/knowledge-base/decisions/`).
-- **Work breakdown.** Follow your board's hierarchy — Epic/Feature/Story/Task on ADO, Initiative/Project/Issue on Linear. Only as deep as warranted; a single story is fine for small work.
-- **Unknowns & spikes.** What needs investigation — who owns it.
-- **Risks.** Risk — impact — mitigation discussed.
-- **Parking lot.** Topics explicitly deferred.
-
-#### Template: Daily standup
-
-Per person: **Did / Doing / Blockers** with type (internal / cross-team / external) and blocking item if known. Plus a **Sprint health** block (unplanned work creep, items nobody mentioned, WIP concerns) and a **Blockers table** (blocker | who | type | blocking item | severity).
-
-#### Template: Sprint / Cycle planning
-
-- **Sprint goal** as stated, or "no explicit goal stated."
-- **Committed items.** Title — owner — sizing — dependencies — readiness (has AC / needs refinement / unclear).
-- **Capacity notes.** Reduced availability, load vs capacity.
-- **Not committed.** Item — why deferred.
-- **Dependencies & risks.** Internal ordering, cross-team gates, flagged risks.
-
-#### Template: Ad-hoc / 1:1
-
-Context, decisions, action items, follow-ups. Keep it small.
-
-#### Template: Retrospective
-
-- **Went well.** Observation — who raised it.
-- **Didn't go well.** Problem — who raised it — impact — root cause if discussed.
-- **Agreed improvements.** `- [ ] improvement (@owner, when) — addresses: [problem]`
-- **Patterns.** Recurring vs one-off issues.
-
-#### Template: Structured interview
-
-- **Coverage** (table): # | question | answered? | response summary | key quote.
-- **Deviations.** Where the conversation went off-script and what emerged. These often contain the most valuable signal.
-- **Unanswered.** Questions skipped or partially addressed.
-- **Key findings.** 3–5 most important takeaways regardless of questionnaire structure.
-
-#### Template: Architecture discovery / external stakeholder
-
-- **Context.** Who initiated, who was interviewed, their domain/team, what prompted this conversation.
-- **Systems & platforms discussed.** Per system: name — owner/team — purpose — maturity (production / in progress / vision) — how it relates to our domain.
-- **Architecture patterns identified.** Self-contained per pattern: pattern name, current state vs future state (if evolution was discussed), components and roles, data/control flow, constraints / governance boundaries / policy gates, who described it, confidence level.
-- **Integration points & boundaries.** Where our systems touch theirs — protocol, authentication, data format. Automated vs manual. Bottlenecks or latency.
-- **Governance & process flows.** Approval chains, ownership models, classification schemes. What's policy vs what's implemented. Gaps between stated process and reality.
-- **Constraints & non-negotiables.** Hard requirements stated by the stakeholder. Architectural decisions already made that we must work within.
-- **Open questions & gaps.** What wasn't answered or was explicitly flagged as "not yet decided". What we assumed but didn't validate. Topics the stakeholder suggested we follow up on (with whom).
-- **Implications for our design.** What changes, confirms, or challenges our current approach. New requirements or constraints surfaced. Dependencies identified.
-- **Action items.** `- [ ] action (@owner, deadline) — context`
-- **Follow-up contacts.** People mentioned who we should talk to next, and why.
-
-#### Template: Board / strategic
-
-Sensitive. Flag the output as restricted. Cover: decisions made (with rationale), strategic updates, action items, open items for next session.
-
 ---
 
 ### >>> GATE 1: Confirm dispatch & understanding
 
-Stop here. Present detection and dispatch first, then any templated extraction for fallback segments. Be succinct — the user does not need the full extraction in prose.
+Stop here. Present detection and dispatch first, then any lens-driven extraction for segments that stay here. Be succinct — the user does not need the full extraction in prose.
 
 ```
 GATE 1 — DETECTED & RECOMMENDED
 
 Detected [N] segment(s):
-  [hh:mm–hh:mm]  [type]  ([N] participants, confidence: clear / likely / weak)
+  [hh:mm–hh:mm]  generic: [lens, lens]  ([N] participants; confidence per lens)
+                 team guidance: [file names, or "none"]
   ...
 
 Recommended dispatch:
   /[skill]            on segment [N]  — [one-sentence rationale grounded in the transcript]
-  (templated fallback) on segment [N]  — [type]
+  (lens-driven extraction) on segment [N]  — [matched lenses]
   ...
 
 Duration: ~[X] min | Participants: [names]
 Disambiguation: [list corrections applied, or "none needed"]
 ```
 
-If any segments fell through to templated extraction (1.6), append:
+If any segments stay here for lens-driven extraction (1.6), append:
 
 ```
-Fallback extraction preview (segment [N], [type]):
+Extraction preview (segment [N], [matched lenses]):
 
-[... structured extraction using the appropriate template ...]
+[... structured extraction using the composed generic and team guidance ...]
 
 Uncertain interpretations:
 - [anything you're not confident about, with reasoning]
@@ -257,7 +185,7 @@ Worth confirming (optional — reply "go" to skip):
   2. ...
 ```
 
-Ask: *"Reply `go` to proceed as shown (this also skips any optional questions above), `--as=<skill>` to override a segment, or `fallback` to skip dispatch and run templated extraction across the whole transcript — or answer a question / correct anything else."*
+Ask: *"Reply `go` to proceed as shown (this also skips any optional questions above), `--as=<skill>` to override a segment, or `local` to skip specialist dispatch and analyse the whole transcript with the matched meeting lenses — or answer a question / correct anything else."*
 
 If `--yes` was set, skip this gate and proceed to Phase 2.
 
@@ -271,11 +199,11 @@ Process segments in start-time order.
 
 For each segment with a **dispatch** disposition:
 
-1. Hand the specialist the segment's parsed turn list (the speaker-attributed reconstruction from 1.1), not the raw VTT. Include start/end timestamps and the segment-type label in the handoff.
+1. Hand the specialist the segment's parsed turn list (the speaker-attributed reconstruction from 1.1), not the raw VTT. Include start/end timestamps, disambiguation decisions, matched generic lenses, and relevant preloaded team meeting guidance.
 2. Invoke the specialist as a slash-command (`/coaching-review`, `/solution-design-flow`, or whichever matched). The specialist runs its own pipeline including its own gates. If `--yes` is set, cascade it; otherwise the specialist's gates fire normally.
 3. Capture the specialist's final report verbatim.
 
-For each segment with a **no-match** (fallback) disposition, run the matching template from 1.6 now.
+For each segment with a **no-match** disposition, run the composed lens-driven extraction from 1.6 now.
 
 Stitch all outputs into one composite report:
 
@@ -285,7 +213,7 @@ Stitch all outputs into one composite report:
 ## Index
 
 - [hh:mm–hh:mm]  /[skill]              — [one-line type]
-- [hh:mm–hh:mm]  templated fallback    — [one-line type]
+- [hh:mm–hh:mm]  local analysis       — [matched lenses or custom meeting]
 ...
 
 ---
@@ -296,33 +224,33 @@ Stitch all outputs into one composite report:
 
 ---
 
-## [hh:mm–hh:mm]  Templated fallback ([type])
+## [hh:mm–hh:mm]  Local analysis ([matched lenses or custom meeting])
 
-[verbatim extraction from the type's template in 1.6]
+[extraction produced from the composed generic and team guidance in 1.6]
 ```
 
-Single-segment runs skip the index — present the specialist output or templated extraction directly.
+Single-segment runs skip the index — present the specialist output or local analysis directly.
 
-If no segments fell through to fallback, you are done after stitching. Phases 3 and 4 are skipped — each specialist owned its own board writes. Report what was produced and stop.
+If no segments stayed here for local analysis, you are done after stitching. Phases 3 and 4 are skipped — each specialist owned its own board writes. Report what was produced and stop.
 
-If at least one segment was templated, continue to Phase 3 for board discovery on the fallback action items only.
+If at least one segment was analysed here, continue to Phase 3 for board discovery on those action items only.
 
 ---
 
 ## Phase 3 — Board discovery & proposals
 
-Phase 3 runs over the action items extracted from **fallback segments only**. Specialist segments handle their own board interaction inside their own pipelines — do not re-discover or re-create their items here.
+Phase 3 runs over the action items extracted from **locally analysed segments only**. Specialist segments handle their own board interaction inside their own pipelines — do not re-discover or re-create their items here.
 
 ### 3.1 Search strategy
 
-Search the team's board per `workitem-write` step 1 — the four axes and match-confidence grading live there. Keywords come from decisions, action items, and discussed topics.
+Resolve the team's board and search it per `workitem-write` step 1 — the four axes, absent-`board.md` fallback, and match-confidence grading live there. Read mission or project scope only when it changes the search boundary. Keywords come from decisions, action items, and discussed topics.
 
 ### 3.2 Cross-team blocker detection
 
 For every blocker or dependency surfaced:
 
 1. Search the team's own board first.
-2. If not found locally, search neighbouring teams' boards (per `{HUB}/context/company/neighbouring-teams.md`).
+2. If not found locally, use the preloaded neighbouring-team map to search neighbouring teams' boards.
 3. For cross-team items: capture ID, title, state, owner, which team, current cycle or backlog, last updated.
 4. Blockers NOT found on any board → flag as **untracked dependency**.
 
@@ -335,7 +263,7 @@ For every blocker or dependency surfaced:
 
 ### 3.4 Propose actions
 
-Shape and placement per `workitem-write` steps 2–3 — every section labelled by placement (story / comment / knowledge base) before any board write.
+Shape and placement per `workitem-write` steps 2–3. Let that skill load the title and label conventions, output discipline, and `board-output.md` only now; label every section by placement (story / comment / knowledge base) before any board write.
 
 **Updates** to existing items:
 
@@ -359,6 +287,8 @@ ESCALATE [blocker]
 ```
 
 **Knowledge-base promotions** (durable content extracted from the meeting):
+
+Before proposing a destination, invoke `knowledge-source-routing` and load its catalog. Keep externally canonical knowledge as a reference rather than copying it into the HUB.
 
 ```
 KB:decisions  Write {HUB}/context/knowledge-base/decisions/<x>.md: [decision + rationale]
@@ -409,7 +339,7 @@ Execute and report per `workitem-write` step 5 — one action at a time, re-veri
 - **Distinguish confidence levels.** "[Name] said use Redis" is fact. "I think they meant the caching layer" is interpretation — label it.
 - **Don't over-decompose.** A single right-sized story beats a forced hierarchy.
 - **Don't evaluate people.** Capture what was said and by whom. No performance judgements.
-- **Respect existing conventions.** Follow the team's naming patterns, labels, and project structure as defined in `{HUB}/context/team/conventions/`.
+- **Respect existing conventions when drafting.** Let `workitem-write` load and apply the team's naming patterns, labels, project structure, placement rules, and board-output voice immediately before Gate 2.
 - **Note uncovered topics where relevant.** If a refinement never mentioned testing or rollback, note it — but frame as observation, not critique. The team may have covered it elsewhere.
 - **Be succinct in reporting, thorough in work items.** Gate summaries are compact. Work-item descriptions follow `output-discipline.md` — short bodies, durable content promoted to the knowledge base.
 - **Trace the file reference, not the content.** When tracing is enabled (Stop hook wired in `.claude/settings.local.json`), the trace records the path to this transcript, not its contents. Voice memos and transcripts may contain personal data; the trace pipeline does not capture them.

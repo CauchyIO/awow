@@ -18,8 +18,8 @@ If `--root <path>` is given and `<path>/` does not exist, refuse and tell the us
 ## On every invocation
 
 1. Read `setup-progress.md`.
-2. **Lay out the full plan to the user before doing anything else.** List every step (0 → 9), mark each as ✓ complete, ⧗ deferred/pending, or ☐ untouched, and tell the user which step you are about to resume. The user should see the whole map on every entry — never present a single step in isolation.
-3. Walk through the steps in order until Step 0 and Step 1 are both complete. After that, offer the recommended next step and let the user pick.
+2. **Lay out the full plan to the user before doing anything else.** List every step (0 → 9), mark each as ✓ complete, ⧗ deferred/pending, or ☐ untouched, and tell the user which step you are about to resume. Keep this map compact when the user chose the workshop route.
+3. On first entry, offer the workshop and guided routes described below. Walk through the steps in order until Step 0 and Step 1 are both complete on the guided route. On the workshop route, prepare or process the workshop first, then return to uncovered steps and technical wiring.
 4. Write every artefact to `proposals/setup/<step>/` first. Land it (move to its final location) only after the user approves.
 5. Update `setup-progress.md` when a step completes.
 
@@ -31,6 +31,57 @@ On first entry (no `track:` recorded in `setup-progress.md`), ask once: "Is this
 - **Step 7 neighbouring teams** — skip; there are no 1° teams to stub.
 
 Reframe **Step 2** as the user's focus for the work, not a team charter. Everything else runs unchanged. A solo adopter can switch later by re-running `/setup-awow` and answering "team".
+
+## Choose the input route — workshop or guided
+
+When `setup-progress.md` has no `route:` entry, offer two equivalent ways to supply the team's setup context:
+
+- **Workshop.** Prepare a 25–30 minute agenda brief so the team can talk naturally about how it works. Process the transcript or notes afterward and turn the agreements into setup proposals.
+- **Guided.** Continue through Steps 0–9 conversationally, one step at a time.
+
+Accept either route without persuasion. Record `route: workshop` or `route: guided`. Allow the user to switch or combine them later. Both routes land the same context files and use the same approval gates.
+
+Treat a `.vtt`, `.srt`, or transcript-shaped Markdown argument as workshop input. Enter **Process the workshop** directly, including when `/process-transcript` hands you a parsed setup-workshop segment. Do not ask the route question in that case.
+
+### Prepare the workshop
+
+Do not require Step 0 or Step 1 before preparing the conversation. Read any existing setup progress and context that are safely available, then draft `proposals/setup/meeting-brief.md` with this timebox:
+
+| Time | Conversation |
+|---|---|
+| 0–4 min | What the team exists to change, for whom, and within which boundaries |
+| 4–10 min | How work enters, becomes ready, moves, and becomes done |
+| 10–20 min | Recurring and custom meetings: purpose, cadence, what is distinctive here, and what useful output looks like |
+| 20–25 min | Ownership, collaboration, communication, and where durable output belongs |
+| 25–30 min | Confirm agreements, disagreements, deferred questions, and owners |
+
+Write prompts that start a conversation, not an interview checklist. Use examples only to unblock discussion. Tell the facilitator to name whether a statement describes current practice, an agreed change, a suggestion, or unresolved disagreement. Keep credentials, MCP installation, authentication, and other technical wiring out of the meeting.
+
+Show the brief and ask whether to use it. After approval, keep it at `proposals/setup/meeting-brief.md` as the meeting handout, record `meeting brief: prepared` and `meeting transcript: awaiting` in `setup-progress.md`, then stop. Let the team meet in its own time.
+
+### Process the workshop
+
+Read the transcript plus existing `setup-progress.md` and context. Build a coverage map for:
+
+- mission and scope boundaries;
+- board practice and work flow;
+- conventions, members, and writing style;
+- recurring and custom meetings;
+- ownership, communication, and output placement;
+- technical configuration still requiring hands-on setup.
+
+Classify every usable statement as **current practice**, **agreed change**, **suggestion**, or **unresolved disagreement**. Do not convert one person's recollection, an unchallenged suggestion, or a disputed point into team context. When live board observations are available, compare them with what the team said and surface divergence rather than silently choosing one.
+
+Draft the resulting setup changes under the existing `proposals/setup/step-*/` paths. Draft meeting guidance under `proposals/setup/meetings/<slug>.md`:
+
+- For a common ritual, write only the meaningful ways this team differs from the generic lens in `_meeting-archetypes/`.
+- For a custom recurring meeting, describe how to recognise it, what matters, and what useful output looks like.
+- Use plain Markdown. Do not add frontmatter, identifiers, inheritance, or an `extends` syntax.
+- Do not create a meeting file when the generic lens already fits.
+
+Present one synthesis gate with the coverage map, source evidence, disagreements, pending areas, and the actual proposed diffs. Land only the selected proposals after explicit approval. Never copy the raw transcript into durable context.
+
+Update the corresponding Steps 0–9 in `setup-progress.md` after approved proposals land. Record `meeting transcript: processed`. Leave uncovered topics pending and resume them through either route. Always perform credentials, board authentication, MCP installation, harness wiring, and write verification outside the workshop; never infer technical configuration from the conversation.
 
 ## Step 0 — Installer (REQUIRED)
 

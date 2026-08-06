@@ -15,6 +15,7 @@ as a bad scenario. T2 trigger-corpus validation lands with the T2 runner
 from __future__ import annotations
 
 import json
+import importlib.util
 import shutil
 import subprocess
 import sys
@@ -22,6 +23,8 @@ import tempfile
 from pathlib import Path
 
 PRE_CHECK_TIMEOUT_S = 60
+RUNNER_PATH = (Path(__file__).resolve().parent.parent / ".github" / "actions" /
+               "eval-run" / "run.py")
 
 
 def _check_pre_against_pristine_fixture(name: str, checks: Path,
@@ -54,6 +57,17 @@ def _check_pre_against_pristine_fixture(name: str, checks: Path,
 def _rubric_question_count(rubric: Path) -> int:
     return len([l for l in rubric.read_text().splitlines()
                 if l.startswith("- ")])
+
+
+def _validate_rubric_contract(name: str, rubric: Path) -> list[str]:
+    spec = importlib.util.spec_from_file_location("eval_run_for_validation", RUNNER_PATH)
+    runner = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runner)
+    try:
+        runner.parse_rubric(rubric)
+        return []
+    except ValueError as error:
+        return [f"{name}: {error}"]
 
 
 def _validate_sabotage_flow(flow: Path, root: Path) -> list[str]:
@@ -140,10 +154,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         rubric = root / "rubrics" / f"{s.name}.md"
         if not rubric.is_file():
             errors.append(f"{s.name}: missing rubric evals/rubrics/{s.name}.md")
-        elif not [l for l in rubric.read_text().splitlines()
-                  if l.startswith("- ")]:
-            errors.append(f"{s.name}: rubric has no '- ' question lines "
-                          f"(the judge's parse_rubric convention)")
+        else:
+            errors.extend(_validate_rubric_contract(s.name, rubric))
         checks = s / "checks.sh"
         if checks.is_file():
             proc = subprocess.run(["bash", "-n", str(checks)],

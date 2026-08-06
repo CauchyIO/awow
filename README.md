@@ -72,6 +72,19 @@ A board with hierarchy. The agent reaches it however your team already does:
 say how. `/setup-awow` records that in `context/tooling/board.md`. Without it the
 board commands ask you once and carry on.
 
+## Evaluation
+
+The eval scores measure compliance with the current fixtures, deterministic
+checks, and rubrics; they are not a golden-answer benchmark. Outcome measures
+what the skill achieved, Process measures how it worked, and Balanced is their
+display average. Strict pass additionally requires complete requested coverage,
+every critical rubric requirement, deterministic checks, and process gates to
+pass; valid runs shows how much of the requested sample produced usable evidence.
+
+<!-- eval-snapshot:start -->
+Latest full model snapshot: not yet established.
+<!-- eval-snapshot:end -->
+
 ## Status
 
 v0.6. The four installs, the command set, the session context, and the build

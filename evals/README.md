@@ -1,9 +1,9 @@
 # Running these evals — and yours: the night eval protocol
 
-This directory is a working demo of a pattern: **skill eval sets that run on an
-external eval service, submitted and returned entirely through git.** No API, no
-SDK, no credentials in this repo. If you can push a git tag, you can schedule an
-eval run.
+This directory contains awow's skill eval suite and its portable git submission
+protocol. This repo's Actions use the small eval API; a team that prefers no API
+can submit the same pinned suite by tag and receive results by branch as described
+below. No credentials are stored in the repo.
 
 ## The whole pattern
 
@@ -35,9 +35,9 @@ reps: 1
 budget_tokens_total: 400000
 ```
 
-Tiers are capability names (`bulk` | `worker` | `flagship`), never model ids —
-which model a tier resolves to is the environment's business. Running the same
-set on a different environment is a one-line change.
+Routes are capability tiers (`bulk` | `worker` | `flagship`) or one of the
+service's fixed model-seat aliases, never provider model ids. The environment
+owns what each route resolves to.
 
 **3. Submit — push a tag.** This is the entire submission:
 
@@ -74,6 +74,28 @@ this protocol — open an issue on this repo to ask about registration.
 ## This repo's own triggers
 
 See `.github/workflows/evals.yml` — a maintainer button plus an automatic
-gate run on PRs that touch the flows or the eval set. It is twelve lines and
-does nothing you could not do by hand; copy it or replace it with your own
-scheduling entirely.
+gate run on PRs that touch the flows or the eval set. It delegates submission,
+polling, scoring, and the native step summary to `.github/actions/eval-run`.
+
+The PR workflow reports changes per skill. `.github/workflows/evals-weekly.yml`
+is the secondary model-support view and runs only the six Pi seats marked
+`weekly` in `model-seats.json`.
+
+Maintainers run the complete twelve-seat snapshot locally, roughly biweekly:
+
+```sh
+python3 evals/campaign.py run --evaluator-root /path/to/overnight/harness --model-resolution /path/to/model-resolution.json --profile snapshot --out /tmp/awow-evals
+```
+
+The resolution file is a flat JSON object mapping each of the twelve seat IDs
+to the exact model ID used for that run; it is captured in `campaign.json`.
+
+After reviewing `campaign.json` and explicitly choosing qualifying roles, publish
+only the clean README table:
+
+```sh
+python3 evals/campaign.py publish /tmp/awow-evals/campaign.json --performance-baseline <seat-id> --automated-seat <seat-id> --readme README.md
+```
+
+That command edits only the snapshot markers; it does not commit, push, or run
+models.

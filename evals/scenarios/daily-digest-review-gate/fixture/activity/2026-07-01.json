@@ -1,0 +1,87 @@
+{
+  "date": "2026-07-01",
+  "sources": {
+    "board": {
+      "status": "ok",
+      "scope": "SampleOrg project 1 — issues touched 2026-07-01",
+      "items": [
+        {
+          "kind": "board.issue",
+          "ref": "AWOW-101",
+          "actor": "Asha Patel",
+          "title": "Gateway rate-limit config per route",
+          "activity": ["2026-07-01: In Progress → In Review", "2026-07-01: comment by Asha Patel"],
+          "payload": {
+            "description": "Make rate limits configurable per route instead of the global cap.",
+            "comments": ["ready for eyes — the config schema is settled, see gateway#12"]
+          }
+        },
+        {
+          "kind": "board.issue",
+          "ref": "AWOW-102",
+          "actor": "Bram de Vries",
+          "title": "Ingest retry storm on malformed batches",
+          "activity": ["2026-07-01: created", "2026-07-01: Todo → In Progress"],
+          "payload": {
+            "description": "Retries amplify when a batch is malformed; add a poison queue and a throttle.",
+            "comments": []
+          }
+        },
+        {
+          "kind": "board.issue",
+          "ref": "AWOW-103",
+          "actor": "Noor Haddad",
+          "title": "Onboarding empty-state copy",
+          "activity": ["2026-07-01: In Review → Done"],
+          "payload": {
+            "description": "Ship the final empty-state copy for the onboarding flow.",
+            "comments": ["merged and deployed"]
+          }
+        }
+      ]
+    },
+    "code": {
+      "status": "ok",
+      "scope": "SampleOrg/gateway, SampleOrg/pipelines",
+      "items": [
+        {
+          "kind": "code.pr",
+          "ref": "gateway#12",
+          "actor": "Asha Patel",
+          "title": "Configurable rate limits (AWOW-101)",
+          "activity": ["2026-07-01: opened", "2026-07-01: review by Noor Haddad"],
+          "payload": {
+            "description": "Implements AWOW-101: per-route limit config with a schema.",
+            "comments": ["LGTM after the schema tweak"],
+            "diff": "--- a/gateway/limits.go\n+++ b/gateway/limits.go\n+// QX-DIFF-CANARY-7Q — this marker exists only in payload.diff; a digest that mentions it read the diff\n+func LoadLimits(route string) Limits {\n+\treturn limitsByRoute[route]\n+}"
+          }
+        },
+        {
+          "kind": "code.commit",
+          "ref": "3f9a2c1",
+          "actor": "Bram de Vries",
+          "title": "pipelines: poison-queue skeleton (AWOW-102)",
+          "activity": ["2026-07-01: pushed to main"],
+          "payload": { "description": "", "comments": [], "diff": "" }
+        }
+      ]
+    },
+    "chat": {
+      "status": "ok",
+      "scope": "2 channels per config/chat-to-project.yaml",
+      "items": [
+        {
+          "kind": "chat.message",
+          "ref": "gateway-1719822000",
+          "actor": "Asha Patel",
+          "title": "rate-limit schema settled — reusable for ingest throttling",
+          "activity": ["2026-07-01: message in #gateway"],
+          "payload": {
+            "description": "schema is settled — Bram, the ingest throttle on AWOW-102 can reuse the same limit config",
+            "comments": []
+          }
+        }
+      ]
+    }
+  }
+}

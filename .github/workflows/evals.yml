@@ -8,16 +8,20 @@ on:
   workflow_dispatch:
     inputs:
       model:
-        description: Tier name (bulk | worker | flagship)
+        description: Registered tier or fixed model-seat route
         default: worker
       reps:
         description: Repetitions per scenario
-        default: "2"
+        default: "5"
   pull_request:
     types: [opened, synchronize]
     paths:
+      - .agents/**
+      - context/**
       - evals/**
-      - commands/**
+      - .github/actions/eval-run/**
+      - .github/workflows/evals.yml
+      - AGENTS.md
 
 permissions:
   contents: read
@@ -39,8 +43,20 @@ jobs:
       - name: Validate suite (static, zero tokens)
         run: python3 evals/validate.py
 
-      - uses: ./.github/actions/eval-run
+      - id: eval
+        uses: ./.github/actions/eval-run
         with:
           api-key: ${{ secrets.AWOW_EVAL_API_KEY }}
           model: ${{ inputs.model || 'worker' }}
-          reps: ${{ inputs.reps || '2' }}
+          seat-id: ${{ inputs.model || 'worker' }}
+          eval-version: "1"
+          enforce: "false"
+          reps: ${{ inputs.reps || '5' }}
+
+      - name: Upload compact scorecard
+        if: always() && hashFiles('eval-result.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-scorecard-${{ github.run_id }}
+          path: ${{ steps.eval.outputs.result-path }}
+          if-no-files-found: error

@@ -1,0 +1,4 @@
+src/**
+tests/**
+board/issues/T-204.md
+proposals/**

@@ -5,6 +5,10 @@ every question with a JSON object of `"Qn": true|false` plus `"evidence"` — a
 quote or file path per answer. Deterministic checks (scope manifest, gate order)
 run before this rubric and are not re-asked here.
 
+Capability: `setup-awow`
+
+Critical: `Q1`, `Q2`, `Q5`
+
 ## Outcome
 
 - **Q1** — Does `context/mission.md` contain a real one-sentence mission traceable

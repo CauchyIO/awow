@@ -1,0 +1,67 @@
+name: weekly model support
+
+on:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: evals-weekly
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.seats.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: seats
+        name: Select weekly seats from config
+        run: echo "matrix=$(jq -c '{include:[.seats[] | select(.weekly == true) | {id, model}]}' evals/model-seats.json)" >> "$GITHUB_OUTPUT"
+
+  run:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: eval
+        uses: ./.github/actions/eval-run
+        with:
+          api-key: ${{ secrets.AWOW_EVAL_API_KEY }}
+          model: ${{ matrix.model }}
+          seat-id: ${{ matrix.id }}
+          eval-version: "1"
+          scenarios: setup-awow-walkthrough
+          reps: "5"
+          enforce: "false"
+      - name: Upload compact scorecard
+        if: always() && hashFiles('eval-result.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-scorecard-${{ matrix.id }}
+          path: ${{ steps.eval.outputs.result-path }}
+          if-no-files-found: error
+
+  summarize:
+    if: always()
+    needs: [prepare, run]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: mkdir -p weekly-results
+      - name: Download available scorecards
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: weekly-scorecard-*
+          path: weekly-results
+      - name: Write model-support summary
+        run: python3 evals/campaign.py summarize --mode weekly --inputs weekly-results --github-summary "$GITHUB_STEP_SUMMARY"

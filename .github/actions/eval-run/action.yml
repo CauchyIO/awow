@@ -2,7 +2,7 @@ name: eval-run
 description: >
   Submit this repo's eval suite to the night eval service and wait for scores.
   The Actions run is the job handle: submit, poll to a terminal status, scores
-  in the step summary. Fails on a failed run or a 30-minute timeout.
+  in the step summary. Fails on a failed run or a 60-minute timeout.
 inputs:
   api-key:
     description: Tenant subscription key for the eval API
@@ -11,22 +11,43 @@ inputs:
     description: Eval API base URL
     default: https://apim-awow.azure-api.net/evals
   model:
-    description: Tier name (bulk | worker | flagship)
+    description: Registered tier or fixed model-seat route
     default: worker
+  seat-id:
+    description: Stable model-seat ID used to select and compare baselines
+    default: worker
+  eval-version:
+    description: Version of the scenarios and scoring contract
+    default: "1"
+  scenarios:
+    description: Optional comma-separated scenario IDs; empty runs the suite
+    default: ""
+  enforce:
+    description: Fail the step when a compatible baseline regresses
+    default: "false"
   reps:
     description: Repetitions per scenario (budget scales with reps)
     default: "2"
   budget-per-scenario:
     description: Token budget per scenario (total scales with suite size)
     default: "400000"
+outputs:
+  result-path:
+    description: Path to the compact JSON scorecard
+    value: ${{ steps.run.outputs.result-path }}
 runs:
   using: composite
   steps:
-    - shell: bash
+    - id: run
+      shell: bash
       env:
         EVAL_API_KEY: ${{ inputs.api-key }}
         EVAL_BASE_URL: ${{ inputs.base-url }}
         EVAL_MODEL: ${{ inputs.model }}
+        EVAL_SEAT_ID: ${{ inputs.seat-id }}
+        EVAL_VERSION: ${{ inputs.eval-version }}
+        EVAL_SCENARIOS: ${{ inputs.scenarios }}
+        EVAL_ENFORCE: ${{ inputs.enforce }}
         EVAL_REPS: ${{ inputs.reps }}
         EVAL_BUDGET_PER_SCENARIO: ${{ inputs.budget-per-scenario }}
       run: python3 "${{ github.action_path }}/run.py"

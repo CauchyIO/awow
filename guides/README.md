@@ -21,6 +21,7 @@ New here? Start with
 | [The core delivery loop](guide-core-delivery-loop.md) | `/refinement-prep` drafts a right-sized story, `/process-workitem` walks one from board to PR, `/daily-checkin` caps the day — all on the look-first, propose-then-approve spine. |
 | [Setup & the pointer-stub model](guide-setup-and-two-harnesses.md) | The resumable `/setup-awow` wizard — only Steps 0 and 1 required — and authoring once under `.agents/` for both harnesses. |
 | [Board & MCP integration](guide-board-and-mcp.md) | How a board URL becomes the one file the agent reads, and how an approved MCP gets wired into both harnesses. |
+| [Canonical knowledge sources](guide-canonical-knowledge-sources.md) | Routing from HUB context to authoritative repositories, SharePoint, and vector-backed sources without copying their contents. |
 | [Updating awow](guide-update-and-versioning.md) | Pulling newer awow against the lockfile: starter-owned paths move, your edits survive, conflicts land as sidecars. |
 | [Transcript router](guide-transcript-router.md) | One entry point reads the transcript, recommends a specialist, and gates before anything reaches the board. |
 | [Solution design collaboration](guide-solution-design-collaboration.md) | The three things a recorded decision needs — a place, a lifecycle, and a feedback channel that doesn't drift into chat. |

@@ -30,6 +30,7 @@ EXPECTED = {
     "tooling/boards/linear/reference/states.md": "payload",
     "tooling/boards/github-issues/reference/hierarchy.md": "payload",
     "tooling/activity-collection.md": "payload",
+    "tooling/knowledge-sources.md": "payload",
     "tooling/harnesses/codex.md": "payload",
     "knowledge-base/mining.md": "payload",
     "knowledge-base/synthesis.md": "payload",
@@ -50,6 +51,7 @@ EXPECTED = {
     "tooling/board.md": "team-data",
     "tooling/architecture.md": "team-data",
     "knowledge-base/glossary.md": "team-data",
+    "knowledge-sources/index.md": "team-data",
     "kb-inbox/_synthesis-log.md": "team-data",
     "quarterly/INPUT.md": "team-data",
 }

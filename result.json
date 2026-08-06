@@ -1,0 +1,77 @@
+{
+ "contract": "eval/v1",
+ "request_sha": "2f9ea824bddf56d522a3a5d543b229f23057ea96",
+ "suite_sha": "2f9ea824bddf56d522a3a5d543b229f23057ea96",
+ "judge": {
+  "tier": "flagship",
+  "calibration": {
+   "setup-awow-walkthrough": "2ee8730525a64e9e"
+  }
+ },
+ "cells": [
+  {
+   "id": "eval-setup-awow-walkthrough-worker-r1",
+   "outcome": {
+    "rubric": [],
+    "rubric_yes": 0,
+    "rubric_total": 0
+   },
+   "process": {
+    "scope_touched": [],
+    "scope_violations": [],
+    "gate_checked": false,
+    "gate_violation": false,
+    "turns": 1,
+    "wall_s": 5.5,
+    "stop_reason": "turn-error"
+   },
+   "checks": {
+    "pre": {
+     "phase": "pre",
+     "rc": 0,
+     "log": ""
+    },
+    "post": {
+     "phase": "post",
+     "rc": 1,
+     "log": "CHECK FAIL: mission.md is still a seed stub\n"
+    }
+   },
+   "transcript_ref": "/opt/night/results/api-20260806-063055-2f9ea82/eval-setup-awow-walkthrough-worker-r1/transcript.txt",
+   "verdict": "indeterminate",
+   "stage": "runner"
+  },
+  {
+   "id": "eval-setup-awow-walkthrough-worker-r2",
+   "outcome": {
+    "rubric": [],
+    "rubric_yes": 0,
+    "rubric_total": 0
+   },
+   "process": {
+    "scope_touched": [],
+    "scope_violations": [],
+    "gate_checked": false,
+    "gate_violation": false,
+    "turns": 1,
+    "wall_s": 1.1,
+    "stop_reason": "turn-error"
+   },
+   "checks": {
+    "pre": {
+     "phase": "pre",
+     "rc": 0,
+     "log": ""
+    },
+    "post": {
+     "phase": "post",
+     "rc": 1,
+     "log": "CHECK FAIL: mission.md is still a seed stub\n"
+    }
+   },
+   "transcript_ref": "/opt/night/results/api-20260806-063055-2f9ea82/eval-setup-awow-walkthrough-worker-r2/transcript.txt",
+   "verdict": "indeterminate",
+   "stage": "runner"
+  }
+ ]
+}

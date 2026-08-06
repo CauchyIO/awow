@@ -31,6 +31,14 @@ Before work with a discernible outcome, read `{HUB}/context/tooling/board.md` an
 
 `{PROJECT}/proposals/` is free; the board, team context, and knowledge base require approval. Story body = intent + acceptance criteria + KB link; status goes in comments; durable rationale in `{HUB}/context/knowledge-base/`.
 
+## Route canonical knowledge
+
+When a task reads HUB context or may create durable HUB knowledge, check
+`{HUB}/context/knowledge-sources/index.md`. If it exists, use the
+`knowledge-source-routing` skill. The catalog contains semantic routes and canonical URIs, never
+mirrored content or machine-local paths. No match is ordinary HUB-only behavior; an external
+match is read-only and must be referenced rather than copied into the HUB.
+
 ## Route to the moment
 
 Meeting notes in hand → `/process-transcript`. A board item to execute → `/process-workitem`. A board item to create or update → the `workitem-write` skill. Day wrapping up → `/daily-checkin`. "What did we ship?" → `/daily-digest`. A locked design to sequence → `/project-plan`. Lost track of your plate → `/my-work`. Reach for the catalog in your skill listing before hand-rolling.

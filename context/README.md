@@ -8,6 +8,7 @@ Everything the agent needs to know about *this team* in *this place*. The agent 
 |---|---|
 | `team/` | The team's own surfaces — mission, members, style, conventions |
 | `knowledge-base/` | Durable reference — patterns, decisions, runbooks, glossary. Mining is tuned by `mining-policy.md`; the inbox is drained into here by `synthesis.md`. Default location; relocatable via `tooling/knowledge-base.md` |
+| `knowledge-sources/` | OKF catalog of external canonical sources. Records hold semantic routing hints and stable remote URIs, never mirrored source content or machine-local paths. |
 | `kb-inbox/` | Committed staging for durable-knowledge candidates awaiting promotion (the capture→synthesize spine). Default location; relocatable via `tooling/knowledge-base.md` |
 | `company/` | Stakeholders, neighbouring teams, RACI |
 | `quarterly/` | Quarterly-cycle inputs — slidedecks, OKRs, planning artefacts |
@@ -18,6 +19,7 @@ Everything the agent needs to know about *this team* in *this place*. The agent 
 - **Story-specific content** lives on the board, never here. The story body holds intent + acceptance criteria; comments hold status; durable content gets promoted into `context/knowledge-base/` and linked back.
 - **Generated artefacts** (proposals, traces) live at the repo root in their own folders, not under `context/`.
 - **Code, scripts, schemas** live in the codebase (which may be this repo if the team has grown into a mono-repo, or sibling repos).
+- **Externally canonical knowledge** stays in its source repository, SharePoint site, vector-backed collection, or other provider. `knowledge-sources/` points to it; HUB notes reference it rather than copy it.
 
 ## How `/setup-awow` populates this folder
 

@@ -108,6 +108,24 @@ class TestRubricContract(unittest.TestCase):
             errors, _ = eval_validate.validate(root)
         self.assertTrue(any("Process" in error for error in errors), errors)
 
+    def test_vertical_suite_reports_every_required_capability(self):
+        root = REPO / "evals"
+        capabilities = {
+            eval_run.parse_rubric(path)["capability"]
+            for path in (root / "rubrics").glob("*.md")
+        }
+        self.assertEqual(capabilities, {
+            "setup-awow", "workitem-write", "process-workitem", "daily-digest",
+        })
+        expected = {
+            "setup-awow-walkthrough", "workitem-write-board-gate",
+            "process-workitem-exit-ownership", "daily-digest-review-gate",
+        }
+        self.assertEqual(
+            {p.name for p in (root / "scenarios").iterdir() if p.is_dir()},
+            expected,
+        )
+
 
 class TestAggregation(unittest.TestCase):
     def test_indeterminate_is_excluded_and_scenarios_are_macro_averaged(self):

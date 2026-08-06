@@ -1,0 +1,1 @@
+make a ticket please: title "stuff broken maybe logging thing", labels "URGENT!!" and "logging". Body: "We talked about this in standup, Jamie said the log rotation cron has been flaky since the runner image upgrade and I spent the morning poking at it, still not sure what's wrong. Anyway, needs doing at some point."

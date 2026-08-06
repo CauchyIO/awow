@@ -125,6 +125,49 @@ class TestMerge(unittest.TestCase):
 
 
 class TestRunSeat(unittest.TestCase):
+    def test_raw_local_result_requires_matching_provenance_before_reuse(self):
+        campaign = load_campaign()
+        seat = next(seat for seat in campaign.load_seats(
+            REPO / "evals" / "model-seats.json")
+                    if seat["id"] == "gpt-5-6-sol-xhigh")
+        answers = [
+            {"question": f"**Q{i}** — question {i}?",
+             "answer": True, "evidence": "fixture"}
+            for i in range(1, 7)
+        ]
+        cell = {
+            "id": "eval-setup-awow-walkthrough-bulk-r1",
+            "verdict": "pass",
+            "outcome": {"rubric": answers, "rubric_yes": 6, "rubric_total": 6},
+            "process": {"scope_violations": [], "gate_violation": False,
+                        "stop_reason": "persona-done"},
+            "checks": {"post": {"rc": 0, "log": ""}},
+        }
+        for label, prior in (("missing", None), ("stale", {
+                "contract": "awow.eval-local-run/v1",
+                "seat": {"id": seat["id"], "model_id": "old/model"},
+        })):
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as td:
+                root = Path(td)
+                seat_dir = root / "out" / seat["id"]
+                result = seat_dir / "run" / "result.json"
+                result.parent.mkdir(parents=True)
+                result.write_text(json.dumps({
+                    "contract": "eval/v1", "request_sha": "a" * 40,
+                    "cells": [cell],
+                }))
+                if prior is not None:
+                    (seat_dir / "run-provenance.json").write_text(json.dumps(prior))
+                args = SimpleNamespace(
+                    out=root / "out", subject_sha="a" * 40,
+                    scenarios=["setup-awow-walkthrough"], reps=1,
+                    model_resolution={seat["id"]: "openai/gpt-5.6-sol-2026-08"},
+                    eval_version="1", profile="snapshot",
+                    awow_version="0.7.0")
+                with self.assertRaisesRegex(
+                        RuntimeError, "local evaluator result is for another campaign"):
+                    campaign.run_seat(seat, args)
+
     def test_resume_refuses_stale_profile_or_seat_identity(self):
         campaign = load_campaign()
         seat = next(seat for seat in campaign.load_seats(
@@ -221,6 +264,10 @@ class TestRunSeat(unittest.TestCase):
             seatmap = json.loads(
                 (root / "out" / "glm-5-2" / "seatmap.json").read_text())
             self.assertEqual(seatmap["bulk"], {"seat": "pi", "model": "glm-5-2"})
+            provenance = json.loads((root / "out" / "glm-5-2" /
+                                     "run-provenance.json").read_text())
+            self.assertEqual(provenance["seat"]["model_id"], "z-ai/glm-5.2")
+            self.assertEqual(provenance["profile"], "snapshot")
 
 
 class TestWeeklySummary(unittest.TestCase):

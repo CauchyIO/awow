@@ -117,6 +117,17 @@ def run_seat(seat: dict, args) -> Path:
     identity = {"id": seat["id"], "name": seat["name"],
                 "model_id": resolved_model_id, "harness": seat["harness"],
                 "effort": seat["effort"]}
+    provenance = {
+        "contract": "awow.eval-local-run/v1",
+        "subject_sha": args.subject_sha,
+        "eval_version": args.eval_version,
+        "awow_version": args.awow_version,
+        "profile": args.profile,
+        "scenarios": args.scenarios,
+        "reps": args.reps,
+        "seat": identity,
+        "requested_model": seat["model"],
+    }
     if compact_path.is_file():
         existing = json.loads(compact_path.read_text())
         expected_runs = len(args.scenarios) * args.reps
@@ -146,7 +157,15 @@ def run_seat(seat: dict, args) -> Path:
 
     bundles = seat_dir / "bundles"
     local_result = seat_dir / "run" / "result.json"
-    if not local_result.is_file():
+    provenance_path = seat_dir / "run-provenance.json"
+    if local_result.is_file():
+        prior = (json.loads(provenance_path.read_text())
+                 if provenance_path.is_file() else None)
+        if prior != provenance:
+            raise RuntimeError(
+                f"{local_result}: local evaluator result is for another campaign")
+    else:
+        provenance_path.write_text(json.dumps(provenance, indent=1) + "\n")
         python = _evaluator_python()
         subprocess.run([
             python, str(args.evaluator_root / "make_eval_bundles.py"),

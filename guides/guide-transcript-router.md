@@ -60,20 +60,21 @@ Name the file descriptively — `refinement-payments-rewrite.vtt` beats `meeting
 is a classification hint. Paste an agenda alongside it and the router notes which items the meeting
 actually covered. It never fetches transcripts or agendas for you.
 
-## Team context appears when needed
+## Interpretation first, output configuration later
 
-The router starts with the transcript and opens shared context at the decision that consumes it. A specialist dispatch owns its own context reads, so the router never frontloads board or writing configuration for a segment it will hand off.
+Before reading the transcript, the router loads a small interpretation pack. These files shape its attention, vocabulary, attribution, and understanding of team boundaries:
 
-| Context file | Loaded when |
+| Preloaded context | What it shapes |
 | --- | --- |
-| `context/team/members.md` | A speaker attribution or person reference is ambiguous. |
-| `context/knowledge-base/glossary.md` | A domain term needs disambiguation. |
-| `context/team/meetings/*.md` | Segments are being matched to generic and custom meeting shapes. |
-| `context/tooling/board.md` | A locally analysed segment reaches board discovery. |
-| `context/company/neighbouring-teams.md` | A blocker or dependency may cross a team boundary. |
-| conventions and `context/team/style/board-output.md` | `workitem-write` shapes actual board actions before Gate 2. |
+| `context/team/mission.md` | Relevance, scope, and the team's purpose. |
+| `context/team/members.md` | Speaker identity, role, responsibilities, and focus. |
+| `context/knowledge-base/glossary.md` | Domain vocabulary and transcription correction. |
+| `context/team/meetings/*.md` | Familiar ritual differences and custom meeting recognition. |
+| `context/company/neighbouring-teams.md` | Team names, ownership boundaries, and likely dependencies. |
 
-Missing or stale context is surfaced only when the router relied on it and the limitation materially lowers confidence. An unused stale file produces no warning.
+Output configuration stays lazy: `board.md` loads only if local analysis reaches board discovery; conventions and `board-output.md` load through `workitem-write` immediately before Gate 2; knowledge-source routing loads only for a durable KB proposal. A transcript that dispatches fully to specialists never pays those later-phase reads.
+
+Missing or stale interpretation context is surfaced at Gate 1 only when it materially lowers confidence.
 
 ## The run — two gates you control
 
@@ -85,7 +86,7 @@ Open a fresh session and point the command at your file.
 
 ```mermaid
 flowchart LR
-  p0[Phase 0: read transcript; defer context] --> p1[Phase 1: detect + match]
+  p0[Phase 0: load interpretation context] --> p1[Phase 1: parse + detect + match]
   p1 --> g1{{"GATE 1 — you confirm, correct, or override"}}
   g1 --> p2[Phase 2: dispatch + stitch]
   p2 --> g2{{"GATE 2 — you approve before any board write"}}

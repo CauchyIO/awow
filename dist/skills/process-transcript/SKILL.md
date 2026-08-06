@@ -31,7 +31,7 @@ Both flags are optional. Default behaviour is detect-then-confirm.
 ## Pipeline overview
 
 ```
-Phase 0 ─ Read the transcript; defer shared context
+Phase 0 ─ Load interpretation context
 Phase 1 ─ Parse, detect segments, match registry  ──→ GATE 1 (confirm dispatch)
 Phase 2 ─ Dispatch specialists + stitch outputs
 Phase 3 ─ Board discovery on locally analysed segments ──→ GATE 2 (approve actions)
@@ -42,20 +42,25 @@ When every segment dispatches to a specialist, Phases 3 and 4 are skipped — ea
 
 ---
 
-## Phase 0 — Start with the transcript
+## Phase 0 — Load interpretation context
 
-Read the transcript before shared team context. Load each context source only when the current phase first needs it:
+Before reading the transcript, load the context that shapes what you notice and how you interpret it:
 
-- During speaker or term disambiguation, read `members.md`, the glossary, or neighbouring-team names only when the transcript contains a corresponding ambiguity.
-- During meeting matching, read handler recognition sections and the sparse meeting-guidance registry; read only matched handlers and team files in full.
-- During local board discovery, resolve `board.md` and read mission or scope context only when they affect the search.
-- During cross-team discovery, read `neighbouring-teams.md` only when the transcript raises a blocker or dependency.
-- During board drafting, delegate convention and writing-mode reads to `workitem-write`.
-- During a knowledge-base proposal, load the knowledge-source routing catalog only then.
+- `{HUB}/context/team/mission.md` — frame relevance, scope, and the team's purpose.
+- `{HUB}/context/team/members.md` — recognise speakers, roles, responsibilities, and focus areas.
+- `{HUB}/context/knowledge-base/glossary.md` — recognise domain terms and likely transcription errors.
+- `{HUB}/context/team/meetings/*.md`, excluding `README.md` — apply this team's ritual differences and recognise custom meetings.
+- `{HUB}/context/company/neighbouring-teams.md` — recognise team names, ownership boundaries, and likely dependencies.
 
-Do not preload board, convention, style, or neighbouring-team context merely for possible later board work. When every segment dispatches, finish without those later-phase reads; keep only any targeted disambiguation read already required by Phase 1, and let each specialist load the rest.
+Keep output configuration lazy:
 
-Validate a context file when you first rely on it. Treat a file older than ~8 weeks as potentially stale and passed sprint or cycle dates as out of date; mention either only when it materially lowers confidence in the current interpretation or proposed write.
+- Resolve `board.md` only when a locally analysed segment reaches Phase 3.
+- Let `workitem-write` load conventions and writing modes immediately before drafting actions for Gate 2.
+- Load the knowledge-source routing catalog only when proposing durable knowledge-base content.
+
+Do not preload board, convention, style, or knowledge-source configuration. When every segment dispatches to a specialist, finish without those later-phase reads.
+
+Validate the interpretation pack when you load it. Treat a file older than ~8 weeks as potentially stale; mention missing or stale context at Gate 1 only when it materially lowers confidence in the interpretation.
 
 ---
 
@@ -81,7 +86,7 @@ In hybrid / in-office meetings, multiple people often share one device. The tran
 - First-person statements contradict the tagged speaker's role or context
 - Rapid back-and-forth appears under a single name with distinct perspectives
 
-When detected, use transcript evidence first. Read `{HUB}/context/team/members.md` only when names, roles, or focus areas would resolve an uncertain attribution; mark unresolved attributions as `(likely [Name])`.
+When detected, use transcript evidence together with the preloaded member roles and focus areas. Mark unresolved attributions as `(likely [Name])`.
 
 ### 1.3 Voice transcription disambiguation
 
@@ -90,10 +95,9 @@ Voice-to-text is unreliable. Expect homophones, missing punctuation, and garbled
 Protocol:
 
 1. Read the full transcript before interpreting anything.
-2. Collect ambiguous proper nouns and terms before opening context.
-3. For a person's name or role, read `{HUB}/context/team/members.md`. For a domain term, read `{HUB}/context/knowledge-base/glossary.md`. For a likely team name, read `{HUB}/context/company/neighbouring-teams.md`.
-4. When a word does not match a known entity but sounds similar to one, prefer the known entity and record the correction.
-5. Keep any unresolved term explicit; do not guess silently.
+2. Cross-reference proper nouns against the preloaded members, glossary, and neighbouring teams.
+3. When a word does not match a known entity but sounds similar to one, prefer the known entity and record the correction.
+4. Keep any unresolved term explicit; do not guess silently.
 
 ### 1.4 Detect session segments and match meeting lenses
 
@@ -103,7 +107,7 @@ For one-type sessions, produce one segment spanning the full transcript. For mix
 
 Read only the `When this lens applies` section from each generic handler in `_meeting-archetypes/`. Match each segment against every handler and attach a confidence label (`clear` / `likely` / `weak`) to each match; apply all matches rather than choosing one primary type.
 
-Inspect the titles and recognition sections of Markdown files under `{HUB}/context/team/meetings/`, excluding `README.md`. Match relevant files semantically:
+Match the preloaded Markdown files under `{HUB}/context/team/meetings/`, excluding `README.md`, semantically:
 
 - A file named for a generic meeting adds local guidance to that lens.
 - A differently named file may describe a custom recurring meeting; match it from its `How to recognise it` prose.
@@ -128,7 +132,7 @@ A transcript can mix dispositions: some segments dispatch, others stay here for 
 
 ### 1.6 Extract content with the composed lenses
 
-For each segment that stays here for local analysis, read every matched generic handler and team meeting file fully. Apply each handler's `What to extract`, `Missing topics worth noting`, and `Common interpretation mistakes` sections, using relevant team guidance before deciding that a topic is missing or that familiar language carries its usual meaning.
+For each segment that stays here for local analysis, read every matched generic handler fully. Apply each handler's `What to extract`, `Missing topics worth noting`, and `Common interpretation mistakes` sections, using the preloaded relevant team guidance before deciding that a topic is missing or that familiar language carries its usual meaning.
 
 When no generic lens matches but a team-defined meeting does, use that file's stated purpose, recognition cues, important signals, and useful-output description. When nothing matches with useful confidence, use a minimal ad-hoc extraction and say why no lens matched.
 
@@ -195,7 +199,7 @@ Process segments in start-time order.
 
 For each segment with a **dispatch** disposition:
 
-1. Hand the specialist the segment's parsed turn list (the speaker-attributed reconstruction from 1.1), not the raw VTT. Include start/end timestamps plus the names of matched generic lenses and team meeting files; let the specialist decide which matched files to read fully.
+1. Hand the specialist the segment's parsed turn list (the speaker-attributed reconstruction from 1.1), not the raw VTT. Include start/end timestamps, disambiguation decisions, matched generic lenses, and relevant preloaded team meeting guidance.
 2. Invoke the specialist as a slash-command (`/coaching-review`, `/solution-design-flow`, or whichever matched). The specialist runs its own pipeline including its own gates. If `--yes` is set, cascade it; otherwise the specialist's gates fire normally.
 3. Capture the specialist's final report verbatim.
 
@@ -246,7 +250,7 @@ Resolve the team's board and search it per `workitem-write` step 1 — the four 
 For every blocker or dependency surfaced:
 
 1. Search the team's own board first.
-2. If not found locally, read `{HUB}/context/company/neighbouring-teams.md` and search neighbouring teams' boards.
+2. If not found locally, use the preloaded neighbouring-team map to search neighbouring teams' boards.
 3. For cross-team items: capture ID, title, state, owner, which team, current cycle or backlog, last updated.
 4. Blockers NOT found on any board → flag as **untracked dependency**.
 

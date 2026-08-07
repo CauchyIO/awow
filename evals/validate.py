@@ -39,7 +39,7 @@ def _check_pre_against_pristine_fixture(name: str, checks: Path,
         copy = Path(td) / "fixture"
         shutil.copytree(fixture, copy)
         try:
-            proc = subprocess.run(["bash", str(checks), "pre"], cwd=copy,
+            proc = subprocess.run(["bash", str(checks.resolve()), "pre"], cwd=copy,
                                   capture_output=True, text=True,
                                   timeout=PRE_CHECK_TIMEOUT_S)
         except subprocess.TimeoutExpired:

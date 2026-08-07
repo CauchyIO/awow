@@ -39,8 +39,8 @@ jobs:
           model: ${{ matrix.model }}
           seat-id: ${{ matrix.id }}
           eval-version: "1"
-          scenarios: setup-awow-walkthrough,daily-digest-review-gate,process-workitem-exit-ownership,workitem-write-board-gate
-          reps: "5"
+          scenarios: setup-awow-walkthrough,daily-digest-review-gate,process-workitem-exit-ownership,workitem-write-board-gate,reflex-cold-start
+          reps: "3"
           enforce: "false"
       - name: Upload compact scorecard
         if: always() && hashFiles('eval-result.json') != ''

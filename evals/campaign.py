@@ -20,7 +20,8 @@ PROFILES = {
     "establishment": {"scenarios": ["setup-awow-walkthrough"], "reps": 10},
     "snapshot": {"scenarios": ["setup-awow-walkthrough", "daily-digest-review-gate",
                                "process-workitem-exit-ownership",
-                               "workitem-write-board-gate"], "reps": 3},
+                               "workitem-write-board-gate",
+                               "reflex-cold-start"], "reps": 3},
 }
 HARNESS_IDS = {"Codex": "codex", "Claude Code": "claude-code", "Pi": "pi"}
 SNAPSHOT_START = "<!-- eval-snapshot:start -->"

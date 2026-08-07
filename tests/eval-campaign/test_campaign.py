@@ -96,7 +96,9 @@ class TestRoster(unittest.TestCase):
         self.assertEqual(campaign.PROFILES["establishment"], {
             "scenarios": ["setup-awow-walkthrough"], "reps": 10})
         self.assertEqual(campaign.PROFILES["snapshot"], {
-            "scenarios": ["setup-awow-walkthrough"], "reps": 5})
+            "scenarios": ["setup-awow-walkthrough", "daily-digest-review-gate",
+                          "process-workitem-exit-ownership",
+                          "workitem-write-board-gate"], "reps": 3})
 
     def test_resolution_is_qualified_for_every_selected_seat_up_front(self):
         campaign = load_campaign()

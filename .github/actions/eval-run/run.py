@@ -451,23 +451,20 @@ def _seat_identity(record: dict, resp: dict) -> dict:
 
 
 def validate_resolved_model(cells: list[dict], seat: dict) -> None:
+    """Every scored cell must carry the seat's resolved model, on any harness —
+    a cell with no provider receipt could be a silent fallback. Indeterminate
+    cells are exempt: they were never scored, and a systematic runner failure
+    has no receipt to check."""
     expected = seat.get("model_id")
+    if not expected:
+        raise RuntimeError("seat has no expected resolved model")
     scored = [cell for cell in cells if cell.get("verdict") != "indeterminate"]
-    if seat.get("harness") == "Pi":
-        if not expected:
-            raise RuntimeError("fixed Pi seat has no expected resolved model")
-        invalid = [cell.get("id", "<unknown>") for cell in scored
-                   if cell.get("process", {}).get("resolved_model_id") != expected]
-        if invalid:
-            raise RuntimeError(
-                f"resolved model missing or wrong for scored cell(s) "
-                f"{', '.join(invalid)}; expected {expected!r}")
-        return
-    reported = {cell.get("process", {}).get("resolved_model_id") for cell in cells}
-    reported.discard(None)
-    if reported and expected and reported != {expected}:
-        raise RuntimeError(f"resolved model {sorted(reported)} != expected "
-                           f"{expected!r}")
+    invalid = [cell.get("id", "<unknown>") for cell in scored
+               if cell.get("process", {}).get("resolved_model_id") != expected]
+    if invalid:
+        raise RuntimeError(
+            f"resolved model missing or wrong for scored cell(s) "
+            f"{', '.join(invalid)}; expected {expected!r}")
 
 
 def _write_action_output(name: str, value: str) -> None:

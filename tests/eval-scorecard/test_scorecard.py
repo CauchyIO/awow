@@ -266,6 +266,18 @@ class TestActionsScorecard(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             eval_run.validate_resolved_model(cells, seat)
 
+    def test_scored_non_pi_cell_without_resolved_model_fails(self):
+        seat = {"model_id": "fable", "harness": "Claude Code"}
+        cells = [{"id": "r1", "verdict": "pass", "process": {}}]
+        with self.assertRaisesRegex(RuntimeError, "r1"):
+            eval_run.validate_resolved_model(cells, seat)
+
+    def test_systematic_runner_failure_still_validates_without_models(self):
+        seat = {"model_id": "gpt-5.6-terra", "harness": "Codex"}
+        cells = [{"id": "r1", "verdict": "indeterminate", "stage": "runner",
+                  "process": {}}]
+        eval_run.validate_resolved_model(cells, seat)  # must not raise
+
     def test_fixed_pi_seat_requires_identity_on_every_scored_cell(self):
         seat = {"model_id": "z-ai/glm-5.2", "harness": "Pi"}
         cells = [

@@ -18,7 +18,9 @@ RUBRICS = ROOT / "evals" / "rubrics"
 RUNNER_PATH = ROOT / ".github" / "actions" / "eval-run" / "run.py"
 PROFILES = {
     "establishment": {"scenarios": ["setup-awow-walkthrough"], "reps": 10},
-    "snapshot": {"scenarios": ["setup-awow-walkthrough"], "reps": 5},
+    "snapshot": {"scenarios": ["setup-awow-walkthrough", "daily-digest-review-gate",
+                               "process-workitem-exit-ownership",
+                               "workitem-write-board-gate"], "reps": 3},
 }
 HARNESS_IDS = {"Codex": "codex", "Claude Code": "claude-code", "Pi": "pi"}
 SNAPSHOT_START = "<!-- eval-snapshot:start -->"

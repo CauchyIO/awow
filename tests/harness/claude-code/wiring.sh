@@ -13,7 +13,7 @@ wiring() {
   fi
 
   # SessionStart injection, exercised as a plugin install. The hook derives
-  # PLUGIN_ROOT from its own location (hooks/session-start:12-13), so only the
+  # PLUGIN_ROOT from its own location (hooks/session-start.py), so only the
   # dist/ copy takes the payload path — running the repo-root copy passes even
   # when the payload is broken, which is why CI never caught this. `gather.py
   # --check` cannot catch it either: it proves dist/ matches its plan, not that
@@ -38,8 +38,8 @@ wiring() {
   # renderings are byte-identical today and no output check can tell them apart.
   # Repointing the hook at agent-skills/ passes every behavioural check above.
   # The day those bodies diverge, that regression would ship silently.
-  file-contains "$r/hooks/session-start" 'skills/using-awow/SKILL.md'
-  if grep -q 'agent-skills/using-awow' "$r/hooks/session-start"; then
+  file-contains "$r/hooks/session-start.py" 'skills/using-awow/SKILL.md'
+  if grep -q 'agent-skills/using-awow' "$r/hooks/session-start.py"; then
     _record fail "session-start reads agent-skills/ (must read skills/)"
   else
     _record pass "session-start reads skills/, not agent-skills/"

@@ -29,6 +29,26 @@ If `--root <path>` is given and `<path>/` does not exist, refuse and tell the us
 4. Write every artefact to `proposals/setup/<step>/` first. Land it (move to its final location) only after the user approves.
 5. Update `setup-progress.md` when a step completes.
 
+## Install shape — standalone or spoke
+
+Classify the install shape before Step 0, once per repo:
+
+- A vendored tree (`.agents/AGENTS.md`) or a recorded `install-shape:` in `setup-progress.md` settles it; do not re-ask.
+- A root `AGENTS.md` whose frontmatter carries a `hub:` key marks this repo as a spoke; go to the Spoke track to complete or repair its registration.
+- Otherwise, when you run from a plugin install in a repo with no awow files, ask once: standalone, or a spoke of an existing team hub? Record the answer as `install-shape: standalone | spoke` in `setup-progress.md`; standalone continues with the steps below, spoke continues with the Spoke track.
+
+## Spoke track — register this repo against a hub
+
+A spoke commits its hub's identity (git remote URL), never a path. Walk these five steps in order; every repo write follows draft → approval → land.
+
+1. **Identify the hub.** Ask for the hub's git remote URL and this repo's project name (default: the repo directory name). Never infer the hub from sibling directories without the user confirming.
+2. **Resolve the hub locally.** Offer an accessible checkout whose normalized `origin` — host + owner/repo, ignoring scheme, credentials, an optional `.git` suffix, and a trailing slash — equals the hub remote; else ask for a path or offer to clone. A checkout whose `origin` does not match is a stop, not a warning.
+3. **Write the machine link.** Write `.awow/hub.json` as `{"remote": "<hub remote URL>", "path": "<absolute path to the clone>"}` and ensure `.gitignore` covers `.awow/`. This link is machine-local state: never commit it and never record the path in any committed file.
+4. **Draft the spoke PR** in this repo: root `AGENTS.md` with connector frontmatter (`awow: spoke`, `hub: <remote URL>`, `project: <name>`) and a short body pointing collaborators at the hub; `.claude/settings.json` enabling the awow plugin at project scope; `context/mission.md`; `context/board-scope.md` (ask which board team or project this repo maps to); `context/do-not-propose.md` when the user wants one; the `.awow/` gitignore entry. Open the PR only after approval.
+5. **Draft the hub PR** in the hub checkout: a knowledge-source record for this repo per `{HUB}/context/tooling/knowledge-sources.md` — routing profile plus `spoke:` block — and its `index.md` line. Open it only after approval; when the user lacks hub PR rights, leave the drafted record under this repo's `proposals/` with a handoff note naming who can land it.
+
+Verify by reporting what a fresh session will see: the connected-spoke reflex with `{HUB}` resolved to the recorded path. Tell the user registration completes when both PRs merge; neither blocks the other, and teammates need only clone the spoke and answer the one-time map-the-hub prompt.
+
 ## Track — solo or team
 
 On first entry (no `track:` recorded in `setup-progress.md`), ask once: "Is this for a whole team, or just you?" Record the answer as `track: team` or `track: solo`. In **solo** mode, skip the steps that only make sense for a group and mark them as skipped when you lay out the plan:

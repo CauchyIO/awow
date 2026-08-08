@@ -42,12 +42,90 @@ if [ -z "${bootstrap_content}" ]; then
     printf '%s\n' "${bootstrap_content}" >&2
 fi
 
+# --- Spoke connector detection (AWO-133) ------------------------------------
+# A connected spoke commits its identity in root AGENTS.md frontmatter:
+#     ---
+#     awow: spoke
+#     hub: <git remote URL>
+#     project: <name>
+#     ---
+# Detection keys on the `hub:` frontmatter key, never on file presence — many
+# repos carry a plain AGENTS.md that has nothing to do with awow. The hub's
+# local path is machine-local state, resolved once at registration and read
+# from the gitignored .awow/hub.json ($AWOW_HUB overrides). Resolution never
+# scans and never touches the network: the remote URL is a comparison key.
+
+frontmatter_value() {
+    # $1 = file, $2 = key. First `key:` value inside the leading --- block.
+    awk -v key="$2" '
+        NR == 1 && $0 != "---" { exit }
+        NR > 1 && $0 == "---" { exit }
+        NR > 1 && index($0, key ":") == 1 {
+            sub(/^[^:]*:[[:space:]]*/, "")
+            gsub(/[[:space:]]+$/, ""); gsub(/^"|"$/, "")
+            print; exit
+        }
+    ' "$1" 2>/dev/null
+}
+
+normalize_remote() {
+    # host/owner/repo comparison key per the knowledge-sources contract:
+    # ignore scheme, credentials, the scp-style colon, an optional .git
+    # suffix, and a trailing slash; compare case-insensitively.
+    local r="$1"
+    r="${r#*://}"
+    r="${r#*@}"
+    r="${r/://}"
+    r="${r%/}"
+    r="${r%.git}"
+    printf '%s' "$r" | tr '[:upper:]' '[:lower:]'
+}
+
+hub_json_field() {
+    # $1 = file, $2 = key. .awow/hub.json has a fixed two-key shape authored
+    # at registration, so a sed pull is deliberate — no JSON tooling needed.
+    sed -n 's/.*"'"$2"'"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$1" 2>/dev/null | head -n 1
+}
+
+spoke_context=""
+connector_hub=""
+if [ ! -f "${REPO_DIR}/.agents/AGENTS.md" ] && [ -f "${REPO_DIR}/AGENTS.md" ]; then
+    connector_hub="$(frontmatter_value "${REPO_DIR}/AGENTS.md" hub)"
+fi
+if [ -n "${connector_hub}" ]; then
+    connector_project="$(frontmatter_value "${REPO_DIR}/AGENTS.md" project)"
+    hub_want="$(normalize_remote "${connector_hub}")"
+    link_file="${REPO_DIR}/.awow/hub.json"
+    candidate=""
+    recorded_remote=""
+    if [ -n "${AWOW_HUB:-}" ]; then
+        candidate="${AWOW_HUB}"
+    elif [ -f "${link_file}" ]; then
+        candidate="$(hub_json_field "${link_file}" path)"
+        recorded_remote="$(hub_json_field "${link_file}" remote)"
+    fi
+    if [ -z "${candidate}" ]; then
+        spoke_context="<important-reminder>This repo is an awow spoke of hub ${connector_hub}, but the hub is not mapped on this machine: no .awow/hub.json and no \$AWOW_HUB. IN YOUR FIRST REPLY, ask the user where their local clone of ${connector_hub} lives (offer to clone it if they have none), verify that clone's git origin matches the remote, then write .awow/hub.json as {\"remote\": \"${connector_hub}\", \"path\": \"<absolute path>\"}. Never scan for or guess a location. In a headless run, stop loudly naming this missing link — do not improvise conventions.</important-reminder>"
+    else
+        actual_origin="$(git -C "${candidate}" config --get remote.origin.url 2>/dev/null || true)"
+        if [ -z "${actual_origin}" ] \
+           || [ "$(normalize_remote "${actual_origin}")" != "${hub_want}" ] \
+           || { [ -n "${recorded_remote}" ] && [ "$(normalize_remote "${recorded_remote}")" != "${hub_want}" ]; }; then
+            spoke_context="<important-reminder>This repo is an awow spoke of hub ${connector_hub}, but the local hub link is out of sync: the recorded clone at ${candidate} is missing, moved, or its git origin no longer matches ${connector_hub}. IN YOUR FIRST REPLY, prompt the user to update the link — confirm where the hub clone lives now, verify its origin against the remote, and rewrite .awow/hub.json. Never silently re-scan or fall back to another location. In a headless run, stop loudly instead.</important-reminder>"
+        else
+            spoke_context="<important-reminder>This repo is the awow spoke \"${connector_project:-$(basename "${REPO_DIR}")}\" of hub ${connector_hub}. {HUB} resolves to: ${candidate} — read the team's shared context, board config, and conventions from that root. {PROJECT} is this repo. Do not re-derive the hub location or scan for other candidates.</important-reminder>"
+        fi
+    fi
+fi
+
 # One-time setup nudge: fire only when this repo has not adopted awow
-# (no .agents/AGENTS.md) AND the user has not opted out (no skip flag).
-# A repo mid-setup or already set up has .agents/AGENTS.md and is never nagged.
+# (no .agents/AGENTS.md vendored tree, no spoke connector) AND the user has
+# not opted out (no skip flag). A repo mid-setup or already set up has
+# .agents/AGENTS.md and is never nagged; a connected or connectable spoke
+# gets its tier context above instead of the nudge.
 nudge_message=""
-if [ ! -f "${REPO_DIR}/.agents/AGENTS.md" ] && [ ! -f "${REPO_DIR}/.awow/no-setup-prompt" ]; then
-    nudge_message="\n\n<important-reminder>This repo has the awow plugin enabled but has not adopted awow yet (no .agents/AGENTS.md). IN YOUR FIRST REPLY, offer once to run /setup-awow to bring the board-linked way of working into this repo. If the user declines, create an empty file at .awow/no-setup-prompt so this nudge stops, and do not ask again this session.</important-reminder>"
+if [ ! -f "${REPO_DIR}/.agents/AGENTS.md" ] && [ -z "${connector_hub}" ] && [ ! -f "${REPO_DIR}/.awow/no-setup-prompt" ]; then
+    nudge_message="\n\n<important-reminder>This repo has the awow plugin enabled but has not adopted awow yet (no .agents/AGENTS.md). IN YOUR FIRST REPLY, offer once to run /setup-awow to bring the board-linked way of working into this repo — standalone, or connected as a spoke of an existing team hub. If the user declines, create an empty file at .awow/no-setup-prompt so this nudge stops, and do not ask again this session.</important-reminder>"
 fi
 
 # Detect an inner-loop build engine (superpowers). Globs that do not match expand
@@ -84,9 +162,10 @@ escape_for_json() {
 }
 
 bootstrap_escaped=$(escape_for_json "$bootstrap_content")
+spoke_escaped=$(escape_for_json "$spoke_context")
 nudge_escaped=$(escape_for_json "$nudge_message")
 engine_escaped=$(escape_for_json "$engine_nudge")
-session_context="<EXTREMELY_IMPORTANT>\nYou are working in a repo governed by awow — the Agentic Way of Working.\n\n**Below is your 'awow:using-awow' reflex — how awow expects you to work. For the team's full conventions read .agents/AGENTS.md; for any other awow command or skill, use the 'Skill' tool or the slash command.**\n\n${bootstrap_escaped}\n\n${nudge_escaped}\n\n${engine_escaped}\n</EXTREMELY_IMPORTANT>"
+session_context="<EXTREMELY_IMPORTANT>\nYou are working in a repo governed by awow — the Agentic Way of Working.\n\n**Below is your 'awow:using-awow' reflex — how awow expects you to work. For the team's full conventions read .agents/AGENTS.md; for any other awow command or skill, use the 'Skill' tool or the slash command.**\n\n${bootstrap_escaped}\n\n${spoke_escaped}\n\n${nudge_escaped}\n\n${engine_escaped}\n</EXTREMELY_IMPORTANT>"
 
 # Emit context injection as JSON. Each platform reads a different field:
 #   Cursor          → additional_context (top-level, snake_case)

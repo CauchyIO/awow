@@ -38,6 +38,10 @@ wiring() {
   # renderings are byte-identical today and no output check can tell them apart.
   # Repointing the hook at agent-skills/ passes every behavioural check above.
   # The day those bodies diverge, that regression would ship silently.
+  # The spoke registration flow must reach this harness's command surface.
+  file-contains "$r/dist/commands/setup-awow.md" 'Spoke track'
+  file-contains "$r/dist/.github/prompts/setup-awow.prompt.md" 'Spoke track'
+
   file-contains "$r/hooks/session-start.py" 'skills/using-awow/SKILL.md'
   if grep -q 'agent-skills/using-awow' "$r/hooks/session-start.py"; then
     _record fail "session-start reads agent-skills/ (must read skills/)"

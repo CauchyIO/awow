@@ -15,8 +15,10 @@ import json
 skills = json.load(open('$p')).get('pi', {}).get('skills', [])
 raise SystemExit(0 if './agent-skills' in skills else 1)"
 
-  # The commands-as-skills surface pi.skills points at.
+  # The commands-as-skills surface pi.skills points at, carrying the spoke
+  # registration flow.
   file-exists "$r/dist/agent-skills/setup-awow/SKILL.md"
+  file-contains "$r/dist/agent-skills/setup-awow/SKILL.md" 'Spoke track'
 
   # No .pi extension ships — package-only is the WI-5 decision. Guard against a
   # regression that re-introduces the dropped .ts extension.

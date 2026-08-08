@@ -11,6 +11,12 @@ wiring() {
   file-exists "$r/.opencode/commands/setup-awow.md"
   file-exists "$r/.opencode/commands/process-workitem.md"
 
+  # The spoke registration flow must be reachable from this harness. The
+  # .opencode command is a pointer stub, so assert both ends of the chain:
+  # the stub points at the source, and the source carries the flow.
+  file-contains "$r/.opencode/commands/setup-awow.md" '\.agents/commands/setup-awow\.md'
+  file-contains "$r/.agents/commands/setup-awow.md" 'Spoke track'
+
   # The load-bearing one. opencode builds a command's placeholder list from the
   # template body; a stub without a literal $ARGUMENTS silently receives no
   # arguments at all. This fails invisibly at runtime, so it is asserted per file

@@ -96,7 +96,10 @@ class TestRoster(unittest.TestCase):
         self.assertEqual(campaign.PROFILES["establishment"], {
             "scenarios": ["setup-awow-walkthrough"], "reps": 10})
         self.assertEqual(campaign.PROFILES["snapshot"], {
-            "scenarios": ["setup-awow-walkthrough"], "reps": 5})
+            "scenarios": ["setup-awow-walkthrough", "daily-digest-review-gate",
+                          "process-workitem-exit-ownership",
+                          "workitem-write-board-gate",
+                          "reflex-cold-start"], "reps": 3})
 
     def test_resolution_is_qualified_for_every_selected_seat_up_front(self):
         campaign = load_campaign()
@@ -304,13 +307,54 @@ class TestPublication(unittest.TestCase):
                       "strict_pass": True, "systematic_failure": False}
             self.assertEqual(campaign.qualifies(result), (True, []), seat["id"])
 
-    def test_failed_strict_pass_has_one_readable_reason(self):
+    def test_strict_pass_is_reported_not_required(self):
+        # strict_pass demands every critical question clean in every
+        # repetition — ~50 independent binary events for a snapshot seat, so
+        # it reads "fail" for a strong seat and a weak one alike. It stays on
+        # the scorecard as a column; the continuous measures do the gating.
         campaign = load_campaign()
         result = {"valid_runs": 10, "requested_runs": 10,
                   "outcome": 82.0, "process": 88.0,
                   "strict_pass": False, "systematic_failure": False}
-        self.assertEqual(campaign.qualifies(result),
-                         (False, ["strict pass failed"]))
+        self.assertEqual(campaign.qualifies(result), (True, []))
+
+    def test_qualification_still_gates_on_coverage_and_scores(self):
+        campaign = load_campaign()
+        base = {"valid_runs": 10, "requested_runs": 10, "outcome": 82.0,
+                "process": 88.0, "strict_pass": False,
+                "systematic_failure": False}
+        self.assertEqual(campaign.qualifies({**base, "outcome": 79.9}),
+                         (False, ["outcome below 80"]))
+        self.assertEqual(campaign.qualifies({**base, "process": 12.0}),
+                         (False, ["process below 80"]))
+        self.assertEqual(campaign.qualifies({**base, "valid_runs": 9}),
+                         (False, ["valid runs below 95%"]))
+        self.assertEqual(campaign.qualifies({**base, "systematic_failure": True}),
+                         (False, ["systematic harness or tool failure"]))
+
+    def test_snapshot_publishes_the_seats_that_were_measured(self):
+        # A campaign stops being publishable the moment one account runs out
+        # of credit, which forfeits every seat that did run. Missing seats are
+        # named in the block instead of refusing the whole snapshot.
+        campaign = load_campaign()
+        snapshot = fixture_campaign(campaign)
+        dropped = {"fable-5-high", "qwen-3-6"}
+        snapshot["runs"] = [run for run in snapshot["runs"]
+                            if run["seat"]["id"] not in dropped]
+        block = campaign.render_readme_snapshot(
+            snapshot, "gpt-5-6-sol-xhigh", "glm-5-2")
+        self.assertIn("10 of 12", block)
+        self.assertIn("Fable 5", block)          # named as not measured
+        self.assertIn("Qwen 3.6", block)
+        self.assertNotIn("| Candidate | Fable 5 /", block)   # no scored row
+
+    def test_snapshot_still_refuses_a_baseline_it_never_measured(self):
+        campaign = load_campaign()
+        snapshot = fixture_campaign(campaign)
+        snapshot["runs"] = [run for run in snapshot["runs"]
+                            if run["seat"]["id"] != "fable-5-high"]
+        with self.assertRaises(ValueError):
+            campaign.render_readme_snapshot(snapshot, "fable-5-high", "glm-5-2")
 
     def test_readme_snapshot_is_clean_and_baseline_first(self):
         campaign = load_campaign()

@@ -1,7 +1,7 @@
 contract: eval/v1
 environment: night-standard@1
 suite: evals
-scenarios: [setup-awow-walkthrough]
+scenarios: [setup-awow-walkthrough, daily-digest-review-gate, process-workitem-exit-ownership, workitem-write-board-gate, reflex-cold-start]
 tiers: [worker]
 reps: 1
 budget_tokens_total: 400000

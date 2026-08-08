@@ -18,7 +18,10 @@ RUBRICS = ROOT / "evals" / "rubrics"
 RUNNER_PATH = ROOT / ".github" / "actions" / "eval-run" / "run.py"
 PROFILES = {
     "establishment": {"scenarios": ["setup-awow-walkthrough"], "reps": 10},
-    "snapshot": {"scenarios": ["setup-awow-walkthrough"], "reps": 5},
+    "snapshot": {"scenarios": ["setup-awow-walkthrough", "daily-digest-review-gate",
+                               "process-workitem-exit-ownership",
+                               "workitem-write-board-gate",
+                               "reflex-cold-start"], "reps": 3},
 }
 HARNESS_IDS = {"Codex": "codex", "Claude Code": "claude-code", "Pi": "pi"}
 SNAPSHOT_START = "<!-- eval-snapshot:start -->"
@@ -264,8 +267,11 @@ def qualifies(seat_result: dict) -> tuple[bool, list[str]]:
         value = seat_result.get(dimension)
         if not isinstance(value, (int, float)) or value < 80:
             reasons.append(f"{dimension} below 80")
-    if not seat_result.get("strict_pass"):
-        reasons.append("strict pass failed")
+    # strict_pass stays on the scorecard as a column but does not gate here: it
+    # demands every critical question clean in every repetition — ~50
+    # independent binary events for a snapshot seat — so one flaky rep reads
+    # identically to a seat that is weak everywhere. The continuous measures
+    # and the coverage floor do the gating.
     if seat_result.get("systematic_failure"):
         reasons.append("systematic harness or tool failure")
     return not reasons, reasons
@@ -304,10 +310,16 @@ def validate_campaign(campaign: dict) -> tuple[list[dict], dict[str, dict]]:
     ids = [run.get("seat", {}).get("id") for run in runs]
     if len(ids) != len(set(ids)):
         raise ValueError("campaign has duplicate seat IDs")
-    missing, extra = expected_ids - set(ids), set(ids) - expected_ids
-    if missing or extra:
-        raise ValueError(f"campaign roster mismatch; missing={sorted(missing)}, "
-                         f"extra={sorted(extra)}")
+    # A seat may be unmeasurable for reasons that say nothing about the model —
+    # an account out of credit, a route that is down. Refusing the snapshot
+    # then forfeits every seat that did run, so a missing seat is reported in
+    # the block instead. A seat that is not on the roster at all is still an
+    # error: that is drift, not an absence.
+    extra = set(ids) - expected_ids
+    if extra:
+        raise ValueError(f"campaign roster mismatch; extra={sorted(extra)}")
+    if not ids:
+        raise ValueError("campaign measured no seats")
 
     resolution = validate_model_resolution(roster, campaign.get("model_resolution"))
     if set(resolution) != expected_ids:
@@ -384,15 +396,19 @@ def render_readme_snapshot(campaign: dict, performance_id: str,
             raise ValueError(f"{role} seat {seat_id!r} does not qualify: "
                              + "; ".join(reasons))
 
-    order = [performance_id] + [seat["id"] for seat in roster
+    measured = [seat for seat in roster if seat["id"] in by_id]
+    unmeasured = [seat for seat in roster if seat["id"] not in by_id]
+    order = [performance_id] + [seat["id"] for seat in measured
                                 if seat["id"] != performance_id]
     summaries = {seat_id: summarize_run(by_id[seat_id]) for seat_id in order}
     reps = {summary["requested_runs"] for summary in summaries.values()}
     performance = summaries[performance_id]
-    lines = ["### Latest full model snapshot", "",
+    lines = ["### Latest full model snapshot" if not unmeasured
+             else "### Latest model snapshot", "",
              f"Run date: {campaign['run_date']}",
              f"awow version: {campaign['awow_version']} (`{campaign['subject_sha']}`)",
              f"Eval version: {campaign['eval_version']} · Repetitions: {reps.pop()}",
+             f"Seats measured: {len(measured)} of {len(roster)}",
              (f"**Performance baseline**: {performance['name']} / "
               f"{performance['effort']} — {performance['harness']}")]
     if automated_id != performance_id:
@@ -410,6 +426,10 @@ def render_readme_snapshot(campaign: dict, performance_id: str,
                      f"| {_score(result['process'])} | {_score(result['balanced'])} "
                      f"| {'yes' if result['strict_pass'] else 'no'} "
                      f"| {result['valid_runs']}/{result['requested_runs']} |")
+    if unmeasured:
+        lines += ["", "Not measured in this snapshot: "
+                  + ", ".join(f"{seat['name']} / {seat['effort']}"
+                              for seat in unmeasured) + "."]
     return "\n".join(lines) + "\n"
 
 

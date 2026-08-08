@@ -110,6 +110,26 @@ class TestRubricContract(unittest.TestCase):
             errors, _ = eval_validate.validate(root)
         self.assertTrue(any("Process" in error for error in errors), errors)
 
+    def test_static_validator_finds_checks_from_a_relative_suite_root(self):
+        import os
+        with tempfile.TemporaryDirectory(dir=".") as td:
+            root = Path(td)
+            scenario = root / "scenarios" / "flow"
+            (scenario / "fixture").mkdir(parents=True)
+            (scenario / "fixture" / "seed.md").write_text("stub\n")
+            for name in ("persona.md", "opening.md", "observe-writes.txt"):
+                (scenario / name).write_text("fixture\n")
+            (scenario / "checks.sh").write_text("#!/bin/sh\nexit 0\n")
+            rubrics = root / "rubrics"
+            rubrics.mkdir()
+            (rubrics / "flow.md").write_text(
+                "Capability: `flow`\n\nCritical: `Q1`\n\n"
+                "## Outcome\n\n- **Q1** — shipped?\n\n"
+                "## Process\n\n- **Q2** — gated?\n"
+            )
+            errors, _ = eval_validate.validate(Path(os.path.relpath(root)))
+        self.assertFalse([e for e in errors if "broken" in e], errors)
+
     def test_vertical_suite_reports_every_required_capability(self):
         root = REPO / "evals"
         capabilities = {
@@ -118,10 +138,12 @@ class TestRubricContract(unittest.TestCase):
         }
         self.assertEqual(capabilities, {
             "setup-awow", "workitem-write", "process-workitem", "daily-digest",
+            "session-reflex",
         })
         expected = {
             "setup-awow-walkthrough", "workitem-write-board-gate",
             "process-workitem-exit-ownership", "daily-digest-review-gate",
+            "reflex-cold-start",
         }
         self.assertEqual(
             {p.name for p in (root / "scenarios").iterdir() if p.is_dir()},
@@ -265,6 +287,18 @@ class TestActionsScorecard(unittest.TestCase):
         cells = [{"process": {"resolved_model_id": "other/model"}}]
         with self.assertRaises(RuntimeError):
             eval_run.validate_resolved_model(cells, seat)
+
+    def test_scored_non_pi_cell_without_resolved_model_fails(self):
+        seat = {"model_id": "fable", "harness": "Claude Code"}
+        cells = [{"id": "r1", "verdict": "pass", "process": {}}]
+        with self.assertRaisesRegex(RuntimeError, "r1"):
+            eval_run.validate_resolved_model(cells, seat)
+
+    def test_systematic_runner_failure_still_validates_without_models(self):
+        seat = {"model_id": "gpt-5.6-terra", "harness": "Codex"}
+        cells = [{"id": "r1", "verdict": "indeterminate", "stage": "runner",
+                  "process": {}}]
+        eval_run.validate_resolved_model(cells, seat)  # must not raise
 
     def test_fixed_pi_seat_requires_identity_on_every_scored_cell(self):
         seat = {"model_id": "z-ai/glm-5.2", "harness": "Pi"}

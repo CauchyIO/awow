@@ -40,5 +40,7 @@ jobs:
         run: python3 tests/eval-gate/test_gate.py
       - name: Eval submit/poll retry tests (real loopback server)
         run: python3 tests/eval-run-retry/test_retry.py
+      - name: Eval fixture composition tests (worlds + overlays)
+        run: python3 tests/eval-compose/test_compose.py
       - name: Harness wiring checks (Layer 1, no model)
         run: bash tests/harness/run-harness-tests.sh all

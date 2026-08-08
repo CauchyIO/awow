@@ -10,12 +10,20 @@ below. No credentials are stored in the repo.
 **1. Write an eval set** — one directory per scenario:
 
 ```
-evals/scenarios/<scenario>/
-  persona.md          # who the simulated user is, and their standing rules
-  opening.md          # the first user message
-  fixture/            # the workspace tree the session starts in
-  observe-writes.txt  # which paths the flow MAY touch (violations are scored)
+evals/
+  worlds/<world>/       # shared base trees scenarios compose from
+  scenarios/<scenario>/
+    persona.md          # who the simulated user is, and their standing rules
+    opening.md          # the first user message
+    world.txt           # names the world this scenario starts from (optional)
+    overlay/            # scenario-specific files layered over the world
+    checks.sh           # deterministic pre/post witnesses (optional)
+    observe-writes.txt  # which paths the flow MAY touch (violations are scored)
 ```
+
+The session workspace is the named world composed with the overlay — see
+[`scenarios/README.md`](scenarios/README.md) for how to read a scenario and
+[`worlds/README.md`](worlds/README.md) for the shared bases.
 
 plus one rubric per scenario in a shared directory the judge reads:
 

@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """Static suite validation — no LLM, no credentials, no submission (night
 eval content spec §7). Runs in CI before submit so a malformed suite costs
-zero tokens. Checks: scenario asset completeness, rubric question lines in
-the judge's '- ' convention, bash -n on any checks.sh, and — the planted-
-marker check — `checks.sh pre` run against a fresh copy of the scenario's
-fixture/ must exit 0 (a pre that fails or breaks against the pristine
-fixture means the fixture's facts drifted out from under the rubric/checks
-that assume them). Also validates every `evals/sabotage/<flow>/` suite:
+zero tokens. A scenario's starting tree is composed, not stored: the world
+named by its world.txt (from `evals/worlds/`, default: empty) overlaid with
+its overlay/. Checks: scenario asset completeness, world resolution, rubric
+question lines in the judge's '- ' convention, bash -n on any checks.sh,
+the two duplication guards (a file shared byte-identical by two overlays
+belongs in a world; an overlay file identical to its world's copy is dead
+weight), and — the planted-marker check — `checks.sh pre` run against a
+fresh composition of the scenario's tree must exit 0 (a pre that fails or
+breaks against the pristine tree means the fixture's facts drifted out
+from under the rubric/checks that assume them). Also validates every
+`evals/sabotage/<flow>/` suite:
 bash -n on corruption scripts, manifest index bounds against the flow's
 rubric, must_flip/tree_questions subset consistency, and gold/variants
 path existence — a bad sabotage manifest is exactly as cheap to catch here
@@ -27,17 +32,36 @@ RUNNER_PATH = (Path(__file__).resolve().parent.parent / ".github" / "actions" /
                "eval-run" / "run.py")
 
 
+def compose_fixture(scenario: Path, worlds_dir: Path, dest: Path) -> None:
+    """Materialize the tree a scenario's session starts in: the world named
+    by world.txt copied whole, then overlay/ layered on top (overlay wins on
+    a path collision; the merge is purely additive — an overlay cannot
+    remove a world file). No world.txt means the empty world: the overlay
+    is the entire tree. Raises on an unresolvable world — a scenario that
+    cannot compose must never validate."""
+    world_ref = scenario / "world.txt"
+    if world_ref.is_file():
+        world = worlds_dir / world_ref.read_text().strip()
+        shutil.copytree(world, dest)
+    else:
+        dest.mkdir(parents=True)
+    overlay = scenario / "overlay"
+    if overlay.is_dir():
+        shutil.copytree(overlay, dest, dirs_exist_ok=True)
+
+
 def _check_pre_against_pristine_fixture(name: str, checks: Path,
-                                        fixture: Path) -> list[str]:
+                                        scenario: Path,
+                                        worlds_dir: Path) -> list[str]:
     """Spec §7: 'planted markers exist in fixture', done the principled way —
-    actually run `checks.sh pre` against a fresh, untouched copy of the
-    fixture rather than grepping for marker strings. `pre` is defined to
-    assert the fixture's starting facts (spec §3), so rc 0 here is the real
-    proof those facts still hold; rc 1 means they drifted, anything else
-    means the check itself is broken."""
+    actually run `checks.sh pre` against a fresh composition of the
+    scenario's tree rather than grepping for marker strings. `pre` is
+    defined to assert the fixture's starting facts (spec §3), so rc 0 here
+    is the real proof those facts still hold; rc 1 means they drifted,
+    anything else means the check itself is broken."""
     with tempfile.TemporaryDirectory() as td:
         copy = Path(td) / "fixture"
-        shutil.copytree(fixture, copy)
+        compose_fixture(scenario, worlds_dir, copy)
         try:
             proc = subprocess.run(["bash", str(checks.resolve()), "pre"], cwd=copy,
                                   capture_output=True, text=True,
@@ -136,8 +160,59 @@ def _validate_sabotage_flow(flow: Path, root: Path) -> list[str]:
     return errors
 
 
+def _validate_world(s: Path, worlds_dir: Path) -> list[str]:
+    """world.txt is optional (absent = the empty world); when present it
+    must be a single name resolving to a directory under evals/worlds/."""
+    world_ref = s / "world.txt"
+    if not world_ref.is_file():
+        if not (s / "overlay").is_dir():
+            return [f"{s.name}: missing overlay/ (and no world.txt)"]
+        return []
+    name = world_ref.read_text().strip()
+    if not name or "\n" in name or "/" in name:
+        return [f"{s.name}: world.txt must hold one world name, "
+                f"got {name!r}"]
+    if not (worlds_dir / name).is_dir():
+        return [f"{s.name}: world.txt names {name!r} but "
+                f"evals/worlds/{name}/ does not exist"]
+    return []
+
+
+def _validate_overlay_duplication(scenarios: list[Path],
+                                  worlds_dir: Path) -> list[str]:
+    """The two guards that keep the composition honest: a file two overlays
+    share byte-identically belongs in a world, and an overlay file identical
+    to its own world's copy at the same relative path shadows nothing."""
+    errors = []
+    seen: dict[tuple[str, bytes], str] = {}
+    for s in sorted(scenarios):
+        overlay = s / "overlay"
+        if not overlay.is_dir():
+            continue
+        world_ref = s / "world.txt"
+        world = (worlds_dir / world_ref.read_text().strip()) \
+            if world_ref.is_file() else None
+        for f in sorted(p for p in overlay.rglob("*") if p.is_file()):
+            rel = str(f.relative_to(overlay))
+            content = f.read_bytes()
+            prior = seen.get((rel, content))
+            if prior is not None and prior != s.name:
+                errors.append(
+                    f"{s.name}: overlay/{rel} is byte-identical to "
+                    f"{prior}'s copy — move it into a world under "
+                    f"evals/worlds/")
+            seen.setdefault((rel, content), s.name)
+            if world is not None and (world / rel).is_file() \
+                    and (world / rel).read_bytes() == content:
+                errors.append(
+                    f"{s.name}: overlay/{rel} is identical to its world's "
+                    f"copy — delete the overlay file")
+    return errors
+
+
 def validate(root: Path) -> tuple[list[str], list[str]]:
     errors, warnings = [], []
+    worlds_dir = root / "worlds"
     scenarios_dir = root / "scenarios"
     scenarios = sorted(p for p in scenarios_dir.iterdir() if p.is_dir()) \
         if scenarios_dir.is_dir() else []
@@ -147,10 +222,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         for req in ("persona.md", "opening.md", "observe-writes.txt"):
             if not (s / req).is_file():
                 errors.append(f"{s.name}: missing {req}")
-        fixture = s / "fixture"
-        fixture_ok = fixture.is_dir()
-        if not fixture_ok:
-            errors.append(f"{s.name}: missing fixture/")
+        world_errors = _validate_world(s, worlds_dir)
+        errors.extend(world_errors)
         rubric = root / "rubrics" / f"{s.name}.md"
         if not rubric.is_file():
             errors.append(f"{s.name}: missing rubric evals/rubrics/{s.name}.md")
@@ -163,10 +236,13 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             if proc.returncode != 0:
                 errors.append(f"{s.name}: checks.sh fails bash -n: "
                               f"{proc.stderr.strip()}")
-            elif fixture_ok:
-                errors.extend(_check_pre_against_pristine_fixture(s.name, checks, fixture))
+            elif not world_errors:
+                errors.extend(_check_pre_against_pristine_fixture(
+                    s.name, checks, s, worlds_dir))
         else:
             warnings.append(f"{s.name}: no checks.sh — judge-only scenario")
+
+    errors.extend(_validate_overlay_duplication(scenarios, worlds_dir))
 
     sabotage_dir = root / "sabotage"
     flows = sorted(p for p in sabotage_dir.iterdir() if p.is_dir()) \

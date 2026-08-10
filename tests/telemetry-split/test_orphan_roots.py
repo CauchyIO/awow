@@ -114,6 +114,29 @@ def main() -> int:
     finally:
         remove_probe(claude_probe, created)
 
+    # 5. A file inside a nested git checkout is NOT an orphan, even under a
+    #    fully-generated payload root where every unplanned file otherwise is.
+    #    A linked worktree is a copy of this repo, so its generated files carry
+    #    our marker; sweeping them destroys tracked files in another checkout
+    #    and fails --check on paths this run does not own (AWO-62).
+    nested = gather.DIST_DIR / "_probe-worktree"
+    nested_file = nested / "commands" / "probe.md"
+    created = make_probe(nested_file)
+    (nested / ".git").write_text("gitdir: /elsewhere/.git/worktrees/probe\n")
+    try:
+        found = gather.find_orphans(set(), [gather.DIST_DIR])
+        if nested_file in found:
+            FAILURES.append(
+                f"{nested_file.relative_to(REPO_ROOT)} WAS reported as an orphan — "
+                "the sweep crosses into nested git worktrees and would delete "
+                "their tracked files (AWO-62)."
+            )
+    finally:
+        (nested / ".git").unlink(missing_ok=True)
+        remove_probe(nested_file, created)
+        if nested.is_dir() and not any(nested.iterdir()):
+            nested.rmdir()
+
     for f in FAILURES:
         print(f"FAIL {f}")
     if FAILURES:

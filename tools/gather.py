@@ -1274,13 +1274,35 @@ def filter_surface(plans: list[Stub], surface: str) -> list[Stub]:
 # ---------- orphan detection ----------
 
 
+def nested_checkout_roots(surface: Path) -> tuple[Path, ...]:
+    """Directories strictly below `surface` that are their own git checkout.
+
+    A linked worktree or submodule carries a `.git` *file*; a nested clone
+    carries a `.git` directory. Either way the tree below it is a copy of this
+    repo, so its generated files carry our GENERATED_MARKER and the sweep would
+    delete them — destroying tracked files belonging to another checkout, and
+    failing --check on paths this run does not own (AWO-62).
+
+    Strictly below: if the surface were itself a checkout this would skip the
+    whole surface and silently disable its sweep, so that case is left alone.
+    """
+    return tuple(
+        entry.parent
+        for entry in surface.rglob(".git")
+        if entry.parent != surface
+    )
+
+
 def find_orphans(planned_targets: set[Path], surfaces: list[Path], marker_optional_roots: set[Path] = frozenset()) -> list[Path]:
     orphans: list[Path] = []
     for surface in surfaces:
         if not surface.exists():
             continue
+        nested = nested_checkout_roots(surface)
         for path in surface.rglob("*"):
             if not path.is_file():
+                continue
+            if any(root in path.parents for root in nested):
                 continue
             if path in planned_targets:
                 continue

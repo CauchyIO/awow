@@ -1,0 +1,72 @@
+name: release
+
+# Cutting a release is one act: tag, and everything the release owes follows.
+# Between v0.6.0 and v0.8.0 publishing was a manual script nobody ran, so Codex,
+# Pi and opencode served a two-minor-stale payload while CI stayed green
+# (AWO-156). Tying the publish to the tag is what stops that recurring.
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # release notes need the full tag history
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Verify before publishing anything. A payload that fails these must never
+      # reach an install surface.
+      - name: Generated surfaces in sync
+        run: python3 tools/gather.py --check
+      - name: Payload manifest integrity
+        run: python3 tests/payload-manifests/test_manifest_integrity.py
+
+      - name: Tag matches the canonical version
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          canonical="$(python3 -c "import json;print(json.load(open('.claude-plugin/plugin.json'))['version'])")"
+          if [ "$tag" != "$canonical" ]; then
+            echo "tag ${GITHUB_REF_NAME} does not match .claude-plugin/plugin.json ${canonical}" >&2
+            exit 1
+          fi
+
+      - name: Draft the release notes
+        run: python3 tools/release-notes.py --version "${GITHUB_REF_NAME}" --out RELEASE_NOTES.md
+
+      # Fail loudly rather than skipping: a release that quietly does not publish
+      # is the exact failure this workflow exists to prevent.
+      - name: Require the awow-dist publish token
+        run: |
+          if [ -z "${{ secrets.AWOW_DIST_TOKEN }}" ]; then
+            echo "AWOW_DIST_TOKEN is not set; cannot open the awow-dist publish PR." >&2
+            echo "Add a token with contents:write and pull_requests:write on CauchyIO/awow-dist." >&2
+            exit 1
+          fi
+
+      # sync-dist.sh opens a PR against awow-dist and never pushes to its base
+      # branch, so merging stays a human act on a public repo.
+      - name: Open the awow-dist publish PR
+        env:
+          GH_TOKEN: ${{ secrets.AWOW_DIST_TOKEN }}
+        run: ./tools/sync-dist.sh --apply -y
+
+      # Draft, not published: the generated notes are a first pass whose tags are
+      # keyword guesses and whose lines are raw PR titles. Someone trims, then
+      # publishes.
+      - name: Create the draft GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --draft \
+            --title "${GITHUB_REF_NAME}" \
+            --notes-file RELEASE_NOTES.md

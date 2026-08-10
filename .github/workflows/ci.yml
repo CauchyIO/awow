@@ -44,3 +44,17 @@ jobs:
         run: python3 tests/hooks/test_lifecycle_seam_check.py
       - name: Harness wiring checks (Layer 1, no model)
         run: bash tests/harness/run-harness-tests.sh all
+
+  # Main only. On a PR the published payload is legitimately behind, so this
+  # would fail every PR. On main it goes red exactly when the canonical version
+  # was bumped and not yet released, which is the signal that forces the publish.
+  dist-published:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Published awow-dist matches this checkout
+        run: python3 tools/check-dist-published.py

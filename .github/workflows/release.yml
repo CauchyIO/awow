@@ -42,21 +42,24 @@ jobs:
       - name: Draft the release notes
         run: python3 tools/release-notes.py --version "${GITHUB_REF_NAME}" --out RELEASE_NOTES.md
 
-      # Fail loudly rather than skipping: a release that quietly does not publish
-      # is the exact failure this workflow exists to prevent.
-      - name: Require the awow-dist publish token
-        run: |
-          if [ -z "${{ secrets.AWOW_DIST_TOKEN }}" ]; then
-            echo "AWOW_DIST_TOKEN is not set; cannot open the awow-dist publish PR." >&2
-            echo "Add a token with contents:write and pull_requests:write on CauchyIO/awow-dist." >&2
-            exit 1
-          fi
+      # An installation token from the org's own GitHub App, not a PAT: it is
+      # org-owned rather than tied to a person, scoped to the repos the app is
+      # installed on, and expires in an hour. The app needs contents:write and
+      # pull_requests:write on CauchyIO/awow-dist.
+      - name: Mint an awow-dist installation token
+        id: dist-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.AWOW_APP_ID }}
+          private-key: ${{ secrets.AWOW_APP_PRIVATE_KEY }}
+          owner: CauchyIO
+          repositories: awow-dist
 
       # sync-dist.sh opens a PR against awow-dist and never pushes to its base
       # branch, so merging stays a human act on a public repo.
       - name: Open the awow-dist publish PR
         env:
-          GH_TOKEN: ${{ secrets.AWOW_DIST_TOKEN }}
+          GH_TOKEN: ${{ steps.dist-token.outputs.token }}
         run: ./tools/sync-dist.sh --apply -y
 
       # Draft, not published: the generated notes are a first pass whose tags are

@@ -1096,15 +1096,34 @@ def plan_copilot_payload() -> list[Stub]:
     (whose ../.agents/ links resolve to nothing in a payload), and the
     vendored-channel prompts the filter is meant to exclude.
 
+    The one exception is .github/plugin/skills/: a hand-authored Copilot-only
+    surface with no .agents/ source, which the manifest declares. Without it the
+    installed plugin resolves to zero skills (AWO-155).
+
     Uses render_plugin_body via plugin_command_copy: Copilot CLI resolves
     ${CLAUDE_PLUGIN_ROOT}. Only Codex and Pi need render_agent_skills_body."""
     manifest = json.loads((GITHUB_DIR / "plugin" / "plugin.json").read_text())
+    # Version is canonical, as in plan_codex/plan_pi/plan_telemetry. Name and
+    # description stay as authored: this manifest describes the Copilot surface
+    # specifically, the same way plan_telemetry carries its own description.
+    manifest["version"] = json.loads(PLUGIN_MANIFEST.read_text())["version"]
     plans = [
         Stub(
             DIST_DIR / ".github" / "plugin" / "plugin.json",
             json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
         )
     ]
+    skills_root = GITHUB_DIR / "plugin" / "skills"
+    for source in sorted(skills_root.rglob("*")):
+        if not source.is_file() or source.name in SKIP_FILENAMES:
+            continue
+        plans.append(
+            Stub(
+                DIST_DIR / ".github" / "plugin" / "skills" / source.relative_to(skills_root),
+                render_plugin_body(source.read_text()),
+                source.stat().st_mode & 0o777,
+            )
+        )
     for source in sorted((AGENTS_DIR / "commands").rglob("*.md")):
         if is_skipped(source):
             continue

@@ -61,6 +61,17 @@ jobs:
           owner: CauchyIO
           repositories: awow-dist
 
+      # sync-dist.sh commits inside a fresh clone of awow-dist, and that clone
+      # carries no git identity: actions/checkout configures only the repo it
+      # checks out, and a runner has no global config. v0.9.2 failed here with
+      # "empty ident name". Set it in the workflow rather than the script, so a
+      # human running sync-dist.sh by hand still authors as themselves. The
+      # identity is the publisher App's bot, the same one whose token pushes.
+      - name: Configure git identity for the publish commit
+        run: |
+          git config --global user.name "cauchy-awow-publisher[bot]"
+          git config --global user.email "315785006+cauchy-awow-publisher[bot]@users.noreply.github.com"
+
       # sync-dist.sh opens a PR against awow-dist and never pushes to its base
       # branch, so merging stays a human act on a public repo.
       - name: Open the awow-dist publish PR

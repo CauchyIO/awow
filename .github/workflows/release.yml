@@ -42,10 +42,16 @@ jobs:
       - name: Draft the release notes
         run: python3 tools/release-notes.py --version "${GITHUB_REF_NAME}" --out RELEASE_NOTES.md
 
-      # An installation token from the org's own GitHub App, not a PAT: it is
-      # org-owned rather than tied to a person, scoped to the repos the app is
-      # installed on, and expires in an hour. The app needs contents:write and
-      # pull_requests:write on CauchyIO/awow-dist.
+      # An installation token from cauchy-awow-publisher (app id 4557933), a
+      # CauchyIO-owned App built for this one job, not a PAT: org-owned rather
+      # than tied to a person, and expiring in an hour. It holds exactly
+      # contents:write and pull_requests:write, the two the sync needs, and is
+      # installed on selected repositories rather than all.
+      #
+      # Note the permission is wider than the flow: contents:write would allow
+      # pushing straight to awow-dist's default branch. Publishing stays a PR
+      # because sync-dist.sh chooses to open one, not because the token forbids
+      # the alternative.
       - name: Mint an awow-dist installation token
         id: dist-token
         uses: actions/create-github-app-token@v1

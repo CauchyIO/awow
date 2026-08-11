@@ -65,6 +65,25 @@ Use source-specific types and abstract capabilities. Typical pairs are `Project 
 `semantic-knowledge-search`. Provider names belong under `source.provider`; harness-specific tool
 names do not belong in the catalog.
 
+## Spoke records
+
+When the resource is a repository this team governs as a spoke — the repo commits a connector
+naming this HUB by remote URL and its sessions read team context from here — add one block:
+
+```yaml
+spoke:
+  board:
+    team: Payments            # board team the spoke's items land on
+    project: Payments platform  # optional board project/container
+  subpath: services/payments  # optional, monorepo scoping
+  capabilities: [team]        # e.g. solo | team
+```
+
+`spoke:` adds governance metadata only; the rest of the record keeps its routing meaning, so a
+spoke is also an ordinary routable read-only source. Records without `spoke:` are plain external
+sources. Never put a clone path in a spoke record — the machine-local link lives in the spoke's
+gitignored `.awow/hub.json`, written at registration by `/setup-awow`.
+
 ## Resolution
 
 When a task consumes HUB context or may create durable HUB knowledge:

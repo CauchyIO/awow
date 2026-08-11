@@ -36,5 +36,9 @@ jobs:
         run: python3 -m unittest discover -s tests/department
       - name: awow-lock tests
         run: python3 -m unittest discover -s tests/awow-lock
+      - name: Session-start hook tiers
+        run: python3 tests/hooks/test_session_start.py
+      - name: Lifecycle seam hook
+        run: python3 tests/hooks/test_lifecycle_seam_check.py
       - name: Harness wiring checks (Layer 1, no model)
         run: bash tests/harness/run-harness-tests.sh all

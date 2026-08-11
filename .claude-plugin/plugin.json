@@ -1,8 +1,8 @@
 {
   "name": "awow",
-  "displayName": "awow — Agentic Way of Working",
-  "description": "Set up or extend awow in any repo, new or existing. /awowify adds the files Claude Code or GitHub Copilot need to follow your issue board (Linear, Jira, GitHub Issues, Azure DevOps) and conventions — without overwriting what's already there — then walks you through configuring it.",
-  "version": "0.9.1",
+  "displayName": "awow \u2014 Agentic Way of Working",
+  "description": "Set up or extend awow in any repo, new or existing. /awowify adds the files Claude Code or GitHub Copilot need to follow your issue board (Linear, Jira, GitHub Issues, Azure DevOps) and conventions \u2014 without overwriting what's already there \u2014 then walks you through configuring it.",
+  "version": "0.9.2",
   "commands": "./commands/",
   "author": {
     "name": "Casper Lubbers"

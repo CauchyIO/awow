@@ -77,7 +77,15 @@ jobs:
       - name: Open the awow-dist publish PR
         env:
           GH_TOKEN: ${{ steps.dist-token.outputs.token }}
-        run: ./tools/sync-dist.sh --apply -y
+        run: |
+          # The script authenticates three ways. `gh repo clone` and
+          # `gh pr create` read GH_TOKEN, but the `git push` between them is
+          # plain git, which does not: v0.9.2 failed there on "could not read
+          # Username for 'https://github.com'". Locally a developer's credential
+          # helper covers it; a runner has none. setup-git points git at gh, so
+          # the push uses the same installation token as the other two.
+          gh auth setup-git
+          ./tools/sync-dist.sh --apply -y
 
       # Draft, not published: the generated notes are a first pass whose tags are
       # keyword guesses and whose lines are raw PR titles. Someone trims, then

@@ -1,0 +1,81 @@
+name: release
+
+# Cutting a release is one act: tag, and everything the release owes follows.
+# Between v0.6.0 and v0.8.0 publishing was a manual script nobody ran, so Codex,
+# Pi and opencode served a two-minor-stale payload while CI stayed green
+# (AWO-156). Tying the publish to the tag is what stops that recurring.
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # release notes need the full tag history
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Verify before publishing anything. A payload that fails these must never
+      # reach an install surface.
+      - name: Generated surfaces in sync
+        run: python3 tools/gather.py --check
+      - name: Payload manifest integrity
+        run: python3 tests/payload-manifests/test_manifest_integrity.py
+
+      - name: Tag matches the canonical version
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          canonical="$(python3 -c "import json;print(json.load(open('.claude-plugin/plugin.json'))['version'])")"
+          if [ "$tag" != "$canonical" ]; then
+            echo "tag ${GITHUB_REF_NAME} does not match .claude-plugin/plugin.json ${canonical}" >&2
+            exit 1
+          fi
+
+      - name: Draft the release notes
+        run: python3 tools/release-notes.py --version "${GITHUB_REF_NAME}" --out RELEASE_NOTES.md
+
+      # An installation token from cauchy-awow-publisher (app id 4557933), a
+      # CauchyIO-owned App built for this one job, not a PAT: org-owned rather
+      # than tied to a person, and expiring in an hour. It holds exactly
+      # contents:write and pull_requests:write, the two the sync needs, and is
+      # installed on selected repositories rather than all.
+      #
+      # Note the permission is wider than the flow: contents:write would allow
+      # pushing straight to awow-dist's default branch. Publishing stays a PR
+      # because sync-dist.sh chooses to open one, not because the token forbids
+      # the alternative.
+      - name: Mint an awow-dist installation token
+        id: dist-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.AWOW_APP_ID }}
+          private-key: ${{ secrets.AWOW_APP_PRIVATE_KEY }}
+          owner: CauchyIO
+          repositories: awow-dist
+
+      # sync-dist.sh opens a PR against awow-dist and never pushes to its base
+      # branch, so merging stays a human act on a public repo.
+      - name: Open the awow-dist publish PR
+        env:
+          GH_TOKEN: ${{ steps.dist-token.outputs.token }}
+        run: ./tools/sync-dist.sh --apply -y
+
+      # Draft, not published: the generated notes are a first pass whose tags are
+      # keyword guesses and whose lines are raw PR titles. Someone trims, then
+      # publishes.
+      - name: Create the draft GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --draft \
+            --title "${GITHUB_REF_NAME}" \
+            --notes-file RELEASE_NOTES.md

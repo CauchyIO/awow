@@ -20,6 +20,9 @@ import sys
 import tempfile
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
+# The hook is a shim + implementation pair (session-start execs session-start.py);
+# fixtures carry both so the temp plugin layout matches a real install.
+HOOK_FILES = ("session-start", "session-start.py")
 HOOK = os.path.join(ROOT, "hooks", "session-start")
 DIST = os.path.join(ROOT, "dist")
 
@@ -44,9 +47,10 @@ def _plugin(payload_skill=None, source_skill=None):
     """Build a temp plugin root containing the hook and optional SKILL.md bodies."""
     d = _tmpdir()
     os.makedirs(os.path.join(d, "hooks"))
-    hook = os.path.join(d, "hooks", "session-start")
-    shutil.copy(HOOK, hook)
-    os.chmod(hook, os.stat(hook).st_mode | stat.S_IXUSR)
+    for name in HOOK_FILES:
+        hook = os.path.join(d, "hooks", name)
+        shutil.copy(os.path.join(ROOT, "hooks", name), hook)
+        os.chmod(hook, os.stat(hook).st_mode | stat.S_IXUSR)
     if payload_skill is not None:
         os.makedirs(os.path.join(d, "skills", "using-awow"))
         with open(os.path.join(d, "skills", "using-awow", "SKILL.md"), "w") as f:
@@ -222,10 +226,12 @@ check("plain root AGENTS.md still gets the setup nudge", "/setup-awow" in ctx)
 check("dist hooks probe only paths that exist in the payload",
       unresolved_probe_groups(DIST) == {})
 
-# The payload hook is a verbatim copy — a source edit without a gather rebuild
-# is a broken ship.
-with open(HOOK) as f_src, open(os.path.join(DIST, "hooks", "session-start")) as f_dist:
-    check("dist/hooks/session-start matches hooks/session-start", f_src.read() == f_dist.read())
+# The payload hooks are verbatim copies — a source edit without a gather
+# rebuild is a broken ship.
+for name in HOOK_FILES:
+    with open(os.path.join(ROOT, "hooks", name)) as f_src, \
+         open(os.path.join(DIST, "hooks", name)) as f_dist:
+        check(f"dist/hooks/{name} matches hooks/{name}", f_src.read() == f_dist.read())
 
 if failures:
     print(f"\n{len(failures)} failing: {failures}")

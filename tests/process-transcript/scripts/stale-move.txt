@@ -1,0 +1,4 @@
+# The board outran the transcript: PB-1 is already Done. The move must report stale, the rest executes.
+Process the standup notes at notes/standup.md against our board (context/tooling/board.md).
+yes
+go

@@ -21,7 +21,7 @@ The board is the single source of truth for planning, and awow exists to keep it
 
 ## Paths
 
-`{HUB}` is the team context root, `{PROJECT}` this project's; both resolve to the repo root here (a hub-connected spoke's hub pointer wins). Machinery reads `{HUB}` first, then `{AWOW_ROOT}` (its scripts at `{AWOW_TOOLS}`). Unresolvable `{HUB}`? Stop and say so. Several candidate installations or boards? Resolve per §Context resolution in AGENTS.md — never guess across a repo boundary.
+`{HUB}` is the team context root, `{PROJECT}` this project's; both resolve to the repo root here. In a spoke (root `AGENTS.md` frontmatter with a `hub:` key), resolve `{HUB}` as `$AWOW_HUB`, else the path recorded in the gitignored `.awow/hub.json` after its origin check — a missing or drifted link is a prompt to (re)map interactively and a loud stop headless, never a scan. Machinery reads `{HUB}` first, then `{AWOW_ROOT}` (its scripts at `{AWOW_TOOLS}`). Unresolvable `{HUB}`? Stop and say so. Several candidate installations or boards? Resolve per §Context resolution in AGENTS.md — never guess across a repo boundary.
 
 ## Board first
 
@@ -30,6 +30,14 @@ Before work with a discernible outcome, read `{HUB}/context/tooling/board.md` an
 ## Draft first, land second
 
 `{PROJECT}/proposals/` is free; the board, team context, and knowledge base require approval. Story body = intent + acceptance criteria + KB link; status goes in comments; durable rationale in `{HUB}/context/knowledge-base/`.
+
+## Route canonical knowledge
+
+When a task reads HUB context or may create durable HUB knowledge, check
+`{HUB}/context/knowledge-sources/index.md`. If it exists, use the
+`knowledge-source-routing` skill. The catalog contains semantic routes and canonical URIs, never
+mirrored content or machine-local paths. No match is ordinary HUB-only behavior; an external
+match is read-only and must be referenced rather than copied into the HUB.
 
 ## Route to the moment
 

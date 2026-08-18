@@ -10,9 +10,9 @@ Slash commands the agent can run. The files are **flat** — one `<name>.md` per
 | `spread` | Opt-in via `/awow-add <command>` (after first Seed cycle) | `coaching-review`, `solution-design-flow`, `project-plan`, `design-system`, `artifact`, `my-work` |
 | `standardise` | Opt-in via `/awow-add <command>` (most of team active) | `daily-checkin`, `daily-digest`, `kb-mine`, `kb-synthesize`, `update-context` |
 
-`_workitem-archetypes/` is the one remaining subfolder — it holds handlers loaded by `process-workitem`, not directly invocable commands.
+The two underscore-prefixed subfolders are handler registries, not directly invocable commands: `_workitem-archetypes/` is loaded by `process-workitem`, and `_meeting-archetypes/` is loaded by `process-transcript`.
 
-Two of these commands are routers that dispatch to sub-prompts: `process-workitem` dispatches to the archetype handlers in `_workitem-archetypes/`, and `process-transcript` routes a transcript to a specialist command (`coaching-review`, `solution-design-flow`). `guides/guide-transcript-router.html` documents the transcript-routing model — it is scoped to transcript-consuming commands, not a catalogue of every prompt.
+Two of these commands are routers: `process-workitem` dispatches to the handlers in `_workitem-archetypes/`; `process-transcript` composes every matching generic lens in `_meeting-archetypes/`, adds sparse team guidance from `context/team/meetings/`, and dispatches to a specialist command when one owns the workflow. `guides/guide-transcript-router.md` documents the transcript-routing model — it is scoped to transcript-consuming commands, not a catalogue of every prompt.
 
 Plus the top-level meta commands:
 

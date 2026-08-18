@@ -15,15 +15,17 @@ Examples shipped with the starter pack:
 - [`user-story-template.md`](./user-story-template.md) — the shape of a well-structured user story.
 - [`agent-directive-voice.md`](./agent-directive-voice.md) — voice rules for authoring or editing any prompt under `.agents/`.
 
-### Operational skill — a directory with `SKILL.md` and bundled `scripts/`
+### Packaged skill — a directory with `SKILL.md` and optional resources
 
-A skill that bundles a deterministic helper script alongside the rubric. The agent reads `SKILL.md` to know *when* and *how* to invoke the script, then turns its output into the desired shape. Use this when the rubric needs precise inputs (counts, extracted prompts, paginated API calls) the agent shouldn't reproduce inline.
+A skill whose instructions need the standard `SKILL.md` shape or bundled resources. Add a
+deterministic helper only when the rubric needs precise inputs (counts, extracted prompts,
+paginated API calls) the agent should not reproduce inline.
 
 ```
 .agents/skills/<name>/
-├── SKILL.md          # frontmatter (name + description) + invocation + report rubric
-└── scripts/
-    └── <script>.py   # plain-stdlib by default; documents its own deps in SKILL.md
+├── SKILL.md          # frontmatter (name + description) + workflow or rubric
+└── scripts/          # optional; plain-stdlib by default
+    └── <script>.py
 ```
 
 Examples shipped with the starter pack:
@@ -34,11 +36,11 @@ Examples shipped with the starter pack:
 
 ### Two plugins, one source tree
 
-Skills marked `channel: telemetry` in their frontmatter build into the separate **`awow-telemetry`** plugin rather than into `awow` — `mlflow-export`, `prompt-skill-analysis`, `project-timeline`, `awow-usage-coach`, `session-export`. The base plugin keeps the five behavioural skills: `using-awow`, `workitem-write`, `board-aware-development`, `architecture-aware-development`, `user-story-template`. Different audience, different dependency profile, different privacy posture; and every skill description loads into every session, so a telemetry surface nobody uses is a tax on everybody.
+Skills marked `channel: telemetry` in their frontmatter build into the separate **`awow-telemetry`** plugin rather than into `awow` — `mlflow-export`, `prompt-skill-analysis`, `project-timeline`, `awow-usage-coach`, `session-export`. The base plugin keeps the behavioural skills, including `using-awow`, `workitem-write`, `board-aware-development`, `architecture-aware-development`, `knowledge-source-routing`, `adopting-okf`, and `user-story-template`. Different audience, different dependency profile, different privacy posture; and every skill description loads into every session, so a telemetry surface nobody uses is a tax on everybody.
 
 The source stays here either way — `channel:` selects the payload, not the location. Install with `/plugin install awow-telemetry@awow`. **Claude Code only this release:** `tools/sync-dist.sh` publishes only `dist/` to `awow-dist`, which is the Codex and Pi install source, so telemetry does not reach those harnesses.
 
-The script is the deterministic part. The judgement still lives in `SKILL.md`.
+When present, the script is the deterministic part. The judgement still lives in `SKILL.md`.
 
 ### These ship as starters, not as required ingredients
 

@@ -39,6 +39,8 @@ The transport is resolved by available credential (`tests/harness/lib/gateway.sh
 - **Hub-spoke deploy**: the Claude Code deploy scenario checks the payload + connector deterministically.
   The codex/pi `live` paths now install the real awow plugin/package from the built `dist/` (staged as a
   git repo, mirroring `tools/sync-dist.sh` → `CauchyIO/awow-dist`) and assert a flow is discoverable —
-  no model needed. The Claude Code behavioural hub-resolution run still SKIPs until WI-4 `resolve_hub` lands.
+  no model needed. Hub resolution is asserted deterministically through the shipped `dist/` session-start
+  hook (AWO-133): connected-spoke read path and unmapped fail-loud, against the identity-carrying spoke
+  fixture. Model-driven spoke behaviour (does the agent *act* on the resolved hub) remains eval territory.
 - **Pi apim mode** needs a `models.json` provider block (Pi ignores `OPENAI_BASE_URL`); openrouter mode
   uses Pi's built-in `openrouter` provider.

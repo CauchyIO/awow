@@ -22,6 +22,9 @@ wiring() {
   file-exists "$r/dist/agent-skills/setup-awow/SKILL.md"
   file-exists "$r/dist/agent-skills/daily-digest/SKILL.md"
 
+  # The spoke registration flow must reach the commands-as-skills render.
+  file-contains "$r/dist/agent-skills/setup-awow/SKILL.md" 'Spoke track'
+
   # Version lockstep: the codex manifest is derived from the one canonical plugin
   # manifest, so it cannot ship a stale version.
   cmd-succeeds "codex manifest version == canonical plugin version" -- python3 -c "

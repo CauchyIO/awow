@@ -372,25 +372,7 @@ KB:glossary   Add term to {HUB}/context/knowledge-base/glossary.md: [term — de
 
 ### >>> GATE 2: Approve actions
 
-Stop here. Present a compact action summary. One line per action.
-
-```
-GATE 2 — PROPOSED ACTIONS
-
-Board mapping:
-  [N] matched to existing items | [N] new | [N] cross-team deps | [N] untracked
-
-Actions:
-  UPDATE  1. #[ID] — [one-line change]
-          2. ...
-  CREATE  1. [Type] "[Title]"
-          2. ...
-  ESCALATE 1. [blocker] → [action]
-  KB       1. [path] — [one-line]
-  HOUSEKEEPING 1. [one-line]
-```
-
-Present the standard options, then gate per `workitem-write` step 4.
+Stop here. Render the board plan per `workitem-write` step 4 over everything Phase 3 proposed: updates, moves, and creates as plan lines; KB promotions and escalations as `KB` / `ESCALATE` lines under the block; housekeeping folded into `~` lines or dropped. Set each line's `because:` to the transcript segment that motivates it. Open with one mapping line above the block — `[N] matched to existing items | [N] new | [N] cross-team deps | [N] untracked` — then offer the standard options and gate per `workitem-write` step 4.
 
 ---
 

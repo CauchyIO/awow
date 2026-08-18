@@ -1,0 +1,3 @@
+# The user names the infra board outright: rung 1 (explicit reference) must beat
+# the profile's product default, without re-pinning anything durable.
+Run /my-work for the infra board — what needs me there?

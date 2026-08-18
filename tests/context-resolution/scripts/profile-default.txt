@@ -1,0 +1,3 @@
+# No scope evidence in the ask: rungs 1-4 all miss, rung 5 (invoker default) must
+# resolve the product board silently — no picker, and "me" comes from the profile.
+Run /my-work — what needs me?

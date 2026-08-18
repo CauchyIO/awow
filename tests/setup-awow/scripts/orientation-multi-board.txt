@@ -1,0 +1,5 @@
+# Two boards named at orientation: the wizard must record both and announce the
+# index-form path, keeping one installation for the shared-conventions team.
+Continue /setup-awow.
+It's for a whole team — I'm the PO, product hat.
+We serve two boards: product and infra — one team across both, shared conventions.

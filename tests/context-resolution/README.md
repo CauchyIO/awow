@@ -25,6 +25,16 @@ subject; board content is minimal set dressing).
 - Setup hooks run `git init` + one commit in each directory that must read as a git
   repo at run time (fixtures cannot ship `.git/`). The workspace-root fixture's own
   root deliberately gets NO `git init`.
+- The two `profile-*` scenarios inject `.awow/profile.json` from the setup hook
+  *after* the fixture commit — `.awow/` is gitignored at any depth, so the profile
+  must arrive untracked, exactly as it does in real life.
+
+## Profile scenarios (Stage-2 rungs 5 and 1)
+
+- `profile-default` — no scope evidence in the ask; the invoker-default rung must
+  resolve the product board silently and take "me" from `board_identity`.
+- `profile-vs-explicit` — the user names the infra board outright; the explicit
+  reference beats the profile default, with no durable re-pin.
 
 ## Follow-ups (uncovered spec items)
 

@@ -1,0 +1,5 @@
+# GATE 2 must render one board plan; details must show draft + because; writes only after go.
+Process the standup notes at notes/standup.md against our board (context/tooling/board.md).
+yes
+details 3
+go

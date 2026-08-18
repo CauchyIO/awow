@@ -128,27 +128,7 @@ Turn the confirmed graph into a concrete, ordered set of board actions, and asse
 
 ### >>> GATE 2: Approve writes
 
-Stop here. Present:
-
-```
-GATE 2 — PROPOSED WRITES
-
-Plan artefact:
-  {PROJECT}/proposals/plans/<slug>.md
-
-Board actions:
-  CREATE  "[Title]"   ← blocked by: none        rank: L1
-  CREATE  "[Title]"   ← blocked by: [item]      rank: L2
-  LINK    #[ID]       ← blocked by: [item]
-  ...
-
-Edge encoding: [native blocked-by links | body "Blocked by:" lines — board has no dependency field]
-
-Cross-team escalations:
-  ESCALATE [edge] → [neighbouring team / contact]
-```
-
-Present the standard options, then gate and execute per `workitem-write` steps 4–5.
+Stop here. Name the plan artefact path (`{PROJECT}/proposals/plans/<slug>.md`), then render the board plan per `workitem-write` step 4 over the board actions — creates carry `↳ under <line|ID>` and a `← blocked by: <item>` facet, links to existing items are `~` lines — with `ESCALATE` lines beneath and one edge-encoding note after the block (`native blocked-by links | body "Blocked by:" lines`). Present the standard options, then gate and execute per `workitem-write` steps 4–5.
 
 ## Phase 3 — Publish & report
 

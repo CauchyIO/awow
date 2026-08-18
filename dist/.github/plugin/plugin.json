@@ -1,7 +1,7 @@
 {
   "name": "awow",
   "description": "Set up or extend awow (the Agentic Way of Working) in any repo. The awowify skill vendors the agent-setup files non-destructively, then runs setup.",
-  "version": "0.1.0",
+  "version": "0.9.2",
   "skills": [
     ".github/plugin/skills/"
   ]

@@ -22,15 +22,16 @@ Pi:
 GitHub Copilot:
 
     copilot plugin marketplace add CauchyIO/awow
-    copilot plugin install awow
+    copilot plugin install awow@awow
 
 opencode:
 
     opencode plugin awow@git+https://github.com/CauchyIO/awow-dist.git
 
-Claude Code installs from this repo. Codex, Pi and opencode install from
-`awow-dist`, which carries the built payload. Copilot exposes the commands as
-skills rather than slash commands.
+Claude Code and Copilot install from this repo, which carries the marketplace
+manifest both read. Codex, Pi and opencode install from `awow-dist`, which
+carries the built payload. Copilot exposes the commands as skills rather than
+slash commands.
 
 ## Then what
 
@@ -52,12 +53,18 @@ describe what you need instead of typing the command name.
 
 Every session starts by reading awow's working rules: go to the board before
 starting work, write or update the ticket, and keep the admin current while you
-work. Commands read your team context where it exists, and ask you once where it
-does not rather than stopping.
+work. Commands read your team context where it exists. An optional OKF catalog
+routes them to canonical repositories, SharePoint, or vector-backed sources
+without copying that material into the HUB.
 
 ## Going deeper
 
-`/setup-awow` wires your board (Linear, Jira, Azure DevOps, GitHub Issues) and
+The guides live in [`guides/`](guides/README.md) — plain markdown, readable
+directly on GitHub or as agent context.
+
+`/setup-awow` offers either a guided walkthrough or a 25–30 minute team
+workshop whose transcript becomes the same gated setup proposals. It wires
+your board (Linear, Jira, Azure DevOps, GitHub Issues) and
 writes your mission, conventions, and members into `context/`. It is incremental
 and resumable. Commands work better with it, and none require it.
 
@@ -74,13 +81,11 @@ board commands ask you once and carry on.
 
 ## Status
 
-v0.6. The four installs, the command set, the session context, and the build
-with its drift check in CI are working. `/awowify`, which vendors the prompts
-into your repo as editable files, runs from a clone rather than as a plugin
-command. `awow-telemetry` runs on Claude Code only.
-
-The visual tour is [`guides/index.html`](guides/index.html). Self-contained HTML,
-no agent session needed.
+v0.8. The four installs, the command set, canonical knowledge-source routing,
+the session context, and the build with its drift check in CI are working.
+`/awowify`, which vendors the prompts into your repo as editable files, runs
+from a clone rather than as a plugin command. `awow-telemetry` runs on Claude
+Code only.
 
 ## License
 

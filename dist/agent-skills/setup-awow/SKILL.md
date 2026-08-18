@@ -18,10 +18,30 @@ If `--root <path>` is given and `<path>/` does not exist, refuse and tell the us
 ## On every invocation
 
 1. Read `setup-progress.md`.
-2. **Lay out the full plan to the user before doing anything else.** List every step (0 → 9), mark each as ✓ complete, ⧗ deferred/pending, or ☐ untouched, and tell the user which step you are about to resume. The user should see the whole map on every entry — never present a single step in isolation.
-3. Walk through the steps in order until Step 0 and Step 1 are both complete. After that, offer the recommended next step and let the user pick.
+2. **Lay out the full plan to the user before doing anything else.** List every step (0 → 9), mark each as ✓ complete, ⧗ deferred/pending, or ☐ untouched, and tell the user which step you are about to resume. Keep this map compact when the user chose the workshop route.
+3. On first entry, offer the workshop and guided routes described below. Walk through the steps in order until Step 0 and Step 1 are both complete on the guided route. On the workshop route, prepare or process the workshop first, then return to uncovered steps and technical wiring.
 4. Write every artefact to `proposals/setup/<step>/` first. Land it (move to its final location) only after the user approves.
 5. Update `setup-progress.md` when a step completes.
+
+## Install shape — standalone or spoke
+
+Classify the install shape before Step 0, once per repo:
+
+- A vendored tree (`.agents/AGENTS.md`) or a recorded `install-shape:` in `setup-progress.md` settles it; do not re-ask.
+- A root `AGENTS.md` whose frontmatter carries a `hub:` key marks this repo as a spoke; go to the Spoke track to complete or repair its registration.
+- Otherwise, when you run from a plugin install in a repo with no awow files, ask once: standalone, or a spoke of an existing team hub? Record the answer as `install-shape: standalone | spoke` in `setup-progress.md`; standalone continues with the steps below, spoke continues with the Spoke track.
+
+## Spoke track — register this repo against a hub
+
+A spoke commits its hub's identity (git remote URL), never a path. Walk these five steps in order; every repo write follows draft → approval → land.
+
+1. **Identify the hub.** Ask for the hub's git remote URL and this repo's project name (default: the repo directory name). Never infer the hub from sibling directories without the user confirming.
+2. **Resolve the hub locally.** Offer an accessible checkout whose normalized `origin` — host + owner/repo, ignoring scheme, credentials, an optional `.git` suffix, and a trailing slash — equals the hub remote; else ask for a path or offer to clone. A checkout whose `origin` does not match is a stop, not a warning.
+3. **Write the machine link.** Write `.awow/hub.json` as `{"remote": "<hub remote URL>", "path": "<absolute path to the clone>"}` and ensure `.gitignore` covers `.awow/`. This link is machine-local state: never commit it and never record the path in any committed file.
+4. **Draft the spoke PR** in this repo: root `AGENTS.md` with connector frontmatter (`awow: spoke`, `hub: <remote URL>`, `project: <name>`) and a short body pointing collaborators at the hub; `.claude/settings.json` enabling the awow plugin at project scope; `context/mission.md`; `context/board-scope.md` (ask which board team or project this repo maps to); `context/do-not-propose.md` when the user wants one; the `.awow/` gitignore entry. Open the PR only after approval.
+5. **Draft the hub PR** in the hub checkout: a knowledge-source record for this repo per `{HUB}/context/tooling/knowledge-sources.md` — routing profile plus `spoke:` block — and its `index.md` line. Open it only after approval; when the user lacks hub PR rights, leave the drafted record under this repo's `proposals/` with a handoff note naming who can land it.
+
+Verify by reporting what a fresh session will see: the connected-spoke reflex with `{HUB}` resolved to the recorded path. Tell the user registration completes when both PRs merge; neither blocks the other, and teammates need only clone the spoke and answer the one-time map-the-hub prompt.
 
 ## Track — solo or team
 
@@ -31,6 +51,57 @@ On first entry (no `track:` recorded in `setup-progress.md`), ask once: "Is this
 - **Step 7 neighbouring teams** — skip; there are no 1° teams to stub.
 
 Reframe **Step 2** as the user's focus for the work, not a team charter. Everything else runs unchanged. A solo adopter can switch later by re-running `/setup-awow` and answering "team".
+
+## Choose the input route — workshop or guided
+
+When `setup-progress.md` has no `route:` entry, offer two equivalent ways to supply the team's setup context:
+
+- **Workshop.** Prepare a 25–30 minute agenda brief so the team can talk naturally about how it works. Process the transcript or notes afterward and turn the agreements into setup proposals.
+- **Guided.** Continue through Steps 0–9 conversationally, one step at a time.
+
+Accept either route without persuasion. Record `route: workshop` or `route: guided`. Allow the user to switch or combine them later. Both routes land the same context files and use the same approval gates.
+
+Treat a `.vtt`, `.srt`, or transcript-shaped Markdown argument as workshop input. Enter **Process the workshop** directly, including when `/process-transcript` hands you a parsed setup-workshop segment. Do not ask the route question in that case.
+
+### Prepare the workshop
+
+Do not require Step 0 or Step 1 before preparing the conversation. Read any existing setup progress and context that are safely available, then draft `proposals/setup/meeting-brief.md` with this timebox:
+
+| Time | Conversation |
+|---|---|
+| 0–4 min | What the team exists to change, for whom, and within which boundaries |
+| 4–10 min | How work enters, becomes ready, moves, and becomes done |
+| 10–20 min | Recurring and custom meetings: purpose, cadence, what is distinctive here, and what useful output looks like |
+| 20–25 min | Ownership, collaboration, communication, and where durable output belongs |
+| 25–30 min | Confirm agreements, disagreements, deferred questions, and owners |
+
+Write prompts that start a conversation, not an interview checklist. Use examples only to unblock discussion. Tell the facilitator to name whether a statement describes current practice, an agreed change, a suggestion, or unresolved disagreement. Keep credentials, MCP installation, authentication, and other technical wiring out of the meeting.
+
+Show the brief and ask whether to use it. After approval, keep it at `proposals/setup/meeting-brief.md` as the meeting handout, record `meeting brief: prepared` and `meeting transcript: awaiting` in `setup-progress.md`, then stop. Let the team meet in its own time.
+
+### Process the workshop
+
+Read the transcript plus existing `setup-progress.md` and context. Build a coverage map for:
+
+- mission and scope boundaries;
+- board practice and work flow;
+- conventions, members, and writing style;
+- recurring and custom meetings;
+- ownership, communication, and output placement;
+- technical configuration still requiring hands-on setup.
+
+Classify every usable statement as **current practice**, **agreed change**, **suggestion**, or **unresolved disagreement**. Do not convert one person's recollection, an unchallenged suggestion, or a disputed point into team context. When live board observations are available, compare them with what the team said and surface divergence rather than silently choosing one.
+
+Draft the resulting setup changes under the existing `proposals/setup/step-*/` paths. Draft meeting guidance under `proposals/setup/meetings/<slug>.md`:
+
+- For a common ritual, write only the meaningful ways this team differs from the generic lens in `_meeting-archetypes/`.
+- For a custom recurring meeting, describe how to recognise it, what matters, and what useful output looks like.
+- Use plain Markdown. Do not add frontmatter, identifiers, inheritance, or an `extends` syntax.
+- Do not create a meeting file when the generic lens already fits.
+
+Present one synthesis gate with the coverage map, source evidence, disagreements, pending areas, and the actual proposed diffs. Land only the selected proposals after explicit approval. Never copy the raw transcript into durable context.
+
+Update the corresponding Steps 0–9 in `setup-progress.md` after approved proposals land. Record `meeting transcript: processed`. Leave uncovered topics pending and resume them through either route. Always perform credentials, board authentication, MCP installation, harness wiring, and write verification outside the workshop; never infer technical configuration from the conversation.
 
 ## Step 0 — Installer (REQUIRED)
 
@@ -211,7 +282,18 @@ Walk the user through `context/knowledge-base/README.md` — what lives there vs
 
 **Locations (optional).** The two KB folders — `kb_root` (default `context/knowledge-base/`) and `inbox` (default `context/kb-inbox/`) — are declared in `context/tooling/knowledge-base.md`. Ask whether the team wants them elsewhere (e.g. a top-level `docs/kb/`, or an existing wiki/vault path). If **yes**: update the two paths in that config **and move the folders to match** (`git mv` the existing `context/knowledge-base/` and `context/kb-inbox/` contents). The contracts and commands resolve locations from the config, so nothing else needs editing. If **no**, leave the defaults. Keep the two folders distinct — the drain moves files from `inbox` into `kb_root`.
 
-Nothing is required here — the spine works on its defaults. The only optional knobs are the `selectivity` dial and these two paths. Record in `setup-progress.md` whether the default policy and locations were kept or adjusted.
+**Canonical sources (optional).** Ask whether important knowledge remains canonical in another
+repository, SharePoint, a vector-backed retrieval system, or another provider. If yes, read
+`context/tooling/knowledge-sources.md` and draft one OKF source record per system under
+`proposals/setup/step-6/knowledge-sources/`. Each record captures a description, routing signals,
+canonical remote URI, and read capability — never source content or a machine-local clone path.
+After approval, ensure `context/knowledge-sources/index.md` exists with `okf_version: "0.2"`, land
+the records beside it, and link them from that index. Do not test access by writing to an external
+source. If no, leave an existing empty catalog alone; when no catalog exists, routing stays inert.
+
+Nothing is required here — the spine works on its defaults. The optional choices are the
+`selectivity` dial, the two KB paths, and canonical-source records. Record in `setup-progress.md`
+whether the defaults were kept or adjusted and whether external sources were cataloged.
 
 ## Step 7 — Neighbouring teams
 

@@ -91,7 +91,7 @@ Then ask:
 
 > Should I execute these — send the check-ins, apply the graph corrections and board actions, raise the escalations?
 
-Board writes gate and execute per `workitem-write` steps 4–5. Check-in messages and escalations go out exactly as approved — stop on ambiguity, no silent changes.
+Render graph corrections, nudges, and board actions as one board plan per `workitem-write` step 4; keep check-in messages verbatim above it and escalations as `ESCALATE` lines beneath it. Board writes gate and execute per `workitem-write` steps 4–5; check-ins and escalations go out exactly as approved — stop on ambiguity, no silent changes.
 
 ## Output template — coordination read
 

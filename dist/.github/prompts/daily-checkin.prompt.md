@@ -197,11 +197,11 @@ After presenting everything, ask up to five questions. Default toward fewer — 
 
 ## Section 5 — Board execution (explicit approval required)
 
-After clarification, ask:
+After clarification, render the board plan per `workitem-write` step 4 over the proposed updates — each entry one plan line, its `because:` pointing at the day's evidence (commit, PR, account line) — then ask:
 
 > Should I execute these updates on the board?
 
-Gate and execution per `workitem-write` steps 4–5: explicit approval, re-verify each match, execute exactly as approved, confirm each action, stop on mid-execution ambiguity.
+Gate and execution per `workitem-write` steps 4–5: explicit approval, pre-image re-check per line, execute exactly as approved, stop on mid-execution ambiguity.
 
 ---
 

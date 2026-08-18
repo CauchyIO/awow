@@ -15,6 +15,12 @@ State file for `/setup-awow`. The wizard reads this file on every invocation to 
 - [ ] Step 8 — Extras surfaced
 - [ ] Step 9 — Skills review (keep / customise / drop each shipped skill; record per-skill decisions below)
 
+Each completed step carries `done-by: <name or hat>`.
+
+## Pending confirmations
+
+_Provisional answers awaiting the right hat — one line each: step, artefact, needs which hat, hand-off brief path._
+
 ## Last session
 
 _The wizard records here: invocation time, what was completed, what was deferred and why._

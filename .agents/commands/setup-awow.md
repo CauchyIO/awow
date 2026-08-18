@@ -49,14 +49,28 @@ A spoke commits its hub's identity (git remote URL), never a path. Walk these fi
 
 Verify by reporting what a fresh session will see: the connected-spoke reflex with `{HUB}` resolved to the recorded path. Tell the user registration completes when both PRs merge; neither blocks the other, and teammates need only clone the spoke and answer the one-time map-the-hub prompt.
 
-## Track — solo or team
+## Orientation — track, hat, and what this repo serves
 
-On first entry (no `track:` recorded in `setup-progress.md`), ask once: "Is this for a whole team, or just you?" Record the answer as `track: team` or `track: solo`. In **solo** mode, skip the steps that only make sense for a group and mark them as skipped when you lay out the plan:
+On first entry (no `track:` recorded in `setup-progress.md`), ask once, as one question: "Is this for a whole team, or just you — and which hat are you wearing: product, engineering, or both?" Record `track: team | solo` and `hat: product | engineering | both`; a bare "team" or "solo" answer defaults `hat: both`. Never re-ask either.
+
+In **solo** mode, skip the steps that only make sense for a group and mark them as skipped when you lay out the plan:
 
 - **Step 4 members** — skip; the roster is just the user. Still draft the style files, since they shape every artefact.
 - **Step 7 neighbouring teams** — skip; there are no 1° teams to stub.
 
 Reframe **Step 2** as the user's focus for the work, not a team charter. Everything else runs unchanged. A solo adopter can switch later by re-running `/setup-awow` and answering "team".
+
+With `track: team`, ask once what this repo serves: which board or boards, and which team or teams, by name. Record `boards: <comma list>` and `teams: <comma list>` in `setup-progress.md`. One board, one team — continue; this default path adds no further ceremony. More than one board — Step 1b drafts the index-form `board.md` (a `## Boards` list with sibling `board-<name>.md` specs, per §Context resolution in the agent instructions) and walks its configuration once per board. More than one team sharing members and conventions is one installation — say so, and recommend a separate installation only when the teams' conventions genuinely diverge.
+
+Write `{PROJECT}/.awow/profile.json` (schema per §Context resolution) with the stated hat and, once boards are named, the invoker's default board. Never commit it.
+
+### Hats — who answers which step
+
+Steps carry a hat — **engineering**: 0 (installer), 1a (surface), 5 (bootstrap), 9 (skills review); **product**: 1b (board config), 2 (mission), 3 (conventions), 4 (members + style), 6 (KB seed), 7 (neighbouring teams), 8 (extras). `hat: both` answers everything with no ceremony.
+
+Any hat may answer any step — never block on the wrong hat. When the invoker's hat does not match the step's, land the artefact with a first line `provisional: needs <hat> confirmation`, mirror it in `setup-progress.md` under `## Pending confirmations`, and offer a hand-off brief at `proposals/setup/handoff-<step>.md` (e.g. `handoff-step-2.md`): one paragraph naming the step, what was answered provisionally, and that running `/setup-awow` resumes exactly there.
+
+Surface pending confirmations in the step map on every invocation. When the right hat confirms or amends, remove the provisional line and the pending entry, and record the confirmation. Record `done-by: <name or hat>` beside every completed step's checkbox.
 
 ## Choose the input route — workshop or guided
 
@@ -132,7 +146,7 @@ The starter pack uses `tools/gather.py` to mirror `.agents/` into the harness su
 
 The outcome of Step 1 is a **wired-up board read/write surface** plus a fully-populated `context/tooling/board.md` that specifies this team's board — state machine, hierarchy, label taxonomy, fields, team-page conventions — not just the MCP wiring. The agent reads `board.md` thereafter whenever it needs to know what a label means, which states are terminal, or where in the hierarchy a new issue belongs.
 
-Step 1 has two parts. Step 1a wires up the read/write surface (an MCP or, for GitHub, the `gh` CLI). Step 1b walks the team through configuration — either **Mode A** (set up from the reference for greenfield / under-configured boards) or **Mode B** (assess and capture current state for already-running boards). The choice is automatic, driven by counting closed issues.
+Step 1 has two parts. Step 1a wires up the read/write surface (an MCP or, for GitHub, the `gh` CLI). Step 1b walks the team through configuration — either **Mode A** (set up from the reference for greenfield / under-configured boards) or **Mode B** (assess and capture current state for already-running boards). The choice is automatic, driven by counting closed issues. With more than one board recorded at orientation, run Step 1b once per board: the index-form `board.md` lists each board (name, scope, one-liner) and each board's full spec lands in a sibling `board-<name>.md`.
 
 ### Step 1a — Wire the read/write surface
 
@@ -266,7 +280,7 @@ Land each under `proposals/setup/step-3/<convention>.md`, get approval, move to 
 
 ## Step 4 — Members and style
 
-Ask for the team member list (role, responsibilities, focus areas). If members are listed in the board's team page, offer to pull from there.
+Ask for the team member list (role, responsibilities, focus areas). If members are listed in the board's team page, offer to pull from there. With more than one board recorded at orientation, also capture per member which boards they work (a `Boards:` line) and name each board's product curator and technical curator — hand-off briefs and provisional confirmations address the curators.
 
 Draft `context/team/style/board-output.md`, `comments.md`, `placement.md`, `prose.md` from the reference templates, customising only where the user pushes back.
 

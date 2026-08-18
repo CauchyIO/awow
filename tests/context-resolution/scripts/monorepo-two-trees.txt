@@ -1,0 +1,5 @@
+# CWD is the monorepo root — above both context trees. The upward walk finds
+# nothing; the downward probe finds two installations; the run must ask (a
+# picker), and the scripted answer picks alpha.
+I'm sam — run /my-work, what needs me?
+alpha

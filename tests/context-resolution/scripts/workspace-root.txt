@@ -1,0 +1,9 @@
+# CWD is the workspace root: not a git repo, two child repos with installations
+# (three boards total). Discovery rule 4 → installation picker; the scripted
+# answer picks repo-solo.
+I'm sam — run /my-work, what needs me?
+repo-solo
+# Third line lands at /my-work's closing "I could (with your go-ahead)" offer
+# gate: an explicit ticket reference (PROD-1) must resolve rung 1 (installation
+# AND board, in one step) without re-pinning the repo-solo installation.
+Before I go — quick cross-check: what state is PROD-1 in?

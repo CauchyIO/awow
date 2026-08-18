@@ -1,0 +1,4 @@
+# Scope evidence in the ask: the user names app/ work, so rung 2 (scope match)
+# must resolve to the product board silently — no picker. "sam" is the fixture
+# assignee; the run should not ask who "me" is.
+I'm sam, heads-down on the app/ checkout work today — run /my-work: what needs me?

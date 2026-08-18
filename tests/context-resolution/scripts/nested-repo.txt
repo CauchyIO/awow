@@ -1,0 +1,3 @@
+# The ask targets work INSIDE the nested repo. vendor-tool is its own git repo
+# with no awow context; the outer board (OUT-1) must not be borrowed for it.
+I'm sam, working in vendor-tool/ today — run /my-work for that checkout: what needs me there?

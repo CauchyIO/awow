@@ -1,6 +1,6 @@
 # Proposal — noise control for an AI-heavy board
 
-**Status:** Draft (solutioning) — comparison-mode, not yet a recommended plan. The body enumerates approaches per dimension with pros/cons so we can pick before writing the issue.
+**Status:** Trace-first **executed** 2026-08-05 (source: `../linear` sessions, cauchy workspace MLflow; 308 sessions / 3,152 traces, Feb–Jul 2026). Findings in gitignored `coach_reviews/board-hygiene-nudge.md`. Verdict: **the working hypothesis inverts** — A is already healthy (97% of 278 issue-creates preceded by an in-session board read, 91% by a query-search; 0 title-overlap duplicate pairs), yet the board still accumulated ~700 open items (500+ backlog, ~150 In Progress incl. March dailies). The noise is a *cross-session closure* gap, not a create-time gap: no installed flow ever sweeps stale WIP/backlog. Direction that follows: a recurring propose-only stale-sweep carried by an existing flow (B-shaped, human approves) + a one-time assisted cleanup; skip further A tightening; C-style silent age-out stays rejected.
 
 ---
 
@@ -20,6 +20,8 @@ When most board writes go through an AI agent, two failure modes accumulate:
 2. **Stale stories that no one prunes.** Real at the time, no longer real or no longer relevant, but they keep occupying board slots and skew any "what's outstanding?" view.
 
 The two compound. The noisier the create flow, the more pruning surface there is downstream. Observed by Casper in adopter work and in our own company.
+
+**2026-07-27 — repeated in usage feedback:** the company workspace board is "quite messy and needs to be cleaned", with the explicit expectation that the agent would carry this automatically ("why is this not being done automatically? why is the skill lagging?"). Two implications: the mess already exists (so a one-time assisted cleanup is owed regardless of which prevention option wins), and the expectation is *proactive* hygiene, not a skill the human must remember to run — which weighs against pure-A answers and toward pairing A with a B-style sweep that an existing recurring flow (digest, check-in) triggers.
 
 ---
 

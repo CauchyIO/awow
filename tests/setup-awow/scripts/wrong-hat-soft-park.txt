@@ -1,0 +1,5 @@
+# Engineering hat reaches the product-hat mission step: soft park, never a block.
+# Reply 2 is the mission; reply 3 approves the landing.
+Continue /setup-awow — let's do Step 2 now.
+Our mission: help ops engineers cut deploy failures in half by making rollback a one-command action.
+approve

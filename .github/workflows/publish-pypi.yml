@@ -1,0 +1,55 @@
+name: publish-pypi
+
+# Reserving `awow` on PyPI (AWO-166). The name is unclaimed, and a landgrab
+# gets worse with time — unlike the rest of AWO-160 this does not wait for the
+# 1.0.0 gate.
+#
+# There is no API token anywhere in this workflow, and none in the repo
+# secrets. PyPI's "pending publisher" form is itself the credential: it names
+# this repository, this filename, and this environment, and PyPI trusts an
+# OIDC token that matches all three. Change any of the three and the claim is
+# rejected — which is the point.
+#
+# Dispatch-only on purpose. `packaging/pypi/` is a placeholder that describes
+# what awow is and where it actually installs from; PyPI refuses a re-upload of
+# a version it already holds, so a tag trigger would fail every release until
+# someone remembered to bump a version nobody reads. The real payload publishes
+# at 1.0.0, and wiring that to the tag is that release's work, not this one's.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # Must exist in repo settings under exactly this name, and must match the
+    # environment field on the PyPI publisher. A GitHub environment that is not
+    # configured yields an OIDC token without the claim PyPI is checking for.
+    environment: pypi
+    permissions:
+      id-token: write  # mint the OIDC token PyPI verifies
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build the placeholder distribution
+        run: |
+          python -m pip install --upgrade build
+          python -m build packaging/pypi
+
+      # Metadata that PyPI would reject on upload fails here instead, before
+      # the name is on the line.
+      - name: Check the built metadata
+        run: |
+          python -m pip install --upgrade twine
+          python -m twine check packaging/pypi/dist/*
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: packaging/pypi/dist

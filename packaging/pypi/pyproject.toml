@@ -1,0 +1,33 @@
+# The PyPI half of the `awow` name reservation (AWO-166).
+#
+# Deliberately not the repository root `pyproject.toml`: that one is the
+# maintainer's development environment, pinned by uv.lock, and has no business
+# being uploaded anywhere. This is a separate, minimal project that exists so
+# `awow` on PyPI belongs to the team that ships awow.
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "awow"
+# Pre-release on purpose: `pip install awow` resolves nothing without --pre, so
+# the placeholder cannot be mistaken for a working install. The real payload
+# publishes at 1.0.0.
+version = "0.0.1.dev0"
+description = "Agentic Way of Working — board-first delivery workflows for coding agents"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{ name = "Casper Lubbers" }]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+Homepage = "https://github.com/CauchyIO/awow"
+Repository = "https://github.com/CauchyIO/awow"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/awow"]

@@ -61,3 +61,6 @@ timeline.html
 
 # Local scratch: superpowers specs/plans (ship via awow_io)
 docs/
+
+# PyPI placeholder build output (packaging/pypi) — never committed
+packaging/pypi/dist/

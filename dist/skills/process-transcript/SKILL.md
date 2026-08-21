@@ -17,7 +17,7 @@ This prompt runs as a pipeline with **three gates**. You stop at each gate, pres
 
 You are the entry point for the transcript-prompt family. Match each segment against every generic meeting lens, then recommend a specialist when another skill owns the workflow. When no specialist fits, apply the matched lenses here.
 
-**The filesystem holds two registries.** Load generic lenses from `{HUB}/.agents/commands/_meeting-archetypes/` when this repo has vendored them; otherwise load `${CLAUDE_PLUGIN_ROOT}/commands/_meeting-archetypes/`. Enumerate specialist commands from the awow command catalog and filter to frontmatter declaring `consumes: transcript`. Skip `README.md` and every path under `_workitem-archetypes/` or `_meeting-archetypes/` when building the specialist registry.
+**The filesystem holds two registries.** Load generic lenses from `{HUB}/.agents/commands/_meeting-archetypes/` when this repo has vendored them; otherwise load `${CLAUDE_PLUGIN_ROOT}/handlers/_meeting-archetypes/`. Enumerate specialist commands from the awow command catalog and filter to frontmatter declaring `consumes: transcript`. Skip `README.md` and every path under `_workitem-archetypes/` or `_meeting-archetypes/` when building the specialist registry.
 
 **Mode flags** from `$ARGUMENTS`:
 

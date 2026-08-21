@@ -83,9 +83,8 @@ board commands ask you once and carry on.
 
 v0.8. The four installs, the command set, canonical knowledge-source routing,
 the session context, and the build with its drift check in CI are working.
-`/awowify`, which vendors the prompts into your repo as editable files, runs
-from a clone rather than as a plugin command. `awow-telemetry` runs on Claude
-Code only.
+awow installs as a plugin: the prompts stay in the payload and an adopter repo
+holds only its own `context/`. `awow-telemetry` runs on Claude Code only.
 
 ## License
 

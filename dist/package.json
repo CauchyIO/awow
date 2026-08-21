@@ -1,7 +1,7 @@
 {
   "name": "awow",
   "version": "0.9.2",
-  "description": "Set up or extend awow in any repo, new or existing. /awowify adds the files Claude Code or GitHub Copilot need to follow your issue board (Linear, Jira, GitHub Issues, Azure DevOps) and conventions — without overwriting what's already there — then walks you through configuring it.",
+  "description": "Board-first delivery workflows for coding agents. /setup-awow connects your issue board (Linear, Jira, GitHub Issues, Azure DevOps) and your team's conventions; the delivery commands then keep the board current as a byproduct of the work.",
   "license": "MIT",
   "homepage": "https://github.com/CauchyIO/awow",
   "repository": "https://github.com/CauchyIO/awow",

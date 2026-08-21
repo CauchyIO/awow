@@ -119,7 +119,11 @@ Update the corresponding Steps 0–9 in `setup-progress.md` after approved propo
 
 ## Step 0 — Installer (REQUIRED)
 
-The starter pack uses `tools/gather.py` to mirror `.agents/` into the harness surfaces (`.claude/`, `.github/`, `.opencode/`). The installer wires Python via `uv`, creates `.venv`, and runs `gather.py` once so the harness can discover this very command.
+The installer exists to serve a **vendored tree**: it wires Python via `uv`, creates `.venv`, and runs `tools/gather.py` once to mirror `.agents/` into the harness surfaces (`.claude/`, `.github/`, `.opencode/`) so the harness can discover this very command.
+
+0. **Is there anything to install?** A plugin install has no vendored tree — both `.agents/AGENTS.md` and `setup/install.sh` are absent from this repo — and needs none: the commands already reach you from the payload, so there is no `.venv/` to create and no stub to generate. Probe with non-failing checks (`test -f .agents/AGENTS.md && echo present || echo absent`), never by reading the files; absent is the normal result here and a `cat` would surface a harmless `ENOENT` as a red error.
+
+   When both are absent, say in one line that this is a plugin install and the installer does not apply, record `0. Installer — n/a (plugin install)` in `setup-progress.md`, and go straight to Step 1. Never offer to vendor a tree, and never run an installer from the payload against the user's repo. The rest of this step is the vendored-tree path only.
 
 1. **Detect.** Run a cheap two-file probe — do not scan further:
    - `.claude/commands/setup-awow.md` present? (signals `gather.py` has run, i.e. stubs are populated)

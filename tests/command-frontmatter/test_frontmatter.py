@@ -29,10 +29,10 @@ FAILURES = []
 # indentation indicator and an optional chomping indicator.
 BLOCK_SCALARS = [">", ">-", ">+", "|", "|-", "|+", ">2", "|2-", ">4+"]
 
-# The sixteen shipped commands (design spec 7). awowify's source is the
-# top-level commands/ dir; the other fifteen live under .agents/commands/.
+# The fifteen shipped commands (design spec 7), all under .agents/commands/.
+# awowify was the sixteenth until the vendoring route was retired (CAU-1340).
 SHIPPED = [
-    "artifact", "awowify", "coaching-review", "daily-checkin", "daily-digest",
+    "artifact", "coaching-review", "daily-checkin", "daily-digest",
     "design-system", "kb-mine", "kb-synthesize", "my-work", "process-retro",
     "process-transcript", "process-workitem", "project-plan",
     "refinement-prep", "setup-awow", "solution-design-flow",
@@ -44,7 +44,7 @@ SHIPPED = [
 # misfire is damage (consequential and hard to reverse) or noise (trigger too
 # broad). Excluded on those grounds: my-work, daily-digest, kb-mine, artifact,
 # coaching-review, process-retro, refinement-prep, solution-design-flow (too
-# broad); setup-awow, awowify, design-system, kb-synthesize (consequential).
+# broad); setup-awow, design-system, kb-synthesize (consequential).
 # The 6th always-available surface, workitem-write, is a skill under
 # .agents/skills/ — not a command, so it is not elected here.
 AUTOFIRE = [
@@ -58,9 +58,7 @@ DEFERRED = {"update-context"}
 
 
 def source_for(name: str) -> Path:
-    """The authoring file for a command. awowify is the one exception."""
-    if name == "awowify":
-        return REPO_ROOT / "commands" / f"{name}.md"
+    """The authoring file for a command."""
     return REPO_ROOT / ".agents" / "commands" / f"{name}.md"
 
 

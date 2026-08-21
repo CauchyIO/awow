@@ -5,7 +5,7 @@ description: "Use when the user points at a board item — a ticket ID, issue li
 
 # /process-workitem — take a board work item from refinement to PR
 
-You load a board work item, validate its inputs, plan the change, apply it, verify the result, and report back. The work-specific rules (what to validate, what to check at the end) live in the archetype handlers — read `{HUB}/.agents/commands/_workitem-archetypes/` if this repo has vendored them, otherwise `../../commands/_workitem-archetypes/`. This file is the generic frame that wraps every archetype.
+You load a board work item, validate its inputs, plan the change, apply it, verify the result, and report back. The work-specific rules (what to validate, what to check at the end) live in the archetype handlers — read `{HUB}/.agents/commands/_workitem-archetypes/` if this repo has vendored them, otherwise `../../handlers/_workitem-archetypes/`. This file is the generic frame that wraps every archetype.
 
 This is the **seed** shipped with awow v0.1 — the flow below is a sensible default, not a contract. Edit it to fit how your team actually works.
 

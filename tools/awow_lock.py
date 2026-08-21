@@ -29,7 +29,7 @@ Subcommands
 -----------
     backfill   Create/refresh the baseline from the LOCAL tree (run at install
                time — at t0 local == upstream, so hashing local gives the
-               correct baseline). Consumes tools/.awow-vendor-stamp if present.
+               correct baseline).
 
                A repo that customized starter files BEFORE the lockfile existed
                must not backfill from the working tree: the edits would become
@@ -57,8 +57,9 @@ Subcommands
 
 Add --json to `status`/`apply` for machine output (used by /update-awow).
 
-STARTER_PATHS / ALWAYS_EXCLUDE / SOLO_EXCLUDE mirror setup/awowify.sh. Keep the
-two in sync — they define the same "what is starter-owned" boundary.
+STARTER_PATHS / ALWAYS_EXCLUDE / SOLO_EXCLUDE define what is starter-owned.
+They used to be kept in sync by hand with setup/awowify.sh; that engine went
+with the vendoring route (CAU-1340), so this file is now the sole definition.
 """
 
 from __future__ import annotations
@@ -73,9 +74,8 @@ from pathlib import Path
 
 DEFAULT_ROOT = Path(__file__).resolve().parent.parent
 LOCK_REL = "tools/awow.lock.json"
-STAMP_REL = "tools/.awow-vendor-stamp"
 
-# Starter-owned roots — MIRRORS setup/awowify.sh STARTER_PATHS. Keep in sync.
+# Starter-owned roots.
 STARTER_PATHS = [
     ".agents",
     "tools",
@@ -87,20 +87,17 @@ STARTER_PATHS = [
     "REFERENCES.md",
 ]
 
-# Never managed — maintainer-only tooling (MIRRORS awowify.sh EXCLUDES) plus the
-# lock machinery's own files. Prefix-matched against POSIX relpaths.
+# Never managed — maintainer-only tooling plus the lock machinery's own file.
+# Prefix-matched against POSIX relpaths.
 ALWAYS_EXCLUDE = {
-    "setup/awowify.sh",
-    "setup/awowify.ps1",
     "tools/distribute.py",
     "tools/reset-adopter-state.py",
     "tools/sync-dist.sh",
     ".agents/commands/awow-reset.md",
     LOCK_REL,
-    STAMP_REL,
 }
 
-# Dropped in solo mode — MIRRORS awowify.sh's SOLO excludes.
+# Dropped in solo mode — team-coordination context and commands.
 SOLO_EXCLUDE = {
     "context/company",
     "context/team/members.md",
@@ -192,7 +189,7 @@ def _iter_starter_files(root: Path, mode: dict):
 
 
 # --------------------------------------------------------------------------- #
-# hashing, version, git, stamp, lock IO
+# hashing, version, git, lock IO
 # --------------------------------------------------------------------------- #
 
 def _sha256(path: Path) -> str:
@@ -206,8 +203,8 @@ def _sha256(path: Path) -> str:
 def _read_version(root: Path):
     """Read the awow version from the plugin manifest, if the tree carries one.
 
-    Present in template repos (full tree); absent in awowify'd repos, whose
-    version travels in the lock / vendor stamp instead.
+    Present in a full tree; absent in a repo that carries only context/, whose
+    version travels in the lock instead.
     """
     for rel in (".claude-plugin/plugin.json", ".github/plugin/plugin.json"):
         p = root / rel
@@ -235,30 +232,8 @@ def _git_commit(root: Path):
     return None
 
 
-def _read_stamp(root: Path):
-    """Parse tools/.awow-vendor-stamp (key=value lines) written by awowify.sh."""
-    p = root / STAMP_REL
-    if not p.exists():
-        return None
-    stamp = {}
-    for line in p.read_text().splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, _, value = line.partition("=")
-        stamp[key.strip()] = value.strip()
-    return stamp
-
-
-def _resolve_mode(lock, stamp) -> dict:
-    if lock and lock.get("mode"):
-        return lock["mode"]
-    if stamp:
-        return {
-            "board": stamp.get("board", "all"),
-            "solo": stamp.get("solo", "0") in ("1", "true", "True"),
-        }
-    return dict(DEFAULT_MODE)
+def _resolve_mode(lock) -> dict:
+    return lock["mode"] if lock and lock.get("mode") else dict(DEFAULT_MODE)
 
 
 def _load_lock(root: Path):
@@ -485,16 +460,14 @@ def _baseline_from_source(root: Path, source: Path, mode: dict, old_files: dict)
 def cmd_backfill(root: Path, baseline_ref: str | None = None,
                  source: Path | None = None) -> int:
     lock = _load_lock(root)
-    stamp = _read_stamp(root)
-    mode = _resolve_mode(lock, stamp)
+    mode = _resolve_mode(lock)
 
     version = (
-        (stamp or {}).get("awow_version")
-        or (lock or {}).get("awow_version")
+        (lock or {}).get("awow_version")
         or (baseline_ref and _read_version_at_ref(root, baseline_ref))
         or _read_version(root)
     )
-    commit = (stamp or {}).get("source_commit") or (lock or {}).get("source_commit") or _git_commit(root)
+    commit = (lock or {}).get("source_commit") or _git_commit(root)
 
     if baseline_ref:
         files = _baseline_from_ref(root, baseline_ref, mode)
@@ -515,8 +488,6 @@ def cmd_backfill(root: Path, baseline_ref: str | None = None,
         "mode": mode,
         "files": files,
     })
-    if stamp is not None:
-        (root / STAMP_REL).unlink()
 
     print(f"awow.lock.json baseline: {len(files)} files at version "
           f"{version or 'unknown'} ({commit or 'no-commit'})")

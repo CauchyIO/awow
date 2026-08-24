@@ -97,4 +97,4 @@ change that alters starter files, and tag the release commit.
 - [`.agents/commands/update-awow.md`](../.agents/commands/update-awow.md) — the flow and its approval gate
 - [`tools/awow_lock.py`](../tools/awow_lock.py) — the 3-way compare and lockfile format
 - [`.claude-plugin/plugin.json`](../.claude-plugin/plugin.json) — the canonical version
-- Companion guides: [setup & the pointer-stub model](guide-setup-and-two-harnesses.md) — the wizard that installed what this updates
+- Companion guides: [setup & the plugin model](guide-setup-and-two-harnesses.md) — the wizard that installed what this updates

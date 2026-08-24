@@ -170,4 +170,4 @@ usable; write-dependent items are marked `pending-write`.
 - [`mcps/README.md`](../mcps/README.md) — catalogue, intake, harness wiring
 - [`.agents/commands/setup-awow.md`](../.agents/commands/setup-awow.md) — Step 1, the kickoff flow
 - `context/tooling/board.md` — the board surface every command reads and writes through; written by Step 1, not present until setup runs
-- Companion guides: [setup & the pointer-stub model](guide-setup-and-two-harnesses.md) — the wizard this is Step 1 of, and authoring once for both harnesses
+- Companion guides: [setup & the plugin model](guide-setup-and-two-harnesses.md) — the wizard this is Step 1 of, and authoring once for both harnesses

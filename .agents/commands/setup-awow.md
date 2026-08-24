@@ -280,7 +280,7 @@ For each of the four REQUIRED conventions (`issue-titles.md`, `labels.md`, `bran
 
 Land each under `proposals/setup/step-3/<convention>.md`, get approval, move to `context/team/conventions/REQUIRED/<convention>.md`. Update `setup-progress.md`.
 
-**Session-board correlation (opt-in).** Ask whether the team wants agent-authored board entries linked back to their session traces. If **yes**, first run the `session-correlation` skill's prerequisite check: tracing must already be wired (`MLFLOW_CLAUDE_TRACING_ENABLED=true` plus the MLflow `Stop` hook in `.claude/settings.local.json`). This skill does **not** set tracing up — if it is missing, stop and point the user at their own tracing library to configure tracing first, then resume. Once tracing is confirmed: install the footer rule from the skill — append its Rule 4 to `output-discipline.md` here, add its shape note to `board-output.md` in Step 4, and wire the SessionStart accessor hook per the skill's "Enabling it" steps. The rule then flows into the generated `CLAUDE.md` at Step 5 and is enforced from then on. If **no**: leave all three untouched; the skill stays available to enable later via `/awow-add`. Record the choice in `setup-progress.md`.
+**Session-board correlation (opt-in).** Ask whether the team wants agent-authored board entries linked back to their session traces. If **yes**, first run the `session-correlation` skill's prerequisite check: tracing must already be wired (`MLFLOW_CLAUDE_TRACING_ENABLED=true` plus the MLflow `Stop` hook in `.claude/settings.local.json`). This skill does **not** set tracing up — if it is missing, stop and point the user at their own tracing library to configure tracing first, then resume. Once tracing is confirmed: install the footer rule from the skill — append its Rule 4 to `output-discipline.md` here, add its shape note to `board-output.md` in Step 4, and wire the SessionStart accessor hook per the skill's "Enabling it" steps. The rule then flows into the generated `CLAUDE.md` at Step 5 and is enforced from then on. If **no**: leave all three untouched; the skill stays available to enable later by following its "Enabling it" steps. Record the choice in `setup-progress.md`.
 
 ## Step 4 — Members and style
 
@@ -292,7 +292,7 @@ Draft `context/team/style/board-output.md`, `comments.md`, `placement.md`, `pros
 
 Run `tools/bootstrap-claude-md.py` (or the inline equivalent). It reads the stub at `.agents/AGENTS.md` plus every file the wizard has produced so far and writes a team-specific `CLAUDE.md`.
 
-Critically: ask the user to populate the `## Do not propose` block. Surface scope-shedding statements ("we are not adding multi-user this quarter", "do not propose moving away from Linear"). Land the result. Run `tools/gather.py` to mirror to `.claude/CLAUDE.md` and `.github/AGENTS.md`.
+Critically: ask the user to populate the `## Do not propose` block. Surface scope-shedding statements ("we are not adding multi-user this quarter", "do not propose moving away from Linear"). Land the result. In a vendored install, run `tools/gather.py` to mirror it to `.claude/CLAUDE.md` and `.github/AGENTS.md`; a plugin install has nothing to mirror — the landed file is the team's own.
 
 ## Step 6 — Knowledge base seed
 
@@ -327,12 +327,12 @@ Ask for the 1° teams (teams whose work the user's team depends on or supplies i
 
 Read the commands whose frontmatter declares `phase: spread` or `phase: standardise` — from `{HUB}/.agents/commands/` if that directory exists (a vendored install), otherwise `{AWOW_ROOT}/commands/`. List each command, its phase, its prerequisites, and the pain it removes. Tell the user:
 
-> These are not installed. When you are ready for one, run `/awow-add <command>`.
+> These are all available now; each earns its place once its prerequisites hold.
 
 **Design system (detect, then suggest).** Read `context/tooling/design-system.md`.
 
 - If `mode:` is not `absent`, a design system is already configured — name its `path:` and move on; do not re-offer.
-- If `mode: absent`, ask one question: *"Does your team produce styled HTML artifacts — decks, blogs, solution designs, one-pagers?"* If **yes**, recommend the add-on flow: *"Run `/awow-add design-system` (or `/design-system` directly) to stand one up or point at an existing one. Until then, HTML artifacts use plain defaults."* Do not run it now — it is opt-in. If **no**, leave the pointer at `absent`.
+- If `mode: absent`, ask one question: *"Does your team produce styled HTML artifacts — decks, blogs, solution designs, one-pagers?"* If **yes**, recommend the add-on flow: *"Run `/design-system` to stand one up or point at an existing one. Until then, HTML artifacts use plain defaults."* Do not run it now — it is opt-in. If **no**, leave the pointer at `absent`.
 
 Record the answer (and any configured `path:`) in `setup-progress.md`.
 

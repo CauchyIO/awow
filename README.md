@@ -72,6 +72,20 @@ and resumable. Commands work better with it, and none require it.
 going: session timelines, prompt-quality review, usage coaching. It runs on
 Claude Code only.
 
+## Developing awow
+
+`.agents/` is the source; `tools/gather.py` builds it into the payloads under
+`dist/` and `dist-telemetry/`, and CI fails on drift with `--check`. Nothing is
+mirrored into this repo's `.claude/` or `.github/`: the marketplace Claude Code
+and Copilot install from *is* this repo, so a merge to `main` is what reaches a
+maintainer's own sessions (`/plugin marketplace update awow`, then
+`/plugin update awow`). To exercise a branch's payload before it merges:
+
+    python tools/gather.py && claude --plugin-dir dist
+
+`/test-awow`, the eval runner, is the one command that lives in this repo's
+`.claude/commands/` rather than the payload.
+
 ## Prerequisites
 
 A board with hierarchy. The agent reaches it however your team already does:

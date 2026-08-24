@@ -1,25 +1,19 @@
 """Regression test for orphan detection across BOTH generated payload roots.
 
-find_orphans applies two different rules. Under a fully-generated payload root
-every unplanned file is an orphan; everywhere else only files carrying the
-GENERATED header are, so user-authored files are never deleted.
+Every payload root is wholly generated: any unplanned file under it is an
+orphan, removed on apply and reported by `--check`. Payload content carries no
+marker of its own (plugin_command_copy, command_skill_stub, and skill_stubs all
+emit source bodies verbatim), so the sweep has nothing but the plan to go on —
+a root left out of GENERATED_ROOTS would have its stale files silently kept,
+still published, with `gather.py --check` green. That is a silent-corruption
+failure with no visible symptom, which is why it gets its own test rather than
+a line in the split suite.
 
-Before this test the rule was selected by `if surface == DIST_DIR` — an
-identity check against one path. The second payload root, dist-telemetry/, fell
-through to the marker branch, and full-copy payload content carries NO marker
-(plugin_command_copy, command_skill_stub, and skill_stubs all emit source
-bodies verbatim). A stale file there would therefore be undetected, never
-removed, still published, and `gather.py --check` would stay green. That is a
-silent-corruption failure with no visible symptom, which is why it gets its own
-test rather than a line in the split suite.
-
-Four assertions:
+Three assertions:
   1. Both payload roots are registered as fully generated.
-  2. A markerless probe under dist-telemetry/ IS reported as an orphan.
-  3. The same probe under .claude/ is NOT — the fully-generated rule stays
-     scoped, so a user file outside the payload is still safe.
-  4. Real payload content carries no marker, which is the premise that makes
-     assertion 2 load-bearing rather than incidental.
+  2. An unplanned probe under dist-telemetry/ IS reported as an orphan.
+  3. A file inside a nested git checkout under a payload root is NOT — the
+     sweep never crosses into another checkout's tracked files (AWO-62).
 
 Pure stdlib; no pytest, no network. Creates and removes one probe file under
 each root; leaves no directory it did not find.
@@ -41,8 +35,8 @@ FAILURES = []
 
 PROBE_BODY = (
     "---\nname: orphan-probe\ndescription: \"not a real skill\"\n---\n\n"
-    "# orphan probe\n\nFull-copy payload shape: deliberately carries no "
-    "GENERATED header, exactly like every real payload file.\n"
+    "# orphan probe\n\nFull-copy payload shape, exactly like every real "
+    "payload file.\n"
 )
 
 
@@ -76,21 +70,11 @@ def main() -> int:
                 "A payload root outside this set has its orphans silently ignored."
             )
 
-    # 4. Premise: real payload content carries no marker.
-    sample = gather.DIST_DIR / "commands" / "setup-awow.md"
-    if sample.is_file() and gather.GENERATED_MARKER in sample.read_text():
-        FAILURES.append(
-            f"{sample} carries the GENERATED marker — the marker branch would "
-            "have caught payload orphans after all, so this test's premise is stale."
-        )
-
-    # 2. Markerless probe under the telemetry payload root IS an orphan.
+    # 2. Unplanned probe under the telemetry payload root IS an orphan.
     tele_probe = getattr(gather, "DIST_TELEMETRY_DIR", REPO_ROOT / "dist-telemetry")
     tele_probe = tele_probe / "skills" / "_orphan-probe" / "SKILL.md"
     created = make_probe(tele_probe)
     try:
-        if gather.GENERATED_MARKER in tele_probe.read_text():
-            FAILURES.append("probe body accidentally contains the GENERATED marker")
         found = gather.find_orphans(set(), [tele_probe.parents[2]])
         if tele_probe not in found:
             FAILURES.append(
@@ -100,25 +84,11 @@ def main() -> int:
     finally:
         remove_probe(tele_probe, created)
 
-    # 3. The same probe under .claude/ is NOT an orphan.
-    claude_probe = gather.CLAUDE_DIR / "skills" / "_orphan-probe" / "SKILL.md"
-    created = make_probe(claude_probe)
-    try:
-        found = gather.find_orphans(set(), [gather.CLAUDE_DIR])
-        if claude_probe in found:
-            FAILURES.append(
-                f"{claude_probe.relative_to(REPO_ROOT)} WAS reported as an orphan — "
-                "the fully-generated rule leaked outside the payload roots, so a "
-                "user-authored file under .claude/ would be deleted."
-            )
-    finally:
-        remove_probe(claude_probe, created)
-
-    # 5. A file inside a nested git checkout is NOT an orphan, even under a
+    # 3. A file inside a nested git checkout is NOT an orphan, even under a
     #    fully-generated payload root where every unplanned file otherwise is.
-    #    A linked worktree is a copy of this repo, so its generated files carry
-    #    our marker; sweeping them destroys tracked files in another checkout
-    #    and fails --check on paths this run does not own (AWO-62).
+    #    A linked worktree is a copy of this repo; sweeping it destroys tracked
+    #    files in another checkout and fails --check on paths this run does not
+    #    own (AWO-62).
     nested = gather.DIST_DIR / "_probe-worktree"
     nested_file = nested / "commands" / "probe.md"
     created = make_probe(nested_file)

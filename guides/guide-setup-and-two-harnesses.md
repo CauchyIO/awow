@@ -1,13 +1,14 @@
-# Setup & the pointer-stub model
+# Setup & the plugin model
 
-What a new adopter hits first: the `/setup-awow` wizard, and how one source tree renders to every harness surface.
+What a new adopter hits first: the `/setup-awow` wizard, and how one source tree becomes the payload every harness installs.
 
 > **TL;DR** — `/setup-awow` is a wizard you run inside an agent session, incremental and
 > resumable against `setup-progress.md`. Choose a guided walkthrough or ask it for a 25–30 minute
 > team workshop brief and give it the transcript afterward; both routes produce the same gated
-> proposals. Only Steps 0 and 1 are required for operation. Separately, all agent instructions are authored once
-> under `.agents/`; `tools/gather.py` mirrors them into pointer stubs in `.claude/` and
-> `.github/` so the two harnesses cannot drift.
+> proposals. Only Steps 0 and 1 are required for operation. Separately, all agent instructions
+> are authored once under `.agents/` in the awow repo; `tools/gather.py` builds them into the
+> plugin payload under `dist/`, and that payload is what every harness installs — nothing is
+> mirrored into an adopter's `.claude/` or `.github/`.
 
 ## How the wizard behaves
 
@@ -35,46 +36,37 @@ rituals produce a file under `context/team/meetings/` only when this team materi
 the generic meeting lens; custom recurring meetings can be described there in full.
 
 **Multi-workspace runs.** `/setup-awow --root <path>` resolves `setup-progress.md`,
-`proposals/setup/` and `context/` relative to `<path>/` instead of the repo root. The harness
-infrastructure (`.venv/`, `.agents/`, `.claude/`, `.github/`) and the installer stay at the repo
-root regardless; Step 0's detection inherits the parent repo's installer state.
+`proposals/setup/` and `context/` relative to `<path>/` instead of the repo root.
 
 ## The step map (0–9)
 
 | Step | Name | Required? | Outcome |
 | --- | --- | --- | --- |
-| **0** | Installer | required | Python wired via `uv`, a `.venv` created, and `tools/gather.py` run once so the harness can discover this very command. |
+| **0** | Installer | required | In a plugin install: nothing to install — the commands already reach you from the payload, so the step records `n/a` and moves on. Only a legacy vendored tree still wires Python via `uv` and runs its own `tools/gather.py`. |
 | **1** | Board kickoff | required | A wired board read/write surface (MCP or `gh` CLI) plus a fully-populated `context/tooling/board.md` — states, hierarchy, labels, fields, team-page conventions. |
 | **2** | Mission | recommended | A one-sentence mission naming audience, change, and constraint — landed at `context/team/mission.md`. |
 | **3** | Required conventions | recommended | The four REQUIRED conventions (`issue-titles`, `labels`, `branches`, `output-discipline`), observed from the board or guided from reference. `output-discipline.md` is non-negotiable. |
 | **4** | Members & style | recommended | Team member list plus the style files (`board-output`, `comments`, `placement`, `prose`) drafted from templates. |
-| **5** | CLAUDE.md / AGENTS.md bootstrap | recommended | `tools/bootstrap-claude-md.py` rewrites the stub into a team-specific `CLAUDE.md` (including the `## Do not propose` block), then gather mirrors it out. |
+| **5** | CLAUDE.md / AGENTS.md bootstrap | recommended | A team-specific root `CLAUDE.md` / `AGENTS.md` (including the `## Do not propose` block) — the team's own file, which awow never regenerates. |
 | **6** | Knowledge base seed | recommended | A seeded `glossary.md` and stubbed architecture / patterns / runbooks / decisions subfolders. |
 | **7** | Neighbouring teams | recommended | Stubs at `context/company/neighbouring-teams.md` for the 1° teams you depend on or supply. |
-| **8** | Surface the extras | recommended | Lists the `spread` / `standardise` commands (not installed) with the pain each removes; opted into later via `/awow-add`. |
+| **8** | Surface the extras | recommended | Lists the `spread` / `standardise` commands with the pain each removes and the prerequisites each assumes. They all ship in the payload; the phase says when a team is ready for them. |
 | **9** | Skills review | recommended | Walks each shipped skill — keep, customise, or drop — surfacing the assumption each bakes in (e.g. "assumes Databricks MLflow"). Re-run whenever the stack changes. |
 
 `/setup-awow --quickstart` does Steps 0 → 1 → 2 → 3 → 5 in one turn with sensible defaults,
-skipping the per-step review loop. Step 0 still asks permission before running the shell
-installer.
+skipping the per-step review loop.
 
-## Step 0 — Installer (required)
+## Step 0 — install shape
 
-Wires Python via `uv`, creates `.venv`, and runs `tools/gather.py` once — which is what makes
-`/setup-awow` itself discoverable. It starts with a cheap detection probe so it stops scanning
-the moment the answer is obvious:
+The wizard first decides what kind of repo it is in:
 
-| Detected | Action |
+| Detected | Meaning |
 | --- | --- |
-| `.claude/commands/setup-awow.md` **and** `.venv/` both present | Step 0 already complete; skip ahead. |
-| Stubs present, no `.venv/` | Gather has run; only the env needs restoring. Offers `uv sync --python 3.12`, not the full installer. |
-| Stubs missing | Run the full installer: `./setup/install.sh` (macOS / Linux) or `.\setup\install.ps1` (Windows). |
+| Root `AGENTS.md` frontmatter carries a `hub:` key | A **spoke** — the Spoke track completes or repairs its registration against the hub. |
+| Plugin install, no awow files yet | Asks once: standalone, or a spoke of an existing team hub? Records `install-shape` in `setup-progress.md`. Standalone has nothing to install: the step is `n/a`. |
+| `.agents/AGENTS.md` and `setup/install.sh` present | A **legacy vendored tree** — the installer path still applies there, and only there. |
 
-In every branch it **requests permission before running any shell installer** and surfaces the
-output verbatim. The most common failure is `uv` not being on PATH; the wizard surfaces that
-error and tells you to install `uv` first rather than guessing a system Python. It then verifies
-`.venv/`, `.claude/commands/setup-awow.md`, and `.github/prompts/setup-awow.prompt.md` are all
-present.
+It never offers to vendor a tree and never runs an installer from the payload against your repo.
 
 ## Step 1 — Board kickoff (required)
 
@@ -94,71 +86,59 @@ and asks whether to *proceed*, *adjust* a section, or *evaluate* it against the 
 looping until you say proceed. Full board mechanics live in
 [Board & MCP integration](guide-board-and-mcp.md).
 
-## The trap, and awow's answer
+## One source, every harness
 
-A team using both Claude Code and GitHub Copilot hits the same problem: every instruction file,
-prompt, and skill ends up duplicated across `.claude/` and `.github/`, someone fixes a convention
-in one copy and forgets the other, and the two agents follow different rules.
+A team using more than one coding agent hits the same problem: every instruction file, prompt,
+and skill ends up duplicated per harness, someone fixes a convention in one copy and forgets the
+other, and the agents follow different rules.
 
-The answer is **pointer stubs**. Author everything once under `.agents/`; `tools/gather.py`
-generates tiny redirect files in `.claude/` and `.github/` that each harness discovers natively.
-A stub carries only the discovery metadata the harness needs — frontmatter `description` /
-`name` — plus a one-line body pointing back at `.agents/`. There is no substantive content in a
-stub, so there is nothing to drift.
+awow's answer is **one source, one build, one install.** Everything is authored once under
+`.agents/` in the awow repo. `tools/gather.py` renders it into the payloads under `dist/` — full
+command copies for Claude Code, a commands-as-skills surface for Codex, Pi and opencode, and the
+Copilot plugin under `dist/.github/plugin/` — and CI fails on drift with `--check`. Adopters
+install that payload; their repos hold only `context/`, the board wiring, and their own root
+instruction file. There is no per-repo copy of a prompt to drift.
 
 ```mermaid
 flowchart LR
-  agents[".agents/ — edit here, the only place<br/>CLAUDE.md · commands/ · skills/"] --> gather["tools/gather.py<br/>emits pointer stubs; --check detects drift in CI"]
-  gather --> claude[".claude/commands/&lt;name&gt;.md<br/>Claude Code discovers natively"]
-  gather --> gh[".github/prompts/&lt;name&gt;.prompt.md<br/>Copilot discovers natively"]
+  agents[".agents/ — edit here, the only place<br/>AGENTS.md · commands/ · skills/"] --> gather["tools/gather.py<br/>builds the payloads; --check detects drift in CI"]
+  gather --> dist["dist/ — the awow plugin<br/>Claude Code · Copilot · Codex · Pi · opencode"]
+  dist --> adopter["adopter repo<br/>context/ + board wiring + root AGENTS.md"]
 ```
 
-`.claude/` and `.github/` are committed so a fresh clone is immediately recognisable to either
-harness.
+Path tokens make this possible: prompt bodies name `{HUB}`, `{PROJECT}`, `{AWOW_ROOT}` and
+`{AWOW_TOOLS}` instead of literal paths, and gather substitutes the harness-correct form at build
+time — `${CLAUDE_PLUGIN_ROOT}` for Claude Code, a skill-relative path for Codex and Pi — while
+`{HUB}` and `{PROJECT}` ship as-is for the session reflex to resolve at runtime.
 
-## What a stub actually contains
+## The maintainer loop
 
-```markdown
-<!-- .claude/commands/refinement-prep.md — GENERATED by tools/gather.py. DO NOT EDIT. -->
----
-description: draft a feature for the next refinement
----
-Read .agents/commands/refinement-prep.md and follow it.
-```
-
-**One Copilot gotcha.** Prompts under `.github/prompts/` must end in `.prompt.md` — VS Code's
-Copilot Chat silently ignores a plain `.md` there. gather.py emits the right extension
-automatically; you only need this fact when debugging "my new command isn't showing up in
-Copilot."
-
-## Regenerating & keeping it honest
+The marketplace Claude Code and Copilot install from **is** the awow repo:
+`.claude-plugin/marketplace.json` serves `./dist`. So a maintainer dogfoods the exact artifact
+adopters get, and a merge to `main` is what reaches their own sessions:
 
 ```bash
-# edit the source of truth
-$EDITOR .agents/commands/refinement-prep.md
+# after a merge to main
+/plugin marketplace update awow
+/plugin update awow
 
-# regenerate the .claude/ and .github/ stubs
-uv run python tools/gather.py
+# exercise a branch's payload before it merges
+python tools/gather.py && claude --plugin-dir dist
 
-# in CI: fail if any stub drifted from .agents/
-uv run python tools/gather.py --check
+# in CI: fail if dist/ drifted from .agents/
+python tools/gather.py --check
 ```
 
-The rule: **edit under `.agents/`, never the generated stubs.** Hand-edits to `.claude/` or
-`.github/` are overwritten on the next gather. The same mechanism carries the `CLAUDE.md` that
-Step 5 produces out to `.claude/CLAUDE.md` and `.github/AGENTS.md`.
-
-## Why this matters for adopters
-
-The recommended way to adopt awow is GitHub's *Use this template*, not a fork — so your repo
-starts with no upstream relationship to merge through. The starter ships both `.claude/` and
-`.github/` populated, and Step 1 detects which harness you are running inside and asks whether
-the team also uses the other.
+Copilot's equivalent is `copilot plugin marketplace add CauchyIO/awow`; Codex, Pi and opencode
+install from `awow-dist`, which carries the same built payload. Nothing is generated into the
+awow repo's own `.claude/` or `.github/` — the instruction files there are short hand-authored
+pointers to `.agents/AGENTS.md`, and `/test-awow` (the eval runner) is the one command that
+lives in `.claude/commands/` rather than the payload.
 
 ## Sources of truth
 
-- [`.agents/commands/setup-awow.md`](../.agents/commands/setup-awow.md) — the wizard spec, Steps 0–9
-- [`README.md`](../README.md) — "Day one", "What's in this repo", "One source of truth, two harness surfaces", "Adopting & contributing back"
-- [`.agents/AGENTS.md`](../.agents/AGENTS.md) — the bootstrap stub
-- [`tools/gather.py`](../tools/gather.py) — the stub generator and `--check` drift gate
-- Companion guides: [board & MCP integration](guide-board-and-mcp.md) — what Step 1 wires and how an MCP joins it; [updating awow](guide-update-and-versioning.md) — pulling newer awow against the lockfile
+- [`.agents/commands/setup-awow.md`](../.agents/commands/setup-awow.md) — the wizard spec, Steps 0–9 and the Spoke track
+- [`README.md`](../README.md) — "Install", "Developing awow"
+- [`.agents/AGENTS.md`](../.agents/AGENTS.md) — the canonical rule set and the path tokens
+- [`tools/gather.py`](../tools/gather.py) — the payload build and `--check` drift gate
+- Companion guides: [board & MCP integration](guide-board-and-mcp.md) — what Step 1 wires and how an MCP joins it; [updating awow](guide-update-and-versioning.md) — the legacy vendored update path against the lockfile

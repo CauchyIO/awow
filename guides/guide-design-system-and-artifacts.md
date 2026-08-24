@@ -81,7 +81,7 @@ say-so. It never fakes a house style.
 | --- | --- |
 | `CLAUDE.md` rule | "When you produce an HTML artifact" — read the pointer, adopt when present, re-read the source each time. Applies to ad-hoc HTML that never goes through `/artifact`. |
 | `/solution-design-flow` | Phase 0 reads the pointer; the presentation track adopts the system and hands generate-and-render mechanics to `/artifact` rather than duplicating them. |
-| `/setup-awow` Step 8 | Detects an existing system; if none, asks one question — "do you produce styled HTML artifacts?" — and on yes suggests `/awow-add design-system`. Implicit, opt-in, never auto-run. |
+| `/setup-awow` Step 8 | Detects an existing system; if none, asks one question — "do you produce styled HTML artifacts?" — and on yes suggests `/design-system`. Implicit, opt-in, never auto-run. |
 | Digests | A styled digest adopts the same tokens, so it looks like it belongs to the team rather than to the tool. |
 
 ## The visual rules
@@ -105,5 +105,5 @@ say-so. It never fakes a house style.
 - [`.agents/commands/design-system.md`](../.agents/commands/design-system.md) — the three gates, the teardown method, the token discipline
 - [`.agents/commands/artifact.md`](../.agents/commands/artifact.md) — the content-first pipeline, verification, PDF export
 - [`context/tooling/design-system.md`](../context/tooling/design-system.md) — the pointer and its three modes
-- [`.agents/commands/setup-awow.md`](../.agents/commands/setup-awow.md) (Step 8), [`.agents/commands/awow-add.md`](../.agents/commands/awow-add.md) — the opt-in moments
+- [`.agents/commands/setup-awow.md`](../.agents/commands/setup-awow.md) (Step 8) — the opt-in moment
 - Companion guides: [solution-design collaboration](guide-solution-design-collaboration.md) — the presentation track's biggest consumer; [standardise reporting](guide-standardise-reporting.md) — digests on the same tokens

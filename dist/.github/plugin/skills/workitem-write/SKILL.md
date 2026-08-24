@@ -5,7 +5,7 @@ description: "Use for any board item create or update — an ad-hoc make-a-ticke
 
 # workitem-write — the one path for board creates and updates
 
-Every board item create or update routes through these six steps: a flow delegating its write step (`/daily-checkin`, `/project-plan`, `/refinement-prep`, `/process-transcript`, `/project-manager`) or an ad-hoc "make a ticket for X" mid-session. A delegating flow keeps its own discovery, templates, and flow-specific rules; this skill owns the generic write discipline. It is deliberately type-agnostic — work-type rules live in the `_workitem-archetypes/` handlers at execution time, never here at creation time.
+Every board item create or update routes through these six steps: a flow delegating its write step (`/daily-checkin`, `/project-plan`, `/refinement-prep`, `/process-transcript`) or an ad-hoc "make a ticket for X" mid-session. A delegating flow keeps its own discovery, templates, and flow-specific rules; this skill owns the generic write discipline. It is deliberately type-agnostic — work-type rules live in the `_workitem-archetypes/` handlers at execution time, never here at creation time.
 
 ## 1. Look first
 

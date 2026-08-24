@@ -39,7 +39,6 @@ const TOOL_MAPPING = [
   '- Track multi-step work -> `todowrite`',
   '- Dispatch a subagent -> `task`',
   '- Invoke a skill -> the native `skill` tool',
-  '- In a vendored awow repo, the flows are also slash commands from `.opencode/commands/`.',
 ].join('\n');
 
 // The SKILL.md does not change during a session, so read and parse it once.

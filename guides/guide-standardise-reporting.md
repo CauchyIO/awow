@@ -119,5 +119,4 @@ Afterwards it offers `/kb-mine` over the same snapshot once, and drops it if you
 - [`.agents/commands/daily-digest.md`](../.agents/commands/daily-digest.md) — both windows: the six phases, the collection surfaces, the review gate, and the behavioural boundaries
 - [`.agents/commands/okr-cascade.md`](../.agents/commands/okr-cascade.md) — the department altitude that replaced the retired cross-team stub
 - [`.agents/commands/kb-mine.md`](../.agents/commands/kb-mine.md) — the deep lens over the same snapshot, offered at hand-off
-- [`.agents/commands/awow-add.md`](../.agents/commands/awow-add.md) — how a team opts into the Standardise commands
 - Companion guides: [session correlation](guide-session-correlation.md) — the join that lets a digest name the session behind an item; [trace analysis](guide-trace-analysis.md) — the read side over the same sessions; [design systems & HTML artifacts](guide-design-system-and-artifacts.md) — where a styled digest gets its house style

@@ -4,11 +4,13 @@ Slash commands the agent can run. The files are **flat** — one `<name>.md` per
 
 ## Layout
 
-| Phase (frontmatter) | When the team adopts it | Commands |
+| Phase (frontmatter) | When a team is ready for it | Commands |
 |---|---|---|
 | `seed` | Wired up by `/setup-awow` by default (first cycle) | `refinement-prep`, `process-workitem`, `process-transcript` |
-| `spread` | Opt-in via `/awow-add <command>` (after first Seed cycle) | `coaching-review`, `solution-design-flow`, `project-plan`, `design-system`, `artifact`, `my-work` |
-| `standardise` | Opt-in via `/awow-add <command>` (most of team active) | `daily-checkin`, `daily-digest`, `kb-mine`, `kb-synthesize`, `update-context` |
+| `spread` | After the first Seed cycle | `coaching-review`, `solution-design-flow`, `project-plan`, `design-system`, `artifact`, `my-work` |
+| `standardise` | Once most of the team is active | `daily-checkin`, `daily-digest`, `kb-mine`, `kb-synthesize`, `update-context` |
+
+Every command ships in the plugin payload; the phase says when a team is ready for it, not whether it is installed. `/setup-awow` Step 8 lists the Spread and Standardise commands with the pain each removes and the prerequisites each assumes.
 
 The two underscore-prefixed subfolders are handler registries, not directly invocable commands: `_workitem-archetypes/` is loaded by `process-workitem`, and `_meeting-archetypes/` is loaded by `process-transcript`.
 
@@ -17,9 +19,9 @@ Two of these commands are routers: `process-workitem` dispatches to the handlers
 Plus the top-level meta commands:
 
 - `setup-awow.md` — the incremental, resumable bootstrap wizard
-- `awow-add.md` — promote a Spread/Standardise command into the active set
-- `awow-status.md` — report current phase and readiness signals
-- `awow-reset.md` — wipe adopter-produced state so the walkthrough can be re-run end-to-end (maintainer iteration loop)
+- `update-awow.md` — the legacy vendored-tree update path (`channel: vendored`; not in the payload)
+
+The maintainer eval runner, `/test-awow`, lives in this repo's `.claude/commands/` rather than here — it is not part of the payload.
 
 ## Phase frontmatter
 
@@ -35,4 +37,4 @@ removes_pain: "the <specific friction this command removes> problem"
 ---
 ```
 
-`/awow-add` reads prerequisites and warns when a command is invoked out of order. Soft warning, not hard gate.
+Prerequisites are guidance a command surfaces when invoked out of order — a soft warning, not a hard gate.

@@ -6,7 +6,7 @@ channel: vendored
 
 # Session-board correlation
 
-> **Opt-in capability.** On its own this skill changes nothing about how the agent behaves. It becomes active only when a team **opts in** — during `/setup-awow` (Step 3) or later via `/awow-add`. Opting in (a) wires the SessionStart accessor hook and (b) writes the footer rule into *that team's* conventions, at which point it is a normal, enforced rule. Teams that never opt in carry none of it: no rule, no `$CLAUDE_SESSION_ID` expectation, no error.
+> **Opt-in capability.** On its own this skill changes nothing about how the agent behaves. It becomes active only when a team **opts in** — during `/setup-awow` (Step 3) or later by following the enabling steps below. Opting in (a) wires the SessionStart accessor hook and (b) writes the footer rule into *that team's* conventions, at which point it is a normal, enforced rule. Teams that never opt in carry none of it: no rule, no `$CLAUDE_SESSION_ID` expectation, no error.
 
 Agent-originated board entries normally have no link back to the trace that produced them, so the downstream consumers (`daily-digest`, plus the `awow-telemetry` skills `awow-usage-coach` and `prompt-skill-analysis`) cannot join board content to session data. This skill closes that gap with a one-line **session footer** on every entry the agent authors.
 

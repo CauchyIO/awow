@@ -166,4 +166,4 @@ Deliberately not decided here — the answers shape how the C2 containers get im
 - [`.agents/commands/solution-design-flow.md`](../.agents/commands/solution-design-flow.md) — the command that turns a design conversation into a locked design and a decomposed work-item tree
 - [`.agents/commands/project-plan.md`](../.agents/commands/project-plan.md) — what a ratified design feeds: the stated dependency graph and board items
 - [`.agents/AGENTS.md`](../.agents/AGENTS.md) — the proposal-first spine these lifecycle states sit on
-- Companion guides: [transcript router](guide-transcript-router.md) — how a design conversation reaches this command; [core delivery loop](guide-core-delivery-loop.md) — where the decomposed items get worked; [coordinating delivery](guide-delivery-coordination.md) — the dependency graph a ratified design feeds
+- Companion guides: [transcript router](guide-transcript-router.md) — how a design conversation reaches this command; [core delivery loop](guide-core-delivery-loop.md) — where the decomposed items get worked

@@ -6,40 +6,11 @@ wiring() {
   # Pi use. Nothing opencode-specific is needed for steering.
   file-contains "$r/AGENTS.md" '\.agents/AGENTS\.md'
 
-  # The in-repo command surface. opencode does NOT read .claude/commands/, so this
-  # directory is the only way awow's flows become slash commands.
-  file-exists "$r/.opencode/commands/setup-awow.md"
-  file-exists "$r/.opencode/commands/process-workitem.md"
-
-  # The spoke registration flow must be reachable from this harness. The
-  # .opencode command is a pointer stub, so assert both ends of the chain:
-  # the stub points at the source, and the source carries the flow.
-  file-contains "$r/.opencode/commands/setup-awow.md" '\.agents/commands/setup-awow\.md'
-  file-contains "$r/.agents/commands/setup-awow.md" 'Spoke track'
-
-  # The load-bearing one. opencode builds a command's placeholder list from the
-  # template body; a stub without a literal $ARGUMENTS silently receives no
-  # arguments at all. This fails invisibly at runtime, so it is asserted per file
-  # rather than on a sample.
-  cmd-succeeds "every .opencode command carries \$ARGUMENTS" -- python3 -c "
-import pathlib, sys
-bad = [p.name for p in pathlib.Path('$r/.opencode/commands').glob('*.md')
-       if '\$ARGUMENTS' not in p.read_text()]
-sys.exit(1 if bad else 0)"
-
-  # description is the only frontmatter key worth setting; template must never
-  # appear (for a markdown command the body IS the template, and a frontmatter
-  # template key conflicts with it).
-  cmd-succeeds "every .opencode command declares a description" -- python3 -c "
-import pathlib, sys
-bad = [p.name for p in pathlib.Path('$r/.opencode/commands').glob('*.md')
-       if not p.read_text().startswith('---\ndescription:')]
-sys.exit(1 if bad else 0)"
-  file-not-contains "$r/.opencode/commands/setup-awow.md" '^template:'
-
-  # A README in a commands dir becomes a bogus /README command in every harness.
-  # The Claude and Copilot surfaces still carry that leak; do not spread it here.
-  file-absent "$r/.opencode/commands/README.md"
+  # No in-repo command stubs (AWO-257): opencode reaches awow's flows through
+  # the plugin's commands-as-skills surface, the same way an adopter does. The
+  # spoke registration flow must still be reachable from this harness.
+  dir-absent "$r/.opencode/commands"
+  file-contains "$r/dist/agent-skills/setup-awow/SKILL.md" 'Spoke track'
 
   # Payload half: the plugin module package.json `main` resolves to.
   local js="$r/dist/.opencode/plugins/awow.js"
@@ -72,7 +43,7 @@ raise SystemExit(0 if './agent-skills' in skills else 1)"
   # The directory the config hook registers has to exist in the payload.
   file-exists "$r/dist/agent-skills/using-awow/SKILL.md"
 
-  # Emitting .opencode/skills/ would be a third in-repo copy of every skill.
-  # opencode already discovers .agents/skills/ and .claude/skills/ natively.
+  # Emitting .opencode/skills/ would be a second copy of every skill: opencode
+  # already discovers .agents/skills/ natively, and the plugin registers the rest.
   dir-absent "$r/.opencode/skills"
 }

@@ -12,10 +12,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Generated surfaces in sync (.claude/, .github/, dist/)
+      - name: Payloads in sync (dist/, dist-telemetry/, dist/m365)
         run: python tools/gather.py --check
-      - name: M365 Copilot surface in sync (dist/m365)
-        run: python tools/gather.py --surface m365 --check
       - name: Path-token lint
         run: python tools/lint-paths.py
       - name: Instruction-file write targets

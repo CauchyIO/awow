@@ -41,7 +41,7 @@ class M365Config:
 def load_config(repo_root: Path) -> M365Config:
     path = repo_root / CONFIG_REL
     if not path.is_file():
-        raise M365ConfigError(f"m365 config missing: {path} — create it or drop --surface m365")
+        raise M365ConfigError(f"m365 config missing: {path} — create it, or build only --surface plugin/telemetry")
     fields, body = parse_frontmatter(path.read_text())
     required = ["agent_name", "agent_description", "github_repo", "ref", "explore_starter", "index_roots"]
     missing = [k for k in required if not fields.get(k)]
@@ -68,8 +68,12 @@ def _tracked_files(repo_root: Path) -> set[str] | None:
     )
     if inside.returncode != 0 or inside.stdout.decode().strip() != "true":
         return None
+    # Tracked plus untracked-but-not-ignored: what the working tree holds, not
+    # what happens to be staged. `ls-files` alone made a `--check` run before
+    # `git add` pass on a new context file that CI, with the file committed,
+    # then reported as drift (AWO-262).
     result = subprocess.run(
-        ["git", "-C", str(repo_root), "ls-files", "-z"],
+        ["git", "-C", str(repo_root), "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
         capture_output=True,
     )
     if result.returncode != 0:

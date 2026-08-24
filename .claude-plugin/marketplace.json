@@ -7,7 +7,7 @@
     {
       "name": "awow",
       "source": "./dist",
-      "description": "Bring the Agentic Way of Working to any repo — brand-new or already full of code. /awowify adds the files an AI coding agent needs and walks you through connecting your issue board and conventions, without changing anything you've already built."
+      "description": "Bring the Agentic Way of Working to any repo. /setup-awow walks you through connecting your issue board and your team's conventions, and the delivery commands then keep the board current as a byproduct of the work — without changing anything you've already built."
     },
     {
       "name": "awow-telemetry",

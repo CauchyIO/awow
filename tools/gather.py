@@ -155,6 +155,7 @@ PAYLOAD_CONTEXT_PATHS = [
     "department/templates",               # contract (subtree — OKR and PI skeletons)
     "tooling/m365",                       # template — default agent identity/branding, tuned per adopter
     "team/meetings/README.md",            # contract — plain-Markdown meeting guidance shape
+    "team/workitem-archetypes/README.md", # contract — team archetype overlay shape
 ]
 
 # Team data: /setup-awow authors these per adopter. No useful default exists,

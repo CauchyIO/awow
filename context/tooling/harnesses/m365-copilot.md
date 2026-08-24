@@ -22,18 +22,19 @@ It doesn't, yet. This harness is assigned by a tenant admin, not self-detected f
 ## Regenerating
 
 ```bash
-uv run python tools/gather.py --surface m365
+uv run python tools/gather.py                  # the default build includes the package
+uv run python tools/gather.py --surface m365   # only the package
 ```
 
-Emits `dist/m365/appPackage/` (manifest, declarative agent, plugin + OpenAPI specs, icons) from `.agents/` + `context/`, the same generated-surface contract as `.claude/` and `.github/`. Never hand-edit files under `dist/m365/` — they're overwritten on the next run.
+Emits `dist/m365/appPackage/` (manifest, declarative agent, plugin + OpenAPI specs, icons) from `.agents/` + `context/`, the same generated-payload contract as `dist/`. Never hand-edit files under `dist/m365/` — they're overwritten on the next run. The plan sees every file git would commit, staged or not; only ignored files are left out.
 
 Drift guard:
 
 ```bash
-uv run python tools/gather.py --surface m365 --check
+uv run python tools/gather.py --check
 ```
 
-Run this in CI or before a commit that touches `.agents/`, `context/tooling/m365/`, or any command's `m365:` frontmatter, to catch a stale package.
+The default check covers the package, so CI and a pre-commit run catch a stale one without a separate step.
 
 ## Packaging
 

@@ -35,9 +35,20 @@ class TestEmit(unittest.TestCase):
         )
         self.assertEqual(diff.returncode, 0, diff.stdout + diff.stderr)
 
-    def test_default_surface_untouched_by_m365(self):
-        check = run_gather("--check")
-        self.assertNotIn("dist/m365", check.stdout)
+    def test_default_check_covers_m365(self):
+        """A plain `gather.py --check` must report a stale M365 package. It did
+        not until AWO-262: the package sat behind `--surface m365` alone, so a
+        contributor who ran the default build and check shipped stale m365
+        bytes that only CI's separate step caught."""
+        target = PKG / "declarativeAgent.json"
+        original = target.read_bytes()
+        try:
+            target.write_bytes(original + b"\n")
+            check = run_gather("--check")
+            self.assertEqual(check.returncode, 1, check.stdout + check.stderr)
+            self.assertIn("dist/m365/appPackage/declarativeAgent.json", check.stdout)
+        finally:
+            target.write_bytes(original)
 
 
 class TestRefinementPrepIncluded(unittest.TestCase):

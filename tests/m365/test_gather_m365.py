@@ -171,7 +171,11 @@ m365:
 
 
 class TestTrackedFilesFiltering(unittest.TestCase):
-    """Fix 1: untracked working-tree files must never leak into the emitted package."""
+    """The plan sees what git would commit — tracked files and untracked ones
+    that are not ignored — and never an ignored file. Staging state must not
+    change the plan: keying on `ls-files` alone made a `--check` before
+    `git add` pass on a new context file that CI, with the file committed,
+    reported as drift (AWO-262)."""
 
     def _init_repo(self, root: Path) -> None:
         import subprocess
@@ -205,39 +209,46 @@ class TestTrackedFilesFiltering(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             self._init_repo(root)
+            (root / ".gitignore").write_text("ignored.md\n")
             (root / "tracked.md").write_text("tracked\n")
-            self._commit(root, "tracked.md")
+            self._commit(root, ".gitignore", "tracked.md")
             (root / "untracked.md").write_text("untracked\n")
+            (root / "ignored.md").write_text("ignored\n")
             tracked = gather_m365._tracked_files(root)
-            self.assertEqual(tracked, {"tracked.md"})
+            self.assertEqual(tracked, {".gitignore", "tracked.md", "untracked.md"})
 
-    def test_included_commands_skips_untracked_command(self):
+    def test_included_commands_sees_unstaged_command_but_not_ignored(self):
         import tempfile
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             self._init_repo(root)
             cmds = root / ".agents" / "commands"
             cmds.mkdir(parents=True)
+            (root / ".gitignore").write_text("*.local.md\n")
             (cmds / "in.md").write_text(FM)
-            self._commit(root, ".agents/commands/in.md")
-            # Untracked second command file — should never be discovered.
-            (cmds / "out.md").write_text(FM.replace("Draft a feature", "B feature"))
+            self._commit(root, ".gitignore", ".agents/commands/in.md")
+            # A new command not yet staged is part of the plan — it is what the
+            # author is about to commit. An ignored file never is.
+            (cmds / "new.md").write_text(FM.replace("Draft a feature", "B feature"))
+            (cmds / "scratch.local.md").write_text(FM.replace("Draft a feature", "C feature"))
             entries = gather_m365.included_commands(root)
-            self.assertEqual([e.name for e in entries], ["in"])
+            self.assertEqual(sorted(e.name for e in entries), ["in", "new"])
 
-    def test_build_file_index_skips_untracked_file(self):
+    def test_build_file_index_sees_unstaged_file_but_not_ignored(self):
         import tempfile
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             self._init_repo(root)
             team = root / "context" / "team"
             team.mkdir(parents=True)
+            (root / ".gitignore").write_text("*.local.md\n")
             (team / "tracked.md").write_text("# Tracked\n\nbody\n")
-            self._commit(root, "context/team/tracked.md")
-            (team / "untracked.md").write_text("# Untracked\n\nbody\n")
+            self._commit(root, ".gitignore", "context/team/tracked.md")
+            (team / "new.md").write_text("# New\n\nbody\n")
+            (team / "notes.local.md").write_text("# Ignored\n\nbody\n")
             index = gather_m365.build_file_index(root, ("context/team",))
-            paths = [p for p, _ in index]
-            self.assertEqual(paths, ["context/team/tracked.md"])
+            paths = sorted(p for p, _ in index)
+            self.assertEqual(paths, ["context/team/new.md", "context/team/tracked.md"])
 
     def test_non_git_directory_still_includes_all_fixtures(self):
         # Confirms the existing (non-git temp-dir) fixtures in TestIncludedCommands and

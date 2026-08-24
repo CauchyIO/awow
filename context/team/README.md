@@ -12,6 +12,7 @@ The team's identity, conventions, and writing style. This is the most-read part 
 | `style/` | Writing-mode guidance (board / comments / prose) | Populated by Step 3 |
 | `conventions/` | Naming and tagging rules (REQUIRED + OPTIONAL) | Populated by Step 2 |
 | `meetings/` | Sparse guidance for rituals that differ from the generic meeting lenses | Optional; populated through `/setup-awow` |
+| `workitem-archetypes/` | Team archetype handlers read over the shipped set by `/process-workitem` | Optional; grown as work types recur |
 
 ## How the agent uses this
 

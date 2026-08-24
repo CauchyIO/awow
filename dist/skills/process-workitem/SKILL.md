@@ -5,7 +5,7 @@ description: "Use when the user points at a board item — a ticket ID, issue li
 
 # /process-workitem — take a board work item from refinement to PR
 
-You load a board work item, validate its inputs, plan the change, apply it, verify the result, and report back. The work-specific rules (what to validate, what to check at the end) live in the archetype handlers — read `{HUB}/.agents/commands/_workitem-archetypes/` if this repo has vendored them, otherwise `${CLAUDE_PLUGIN_ROOT}/handlers/_workitem-archetypes/`. This file is the generic frame that wraps every archetype.
+You load a board work item, validate its inputs, plan the change, apply it, verify the result, and report back. The work-specific rules (what to validate, what to check at the end) live in the archetype handlers. Build the registry by overlay: start from the shipped set — `{HUB}/.agents/commands/_workitem-archetypes/` if this repo has vendored it, otherwise `${CLAUDE_PLUGIN_ROOT}/handlers/_workitem-archetypes/` — then lay `{HUB}/context/team/workitem-archetypes/` (excluding `README.md`) over it, where a same-named team file replaces the shipped handler and a new name registers a new archetype. This file is the generic frame that wraps every archetype.
 
 This is the **seed** shipped with awow v0.1 — the flow below is a sensible default, not a contract. Edit it to fit how your team actually works.
 
@@ -36,9 +36,9 @@ Confirm to the user: title, state, number of children, the archetype you plan to
 
 ### 2. Classify and route
 
-Match the story to an archetype registered in the archetype registry named above (common ones: `feature`, `bugfix`, `refactor`, `doc`; teams register others as their work demands). The archetype handler carries the work-specific rules.
+Match the story to an archetype registered in the overlaid registry built above (common ones: `feature`, `bugfix`, `refactor`, `doc`; teams register others in `{HUB}/context/team/workitem-archetypes/` as their work demands). The archetype handler carries the work-specific rules.
 
-**If the `_workitem-archetypes/` directory is empty** (apart from `README.md`), proceed generically: use the validation, planning, and verification rules from this file as-is, but tell the user no archetype was matched and suggest scaffolding one based on the work just classified. Capture the suggestion as a stub proposal at `{PROJECT}/proposals/archetypes/<name>.md` so the next cycle starts richer. Do not block on this — generic execution is the day-one fallback.
+**If the registry is empty** (apart from `README.md`), proceed generically: use the validation, planning, and verification rules from this file as-is, but tell the user no archetype was matched and suggest scaffolding one based on the work just classified. Capture the suggestion as a stub proposal at `{PROJECT}/proposals/archetypes/<name>.md`; once the team approves it, it lands in `{HUB}/context/team/workitem-archetypes/` so the next cycle starts richer. Do not block on this — generic execution is the day-one fallback.
 
 **If archetypes exist but none match**, the story is either too broad — split it — or a new handler is needed. Ask the user.
 
@@ -46,7 +46,7 @@ Match the story to an archetype registered in the archetype registry named above
 
 The archetype handler says what to validate for this work type and what counts as a stop condition. Do those checks *before* any planning. Working from assumed state is the most common cause of agent-driven bugs.
 
-If the handler doesn't specify checks, ask the user what "validated" means for this work and capture the answer back into the handler so the next run is deterministic.
+If the handler doesn't specify checks, ask the user what "validated" means for this work and capture the answer into the team's copy of the handler under `{HUB}/context/team/workitem-archetypes/` (creating it from the shipped one if needed) so the next run is deterministic.
 
 Report findings to the user. If anything blocks, stop.
 

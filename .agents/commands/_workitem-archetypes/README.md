@@ -2,7 +2,7 @@
 
 Archetype handlers loaded by `process-workitem`. One file per archetype.
 
-**This folder is where the team extends the base.** `/process-workitem` ships as a thin shell — one entry point, a generic validate → plan → verify frame, and a small set of starter archetypes covering the universal work shapes. The standing investment for whoever processes work items is *here*: capturing the discipline of each work type as it recurs, and wiring an archetype to invoke other commands/skills where that type warrants it. The shipped set is a starting point, not a closed list.
+**This folder is the shipped base; the team extends it in `context/team/workitem-archetypes/`.** `/process-workitem` ships as a thin shell — one entry point, a generic validate → plan → verify frame, and this small set of starter archetypes covering the universal work shapes. It reads the team folder over this one: a same-named file there replaces a shipped handler, a new name registers a new archetype. The standing investment for whoever processes work items lives in that team folder — capturing the discipline of each work type as it recurs, and wiring an archetype to invoke other commands/skills where that type warrants it. The shipped set is a starting point, not a closed list.
 
 ## Optional by design
 
@@ -10,7 +10,7 @@ Archetypes are an **enrichment layer, not a requirement**. If this folder holds 
 
 ## What is an archetype?
 
-A *kind of work item* that has its own validation steps, planning rules, and common pitfalls. The router prompt (`commands/process-workitem.md`) classifies an incoming work item and dispatches to the matching handler here. These are reference examples — keep them generic; a team copies and edits the ones it needs.
+A *kind of work item* that has its own validation steps, planning rules, and common pitfalls. The router prompt (`commands/process-workitem.md`) classifies an incoming work item and dispatches to the matching handler here. These are reference examples — keep them generic; a team copies the ones it needs into `context/team/workitem-archetypes/` and edits them there.
 
 ## Common archetypes
 
@@ -31,10 +31,10 @@ The five **shipped** handlers cover the universal work shapes, so `/process-work
 
 When a kind of work shows up often enough to deserve its own rules:
 
-1. Write the handler as `<archetype>.md` in this folder.
+1. Write the handler as `<archetype>.md` in `{HUB}/context/team/workitem-archetypes/`.
 2. Use the handler in the next session and iterate from real output.
 
-No router edit is needed — `process-workitem` reads this folder and matches the incoming story against the handlers it finds. Keep handlers generic enough to reuse; resist encoding one-off, hyper-specific work types.
+No router edit is needed — `process-workitem` reads the overlaid registry and matches the incoming story against the handlers it finds. Keep handlers generic enough to reuse; resist encoding one-off, hyper-specific work types.
 
 ## Handler shape
 

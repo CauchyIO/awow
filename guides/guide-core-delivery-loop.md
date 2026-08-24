@@ -87,8 +87,9 @@ How outcome → epic → feature → story map onto your board's primitives — 
 ## `/process-workitem` — take a work item from refinement to PR
 
 A generic seven-step frame, the same for every kind of work. Work-specific rules live in
-archetype handlers under `.agents/commands/_workitem-archetypes/` — `feature`, `bugfix`,
-`refactor`, `doc`, and any others a team registers.
+archetype handlers: a shipped set (`feature`, `bugfix`, `refactor`, and friends) that the
+team overlays from `context/team/workitem-archetypes/` — a same-named file replaces a
+shipped handler, a new name registers a new archetype.
 
 | Step | What happens |
 | --- | --- |
@@ -168,6 +169,6 @@ they feed forward.
 - [`.agents/commands/process-workitem.md`](../.agents/commands/process-workitem.md) — the seven-step frame
 - [`.agents/commands/daily-checkin.md`](../.agents/commands/daily-checkin.md) — inputs, precedence, and the approval gate
 - [`.agents/commands/solution-design-flow.md`](../.agents/commands/solution-design-flow.md), [`.agents/commands/project-plan.md`](../.agents/commands/project-plan.md) — the design-and-sequencing layer
-- [`.agents/commands/_workitem-archetypes/`](../.agents/commands/_workitem-archetypes) — per-archetype validation and verification rules
+- [`.agents/commands/_workitem-archetypes/`](../.agents/commands/_workitem-archetypes) — the shipped per-archetype validation and verification rules; teams overlay them from [`context/team/workitem-archetypes/`](../context/team/workitem-archetypes)
 - [`.agents/AGENTS.md`](../.agents/AGENTS.md) — the spine rules
 - Companion guides: [session correlation](guide-session-correlation.md) — how a board entry this loop writes names the session behind it; [trace analysis](guide-trace-analysis.md) — reading those sessions back as prompt-quality and coaching reports

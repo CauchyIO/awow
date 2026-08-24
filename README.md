@@ -95,9 +95,9 @@ board commands ask you once and carry on.
 
 ## Status
 
-v0.8. The four installs, the command set, canonical knowledge-source routing,
-the session context, and the build with its drift check in CI are working.
-awow installs as a plugin: the prompts stay in the payload and an adopter repo
+The installs, the command set, canonical knowledge-source routing, the session
+context, and the build with its drift check in CI are working; what each
+release changed is in [`CHANGELOG.md`](CHANGELOG.md). awow installs as a plugin: the prompts stay in the payload and an adopter repo
 holds only its own `context/`. `awow-telemetry` runs on Claude Code only.
 
 ## License

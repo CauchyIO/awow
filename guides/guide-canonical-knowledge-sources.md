@@ -65,5 +65,5 @@ through the same governed context-write path.
 - `.agents/skills/adopting-okf/SKILL.md` — opt-in OKF adoption for an explicitly writable repo.
 - `proposals/canonical-knowledge-source-routing-design.md` — accepted design and boundaries.
 
-Companion guides: [setup & the pointer-stub model](guide-setup-and-two-harnesses.md) — setup and
+Companion guides: [setup & the plugin model](guide-setup-and-two-harnesses.md) — setup and
 distribution; [the core delivery loop](guide-core-delivery-loop.md) — governed writes.

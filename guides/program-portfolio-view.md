@@ -78,7 +78,6 @@ The two tiers meet at the plenary, where teams see the ranked, allocated portfol
 ## Sources of truth
 
 - [`.agents/commands/okr-cascade.md`](../.agents/commands/okr-cascade.md) — the department-tier read across teams' quarterly docs that this view sits alongside
-- [`.agents/commands/project-manager.md`](../.agents/commands/project-manager.md) — `--report`, the per-team roll-up this view is fed by
 - [`.agents/commands/project-plan.md`](../.agents/commands/project-plan.md) — where the sequencing and dependency facts behind a ranking are stated
 - `context/tooling/board.md` — the per-team board surfaces the roll-up reads; written by `/setup-awow`
-- Companion guides: [two feedback loops + a plan↔execution bridge](guide-cross-team-and-pillar.md) — the mechanism that keeps this roll-up honest; [delivery coordination](guide-delivery-coordination.md) — the team-tier loop underneath it
+- Companion guides: [two feedback loops + a plan↔execution bridge](guide-cross-team-and-pillar.md) — the mechanism that keeps this roll-up honest

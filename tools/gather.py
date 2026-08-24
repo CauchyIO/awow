@@ -1,61 +1,21 @@
-"""Sync .agents/ → .claude/ + .github/ as pointer stubs.
+"""Build .agents/ into the plugin payloads under dist/ and dist-telemetry/.
 
-.agents/ is the single source of truth. This script generates tiny pointer
-stubs in the harness folders that redirect the agent to the canonical source.
-No substantive content is copied — only the frontmatter (name, description)
-the harness needs for discovery, plus a one-line body telling the agent to
-read the real file under .agents/.
-
-Why pointers (not copies, not symlinks):
-- Copies drift the moment someone forgets to re-run gather.
-- Symlinks are fragile across platforms and cannot carry harness-specific
-  frontmatter.
-- Pointers contain no substantive content, so there is nothing to drift.
-  The only thing gather syncs is discovery metadata.
-
-Layout produced
----------------
-    .agents/AGENTS.md                    → AGENTS.md          (repo root)
-                                         → .claude/CLAUDE.md
-                                         → .github/copilot-instructions.md
-                                         → .github/AGENTS.md
-
-The repo-root `AGENTS.md` is the cross-vendor instruction-file standard: a
-harness that reads it natively from the root (Codex among them) is steered to
-`.agents/AGENTS.md` with no install step. It is emitted for every in-repo
-surface but not for the `dist/` plugin payload.
-    .agents/commands/<name>.md           → .claude/commands/<name>.md
-                                         → .github/prompts/<name>.prompt.md
-                                         → .opencode/commands/<name>.md
-
-The `.prompt.md` extension under .github/prompts/ is required: VS Code's
-GitHub Copilot Chat discovers prompt files by that exact suffix; plain `.md`
-is silently ignored.
-
-The .opencode/ stubs use their own generator: opencode derives a command's
-placeholder list from the template body, so a stub without a literal
-$ARGUMENTS silently receives no arguments. opencode reads the repo-root
-AGENTS.md and discovers .agents/skills/ and .claude/skills/ natively (deduped,
-precedence .opencode/ > .claude/ > .agents/), so commands are the only surface
-it needs emitted.
-    .agents/skills/<name>/SKILL.md       → .claude/skills/<name>/SKILL.md
-                                         → .github/skills/<name>/SKILL.md
-    .agents/skills/<name>.md             → .claude/skills/<name>/SKILL.md
-                                         → .github/skills/<name>/SKILL.md
-                                            (declarative skills are wrapped
-                                            in a synthesised SKILL.md stub
-                                            so the harness discovers them)
+.agents/ is the single source of truth. This script renders it into the
+distributable payloads every harness installs — full copies, not pointers,
+because payload content runs inside an adopter's project where `.agents/`
+does not exist. Nothing is mirrored into this repo's own harness folders:
+commands and skills reach a maintainer's session through the same plugin an
+adopter installs (the marketplace manifest at .claude-plugin/ serves ./dist),
+and the root instruction files (AGENTS.md, .claude/CLAUDE.md,
+.github/AGENTS.md, .github/copilot-instructions.md) are hand-authored
+pointers to .agents/AGENTS.md (AWO-257).
 
 Files named README.md and paths under `_workitem-archetypes/` or
-`_meeting-archetypes/` are not mirrored; they are documentation or handlers,
-not commands.
+`_meeting-archetypes/` are never rendered as commands; they are documentation
+or handlers.
 
 Plugin payload (dist/)
 ----------------------
-The `plugin` surface builds the distributable Claude Code plugin under
-`dist/` — full copies, not pointers, because plugin content runs inside an
-adopter's project where `.agents/` does not exist:
-
     .agents/commands/<name>.md           → dist/commands/<name>.md
     .agents/skills/<name>/**             → dist/skills/<name>/**
     .agents/skills/<name>.md             → dist/skills/<name>/SKILL.md
@@ -79,25 +39,22 @@ rendered as `<name>/SKILL.md`. Both harness manifests point at it (WI-5).
 the plan is removed. Maintainer tools (gather.py itself, distribute.py, …)
 are deliberately excluded from the payload — they resolve REPO_ROOT from
 __file__ and would operate on the plugin install dir if shipped.
-This surface only applies in the awow maintainer repo (gated on
-`.claude-plugin/plugin.json`); vendored adopter repos skip it.
+The build only applies in the awow maintainer repo (gated on
+`.claude-plugin/plugin.json`).
 
 Usage
 -----
-    python tools/gather.py                  # write all surfaces (incl. dist/)
-    python tools/gather.py --check          # exit 1 if any output is out of date
-    python tools/gather.py --surface claude # only emit to .claude/
-    python tools/gather.py --surface github # only emit to .github/
-    python tools/gather.py --surface opencode  # only emit to .opencode/
-    python tools/gather.py --surface plugin # only build dist/
-    python tools/gather.py --surface both   # .claude/ + .github/, no dist/
+    python tools/gather.py                    # build dist/ and dist-telemetry/
+    python tools/gather.py --check            # exit 1 if any payload is out of date
+    python tools/gather.py --surface plugin   # only build dist/
+    python tools/gather.py --surface telemetry  # only build dist-telemetry/
+    python tools/gather.py --surface m365     # the M365 package under dist/m365/
 
 Orphans
 -------
-Stubs whose source has been removed are reported (and removed in non-check
-mode) only if they carry the GENERATED header this script writes, so user-
-added files are never deleted. Under dist/ every unplanned file is an orphan
-— the payload is fully generated, so nothing user-authored can live there.
+Every payload root is fully generated, so any file found under one that is
+not in the plan is an orphan: reported by --check, removed on apply. Nested
+git checkouts (a linked worktree below a payload root) are never swept.
 """
 
 from __future__ import annotations
@@ -111,9 +68,9 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 AGENTS_DIR = REPO_ROOT / ".agents"
-CLAUDE_DIR = REPO_ROOT / ".claude"
+# Source of the Copilot plugin manifest (.github/plugin/plugin.json); nothing
+# is emitted into .github/ itself.
 GITHUB_DIR = REPO_ROOT / ".github"
-OPENCODE_DIR = REPO_ROOT / ".opencode"
 DIST_DIR = REPO_ROOT / "dist"
 # Second payload root: the awow-telemetry plugin (design spec 4.3). A sibling of
 # dist/, not a child, for two reasons. Claude Code installs from CauchyIO/awow
@@ -264,15 +221,18 @@ SKIP_DIR_PARTS = HANDLER_DIR_PARTS
 # child: the command directories are auto-discovered, and anything under one is
 # offered to the user as a command (AWO-161). See plan_archetype_handlers.
 HANDLERS_DIR_NAME = "handlers"
+# Heads the prose files this script authors into a payload (the dist/ READMEs)
+# so a reader knows not to edit them there. Payload *content* — commands,
+# skills, handlers — is copied verbatim and never carries it.
 GENERATED_MARKER = "<!-- GENERATED by tools/gather.py"
 
 # Payload roots that this script wholly owns: under one of these, EVERY
-# unplanned file is an orphan, marker or not. That distinction is load-bearing,
-# because full-copy payload content carries no GENERATED header at all —
+# unplanned file is an orphan. Payload content carries no marker of its own —
 # plugin_command_copy, command_skill_stub, and skill_stubs each emit the source
-# body verbatim. A payload root missing from this tuple therefore has its
-# orphans silently ignored while --check stays green. Add every new payload
-# root here in the same change that creates it.
+# body verbatim — so the plan is the only thing the sweep can go on, and a
+# payload root missing from this tuple has its orphans silently ignored while
+# --check stays green. Add every new payload root here in the same change that
+# creates it.
 GENERATED_ROOTS = (DIST_DIR, DIST_TELEMETRY_DIR)
 
 # Subtrees nested inside a GENERATED_ROOTS payload root whose own lifecycle
@@ -359,25 +319,11 @@ def first_h1(body: str) -> str | None:
     return None
 
 
-# ---------- relative path helpers ----------
-
-
-def rel_link(stub_target: Path, source: Path) -> str:
-    """Markdown-link path from a stub file to its source under .agents/."""
-    rel = Path("../" * (len(stub_target.relative_to(REPO_ROOT).parts) - 1)) / source.relative_to(REPO_ROOT)
-    return str(rel)
-
-
-# ---------- stub generators ----------
-
-
-def header(source: Path) -> str:
-    rel = source.relative_to(REPO_ROOT)
-    return f"{GENERATED_MARKER} — DO NOT EDIT. Source: {rel} -->"
+# ---------- command metadata ----------
 
 
 def command_description(fields: dict[str, str], body: str) -> str:
-    """Best-effort one-liner description for a command stub.
+    """Best-effort one-liner description for a command.
 
     Priority: explicit `description` field → H1 after the em-dash → H1 → empty.
     """
@@ -393,119 +339,6 @@ def command_description(fields: dict[str, str], body: str) -> str:
     return ""
 
 
-def command_frontmatter(source: Path) -> str:
-    """`description`-only frontmatter block, shared by the command-stub generators.
-
-    Every harness that consumes a command stub wants the same one key, so the
-    block is identical across surfaces; only the bodies differ."""
-    fields, body = parse_frontmatter(source.read_text(), source)
-    desc = command_description(fields, body)
-    lines = ["---"]
-    if desc:
-        # YAML-quote (double, with internal quote escape)
-        lines.append(f'description: "{desc.replace(chr(34), chr(92) + chr(34))}"')
-    lines.append("---")
-    return "\n".join(lines)
-
-
-def gen_command_stub(source: Path, stub_target: Path) -> str:
-    link = rel_link(stub_target, source)
-    fm = command_frontmatter(source)
-    return (
-        f"{fm}\n\n"
-        f"{header(source)}\n\n"
-        f"Execute the command defined at [`{source.relative_to(REPO_ROOT)}`]({link}). "
-        f"Read that file and follow its instructions, applying any arguments the user provided "
-        f"to this invocation. The body of this stub carries no substantive content — the real "
-        f"prompt lives at the path above.\n\n"
-        f"Edits must be made in `{source.relative_to(REPO_ROOT)}` and re-mirrored with "
-        f"`python tools/gather.py`.\n"
-    )
-
-
-def gen_skill_stub(source: Path, stub_target: Path, name: str, description: str) -> str:
-    link = rel_link(stub_target, source)
-    desc_escaped = description.replace(chr(34), chr(92) + chr(34))
-    scripts_hint = ""
-    if source.name == "SKILL.md" and (source.parent / "scripts").is_dir():
-        scripts_rel = (source.parent / "scripts").relative_to(REPO_ROOT)
-        scripts_hint = (
-            f"\nScripts bundled with this skill live at `{scripts_rel}/` and should be invoked "
-            f"from the repo root.\n"
-        )
-    return (
-        f"---\n"
-        f"name: {name}\n"
-        f'description: "{desc_escaped}"\n'
-        f"---\n\n"
-        f"{header(source)}\n\n"
-        f"# {name}\n\n"
-        f"This skill's full rubric lives at [`{source.relative_to(REPO_ROOT)}`]({link}). "
-        f"Read that file before acting on this skill. The body of this stub carries no "
-        f"substantive content.\n"
-        f"{scripts_hint}\n"
-        f"Edits must be made in `{source.relative_to(REPO_ROOT)}` and re-mirrored with "
-        f"`python tools/gather.py`.\n"
-    )
-
-
-def gen_top_level_instructions(stub_target: Path, harness_label: str) -> str:
-    source = AGENTS_DIR / "AGENTS.md"
-    link = rel_link(stub_target, source)
-    return (
-        f"{header(source)}\n\n"
-        f"# Agent instructions ({harness_label})\n\n"
-        f"This repo uses a single source of truth for agent instructions, commands, and skills: "
-        f"the `.agents/` directory. **Before doing anything else, read "
-        f"[`.agents/AGENTS.md`]({link}) and follow its instructions.** That file is the canonical "
-        f"rule set for both Claude Code and GitHub Copilot working in this repo.\n\n"
-        f"- Commands → `.agents/commands/` (also discoverable from this surface as pointer stubs)\n"
-        f"- Skills → `.agents/skills/` (also discoverable from this surface as pointer stubs)\n"
-        f"- Conventions and context → `context/`\n\n"
-        f"Files in this folder are auto-generated pointer stubs produced by `tools/gather.py`. "
-        f"They exist only so the harness can discover commands and skills natively; the "
-        f"substantive content lives under `.agents/`. Edits made here are overwritten on the "
-        f"next gather.\n"
-    )
-
-
-def gen_root_agents_stub(stub_target: Path) -> str:
-    """Repo-root `AGENTS.md` — the cross-vendor instruction-file standard.
-
-    Distinct from the per-surface top-level stubs: no harness label, neutral
-    wording, and it names AGENTS.md's cross-vendor role (a harness that reads
-    the root file natively, e.g. Codex, is steered with no install step)."""
-    source = AGENTS_DIR / "AGENTS.md"
-    link = rel_link(stub_target, source)
-    return (
-        f"{header(source)}\n\n"
-        f"# Agent instructions\n\n"
-        f"This repo uses a single source of truth for agent instructions, commands, and "
-        f"skills: the `.agents/` directory. **Before doing anything else, read "
-        f"[`.agents/AGENTS.md`]({link}) and follow its instructions.** That file is the "
-        f"canonical rule set for every agent working in this repo.\n\n"
-        f"`AGENTS.md` is the cross-vendor instruction-file standard. A harness that reads it "
-        f"natively from the repo root — Codex among them — is steered to the source above with "
-        f"no install step. Commands live under `.agents/commands/`, skills under "
-        f"`.agents/skills/`, and conventions and context under `context/`.\n\n"
-        f"This file is an auto-generated pointer produced by `tools/gather.py`; the substantive "
-        f"content lives under `.agents/`. Edits here are overwritten on the next gather.\n"
-    )
-
-
-def gen_folder_readme(stub_target: Path, source_dir: Path, harness_label: str) -> str:
-    link = rel_link(stub_target, source_dir)
-    return (
-        f"{header(source_dir)}\n\n"
-        f"# {stub_target.parent.name}/ — auto-generated pointer stubs\n\n"
-        f"Files here are pointer stubs produced by `tools/gather.py`. Each one carries the "
-        f"frontmatter the {harness_label} harness needs for discovery plus a one-line body "
-        f"pointing to the canonical source under [`{source_dir.relative_to(REPO_ROOT)}/`]({link}).\n\n"
-        f"Do not edit files in this folder. Edit the source and re-run "
-        f"`python tools/gather.py`.\n"
-    )
-
-
 # ---------- planning ----------
 
 
@@ -515,94 +348,6 @@ def is_skipped(path: Path) -> bool:
     if any(part in SKIP_DIR_PARTS for part in path.relative_to(AGENTS_DIR).parts):
         return True
     return False
-
-
-def gen_opencode_command_stub(source: Path, stub_target: Path) -> str:
-    """Pointer stub for .opencode/commands/.
-
-    Two things differ from gen_command_stub, both load-bearing:
-
-    - The body MUST contain a literal `$ARGUMENTS`. opencode derives a command's
-      placeholder list from the template body (it matches /\\$\\d+/g and tests for
-      "$ARGUMENTS"); a template carrying neither receives no arguments at all, and
-      it fails silently — `/process-workitem AWO-48` would run with nothing.
-      Prose like "apply any arguments the user provided" is not a placeholder.
-    - `description` is the only frontmatter key worth setting. opencode also reads
-      `agent`, `model` and `subtask`; leaving them unset keeps the user's own
-      defaults. `template` must NOT appear — for a markdown command the body is
-      the template, and a frontmatter `template` key conflicts with it.
-    """
-    link = rel_link(stub_target, source)
-    fm = command_frontmatter(source)
-    return (
-        f"{fm}\n\n"
-        f"{header(source)}\n\n"
-        f"Execute the command defined at [`{source.relative_to(REPO_ROOT)}`]({link}). "
-        f"Read that file and follow its instructions. The body of this stub carries no "
-        f"substantive content — the real prompt lives at the path above.\n\n"
-        f"Arguments for this invocation: $ARGUMENTS\n\n"
-        f"Edits must be made in `{source.relative_to(REPO_ROOT)}` and re-mirrored with "
-        f"`python tools/gather.py`.\n"
-    )
-
-
-def plan_top_level() -> list[Stub]:
-    plans = []
-    for target, label in [
-        (CLAUDE_DIR / "CLAUDE.md", ".claude/"),
-        (GITHUB_DIR / "copilot-instructions.md", ".github/"),
-        (GITHUB_DIR / "AGENTS.md", ".github/"),
-    ]:
-        plans.append(Stub(target, gen_top_level_instructions(target, label)))
-    root_agents = REPO_ROOT / "AGENTS.md"
-    plans.append(Stub(root_agents, gen_root_agents_stub(root_agents)))
-    return plans
-
-
-def plan_commands() -> list[Stub]:
-    plans: list[Stub] = []
-    commands_root = AGENTS_DIR / "commands"
-    for source in sorted(commands_root.rglob("*.md")):
-        if is_skipped(source):
-            continue
-        for target_dir, ext, generator in [
-            (CLAUDE_DIR / "commands", ".md", gen_command_stub),
-            (GITHUB_DIR / "prompts", ".prompt.md", gen_command_stub),
-            # opencode needs its own generator — see gen_opencode_command_stub.
-            (OPENCODE_DIR / "commands", ".md", gen_opencode_command_stub),
-        ]:
-            target = target_dir / (source.stem + ext)
-            plans.append(Stub(target, generator(source, target)))
-    return plans
-
-
-def plan_skills() -> list[Stub]:
-    plans: list[Stub] = []
-    skills_root = AGENTS_DIR / "skills"
-    for entry in sorted(skills_root.iterdir()):
-        if entry.name in SKIP_FILENAMES:
-            continue
-        if entry.is_dir():
-            skill_file = entry / "SKILL.md"
-            if not skill_file.exists():
-                continue
-            text = skill_file.read_text()
-            fields, body = parse_frontmatter(text, skill_file)
-            name = fields.get("name", entry.name)
-            description = fields.get("description") or first_h1(body) or ""
-            source = skill_file
-        elif entry.is_file() and entry.suffix == ".md":
-            text = entry.read_text()
-            fields, body = parse_frontmatter(text, entry)
-            name = fields.get("name", entry.stem)
-            description = fields.get("description") or first_h1(body) or ""
-            source = entry
-        else:
-            continue
-        for target_dir in [CLAUDE_DIR / "skills", GITHUB_DIR / "skills"]:
-            target = target_dir / name / "SKILL.md"
-            plans.append(Stub(target, gen_skill_stub(source, target, name, description)))
-    return plans
 
 
 def copy_stub(target: Path, source: Path) -> Stub:
@@ -937,7 +682,6 @@ const TOOL_MAPPING = [
   '- Track multi-step work -> `todowrite`',
   '- Dispatch a subagent -> `task`',
   '- Invoke a skill -> the native `skill` tool',
-  '- In a vendored awow repo, the flows are also slash commands from `.opencode/commands/`.',
 ].join('\\n');
 
 // The SKILL.md does not change during a session, so read and parse it once.
@@ -1229,45 +973,11 @@ def plan_plugin() -> list[Stub]:
     return plans
 
 
-def plan_folder_readmes() -> list[Stub]:
-    plans: list[Stub] = []
-    for target, source_dir, label in [
-        (CLAUDE_DIR / "commands" / "README.md", AGENTS_DIR / "commands", "Claude Code"),
-        (CLAUDE_DIR / "skills" / "README.md", AGENTS_DIR / "skills", "Claude Code"),
-        (GITHUB_DIR / "prompts" / "README.md", AGENTS_DIR / "commands", "GitHub Copilot"),
-        (GITHUB_DIR / "skills" / "README.md", AGENTS_DIR / "skills", "GitHub Copilot"),
-    ]:
-        plans.append(Stub(target, gen_folder_readme(target, source_dir, label)))
-    return plans
-
-
 SURFACE_ROOTS = {
-    "claude": [CLAUDE_DIR],
-    "github": [GITHUB_DIR],
-    "opencode": [OPENCODE_DIR],
     "plugin": [DIST_DIR],
     "telemetry": [DIST_TELEMETRY_DIR],
-    # "both" stays the literal Claude-plus-Copilot pair — a named pair, not a
-    # synonym for "every in-repo surface". Adding opencode here would silently
-    # change what existing callers emit.
-    "both": [CLAUDE_DIR, GITHUB_DIR],
-    "all": [CLAUDE_DIR, GITHUB_DIR, OPENCODE_DIR, DIST_DIR, DIST_TELEMETRY_DIR],
+    "all": [DIST_DIR, DIST_TELEMETRY_DIR],
 }
-
-
-def filter_surface(plans: list[Stub], surface: str) -> list[Stub]:
-    roots = SURFACE_ROOTS[surface]
-    kept: list[Stub] = []
-    for p in plans:
-        if p.target.parent == REPO_ROOT:
-            # Repo-root instruction files (AGENTS.md) are harness-neutral: they
-            # belong to every in-repo surface but never to a payload root,
-            # which owns only its own tree.
-            if surface not in ("plugin", "telemetry"):
-                kept.append(p)
-        elif any(root in p.target.parents for root in roots):
-            kept.append(p)
-    return kept
 
 
 # ---------- orphan detection ----------
@@ -1292,7 +1002,10 @@ def nested_checkout_roots(surface: Path) -> tuple[Path, ...]:
     )
 
 
-def find_orphans(planned_targets: set[Path], surfaces: list[Path], marker_optional_roots: set[Path] = frozenset()) -> list[Path]:
+def find_orphans(planned_targets: set[Path], surfaces: list[Path]) -> list[Path]:
+    """Every unplanned file under a surface. Surfaces are wholly generated —
+    a payload root, or a subtree like dist/m365 owned by its own --surface
+    invocation — so the plan is the only thing that decides."""
     orphans: list[Path] = []
     for surface in surfaces:
         if not surface.exists():
@@ -1311,22 +1024,7 @@ def find_orphans(planned_targets: set[Path], surfaces: list[Path], marker_option
                 # Owned by a separate --surface invocation; not this sweep's
                 # concern even though it's nested inside a generated root.
                 continue
-            # A payload root is wholly generated — every unplanned file there
-            # is an orphan. Elsewhere only files carrying the GENERATED header
-            # are, so user-added files are never deleted. Membership, not
-            # identity: there is more than one payload root (GENERATED_ROOTS).
-            # marker_optional_roots extends the same "wholly generated" rule
-            # to a scoped subtree (e.g. dist/m365) that isn't itself one of
-            # the top-level GENERATED_ROOTS.
-            if surface in GENERATED_ROOTS or any(root in path.parents for root in marker_optional_roots):
-                orphans.append(path)
-                continue
-            try:
-                text = path.read_text()
-            except UnicodeDecodeError:
-                continue
-            if GENERATED_MARKER in text:
-                orphans.append(path)
+            orphans.append(path)
     return orphans
 
 
@@ -1335,10 +1033,10 @@ def find_orphans(planned_targets: set[Path], surfaces: list[Path], marker_option
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--check", action="store_true", help="exit 1 if stubs are out of date")
+    parser.add_argument("--check", action="store_true", help="exit 1 if a payload is out of date")
     parser.add_argument(
         "--surface",
-        choices=["claude", "github", "opencode", "m365", "plugin", "telemetry", "both", "all"],
+        choices=["m365", "plugin", "telemetry", "all"],
         default="all",
     )
     args = parser.parse_args()
@@ -1352,7 +1050,7 @@ def main() -> int:
             return 1
         m365_root = REPO_ROOT / "dist" / "m365"
         planned = {p.target for p in plans} | {b.target for b in binary_plans}
-        orphans = find_orphans(planned, [m365_root], marker_optional_roots={m365_root})
+        orphans = find_orphans(planned, [m365_root])
         drift = [p for p in plans if (not p.target.exists() or p.target.read_text() != p.content)]
         bdrift = [b for b in binary_plans if (not b.target.exists() or b.target.read_bytes() != b.content)]
         if args.check:
@@ -1392,27 +1090,15 @@ def main() -> int:
     if not AGENTS_DIR.is_dir():
         print(f"error: {AGENTS_DIR} does not exist", file=sys.stderr)
         return 1
+    if not PLUGIN_MANIFEST.exists():
+        # Only the maintainer repo carries .claude-plugin/plugin.json; both
+        # payload roots derive their manifests from it.
+        print(f"error: {PLUGIN_MANIFEST} does not exist — not the awow "
+              f"maintainer repo, nothing to build", file=sys.stderr)
+        return 1
 
     surfaces = list(SURFACE_ROOTS[args.surface])
-    payload_roots = [r for r in (DIST_DIR, DIST_TELEMETRY_DIR) if r in surfaces]
-    if payload_roots and not PLUGIN_MANIFEST.exists():
-        # Vendored adopter repos have no plugin manifest and no payload to
-        # build; only the maintainer repo carries .claude-plugin/plugin.json.
-        # Both payload roots derive their manifests from it.
-        if args.surface in ("plugin", "telemetry"):
-            print(f"error: {PLUGIN_MANIFEST} does not exist — not the awow "
-                  f"maintainer repo, nothing to build", file=sys.stderr)
-            return 1
-        for root in payload_roots:
-            surfaces.remove(root)
-        print(f"note: {PLUGIN_MANIFEST.relative_to(REPO_ROOT)} not found — payload surfaces skipped")
-
-    plans = (
-        plan_top_level()
-        + plan_folder_readmes()
-        + plan_commands()
-        + plan_skills()
-    )
+    plans: list[Stub] = []
     if DIST_DIR in surfaces:
         plans += plan_plugin()
         plans += plan_agent_skills()
@@ -1421,7 +1107,6 @@ def main() -> int:
         plans += plan_opencode_plugin()
     if DIST_TELEMETRY_DIR in surfaces:
         plans += plan_telemetry()
-    plans = filter_surface(plans, args.surface)
     planned_targets = {p.target for p in plans}
 
     orphans = find_orphans(planned_targets, surfaces)
@@ -1444,12 +1129,12 @@ def main() -> int:
             print(f"orphan: {orphan.relative_to(REPO_ROOT)}")
         if drift or orphans:
             print(
-                f"\n{len(drift)} stub(s) out of date, {len(orphans)} orphan(s). "
+                f"\n{len(drift)} payload file(s) out of date, {len(orphans)} orphan(s). "
                 f"Run without --check to apply.",
                 file=sys.stderr,
             )
             return 1
-        print("All stubs in sync.")
+        print("All payloads in sync.")
         return 0
 
     for plan in plans:
@@ -1464,7 +1149,7 @@ def main() -> int:
         while parent != REPO_ROOT and parent.is_dir() and not any(parent.iterdir()):
             parent.rmdir()
             parent = parent.parent
-    print(f"wrote {len(plans)} stub(s); {len(drift)} changed; {len(orphans)} orphan(s) removed.")
+    print(f"wrote {len(plans)} payload file(s); {len(drift)} changed; {len(orphans)} orphan(s) removed.")
     return 0
 
 

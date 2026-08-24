@@ -16,7 +16,7 @@ Single source of truth for **whether** this team has a design system and **where
 - **`mode: in-repo`** — the design system lives under `context/design-system/` in this repo. Self-contained; no cross-repo path fragility.
 - **`mode: external`** — the design system lives in another repo, referenced by absolute path. Set `access:` so the agent knows to read it from the filesystem (the common case for a private design repo where the board MCP returns 404) rather than over MCP.
 
-To stand one up — or to point at an existing one — run `/design-system` (or `/awow-add design-system`). That flow rewrites this file's frontmatter and fills the token summary below.
+To stand one up — or to point at an existing one — run `/design-system`. That flow rewrites this file's frontmatter and fills the token summary below.
 
 ## Token summary (cache — source file wins)
 

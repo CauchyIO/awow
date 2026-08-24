@@ -149,7 +149,6 @@ nothing to read.
 | `/solution-design-flow` | spread | Turns a design conversation (live or a transcript) into a locked design plus a decomposed work-item tree with stated edges — each child names what blocks it. It lands the design; it does not create the board items. |
 | `/project-plan` | spread | The bridge. Takes that tree and states the dependency graph — nodes, edges, sequence vs parallel layers, critical path — translates it into board items created in order with blocked-by links, and publishes a durable plan at `proposals/plans/<slug>.md`. |
 | `/process-workitem` | seed | The same seven-step loop, now checking the graph before starting; it won't silently begin an item whose blockers are still open. |
-| `/project-manager` | standardise | Coordinates delivery *against the published plan*: unblocks people, fires ready handoffs, reconciles plan against work done, keeps the graph correct, rolls up a weekly report. |
 
 `/refinement-prep` seeds the graph earlier still: it already captures dependencies as edges, so
 they feed forward.
@@ -168,7 +167,7 @@ they feed forward.
 - [`.agents/commands/refinement-prep.md`](../.agents/commands/refinement-prep.md) — the drafting flow and right-sizing rules
 - [`.agents/commands/process-workitem.md`](../.agents/commands/process-workitem.md) — the seven-step frame
 - [`.agents/commands/daily-checkin.md`](../.agents/commands/daily-checkin.md) — inputs, precedence, and the approval gate
-- [`.agents/commands/solution-design-flow.md`](../.agents/commands/solution-design-flow.md), [`.agents/commands/project-plan.md`](../.agents/commands/project-plan.md), [`.agents/commands/project-manager.md`](../.agents/commands/project-manager.md) — the design-and-coordination layer
+- [`.agents/commands/solution-design-flow.md`](../.agents/commands/solution-design-flow.md), [`.agents/commands/project-plan.md`](../.agents/commands/project-plan.md) — the design-and-sequencing layer
 - [`.agents/commands/_workitem-archetypes/`](../.agents/commands/_workitem-archetypes) — per-archetype validation and verification rules
 - [`.agents/AGENTS.md`](../.agents/AGENTS.md) — the spine rules
 - Companion guides: [session correlation](guide-session-correlation.md) — how a board entry this loop writes names the session behind it; [trace analysis](guide-trace-analysis.md) — reading those sessions back as prompt-quality and coaching reports

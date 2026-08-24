@@ -86,7 +86,7 @@ Output: `context/company/neighbouring-teams.md`.
 
 ### Step 8 — Surface the extras
 
-The wizard reads `.agents/commands/{spread,standardise}/` and lists what's available behind `/awow-add`, with phase and prerequisites. Nothing is installed; the user sees what's there.
+The wizard lists the `spread` and `standardise` commands with phase and prerequisites. They all ship in the payload; the phase says when a team is ready for each.
 
 ### Step 9 — Skills review (keep / customise / drop)
 

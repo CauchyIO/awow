@@ -14,19 +14,15 @@ Presence of `.claude/` directory in the repo root, or the user explicitly choose
 - MCP server integration
 - `~/.claude/CLAUDE.md` (user-global) + repo `CLAUDE.md` (project-scoped) instruction files
 
-## How `.agents/` mirrors to `.claude/`
+## How `.agents/` reaches Claude Code
 
-`tools/gather.py` copies:
+Through the awow plugin. `tools/gather.py` builds `.agents/` into `dist/` — `commands/` and `skills/` as full copies, `hooks/` for the session reflex — and the marketplace manifest in the awow repo serves that directory, so `/plugin marketplace add CauchyIO/awow` and `/plugin install awow` deliver the commands, skills and hooks to any repo. Path tokens in the prompt bodies render to `${CLAUDE_PLUGIN_ROOT}` at build time; `{HUB}` and `{PROJECT}` resolve at runtime through the session reflex.
 
-- `.agents/AGENTS.md` → `.claude/CLAUDE.md`
-- `.agents/commands/<phase>/<name>.md` → `.claude/commands/<name>.md` (phase prefix dropped in the surface)
-- `.agents/skills/*.md` → `.claude/skills/*.md`
-
-The single source of truth is `.agents/`. Edits to `.claude/` are overwritten on the next `gather.py` run.
+Nothing is copied into a repo's `.claude/`: the team's own `CLAUDE.md` there is theirs (bootstrapped by `/setup-awow` Step 5), and awow never regenerates it. A legacy vendored tree still mirrors `.agents/` into `.claude/` with its own `tools/gather.py`; that route is retired for new installs.
 
 ## Settings
 
-`.claude/settings.json` is the harness configuration: permissions, MCP servers, environment variables, hooks. `/setup-awow` Step 1 writes the MCP block for the team's board.
+`.claude/settings.json` is the harness configuration: permissions, MCP servers, environment variables, hooks, and the project-scope plugin enablement. `/setup-awow` Step 1 writes the MCP block for the team's board.
 
 ## Reference
 

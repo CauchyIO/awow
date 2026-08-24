@@ -14,15 +14,11 @@ Presence of `.github/` directory with `copilot-instructions.md` or `AGENTS.md`, 
 - Chat modes, custom prompts (community-curated set: https://github.com/github/awesome-copilot)
 - MCP integration (newer, less mature than Claude Code's)
 
-## How `.agents/` mirrors to `.github/`
+## How `.agents/` reaches Copilot
 
-`tools/gather.py` copies:
+Through the awow Copilot plugin. `tools/gather.py` builds it into `dist/.github/plugin/` — the manifest from `.github/plugin/plugin.json`, every command and skill rendered as a Copilot agent skill, and the prompts under `dist/.github/prompts/` with the `.prompt.md` suffix VS Code requires — and `copilot plugin marketplace add CauchyIO/awow` installs it. Nothing is copied into a repo's own `.github/`: an adopter's `copilot-instructions.md` or `AGENTS.md` there is the team's own file.
 
-- `.agents/AGENTS.md` → `.github/AGENTS.md` (rename; same content)
-- `.agents/commands/<phase>/<name>.md` → `.github/prompts/<name>.md` or `.github/skills/<name>/SKILL.md` (depending on shape)
-- `.agents/skills/*.md` → `.github/skills/<name>/SKILL.md`
-
-The single source of truth is `.agents/`. Edits to `.github/` are overwritten on the next `gather.py` run.
+The single source of truth is `.agents/`. Edits to the generated payload are overwritten on the next `gather.py` run.
 
 ## Slash commands
 

@@ -1,6 +1,6 @@
 # opencode — harness reference
 
-The opencode coding agent. It reads `AGENTS.md` from the repo root and discovers `.agents/skills/` natively, so a vendored awow repo is **mostly legible to it with no install step** — only slash commands have to be emitted.
+The opencode coding agent. It reads `AGENTS.md` from the repo root and discovers `.agents/skills/` natively, so the awow repo is **legible to it with no install step**; awow's flows reach it as skills through the plugin.
 
 ## When `/setup-awow` infers opencode
 
@@ -9,32 +9,27 @@ A `.opencode/` directory or an `opencode.json` at the repo root, or the user exp
 ## What it provides
 
 - Reads a repo-root `AGENTS.md` natively as its instruction file — the cross-vendor standard, the same keystone Codex and Pi use
-- **Native agent skills**, discovered from `.opencode/skills/`, `.claude/skills/` **and `.agents/skills/`**. awow's source-of-truth directory is itself a native opencode location, so awow's skills need no emitted surface at all.
+- **Native agent skills**, discovered from `.opencode/skills/`, `.claude/skills/` **and `.agents/skills/`**. awow's source-of-truth directory is itself a native opencode location.
 - A native `skill` tool; skills are additionally invokable as `/name`
-- **Native slash commands** from `.opencode/commands/` — the one surface awow must emit
+- **Native slash commands** from `.opencode/commands/` — awow emits none; its flows are skills
 - Plugins: JS/TS hook modules, installed from a git URL or npm
 
 ## How `.agents/` reaches opencode
 
-- `.agents/AGENTS.md` → repo-root `AGENTS.md` — the pointer stub `tools/gather.py` already emits. This steers opencode today; no install required.
-- `.agents/skills/<name>/SKILL.md` → discovered **in place**. `.claude/skills/` covers the two declarative skills that are flat files rather than directories.
-- `.agents/commands/<name>.md` → `.opencode/commands/<name>.md`, emitted by `gather.py --surface opencode`.
+- Repo-root `AGENTS.md` — hand-authored (in the awow repo it points at `.agents/AGENTS.md`; an adopter's is its own bootstrapped file or spoke connector). This steers opencode today; no install required.
+- Every command and skill → the plugin's `agent-skills/` surface, registered at runtime by the plugin's `config` hook (see Plugin notes). In the awow repo the directory-shaped skills under `.agents/skills/` are also discovered in place.
 
-The single source of truth is `.agents/`. Edits to generated surfaces are overwritten on the next `gather.py` run.
+The single source of truth is `.agents/`. Edits to the generated payload are overwritten on the next `gather.py` run.
 
 ## Discovery precedence (verified, opencode 1.15.2)
 
-Skills are **deduplicated by name**, with `.opencode/` > `.claude/` > `.agents/`. A name present in several locations resolves once, so the three surfaces coexist without cluttering the skill list.
+Skills are **deduplicated by name**, with `.opencode/` > `.claude/` > `.agents/`. A name present in several locations resolves once, so a natively discovered skill and its plugin-registered copy coexist without cluttering the skill list.
 
-`.claude/commands/` is **not** read — the Claude-compat layer covers skills and `CLAUDE.md`, not commands. That asymmetry is the entire reason a command surface has to be emitted.
+`.claude/commands/` is **not** read — the Claude-compat layer covers skills and `CLAUDE.md`, not commands. awow therefore ships no command templates for opencode at all; a flow is invoked as `/name` through the skill it registers.
 
 ## The `$ARGUMENTS` rule
 
-opencode builds a command's placeholder list **from the template body**, matching `$1`/`$2`/… and testing for a literal `$ARGUMENTS`. A command template containing neither **receives no arguments at all, silently** — `/process-workitem AWO-48` would run with nothing.
-
-Every emitted stub therefore carries a literal `$ARGUMENTS`, and `tests/harness/opencode/` asserts it per file. Prose such as "apply any arguments the user provided" is not a placeholder. This is why opencode has its own stub generator rather than sharing Claude's.
-
-Frontmatter: `description` only. opencode also reads `agent`, `model` and `subtask`; leaving them unset keeps the user's own defaults. A `template` key must never appear — for a markdown command the body *is* the template.
+opencode builds a command's placeholder list **from the template body**, matching `$1`/`$2`/… and testing for a literal `$ARGUMENTS`; a template carrying neither receives no arguments, silently. awow no longer emits command templates, so this only matters for a team's own `.opencode/commands/`.
 
 ## Plugin notes
 
@@ -48,11 +43,11 @@ Install path: `opencode plugin awow@git+<awow-dist repo>`. `tools/sync-dist.sh` 
 
 ## Known limitation
 
-`.agents/skills/agent-directive-voice.md` and `.agents/skills/user-story-template.md` are flat files, not directories. opencode's native `.agents/` discovery globs `skills/*/SKILL.md`, so it finds these two only through the wrapped stubs under `.claude/skills/`. A user who sets `OPENCODE_DISABLE_CLAUDE_CODE=1` loses exactly those two; the other nine are directory-shaped and resolve natively.
+`.agents/skills/agent-directive-voice.md` and `.agents/skills/user-story-template.md` are flat files, not directories. opencode's native `.agents/` discovery globs `skills/*/SKILL.md`, so in the awow repo it finds these two only through the plugin's `agent-skills/` registration, which renders every skill as `<name>/SKILL.md`. Without the plugin installed those two are invisible; the directory-shaped skills resolve natively.
 
 ## Status
 
-Shipping under AWO-48: the `.opencode/commands/` surface, the `dist/` plugin module, `/setup-awow` detection, and wiring plus live regression tests under `tests/harness/opencode/`.
+Shipping under AWO-48: the `dist/` plugin module, `/setup-awow` detection, and wiring plus live regression tests under `tests/harness/opencode/`. The in-repo `.opencode/commands/` surface was retired under AWO-257.
 
 ## Reference
 

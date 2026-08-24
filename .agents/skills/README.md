@@ -71,6 +71,6 @@ Every operational skill in this folder is opinionated about *some* part of the s
 
 ## Cross-harness
 
-Claude Code calls these "skills" natively. GitHub Copilot calls the same concept "[agent skills](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills)". `tools/gather.py` mirrors files here into both surface formats.
+Claude Code calls these "skills" natively. GitHub Copilot calls the same concept "[agent skills](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills)". `tools/gather.py` ships the files here in the plugin payload, rendered for each harness.
 
 When mirroring an operational skill, both `SKILL.md` and the bundled `scripts/` directory travel together. Path references inside `SKILL.md` use `.agents/skills/<name>/scripts/...` so they resolve correctly from the repo root regardless of which harness is active.

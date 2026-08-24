@@ -3,11 +3,15 @@ _fx_root() { printf '%s' "${AWOW_REPO_ROOT:-$(git -C "$(cd "$(dirname "${BASH_SO
 
 make_template_fixture() {  # <dir>
   local dir="$1" root; root="$(_fx_root)"; mkdir -p "$dir" || return 1
-  local d; for d in .agents tools setup context .claude-plugin commands hooks; do
+  local d; for d in .agents tools setup context .claude-plugin hooks; do
     [ -e "$root/$d" ] && cp -R "$root/$d" "$dir/" 2>/dev/null
   done
-  # Mirror .agents/ into the harness surfaces; --surface both keeps it lean (no dist/ build).
-  ( cd "$dir" && python3 tools/gather.py --surface both >/dev/null 2>&1 ) || return 1
+  # The root instruction files are hand-authored pointers to .agents/AGENTS.md
+  # (AWO-257) — Codex and Pi read AGENTS.md natively, so the fixture needs them
+  # and nothing generated: no gather run, no dist/ build.
+  local f; for f in AGENTS.md .claude/CLAUDE.md .github/AGENTS.md .github/copilot-instructions.md; do
+    mkdir -p "$dir/$(dirname "$f")" && cp "$root/$f" "$dir/$f" || return 1
+  done
   ( cd "$dir" && git init -q && git add -A && git -c user.email=t@t -c user.name=t commit -qm fixture ) || return 1
 }
 

@@ -1,11 +1,13 @@
 """Guard: no prompt may land an instruction diff in a generated file.
 
-tools/gather.py generates .claude/CLAUDE.md and .github/copilot-instructions.md
-from .agents/AGENTS.md on every build (plan_top_level, gather.py:333-341). A
+In a vendored install, tools/gather.py regenerates .claude/CLAUDE.md and
+.github/copilot-instructions.md from .agents/AGENTS.md on every build; in a
+plugin install they are the team's own bootstrapped files, never awow's. A
 command that tells the agent to write an instruction diff into one of those is
-writing to a build artefact: the edit survives until the next
-`python tools/gather.py` and is then silently destroyed. /process-retro did
-exactly that from the day it shipped.
+either writing to a build artefact — the edit survives until the next
+`python tools/gather.py` and is then silently destroyed — or writing awow's
+rules into a file the team owns. /process-retro did exactly that from the day
+it shipped.
 
 Three checks:
 
@@ -75,8 +77,8 @@ def check_retro_still_closes_the_loop() -> None:
 
 def check_update_context_frontmatter() -> None:
     """/update-context's frontmatter is load-bearing three ways: `autofire: true`
-    selects it for the dist/skills/ mirror (PR 4), `phase: standardise` makes it
-    opt-in via /awow-add, and `description:` is what the harness actually matches
+    selects it for the dist/skills/ mirror (PR 4), `phase: standardise` places it
+    in the Standardise tier, and `description:` is what the harness actually matches
     on. parse_frontmatter is line-based — a block scalar (`>-`) is stored as the
     literal string '>-' and every picker entry silently becomes that."""
     path = COMMANDS / "update-context.md"
@@ -102,7 +104,7 @@ def check_update_context_frontmatter() -> None:
     if fields.get("phase") != "standardise":
         FAILURES.append(
             f"update-context.md phase is {fields.get('phase')!r}, expected "
-            f"'standardise' so it stays opt-in via /awow-add."
+            f"'standardise' so it stays in the Standardise tier."
         )
     if fields.get("autofire") != "true":
         FAILURES.append(

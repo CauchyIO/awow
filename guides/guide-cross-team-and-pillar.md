@@ -142,4 +142,4 @@ no new human role.
 - [`proposals/cross-team-feedback-and-service-drift.md`](../proposals/cross-team-feedback-and-service-drift.md) — the proposal this page accompanies: full argument and open questions
 - `context/services/` — a pillar's activity map, service distillation, and exceptions log (not shipped; the required setup)
 - [`.agents/commands/okr-cascade.md`](../.agents/commands/okr-cascade.md) — the department-tier read surface the up-aggregation feeds
-- Companion guides: [program portfolio view](program-portfolio-view.md) — the up-aggregation rendered; [delivery coordination](guide-delivery-coordination.md) — the leaf-tier loop below
+- Companion guides: [program portfolio view](program-portfolio-view.md) — the up-aggregation rendered

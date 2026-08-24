@@ -4,7 +4,7 @@ State file for `/setup-awow`. The wizard reads this file on every invocation to 
 
 ## Status
 
-- [ ] **Step 0 — Installer (REQUIRED).** `.venv` + pointer stubs in `.claude/commands/` and `.github/prompts/`.
+- [x] **Step 0 — Installer (REQUIRED).** n/a — this repo is served by its own plugin payload; no pointer stubs are generated here (AWO-257).
 - [ ] **Step 1 — Kickoff (REQUIRED).** Board URL + MCP wired.
 - [ ] Step 2 — Mission
 - [ ] Step 3 — Required conventions (issue-titles, labels, branches, output-discipline)

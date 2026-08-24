@@ -25,29 +25,7 @@ _oc_serve() {  # <dir> <port>
 
 _oc_kill() { pkill -f "opencode serve --port $1" >/dev/null 2>&1 || true; }
 
-# The in-repo surface: opencode must see awow's commands as slash commands, each
-# with its $ARGUMENTS placeholder actually registered (hints), not merely present
-# as text. `hints` is opencode's own parse of the template — the ground truth that
-# arguments will substitute.
-_oc_commands_discovered() {
-  local port=39141 out; out="$(mktemp)"
-  _oc_serve "$HARNESS_REPO_ROOT" "$port" || { _record fail "opencode serve (repo) did not become ready"; _oc_kill "$port"; return 0; }
-  curl -s -m 10 -o "$out" "http://127.0.0.1:$port/command" 2>/dev/null
-  _oc_kill "$port"
-
-  cmd-succeeds "opencode discovers awow commands with registered \$ARGUMENTS" -- python3 -c "
-import json, sys
-d = json.load(open('$out'))
-awow = [c for c in d if c.get('source') == 'command' and c['name'] not in ('init', 'review')]
-if len(awow) < 20: sys.exit(1)
-if any('\$ARGUMENTS' not in (c.get('hints') or []) for c in awow): sys.exit(1)
-if any(not c.get('description') for c in awow): sys.exit(1)
-if any(c['name'].lower() == 'readme' for c in d): sys.exit(1)
-"
-  rm -f "$out"
-}
-
-# The payload half, exercised in the shape an install actually produces: dist/ IS
+# The payload, exercised in the shape an install actually produces: dist/ IS
 # the published package, so running opencode inside a copy of it puts the plugin
 # at .opencode/plugins/ with PACKAGE_ROOT resolving to the payload root. The copy
 # deliberately has no root AGENTS.md — that is the global-install case the
@@ -105,7 +83,6 @@ EOF
 live() {
   command -v opencode >/dev/null 2>&1 || { skip "opencode CLI not installed"; return 0; }
   command -v node >/dev/null 2>&1 || { skip "node not installed"; return 0; }
-  _oc_commands_discovered
   _oc_plugin_registers_skills
   _oc_plugin_hooks
 }

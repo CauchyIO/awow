@@ -8,14 +8,14 @@ Reference instructions per agent harness. One file per supported harness.
 
 | File | Harness | Delivery |
 |---|---|---|
-| `claude-code.md` | Claude Code | plugin + vendored surfaces |
-| `copilot.md` | GitHub Copilot | vendored surfaces |
+| `claude-code.md` | Claude Code | plugin (`dist/`, served by the awow repo's marketplace manifest) |
+| `copilot.md` | GitHub Copilot | Copilot plugin (`dist/.github/plugin/`) |
 | `codex.md` | Codex | repo-root `AGENTS.md` + `.codex-plugin/` plugin manifest |
 | `pi.md` | Pi | repo-root `AGENTS.md` + `package.json` `pi.skills` package |
-| `opencode.md` | opencode | repo-root `AGENTS.md` + native `.agents/skills/` + `.opencode/commands/` surface + `package.json` `main` plugin |
+| `opencode.md` | opencode | repo-root `AGENTS.md` + native `.agents/skills/` + `package.json` `main` plugin |
 | `m365-copilot.md` | Microsoft 365 Copilot (pilot / experimental) | declarative agent via `gather.py --surface m365` |
 
-Claude Code and GitHub Copilot ship in the vendored template channel. Codex and Pi are added per [`pi-codex-harness-support.md`](../../../proposals/pi-codex-harness-support.md), reconciled into hub-and-spoke WI-5: both read the repo-root `AGENTS.md` for zero-install steering, and reach awow's commands as skills through the `dist/` payload — Codex via `.codex-plugin/plugin.json`, Pi via `package.json` `pi.skills`. `tools/gather.py` mirrors `.agents/` to each surface; `tools/sync-dist.sh` publishes `dist/` to the `CauchyIO/awow-dist` marketplace repo. `m365-copilot.md` is a pilot: it targets non-technical users with no repo, via a declarative agent `gather.py --surface m365` emits — see that file for scope and current limits.
+Every harness installs the same built payload. Claude Code and GitHub Copilot install from the awow repo, whose marketplace manifest serves `dist/`; Codex, Pi and opencode install from `CauchyIO/awow-dist`, where `tools/sync-dist.sh` publishes that directory. Codex and Pi are added per [`pi-codex-harness-support.md`](../../../proposals/pi-codex-harness-support.md), reconciled into hub-and-spoke WI-5: both read the repo-root `AGENTS.md` for zero-install steering, and reach awow's commands as skills through the payload — Codex via `.codex-plugin/plugin.json`, Pi via `package.json` `pi.skills`. `tools/gather.py` renders `.agents/` into the payload once per harness; nothing is mirrored into a repo's own harness folders. `m365-copilot.md` is a pilot: it targets non-technical users with no repo, via a declarative agent `gather.py --surface m365` emits — see that file for scope and current limits.
 
 ## Why multiple
 
@@ -23,4 +23,4 @@ The supported harnesses have non-overlapping user bases. Single-harness defaults
 
 ## Adding a new harness
 
-Same shape. The file documents what the harness provides (slash commands? agent skills? hooks?), how `.agents/` mirrors to its surface, and the settings file format.
+Same shape. The file documents what the harness provides (slash commands? agent skills? hooks?), how the built payload reaches it, and the settings file format.

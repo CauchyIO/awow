@@ -7,7 +7,7 @@ Catalogues of reusable assets (skills, prompts, MCP servers) that this repo's ag
 | Version | Posture | What this file enables |
 |---|---|---|
 | v0.1 (now) | Reference-only | Documentation. `/setup-awow` ends by pointing the user here. No fetcher. |
-| v0.2 | Pull-on-demand | `/awow-add skill <upstream>:<name>` fetches and installs locally as a fork |
+| v0.2 | Pull-on-demand | A pull command fetches `<upstream>:<name>` and installs it locally as a fork |
 | v1.0+ | Federated | Version-pinned, drift-detection, multi-upstream |
 
 ## Registries
@@ -18,7 +18,7 @@ Catalogues of reusable assets (skills, prompts, MCP servers) that this repo's ag
 - **Scope:** Official Claude skill catalogue. Document creation, file operations, data extraction, slack/notion integrations, MCP-server scaffolds.
 - **License:** Apache 2.0
 - **Lands under:** `.agents/skills/`
-- **Pull mechanism (v0.2+):** Git submodule or fetch-and-flatten via `/awow-add skill anthropics:<name>`
+- **Pull mechanism (v0.2+):** Git submodule or fetch-and-flatten via the pull command (`anthropics:<name>`)
 - **Last checked:** 2026-05-11
 
 ### awesome-copilot
@@ -27,7 +27,7 @@ Catalogues of reusable assets (skills, prompts, MCP servers) that this repo's ag
 - **Scope:** Community-curated Copilot prompts, chat modes, agent skills, instruction files. Strongest list for the GitHub Copilot harness.
 - **License:** MIT
 - **Lands under:** `.agents/skills/` (skills), `.agents/commands/` (prompts), or harness-specific reference in `context/tooling/harnesses/copilot.md`
-- **Pull mechanism (v0.2+):** Fetch raw file via `/awow-add prompt awesome-copilot:<name>`
+- **Pull mechanism (v0.2+):** Fetch raw file via the pull command (`awesome-copilot:<name>`)
 - **Last checked:** 2026-05-11
 
 ### MCP Servers Directory
@@ -36,7 +36,7 @@ Catalogues of reusable assets (skills, prompts, MCP servers) that this repo's ag
 - **Scope:** Multi-vendor MCP server catalogue plus an agent-skills collection. Cross-references both `.agents/skills/` and `mcps/`.
 - **License:** Varies per entry — always check the source repo
 - **Lands under:** `mcps/catalogue.md` (for MCP servers) or `.agents/skills/` (for skills)
-- **Pull mechanism (v0.2+):** `/awow-add mcp mcpservers:<name>` for MCP entries
+- **Pull mechanism (v0.2+):** the pull command (`mcpservers:<name>`) for MCP entries
 - **Last checked:** 2026-05-11
 
 ## Adding a registry

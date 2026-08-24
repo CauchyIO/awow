@@ -12,7 +12,7 @@ consumes: design-artefact
 
 # /project-plan — turn a locked design into a published project plan with a stated dependency graph
 
-You take the decomposed work-item tree from a locked design and turn it into a **project plan**: a stated dependency graph, translated into a concrete set of board actions, then published. This is the bridge between *what we decided to build* (`/solution-design-flow`) and *executing each piece* (`/process-workitem`) — and it is what `/project-manager` later steers on.
+You take the decomposed work-item tree from a locked design and turn it into a **project plan**: a stated dependency graph, translated into a concrete set of board actions, then published. This is the bridge between *what we decided to build* (`/solution-design-flow`) and *executing each piece* (`/process-workitem`).
 
 The dependency graph is the deliverable, not a footnote. State it explicitly — nodes, edges, what runs in sequence, what runs in parallel, and the critical path — because every downstream flow assumes it exists and is true.
 
@@ -56,7 +56,7 @@ State the graph explicitly. It has four parts:
 - **Nodes** — every work item (the parent and each child), each with its ID (or `NEW` if not yet on the board), title, rough size, and owner if known.
 - **Edges** — every blocking relation as `A → B` ("A blocks B" / "B is blocked by A"). Derive edges from the design's stated dependencies and from the work itself; **mark any edge you inferred rather than read as inferred**.
 - **Sequence vs parallel** — group the nodes into ordered layers: what must run serially, and what can run concurrently within a layer. This is the topological read of the edges.
-- **Critical path** — the longest chain of blocking edges; it determines the delivery time and is what `/project-manager` watches first.
+- **Critical path** — the longest chain of blocking edges; it determines the delivery time.
 
 Flag cross-team edges (a dependency owned by a neighbouring team) and any node with no owner or no acceptance criteria — these stall when picked up. Name what the design left implicit; completing the graph is the point of this command.
 
@@ -155,7 +155,6 @@ Failed: [list or "none"]
 
 Hand-off:
 - /process-workitem can now execute Layer 1 items.
-- /project-manager reads this plan to coordinate delivery.
 
 Manual follow-up:
 - [cross-team escalation] → [Name] on [Team]

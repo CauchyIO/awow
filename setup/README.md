@@ -12,7 +12,7 @@ Both scripts do the same thing:
 1. Verify `uv` is installed (or tell you how to install it).
 2. Install Python 3.12 locally via `uv python install`.
 3. Create a `.venv` in the repo root (already in `.gitignore`).
-4. Run `tools/gather.py` once to populate `.claude/` and `.github/` pointer stubs.
+4. Run `tools/gather.py` once — in the awow repo this builds the plugin payloads under `dist/`; in a legacy vendored tree its own copy populated the `.claude/` and `.github/` pointer stubs.
 
 awow's tools are stdlib-only, so there is no requirements file and no third-party packages get installed.
 

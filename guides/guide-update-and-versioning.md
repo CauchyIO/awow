@@ -86,11 +86,16 @@ rm .agents/commands/daily-digest.md.awow
 | --- | --- |
 | `.claude-plugin/plugin.json` → `version` | The canonical awow version. Bumped when starter-owned files change; the plugin marketplace serves it and `status` reports it as the "to" side. |
 | `tools/awow.lock.json` → `awow_version` | The version *your repo* last reconciled against — the "from" side of every plan. |
-| Git tags (`v0.4.0`, …) | Pinnable release points on the awow repo. Pass a tag checkout as `--source` to update to a specific version instead of whatever `main` is. |
+| Git tags (`v0.4.0`, …) | Pinnable release points on the awow repo, created by the release workflow when a version bump lands on `main`. Pass a tag checkout as `--source` to update to a specific version instead of whatever `main` is. |
+| `CHANGELOG.md` | What each release changed, newest first — the section for a version is also the body of its GitHub release. |
 
 Correctness never depends on the numbers — the compare is content-hash based — but a plan reading
 `0.3.0 → 0.4.0` tells you you're taking a real release. Maintainers: bump the version in the same
-change that alters starter files, and tag the release commit.
+change that alters starter files and add that version's section to `CHANGELOG.md`
+(`python tools/release-notes.py --changelog CHANGELOG.md` drafts it from the merged PRs since the
+previous release; trim it in the PR). When the bump lands on `main`, the release workflow opens
+the awow-dist publish PR, tags the commit, and publishes the GitHub release with that section as
+its body — there is no tag to push by hand.
 
 ## Sources of truth
 

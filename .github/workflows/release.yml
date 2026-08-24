@@ -1,12 +1,16 @@
 name: release
 
-# Cutting a release is one act: tag, and everything the release owes follows.
-# Between v0.6.0 and v0.8.0 publishing was a manual script nobody ran, so Codex,
-# Pi and opencode served a two-minor-stale payload while CI stayed green
-# (AWO-156). Tying the publish to the tag is what stops that recurring.
+# Cutting a release is the merge that bumps the version — nothing else. Between
+# v0.6.0 and v0.8.0 publishing was a manual script nobody ran (AWO-156); tying
+# it to a tag fixed the publish but left the tag manual, and v0.9.2's release
+# sat as a draft with empty notes (AWO-261). Now a push to main whose canonical
+# version has no GitHub release yet gets its awow-dist publish PR, its tag, and
+# a published release whose body is that version's CHANGELOG.md section — the
+# notes reviewed in the bump PR. Every other push to main is a no-op here.
 on:
   push:
-    tags: ["v*.*.*"]
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -17,30 +21,47 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # release notes need the full tag history
+          fetch-depth: 0  # the changelog verify needs the tags
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
+      # A draft counts as released here: v0.9.2's draft is a human's to publish
+      # or delete, not this workflow's to clobber.
+      - name: Is the canonical version released already?
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="v$(python3 -c "import json;print(json.load(open('.claude-plugin/plugin.json'))['version'])")"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if gh release view "$version" >/dev/null 2>&1; then
+            echo "$version already has a release — nothing to do."
+            echo "released=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "$version has no release yet — cutting it from $GITHUB_SHA."
+            echo "released=false" >> "$GITHUB_OUTPUT"
+          fi
+
       # Verify before publishing anything. A payload that fails these must never
       # reach an install surface.
       - name: Generated surfaces in sync
+        if: steps.gate.outputs.released == 'false'
         run: python3 tools/gather.py --check
       - name: Payload manifest integrity
+        if: steps.gate.outputs.released == 'false'
         run: python3 tests/payload-manifests/test_manifest_integrity.py
 
-      - name: Tag matches the canonical version
-        run: |
-          set -euo pipefail
-          tag="${GITHUB_REF_NAME#v}"
-          canonical="$(python3 -c "import json;print(json.load(open('.claude-plugin/plugin.json'))['version'])")"
-          if [ "$tag" != "$canonical" ]; then
-            echo "tag ${GITHUB_REF_NAME} does not match .claude-plugin/plugin.json ${canonical}" >&2
-            exit 1
-          fi
-
-      - name: Draft the release notes
-        run: python3 tools/release-notes.py --version "${GITHUB_REF_NAME}" --out RELEASE_NOTES.md
+      # The release body is the section the bump PR added and reviewed. Missing
+      # or empty stops the release: CI on the PR checks the same thing, so this
+      # only fires when someone bypassed it.
+      - name: Extract the release body from CHANGELOG.md
+        if: steps.gate.outputs.released == 'false'
+        run: >
+          python3 tools/release-notes.py
+          --version "${{ steps.gate.outputs.version }}"
+          --extract-from CHANGELOG.md --out RELEASE_NOTES.md
 
       # An installation token from cauchy-awow-publisher (app id 4557933), a
       # CauchyIO-owned App built for this one job, not a PAT: org-owned rather
@@ -53,6 +74,7 @@ jobs:
       # because sync-dist.sh chooses to open one, not because the token forbids
       # the alternative.
       - name: Mint an awow-dist installation token
+        if: steps.gate.outputs.released == 'false'
         id: dist-token
         uses: actions/create-github-app-token@v1
         with:
@@ -68,13 +90,18 @@ jobs:
       # human running sync-dist.sh by hand still authors as themselves. The
       # identity is the publisher App's bot, the same one whose token pushes.
       - name: Configure git identity for the publish commit
+        if: steps.gate.outputs.released == 'false'
         run: |
           git config --global user.name "cauchy-awow-publisher[bot]"
           git config --global user.email "315785006+cauchy-awow-publisher[bot]@users.noreply.github.com"
 
       # sync-dist.sh opens a PR against awow-dist and never pushes to its base
-      # branch, so merging stays a human act on a public repo.
+      # branch, so merging stays a human act on a public repo. It runs before
+      # the release is created: a failure here leaves no release behind, so the
+      # next push to main (or a manual dispatch) simply cuts it again. Each run
+      # opens a fresh timestamped PR, so close a stale one from a failed run.
       - name: Open the awow-dist publish PR
+        if: steps.gate.outputs.released == 'false'
         env:
           GH_TOKEN: ${{ steps.dist-token.outputs.token }}
         run: |
@@ -87,14 +114,16 @@ jobs:
           gh auth setup-git
           ./tools/sync-dist.sh --apply -y
 
-      # Draft, not published: the generated notes are a first pass whose tags are
-      # keyword guesses and whose lines are raw PR titles. Someone trims, then
-      # publishes.
-      - name: Create the draft GitHub release
+      # --target makes gh create the tag at this commit, so the tag is a product
+      # of the release rather than a step someone has to remember. Published,
+      # not draft: the body was reviewed in the bump PR, and a draft nobody
+      # publishes is a release nobody can see.
+      - name: Create the tag and publish the release
+        if: steps.gate.outputs.released == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" \
-            --draft \
-            --title "${GITHUB_REF_NAME}" \
+          gh release create "${{ steps.gate.outputs.version }}" \
+            --target "$GITHUB_SHA" \
+            --title "${{ steps.gate.outputs.version }}" \
             --notes-file RELEASE_NOTES.md

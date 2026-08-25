@@ -2,7 +2,7 @@
   "name": "awow",
   "displayName": "awow — Agentic Way of Working",
   "description": "Board-first delivery workflows for coding agents. /setup-awow connects your issue board (Linear, Jira, GitHub Issues, Azure DevOps) and your team's conventions; the delivery commands then keep the board current as a byproduct of the work.",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "author": {
     "name": "Casper Lubbers"
   },

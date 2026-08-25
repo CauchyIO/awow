@@ -151,6 +151,7 @@ PAYLOAD_CONTEXT_PATHS = [
     "retros/canon.md",                    # contract
     "tooling/README.md",                  # contract
     "tooling/activity-collection.md",     # contract
+    "tooling/context-resolution.md",      # contract — installation/board ladder + write boundary (CAU-1335)
     "tooling/boards",                     # contract (subtree, 35 files)
     "tooling/harnesses",                  # contract (subtree, 5 files)
     "knowledge-base/mining-policy.md",    # template — selectivity: 2

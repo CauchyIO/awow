@@ -54,9 +54,9 @@ In **solo** mode, skip the steps that only make sense for a group and mark them 
 
 Reframe **Step 2** as the user's focus for the work, not a team charter. Everything else runs unchanged. A solo adopter can switch later by re-running `/setup-awow` and answering "team".
 
-With `track: team`, ask once what this repo serves: which board or boards, and which team or teams, by name. Record `boards: <comma list>` and `teams: <comma list>` in `setup-progress.md`. One board, one team — continue; this default path adds no further ceremony. More than one board — Step 1b drafts the index-form `board.md` (a `## Boards` list with sibling `board-<name>.md` specs, per §Context resolution in the agent instructions) and walks its configuration once per board. More than one team sharing members and conventions is one installation — say so, and recommend a separate installation only when the teams' conventions genuinely diverge.
+With `track: team`, ask once what this repo serves: which board or boards, and which team or teams, by name. Record `boards: <comma list>` and `teams: <comma list>` in `setup-progress.md`. One board, one team — continue; this default path adds no further ceremony. More than one board — Step 1b drafts the index-form `board.md` (a `## Boards` list with sibling `board-<name>.md` specs, per the context-resolution contract at `{HUB}/context/tooling/context-resolution.md`, shipped fallback `../../context/tooling/context-resolution.md`) and walks its configuration once per board. More than one team sharing members and conventions is one installation — say so, and recommend a separate installation only when the teams' conventions genuinely diverge.
 
-Write `{PROJECT}/.awow/profile.json` (schema per §Context resolution) with the stated hat and, once boards are named, the invoker's default board. Never commit it.
+Write `{PROJECT}/.awow/profile.json` (schema per the context-resolution contract, §The invoker profile) with the stated hat and, once boards are named, the invoker's default board. Never commit it.
 
 ### Hats — who answers which step
 

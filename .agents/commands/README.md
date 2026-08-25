@@ -19,7 +19,7 @@ Two of these commands are routers: `process-workitem` dispatches to the handlers
 Plus the top-level meta commands:
 
 - `setup-awow.md` — the incremental, resumable bootstrap wizard
-- `update-awow.md` — the legacy vendored-tree update path (`channel: vendored`; not in the payload)
+- `migrate-to-plugin.md` — de-vendor a repo the plugin now serves: classify edited-vs-unedited, migrate edits to their plugin-era homes, delete the rest, prove parity
 
 The maintainer eval runner, `/test-awow`, lives in this repo's `.claude/commands/` rather than here — it is not part of the payload.
 

@@ -6,6 +6,8 @@ prerequisites:
   - "{HUB}/context/department/ stood up and at least one team joined (`/setup-department`)"
   - "an OKR doc for the current quarter at `{HUB}/context/department/okrs-<quarter>.md`"
 removes_pain: "the quarter's OKR cascade drifting out of sync with team reality because nothing forces regular reconciliation"
+when-to-use: "The department's standing quarter machinery: Articulate, Refine, Translate, or Review. Review is the recurring strategic review — grading KR movement against board reality."
+when-not-to-use: "Forming the strategy in the first place — vision to bets to a draft KR set is /strategy-flow. Working one locked bet in a live board session — that is the bet-refinement-coach skill."
 ---
 
 # /okr-cascade — run the quarter's OKR cascade

@@ -16,6 +16,15 @@ The two underscore-prefixed subfolders are handler registries, not directly invo
 
 Two of these commands are routers: `process-workitem` dispatches to the handlers in `_workitem-archetypes/`; `process-transcript` composes every matching generic lens in `_meeting-archetypes/`, adds sparse team guidance from `context/team/meetings/`, and dispatches to a specialist command when one owns the workflow. `guides/guide-transcript-router.md` documents the transcript-routing model — it is scoped to transcript-consuming commands, not a catalogue of every prompt.
 
+The strategy layer routes across three surfaces sharing one battery (the `department-coach` skill):
+
+| Moment | Surface |
+| --- | --- |
+| Vision, no measurable goals yet | `/strategy-flow` — formation: bets → committed/aspirational KR draft |
+| One bet, live board session | `bet-refinement-coach` skill — ratify numbers, red-pen bars, battery, translate round |
+| The department's standing quarter machinery | `/okr-cascade` — Articulate / Refine / Translate / Review |
+| Grading KRs against board movement | `/okr-cascade` Review — the recurring strategic review; there is no separate review command |
+
 Plus the top-level meta commands:
 
 - `setup-awow.md` — the incremental, resumable bootstrap wizard

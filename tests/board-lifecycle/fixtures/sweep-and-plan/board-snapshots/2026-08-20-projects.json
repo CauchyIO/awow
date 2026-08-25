@@ -1,0 +1,13 @@
+{
+  "snapshot_date": "2026-08-20",
+  "projects": [
+    {"name": "north-star-portal", "initiative": "Delivery", "status": "Started", "shape": "shape:engagement", "horizon": "2099-06-30", "lead": "lead-a", "last_activity": "2026-02-01"},
+    {"name": "harbor-rollout", "initiative": "Delivery", "status": "Started", "shape": "shape:engagement", "horizon": "2026-07-01", "lead": "lead-b", "last_activity": "2026-08-19"},
+    {"name": "spring-campaign", "initiative": "Growth", "status": "Started", "shape": "shape:campaign", "horizon": "2026-06-15", "lead": "lead-c", "last_activity": "2026-05-30"},
+    {"name": "autumn-campaign", "initiative": "Growth", "status": "Planned", "shape": "shape:campaign", "horizon": "2099-09-30", "lead": "lead-c", "last_activity": "2026-08-18"},
+    {"name": "billing-platform", "initiative": "Platform", "status": "Started", "shape": "shape:system", "horizon": "2099-03-31", "lead": "lead-d", "last_activity": "2026-08-01"},
+    {"name": "legacy-intake", "initiative": "Platform", "status": "Started", "shape": "shape:system", "horizon": null, "lead": "lead-d", "last_activity": "2026-07-15"},
+    {"name": "drift-experiment", "initiative": "Platform", "status": "Started", "shape": null, "horizon": "2099-01-01", "lead": "lead-e", "last_activity": "2026-08-10"},
+    {"name": "ops-dashboard", "initiative": "Platform", "status": "Started", "shape": "shape:system", "horizon": "2099-12-31", "lead": "lead-e", "last_activity": "2026-06-20"}
+  ]
+}

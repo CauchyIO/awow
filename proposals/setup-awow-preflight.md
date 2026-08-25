@@ -95,3 +95,7 @@ found — the right server on one machine, the wrong one on another.
   chocolatey as a team-preference alternative); Visual Studio peculiarities folded in as
   bridge-chain checks (Copilot CLI → plugin store → `.awow-bridge.json`) with roster-conditional
   MCP candidate locations, conditioned on the `visual-studio-channel` draft landing.
+- 2026-08-25 — review: VS runs no commands off the bat (per that draft's no-command-surface /
+  approval-gated execution findings) — every VS pointer now names the Copilot CLI session as
+  where to run it, and a preflight running inside Visual Studio degrades to file-reads-only with
+  a CLI redirect instead of a stream of approval prompts.

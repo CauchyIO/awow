@@ -96,7 +96,7 @@ implicit: this command is running):
 | Claude Code | none — the plugin delivered this command | — |
 | Copilot (CLI) | `copilot` binary on PATH; when the roster names Visual Studio or a bridge marker exists, the VS-row bridge checks | Copilot CLI install docs; `/awow-vs` for the bridge |
 | Copilot (VS Code / GHCP) | `.vscode/mcp.json` present when the board surface is MCP; `.github/prompts/` populated in a vendored install | point at the wizard's Step 1a snippet for `.vscode/mcp.json`; `tools/gather.py` for stale stubs |
-| Visual Studio (GHCP agent mode) | `copilot` binary on PATH (the CLI is the delivery *and* bridge vehicle — VS itself never reads the plugin store); awow plugin present in the CLI store (`~/.copilot/installed-plugins/awow/`); bridge marker `~/.copilot/skills/.awow-bridge.json` present, its version equal to the installed plugin's | the three-command onboarding, verbatim: `copilot plugin marketplace add CauchyIO/awow` → `copilot plugin install awow@awow` → `/awow-vs`; a present-but-stale marker → "run `/awow-vs`" |
+| Visual Studio (GHCP agent mode) | `copilot` binary on PATH (the CLI is the delivery *and* bridge vehicle — VS itself never reads the plugin store); awow plugin present in the CLI store (`~/.copilot/installed-plugins/awow/`); bridge marker `~/.copilot/skills/.awow-bridge.json` present, its version equal to the installed plugin's | the three-command onboarding, verbatim: `copilot plugin marketplace add CauchyIO/awow` → `copilot plugin install awow@awow` → `/awow-vs` — **all in a Copilot CLI session** (VS has no command surface); a present-but-stale marker → "run `/awow-vs` in a Copilot CLI session" |
 | Codex / Pi / opencode | none defined in this spec | render `harness ✓ (no checks defined for <harness>)` |
 
 The Visual Studio row's probes are defined by the `visual-studio-channel` proposal (WI-1's
@@ -104,7 +104,16 @@ The Visual Studio row's probes are defined by the `visual-studio-channel` propos
 then a `visual-studio` answer renders `– (VS bridge not yet shipped)` — an explicit note, never a
 pretend-check. VS has no command or slash surface of its own, so `/setup-awow` reaches a VS-only
 org through a Copilot CLI session: Visual Studio therefore usually appears as a *declared*
-harness (P6) rather than the current one, and the checks are identical either way.
+harness (P6) rather than the current one, and the checks are identical either way. Two VS
+peculiarities bind every row that mentions it. First, **every command pointer means "run it in a
+Copilot CLI session"** and the pointer text says so — a VS user cannot run `/awow-vs` or
+`copilot plugin install` from inside the IDE. Second, **VS does not run terminal commands
+freely** — agent-mode command execution is approval-gated — so on the rare invocation where the
+current harness *is* Visual Studio (a skills stub fired in agent mode), the preflight degrades
+to file reads only: the marker, the config files, and candidate enumeration still work; every
+shell-dependent check renders `– (not checkable from Visual Studio)`; and the wizard points at
+running `/setup-awow` in a Copilot CLI session for the full preflight. The preflight must never
+become a stream of command-approval prompts.
 
 A P5 miss gates exactly the steps that need the missing piece (a missing `.vscode/mcp.json`
 gates the same steps a blocked P3 gates; a missing skills channel or bridge gates nothing in the
@@ -257,7 +266,11 @@ laying out the step map. Preflight is read-only. Never install anything, never r
 server, never run `git init`, never write any file — `setup-progress.md` included. Report, point
 at the fix, and gate. Probe in the non-failing style (`cmd && echo ok || echo missing`); never
 `cat` a possibly-absent file. Re-probe every invocation; never persist a result — recorded auth
-status lies.
+status lies. When the current harness is Visual Studio, do not shell out at all — VS
+approval-gates terminal commands, and the preflight must not become a stream of permission
+prompts. Probe only what file reads answer (the bridge marker, the config files, candidate
+enumeration), render shell-dependent checks as `– (not checkable from Visual Studio)`, and tell
+the user to run `/setup-awow` in a Copilot CLI session for the full preflight.
 
 1. **git on PATH.** `git --version >/dev/null 2>&1 && echo ok || echo missing`. Missing: print
    the install pointer for the user's platform — macOS: `xcode-select --install` or
@@ -305,8 +318,9 @@ status lies.
    `~/.copilot/skills/.awow-bridge.json` present with a version equal to the installed plugin's;
    any miss points at the three-command onboarding (`copilot plugin marketplace add
    CauchyIO/awow` → `copilot plugin install awow@awow` → `/awow-vs`), a stale marker at
-   "run `/awow-vs`". Until the VS bridge ships, render `– (VS bridge not yet shipped)` instead
-   of checking. Codex, Pi, opencode: no checks defined; render
+   "run `/awow-vs`" — and every such pointer names the Copilot CLI session as where to run it:
+   VS has no command surface. Until the VS bridge ships, render `– (VS bridge not yet shipped)`
+   instead of checking. Codex, Pi, opencode: no checks defined; render
    `harness ✓ (no checks defined for <harness>)`.
 6. **Declared other harnesses.** When `setup-progress.md` records a harness roster, probe what
    is checkable from this machine for each non-current entry (as in check 5 — for Visual Studio
@@ -680,4 +694,5 @@ on any machine and contact no real board.
 | Runner git-ness | Default `git init -q` in scratch unless a setup hook exists (§6.1). |
 | Install pointers | Platform-matched, one per platform: brew/xcode-select (macOS), winget (Windows — in-box; chocolatey only as a team-already-uses-it alternative), distro package manager (Linux) (§2.1, §2.4). |
 | Visual Studio | Covered via its bridge chain — Copilot CLI on PATH, plugin in `~/.copilot/installed-plugins/`, fresh `.awow-bridge.json` — with the three-command onboarding as the pointer; activates when `visual-studio-channel` lands, explicit not-yet-shipped note until then (§2.5–2.7). |
+| VS command execution | VS runs no commands off the bat: every VS pointer names the Copilot CLI session as where to run it (no command surface in the IDE), and with VS as the current harness the preflight is file-reads-only with a CLI redirect — never a stream of approval prompts (§2.5, §5.1 preamble). |
 | Other commands | Out of scope; a future proposal may promote P3 into a shared skill (§1). |

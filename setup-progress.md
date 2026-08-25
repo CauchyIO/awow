@@ -5,7 +5,7 @@ State file for `/setup-awow`. The wizard reads this file on every invocation to 
 ## Status
 
 - [x] **Step 0 — Installer (REQUIRED).** n/a — this repo is served by its own plugin payload; no pointer stubs are generated here (AWO-257).
-- [ ] **Step 1 — Kickoff (REQUIRED).** Board URL + MCP wired.
+- [x] **Step 1 — Kickoff (REQUIRED).** Board URL + MCP wired. done-by: casper. Mode B capture of the CAU board (cauchyio workspace, Cauchyio team, `linear-server` MCP) on 2026-08-25, replacing the session-inferred AWO board. Read and write access verified (write via a real issue creation, CAU-1410). Reference layer: starter pack throughout. Pending: team-page conventions section and a label-normalisation pass (re-run Step 1b to deepen).
 - [ ] Step 2 — Mission
 - [ ] Step 3 — Required conventions (issue-titles, labels, branches, output-discipline)
 - [ ] Step 4 — Members and style

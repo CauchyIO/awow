@@ -49,7 +49,8 @@ file inside the repo — before the plan is approved.**
 ## Step 1 — classify every starter-owned file (read-only)
 
 The starter-owned set is what the engine enumerates: run
-`python3 "{AWOW_TOOLS}/awow_lock.py" status --root . --json`
+`python3 "{AWOW_TOOLS}/awow_lock.py" --root . status --json`
+(`--root` is a global flag: it comes before the subcommand)
 to list it (`.agents/`, `tools/`, `setup/`, `context/`, `mcps/`,
 `pyproject.toml`, `SETUP.md`, `REFERENCES.md`, minus its exclusions).
 Classify each file **edited or unedited**, by this ladder — top-down, first

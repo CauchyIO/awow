@@ -23,23 +23,28 @@ file inside the repo — before the plan is approved.**
 
 ## Inputs
 
-- `--source <path>` (optional) — an awow checkout or payload used only to
-  classify files in a pre-lockfile repo (history matching). Never required
-  when `tools/awow.lock.json` exists.
+- `--source <path>` (optional) — an awow checkout or payload to run the
+  migration from when no plugin install is reachable: the engine
+  (`<source>/tools/awow_lock.py`) and the parity inventory are read from it.
+  Also the history source for pre-lockfile classification (ladder step 3).
 - `--check` (optional) — classify and present the plan, then stop. No writes.
 
 ## Preconditions — verify, then stop on failure
 
 1. **The payload is reachable.** The migration engine is
-   `${CLAUDE_PLUGIN_ROOT}/tools/awow_lock.py` — **always the payload's copy, never the
-   repo's vendored `tools/awow_lock.py`** (that is the stale vintage this
-   command exists to retire), and **always with `--root <repo>`** (the
-   engine's default root is its own install directory).
+   `${CLAUDE_PLUGIN_ROOT}/tools/awow_lock.py` — or `<source>/tools/awow_lock.py` when the
+   plugin is not installed and `--source` names a payload or checkout —
+   **always that copy, never the repo's vendored `tools/awow_lock.py`** (that
+   is the stale vintage this command exists to retire), and **always with
+   `--root <repo>`** (the engine's default root is its own install
+   directory). Neither reachable: stop.
 2. **The repo is vendored.** `.agents/AGENTS.md` exists. In a plugin-only
    repo there is nothing to migrate: say so and stop.
-3. **The git tree is clean.** The apply step is a large delete; require a
-   clean `git status --porcelain` so the whole migration is one revertable
-   commit. A dirty tree is a stop, not a stash you perform silently.
+3. **The git tree is clean.** The apply step is a large delete; require
+   `git status --porcelain -uno` empty (no uncommitted changes to tracked
+   files — untracked files are harmless) so the whole migration is one
+   revertable commit. A dirty tree is a stop, not a stash you perform
+   silently.
 
 ## Step 1 — classify every starter-owned file (read-only)
 
@@ -75,8 +80,9 @@ deletion; an unmarked file in those trees is team-owned and kept.
 | --- | --- |
 | `.agents/commands/_workitem-archetypes/<n>.md` | `context/team/workitem-archetypes/<n>.md` (the overlay registry) |
 | `.agents/commands/_meeting-archetypes/<n>.md` | `context/team/meetings/<n>.md` |
-| `context/**` | stays exactly where it is — context is adopter-owned |
-| `.agents/commands/<n>.md`, `.agents/skills/**` | a repo-local command file (e.g. `.claude/commands/<n>.md`) — **flag as the one parity seam**: it shadows the plugin's copy and stops receiving updates |
+| `context/**` — team-data (no counterpart under the payload's `context/`) | stays exactly where it is, **edited or not** — the plugin never serves it, so this is its only home (`team/`, `company/`, `board.md`, `setup-progress.md`, filled-in templates) |
+| `context/**` — payload-served reference (a counterpart exists under the payload's `context/`) | edited → stays; unedited → deleted, the plugin serves it |
+| `.agents/commands/<n>.md`, `.agents/skills/**` | a repo-local command file — `.claude/commands/<n>.md` unless the team's harness dictates another home — **flag as the one parity seam**: it shadows the plugin's copy and stops receiving updates |
 | `tools/`, `setup/`, `mcps/` edits | keep in place, flagged for manual review — they may carry local automation |
 
 Unedited files have no destination: the payload serves their current form.
@@ -123,5 +129,8 @@ team's change lands upstream.
   comparison; unresolved means edited.
 - **Never run the vendored engine.** Only the payload's `awow_lock.py`, only
   with `--root`.
+- **Never delete a context file the payload does not serve.** A `context/`
+  path with no counterpart under the payload's `context/` tree is team-data —
+  its only home is this repo, whatever its hash says.
 - **Scope is the vendored surface.** Team context, the board, and knowledge
   base are untouched; this command migrates scaffolding, not content.

@@ -42,13 +42,13 @@ The first of the two required steps. After Step 1 the agent can read and propose
 
 Re-invoking `/setup-awow` offers these in the order they pay back fastest. Any can be deferred. State is tracked in `setup-progress.md`.
 
-### Step 2 — Mission
+### Step 2 — Team profile
 
 Output: `context/team/mission.md`.
 
-The single highest-leverage sentence the team writes. A vague mission produces vague agent behaviour across every ceremony, because every command that reads mission inherits it.
+A short profile — a few plain sentences on what the team is working on, for whom, and in which tech stack; a one-sentence mission is an optional first line. Every command that reads this file inherits it as orientation.
 
-The wizard asks the user for a one-sentence mission and refuses anything trivial ("be excellent", "ship software"). A useful mission names the audience, the change being made, and the constraint.
+The wizard drafts the profile from the board and the repo (manifests, README) and asks only to approve or edit; it asks the open question only when there is nothing to observe.
 
 ### Step 3 — Required conventions
 

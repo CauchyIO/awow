@@ -44,7 +44,7 @@ A spoke commits its hub's identity (git remote URL), never a path. Walk these fi
 1. **Identify the hub.** Ask for the hub's git remote URL and this repo's project name (default: the repo directory name). Never infer the hub from sibling directories without the user confirming.
 2. **Resolve the hub locally.** Offer an accessible checkout whose normalized `origin` — host + owner/repo, ignoring scheme, credentials, an optional `.git` suffix, and a trailing slash — equals the hub remote; else ask for a path or offer to clone. A checkout whose `origin` does not match is a stop, not a warning.
 3. **Write the machine link.** Write `.awow/hub.json` as `{"remote": "<hub remote URL>", "path": "<absolute path to the clone>"}` and ensure `.gitignore` covers `.awow/`. This link is machine-local state: never commit it and never record the path in any committed file.
-4. **Draft the spoke PR** in this repo: root `AGENTS.md` with connector frontmatter (`awow: spoke`, `hub: <remote URL>`, `project: <name>`) and a short body pointing collaborators at the hub; `.claude/settings.json` enabling the awow plugin at project scope; `context/mission.md`; `context/board-scope.md` with frontmatter `board:` (the hub's index name for it), `team:` (the board team items land on), optional `project:` and `subpath:` — ask which of the hub's boards this repo maps to, and with a single-board hub offer to skip the file; `context/do-not-propose.md` when the user wants one; the `.awow/` gitignore entry. Open the PR only after approval.
+4. **Draft the spoke PR** in this repo: root `AGENTS.md` with connector frontmatter (`awow: spoke`, `hub: <remote URL>`, `project: <name>`) and a short body pointing collaborators at the hub; `.claude/settings.json` enabling the awow plugin at project scope; `context/mission.md` (a project-level profile: what this repo is and its stack, same shape as the hub's team profile); `context/board-scope.md` with frontmatter `board:` (the hub's index name for it), `team:` (the board team items land on), optional `project:` and `subpath:` — ask which of the hub's boards this repo maps to, and with a single-board hub offer to skip the file; `context/do-not-propose.md` when the user wants one; the `.awow/` gitignore entry. Open the PR only after approval.
 5. **Draft the hub PR** in the hub checkout: a knowledge-source record for this repo per `{HUB}/context/tooling/knowledge-sources.md` — routing profile plus `spoke:` block — and its `index.md` line. Open it only after approval; when the user lacks hub PR rights, leave the drafted record under this repo's `proposals/` with a handoff note naming who can land it.
 
 Verify by reporting what a fresh session will see: the connected-spoke reflex with `{HUB}` resolved to the recorded path. Tell the user registration completes when both PRs merge; neither blocks the other, and teammates need only clone the spoke and answer the one-time map-the-hub prompt.
@@ -58,7 +58,7 @@ In **solo** mode, skip the steps that only make sense for a group and mark them 
 - **Step 4 members** — skip; the roster is just the user. Still draft the style files, since they shape every artefact.
 - **Step 7 neighbouring teams** — skip; there are no 1° teams to stub.
 
-Reframe **Step 2** as the user's focus for the work, not a team charter. Everything else runs unchanged. A solo adopter can switch later by re-running `/setup-awow` and answering "team".
+Reframe **Step 2** as what the user is building and in what stack, not a team charter — usually draftable straight from the repo. Everything else runs unchanged. A solo adopter can switch later by re-running `/setup-awow` and answering "team".
 
 With `track: team`, establish what this repo serves: which board or boards, and which team or teams. When a wired surface or board URL is already known and names exactly one team, infer both and state them instead of asking; ask only when nothing is wired or the mapping is ambiguous. Record `boards: <comma list>` and `teams: <comma list>` in `setup-progress.md`. One board, one team — continue; this default path adds no further ceremony. More than one board — Step 1b drafts the index-form `board.md` (a `## Boards` list with sibling `board-<name>.md` specs, per §Context resolution in the agent instructions) and walks its configuration once per board. More than one team sharing members and conventions is one installation — say so, and recommend a separate installation only when the teams' conventions genuinely diverge.
 
@@ -66,7 +66,7 @@ Write `{PROJECT}/.awow/profile.json` (schema per §Context resolution) with the 
 
 ### Hats — who answers which step
 
-Steps carry a hat — **engineering**: 0 (installer), 1a (surface), 5 (bootstrap), 9 (skills review); **product**: 1b (board config), 2 (mission), 3 (conventions), 4 (members + style), 6 (KB seed), 7 (neighbouring teams), 8 (extras). `hat: both` answers everything with no ceremony.
+Steps carry a hat — **engineering**: 0 (installer), 1a (surface), 5 (bootstrap), 9 (skills review); **product**: 1b (board config), 2 (team profile), 3 (conventions), 4 (members + style), 6 (KB seed), 7 (neighbouring teams), 8 (extras). `hat: both` answers everything with no ceremony.
 
 Any hat may answer any step — never block on the wrong hat. When the invoker's hat does not match the step's, land the artefact with a first line `provisional: needs <hat> confirmation`, mirror it in `setup-progress.md` under `## Pending confirmations`, and offer a hand-off brief at `proposals/setup/handoff-<step>.md` (e.g. `handoff-step-2.md`): one paragraph naming the step, what was answered provisionally, and that running `/setup-awow` resumes exactly there.
 
@@ -103,7 +103,7 @@ Show the brief and ask whether to use it. After approval, keep it at `proposals/
 
 Read the transcript plus existing `setup-progress.md` and context. Build a coverage map for:
 
-- mission and scope boundaries;
+- the team profile — what the team works on, its stack, and any mission line — plus scope boundaries;
 - board practice and work flow;
 - conventions, members, and writing style;
 - recurring and custom meetings;
@@ -257,15 +257,21 @@ The reference for this team's board lives at `context/tooling/boards/<tool>/refe
 
 After Step 1, tell the user:
 
-> The repo is usable and the board is documented. You can stop here and start using `/refinement-prep` on a real story, or continue with `/setup-awow` to fill in mission, conventions, members, and knowledge base. Each step is a few minutes; none are required.
+> The repo is usable and the board is documented. You can stop here and start using `/refinement-prep` on a real story, or continue with `/setup-awow` to fill in the team profile, conventions, members, and knowledge base. Each step is a few minutes; none are required.
 
-## Step 2 — Mission
+## Step 2 — Team profile
 
-Ask: "What is your team's mission, in one sentence?"
+The artefact is a short profile — two to five plain sentences: what the team is building or working on right now, for whom, and the tech stack it works in. A one-sentence mission is an optional first line: keep it when the team has one, never demand one, and do not iterate on its quality.
 
-Refuse anything trivial ("be excellent", "ship great software"). A useful mission names the audience, the change being made, and the constraint. Iterate with the user until you have a sentence both of you would put a name to.
+Draft the profile from observation before asking anything:
 
-Land at `context/team/mission.md` via `proposals/setup/step-2/mission.md`. Update `setup-progress.md`.
+- **The board.** Project / epic / initiative names and recent item titles say what is being worked on — reuse what Step 1 already pulled where possible.
+- **The repo.** Manifests (`pyproject.toml`, `package.json`, `go.mod`, …) and the language mix give the tech stack.
+- **The adopter repo's own README**, when one exists.
+
+Present the draft with one gate: "Here's what I gathered from your board and repo — edit anything, or approve." Ask the open question — "what does your team work on, and in what stack?" — only as the fallback when observation comes up empty (bare repo, near-empty board).
+
+The file keeps its path: land at `context/team/mission.md` via `proposals/setup/step-2/mission.md` — every consumer and existing adopter already reads that path; the file's own heading says "Team profile". Update `setup-progress.md`.
 
 ## Step 3 — Required conventions (observe or guide)
 

@@ -44,7 +44,7 @@ the generic meeting lens; custom recurring meetings can be described there in fu
 | --- | --- | --- | --- |
 | **0** | Installer | required | In a plugin install: nothing to install — the commands already reach you from the payload, so the step records `n/a` and moves on. Only a legacy vendored tree still wires Python via `uv` and runs its own `tools/gather.py`. |
 | **1** | Board kickoff | required | A wired board read/write surface (MCP or `gh` CLI) plus a fully-populated `context/tooling/board.md` — states, hierarchy, labels, fields, team-page conventions. |
-| **2** | Mission | recommended | A one-sentence mission naming audience, change, and constraint — landed at `context/team/mission.md`. |
+| **2** | Team profile | recommended | A few plain sentences — what the team works on, for whom, and its tech stack (mission line optional) — drafted from the board and repo, landed at `context/team/mission.md`. |
 | **3** | Required conventions | recommended | The four REQUIRED conventions (`issue-titles`, `labels`, `branches`, `output-discipline`), observed from the board or guided from reference. `output-discipline.md` is non-negotiable. |
 | **4** | Members & style | recommended | Team member list plus the style files (`board-output`, `comments`, `placement`, `prose`) drafted from templates. |
 | **5** | CLAUDE.md / AGENTS.md bootstrap | recommended | A team-specific root `CLAUDE.md` / `AGENTS.md` (including the `## Do not propose` block) — the team's own file, which awow never regenerates. |

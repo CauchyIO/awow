@@ -37,7 +37,7 @@ Scenarios are discovered by intersecting `scripts/*.txt` with `rubrics/*.md`; a 
 | `install-step1a-cli` | + `setup-progress.md` (Step 0 ✓) + board reference tree | Phase 1a: detect `gh` surface, accept URL, draft `board.md`. |
 | `install-step1b-mode-a` | + Phase 1a draft in `proposals/setup/step-1/board.md` | Phase 1b: section walk in Mode A. |
 | `install-step1-gate` | + landed `context/tooling/board.md` | Resumed review gate accepts `proceed`. |
-| `install-step2-mission` | Step 1 complete | Mission ask, refuse-if-trivial, proposal-first land. |
+| `install-step2-mission` | Step 1 complete | Team-profile fallback ask (nothing to observe), proposal-first land. |
 | `install-step3-conventions` | Steps 1 & 2 complete | Four REQUIRED conventions drafted and landed. |
 | `install-walkthrough` | Same as `install-step0-inherited` | End-to-end Step 0 → Step 3 in one run. |
 

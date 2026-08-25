@@ -1,4 +1,5 @@
-# Review-and-adjust gate (Step 1 "Record and complete" §10).
-# Wizard summarises the landed board.md and asks: proceed / adjust <section> /
+# Resume with board.md already landed but Step 1 unchecked (Step 1 "Record and
+# complete" §9's resume clause). Wizard re-enters the review gate against the
+# landed file, summarises it, and offers proceed / adjust <section> /
 # evaluate <section>. Dogfood proceeds without adjustment.
 proceed

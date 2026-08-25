@@ -1,11 +1,4 @@
-# Phase 1b walks the reference sections in Mode A (greenfield: <10 closed issues).
-# Wizard reads context/tooling/boards/github-issues/reference/ section by section
-# and asks accept/override/skip on each. For this fixture we accept all defaults.
-# Reply count tracks the number of reference files the wizard walks — adjust
-# upward if the wizard runs out of script before the section walk completes.
-accept
-accept
-accept
-accept
-accept
-accept
+# Phase 1b drafts all reference sections in one pass (Mode A, greenfield:
+# <10 closed issues) — no per-decision accept/override/skip replies. The one
+# reply is `land` at the single review gate that follows the draft.
+land

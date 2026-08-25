@@ -32,7 +32,7 @@ Each `<tool>/` folder follows the same shape:
     iterations.md        # documenting separately from states.md
 ```
 
-`/setup-awow` reads the files individually so it can surface one section at a time and let the team accept / override / skip each independently.
+`/setup-awow` reads the files individually and drafts the board spec section by section, so the team can adjust or evaluate any one of them independently at the review gate.
 
 ## What gets written to `context/tooling/board.md`
 
@@ -58,7 +58,7 @@ The agent reads this file whenever it needs to know what a label means, which st
 
 `/setup-awow` picks the mode by counting closed issues on the board:
 
-- **Mode A — Set up from reference.** Greenfield or under-configured (fewer than 10 closed issues). The wizard walks the team through the reference, asks accept / override / skip per section, and applies the configuration via the MCP where supported. Where the MCP cannot mutate the config (e.g. Linear Free workflow states, ADO process templates), the wizard produces a manual checklist and re-verifies after the user confirms.
+- **Mode A — Set up from reference.** Greenfield or under-configured (fewer than 10 closed issues). The wizard drafts the full spec from the reference in one pass, presents one review gate (land / adjust a section / evaluate), and applies the configuration via the MCP where supported once landed. Where the MCP cannot mutate the config (e.g. Linear Free workflow states, ADO process templates), the wizard produces a manual checklist and re-verifies after the user confirms.
 - **Mode B — Assess and capture current.** Established board (≥10 closed issues). The wizard pulls the actual state machine, hierarchy, labels, and fields from the MCP and captures them into `board.md`. It diffs the capture against the reference and surfaces gaps — not to force adoption, but so the team can decide whether to close each gap, override the reference, or accept the divergence. Resolved decisions land in the `## Divergence from reference` section of `board.md`.
 
 Both modes produce `board.md` with the same section headings, so the agent never has to know which mode produced the file.
@@ -68,7 +68,7 @@ Both modes produce `board.md` with the same section headings, so the agent never
 The reference can be overridden at two layers, in precedence order:
 
 1. **Enterprise override.** A parent organisation that wants to ship its own board standards drops them in `.agents-overrides/tooling/boards/<tool>/reference/` next to the adopter team's `.agents/` directory. Files in this folder supersede the starter pack's reference of the same name. The wizard always tells the user which reference layer it is reading from for each decision (e.g. *"using `.agents-overrides/tooling/boards/linear/reference/labels.md` (enterprise override) as the starting point"*).
-2. **Team override.** Captured directly in `context/tooling/board.md` itself. The wizard reads the reference, the team picks accept / override / skip per section, and any overrides land in the `## Divergence from reference` block (Mode B) or as inline notes within the relevant section (Mode A). Once `board.md` is written, the runtime agent reads only it; the references are not consulted again until the next wizard run.
+2. **Team override.** Captured directly in `context/tooling/board.md` itself. The wizard drafts from the reference, the team adjusts sections at the review gate, and any overrides land in the `## Divergence from reference` block (Mode B) or as inline notes within the relevant section (Mode A). Once `board.md` is written, the runtime agent reads only it; the references are not consulted again until the next wizard run.
 
 There is no "team-level override file" between the two — the team's overrides live in the single source-of-truth file (`board.md`). This keeps the read path simple: at runtime the agent reads one file; at setup time the wizard composes the references with the team's choices and writes that file.
 

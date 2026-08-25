@@ -50,7 +50,7 @@ is unsupported and the wizard stops.
 ## What the wizard reads, and what it writes
 
 **Read — per-tool `reference/`.** Same shape for every tool; one file per concern, so the team
-can accept / override / skip each independently.
+can adjust or evaluate each independently at the review gate.
 
 - `states.md` — five-state contract → the tool's workflow states
 - `hierarchy.md` — L1–L4 mapping to the tool's primitives
@@ -73,7 +73,7 @@ Step 1b picks a mode automatically by counting closed (or `Done`) issues. The th
 
 | Mode | Trigger | Behaviour |
 | --- | --- | --- |
-| **A — set up from reference** | <10 closed issues (greenfield or under-configured) | Walks the reference, asks *accept / override / skip* per section, applies choices via the surface where it can mutate config. Where it cannot (Linear Free workflow states, ADO process templates, Jira workflows) it emits a manual checklist and re-verifies after the user confirms. `Divergence from reference` stays empty. |
+| **A — set up from reference** | <10 closed issues (greenfield or under-configured) | Drafts the full spec from the reference in one pass, presents one review gate (*land / adjust / evaluate*), applies choices via the surface where it can mutate config. Where it cannot (Linear Free workflow states, ADO process templates, Jira workflows) it emits a manual checklist and re-verifies after the user confirms. `Divergence from reference` stays empty. |
 | **B — assess & capture current** | ≥10 closed issues (established board) | Pulls the actual state machine, hierarchy, labels, and fields from the surface into `board.md`, then diffs the capture against the reference and surfaces gaps — not to force adoption, but so the team can close, override, or accept each. Resolutions land in `Divergence from reference`. |
 
 ## The override model — two layers
@@ -84,7 +84,7 @@ precedence order; the wizard always says which layer it read from for each secti
 | Layer | Lives in | Behaviour |
 | --- | --- | --- |
 | **1. Enterprise override** (per file) | `.agents-overrides/tooling/boards/<tool>/reference/` | A parent org ships its own board standards next to the adopter's `.agents/`. Files here **supersede** the starter pack's reference of the same name, and the wizard announces it. |
-| **2. Team override** (in `board.md`) | `context/tooling/board.md` itself | The team's accept / override / skip decisions land inline (Mode A) or in `Divergence from reference` (Mode B). **There is no separate team-level override file.** |
+| **2. Team override** (in `board.md`) | `context/tooling/board.md` itself | The team's review-gate decisions land inline (Mode A) or in `Divergence from reference` (Mode B). **There is no separate team-level override file.** |
 
 ## The `gh` CLI alternative (GitHub only)
 

@@ -34,7 +34,7 @@ The first of the two required steps. After Step 1 the agent can read and propose
 2. Loads the matching reference from `context/tooling/boards/<tool>/reference/` (states, hierarchy, labels, fields, team-page, mcp, cycles/iterations).
 3. Prompts the user to install the corresponding MCP (or, for GitHub, offers `gh` CLI as a lighter alternative).
 4. Verifies read-write semantics (writes go through `proposals/` first).
-5. **Picks Mode A or Mode B by counting closed issues:** Mode A (from reference) for greenfield / <10; Mode B (assess and capture current) at or above. Walks the team through each section accept / override / skip; applies via the MCP where supported.
+5. **Picks Mode A or Mode B by counting closed issues:** Mode A (from reference) for greenfield / <10; Mode B (assess and capture current) at or above. Drafts the full board spec in one pass and presents a single review gate (land / adjust a section / evaluate against the live board); applies via the MCP where supported once landed.
 6. Writes `context/tooling/board.md` with the team's full board spec (tool & wiring, state machine, hierarchy, labels, fields, team page, cycles, divergence from reference).
 7. Records Step 1 complete in `setup-progress.md`.
 

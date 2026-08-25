@@ -51,7 +51,7 @@ the generic meeting lens; custom recurring meetings can be described there in fu
 | **6** | Knowledge base seed | recommended | A seeded `glossary.md` and stubbed architecture / patterns / runbooks / decisions subfolders. |
 | **7** | Neighbouring teams | recommended | Stubs at `context/company/neighbouring-teams.md` for the 1° teams you depend on or supply. |
 | **8** | Surface the extras | recommended | Lists the `spread` / `standardise` commands with the pain each removes and the prerequisites each assumes. They all ship in the payload; the phase says when a team is ready for them. |
-| **9** | Skills review | recommended | Walks each shipped skill — keep, customise, or drop — surfacing the assumption each bakes in (e.g. "assumes Databricks MLflow"). Re-run whenever the stack changes. |
+| **9** | Skills review | recommended | One table of the shipped skills — default keep all, name exceptions to customise or drop — surfacing the assumption each bakes in (e.g. "assumes Databricks MLflow"). Re-run whenever the stack changes. |
 
 `/setup-awow --quickstart` does Steps 0 → 1 → 2 → 3 → 5 in one turn with sensible defaults,
 skipping the per-step review loop.
@@ -78,12 +78,12 @@ the team's actual board spec, not just MCP wiring. It runs in two parts:
   one call and **write** with a no-op write against a scratch issue. A surface that cannot finish
   this session is recorded `pending` so the repo is still partially usable.
 - **1b · configure.** Mode chosen automatically by counting closed issues. **Mode A** (<10 closed)
-  sets up from the reference — accept / override / skip per decision. **Mode B** (≥10 closed)
+  drafts the full spec from the reference in one pass. **Mode B** (≥10 closed)
   assesses and captures what is already on the board, recording divergence from the reference.
 
-**Review-and-adjust gate.** Once `board.md` is landed the wizard reads it back, summarises it,
-and asks whether to *proceed*, *adjust* a section, or *evaluate* it against the live board —
-looping until you say proceed. Full board mechanics live in
+**One review gate.** The wizard drafts the whole board spec in one pass, summarises it, and asks
+once whether to *land* it, *adjust* a section, or *evaluate* one against the live board — looping
+until you say land. No per-section approvals. Full board mechanics live in
 [Board & MCP integration](guide-board-and-mcp.md).
 
 ## One source, every harness

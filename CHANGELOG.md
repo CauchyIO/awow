@@ -8,6 +8,12 @@ that same PR. When the PR lands on `main`, the release workflow publishes the
 section as the body of the GitHub release and tags the commit. Releases before
 v0.9.2 were not tagged individually; `git log` is their record.
 
+## v0.12.0
+
+### Commands
+- **Feature** The strategy family on one route: `/strategy-flow` (vision → bets → committed/aspirational KR draft, two gates) and the `bet-refinement-coach` skill (one bet through a live board session, translate round included) join the payload, genericized; `department-coach` becomes the single battery home, and the never-built `/strategic-review` resolves into `/okr-cascade` Review. The route ships in the session reflex, each skill's frontmatter, and the catalog. (#70)
+- **Feature** `/board-lifecycle`: govern the project layer — mutually exclusive `shape:*` labels, shape-specific horizons, the reversible `Needs decision` exception via an approval-gated plan (no auto-close in any path), the tripwire convention, the new-work routing ladder, and the sign-off ledger for adopting the mechanism on a lived-in board. Activity timestamps are never the staleness signal. (#70)
+
 ## v0.11.0
 
 ### Commands

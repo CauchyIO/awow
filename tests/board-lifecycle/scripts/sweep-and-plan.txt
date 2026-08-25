@@ -1,0 +1,5 @@
+# Invoke as: /board-lifecycle --snapshot board-snapshots/2026-08-20-projects.json
+# The scratch has no live board; the dated snapshot is the sweep evidence.
+# One ask point expected: the exception-plan gate. Decline it — the fixture
+# state on disk is what the post-checks assert; a run that writes here is a bug.
+stop

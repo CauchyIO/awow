@@ -41,7 +41,7 @@ match is read-only and must be referenced rather than copied into the HUB.
 
 ## Route to the moment
 
-Meeting notes in hand → `/process-transcript`. A board item to execute → `/process-workitem`. A board item to create or update → the `workitem-write` skill. Day wrapping up → `/daily-checkin`. "What did we ship?" → `/daily-digest`. A locked design to sequence → `/project-plan`. Lost track of your plate → `/my-work`. Reach for the catalog in your skill listing before hand-rolling.
+Meeting notes in hand → `/process-transcript`. A board item to execute → `/process-workitem`. A board item to create or update → the `workitem-write` skill. Day wrapping up → `/daily-checkin`. "What did we ship?" → `/daily-digest`. A locked design to sequence → `/project-plan`. Lost track of your plate → `/my-work`. Vision but no measurable goals → `/strategy-flow`. One bet in a live board session → the `bet-refinement-coach` skill. The quarter's standing OKR machinery, including the recurring review → `/okr-cascade`. Reach for the catalog in your skill listing before hand-rolling.
 
 ## Engines and rules in passing
 

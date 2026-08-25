@@ -72,6 +72,25 @@ The reference can be overridden at two layers, in precedence order:
 
 There is no "team-level override file" between the two — the team's overrides live in the single source-of-truth file (`board.md`). This keeps the read path simple: at runtime the agent reads one file; at setup time the wizard composes the references with the team's choices and writes that file.
 
+## The lifecycle contract (optional section in `board.md`)
+
+`/board-lifecycle` governs the project layer only when `board.md` carries a `## Lifecycle` section declaring the team's shapes and horizon rules. Its documented form:
+
+```markdown
+## Lifecycle
+
+| Shape | Horizon rule | On expiry |
+| --- | --- | --- |
+| shape:engagement | contract / SOW end date | Needs decision |
+| shape:campaign | target date | Needs decision |
+| shape:system | scheduled scope review (quarterly) | Needs decision |
+
+Exception status: Needs decision (reversible; renewal restores the prior status, closure is human).
+Tripwire: 2 unresolved cycles → initiative At risk, rollup marked unverified.
+```
+
+Rules the section encodes: every project carries exactly one mutually exclusive `shape:*` label (applied by project template); each shape names the date that ends the project's authorization; a missing horizon is itself an exception; expiry moves a project into the reversible exception status via an approved plan — never an automatic close; and activity timestamps are never the staleness signal. Teams may rename shapes, add shapes, or pick a different exception status name — `/board-lifecycle` reads this section rather than hardcoding the defaults.
+
 ## Adding a new board
 
 A new board reference goes here as `<tool>/`, following the layout above. At minimum, each file must:

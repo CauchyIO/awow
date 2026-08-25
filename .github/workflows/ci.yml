@@ -30,6 +30,8 @@ jobs:
         run: python3 tests/payload-commands/test_command_surface.py
       - name: Migration surface (AWO-259)
         run: python3 tests/payload-commands/test_migrate_surface.py
+      - name: Strategy routing (AWO-268)
+        run: python3 tests/payload-commands/test_strategy_routing.py
       - name: Telemetry split
         run: python3 tests/telemetry-split/test_telemetry_split.py
       - name: Orphan detection across payload roots

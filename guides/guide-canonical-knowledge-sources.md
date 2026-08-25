@@ -1,28 +1,32 @@
 # Canonical knowledge sources
 
-Route from shared team context to authoritative knowledge without turning the HUB into a mirror.
+Route from shared team context to authoritative knowledge without copying that knowledge into
+the hub (this repo, which holds your team's shared context).
 
-> **TL;DR** The HUB keeps a small OKF catalog of source descriptions, routing signals, canonical
-> URIs, and access capabilities. An agent selects a source semantically, resolves access for the
-> current session, and reads it in place. External knowledge stays read-only and is referenced,
-> never copied into the HUB.
+> **TL;DR** The hub keeps a small catalog of source records (OKF — open knowledge-source
+> format): source descriptions, routing signals, canonical URIs, and access capabilities. The
+> agent picks the source that matches the question, works out how to reach it for this session,
+> and reads it where it lives. External knowledge stays read-only and is referenced, never
+> copied into the hub.
 
 ## The boundary
 
 | Location | Owns | Never owns |
 |---|---|---|
-| HUB `context/` | Team policy, local durable knowledge, canonical-source catalog | Copies of spoke, SharePoint, or vector-retrieved content |
-| External source | Its own documents and history | HUB-specific team context |
-| Agent session | Temporary retrieval and a discovered local checkout path | A persistent path registry or synchronized cache |
+| Hub `context/` | Team policy, local durable knowledge, canonical-source catalog | Copies of content from spoke repos, SharePoint, or search indexes |
+| External source | Its own documents and history | Hub-specific team context |
+| Agent session | What it fetched this session, plus any local clone it happened to find | A saved list of paths, or a synced copy |
 
-The catalog is an index, not a federation layer. A repository remote URL, SharePoint URI, or
-retrieval endpoint stays stable even though every engineer's filesystem is different.
+The catalog just points at sources; it doesn't merge or serve their content. A repository
+remote URL, SharePoint URI, or retrieval endpoint stays stable even though every engineer's
+filesystem is different.
 
 ## One record per source
 
-Records under `context/knowledge-sources/` are OKF v0.2 concepts. They describe what a source is,
-the language that implies it, when it is and is not relevant, its canonical `resource` URI, the
-native capability needed to read it, and its knowledge entrypoint when it has one.
+Each file under `context/knowledge-sources/` describes one source, using OKF v0.2. It records
+what the source is, the words that suggest it's relevant, when it applies and when it doesn't,
+its canonical `resource` URI, which tool or connector can read it, and where to start reading
+when it has one.
 
 The record does not claim that access is installed. It gives the agent enough information to
 look for a matching local checkout or native connector and to explain what is missing when
@@ -30,32 +34,33 @@ neither exists.
 
 ## Resolution behavior
 
-| Situation | Behavior |
+| Situation | What the agent does |
 |---|---|
-| No catalog, empty catalog, or no credible match | Use HUB context only. |
-| One credible match | Resolve and read the canonical source for this session. |
-| Several credible matches | Surface the candidates; do not guess. |
-| Matching local checkout | Verify its normalized git remote before using `rg`. Do not retain the path. |
-| No local checkout | Use the declared native read capability when available. |
-| No usable capability | Name the source and URI, explain the missing access, continue HUB-only where possible. |
-| OKF source | Start at its declared index and progressively disclose documents. |
-| SharePoint source | Search and read through the SharePoint capability. |
-| Vector-backed source | Retrieve through the named capability and preserve underlying document provenance. |
+| No catalog, empty catalog, or no credible match | Falls back to hub context only. |
+| One credible match | Resolves and reads the canonical source for this session. |
+| Several credible matches | Lists the candidates and asks rather than guessing. |
+| Matching local checkout | Checks the clone's git remote matches the record before searching it. Uses it for this session only; doesn't remember the path. |
+| No local checkout | Uses the declared native read capability when available. |
+| No usable capability | Names the source and URI, explains the missing access, and continues hub-only where possible. |
+| OKF source | Starts at the source's declared index and opens further documents only as needed. |
+| SharePoint source | Searches and reads through the SharePoint capability. |
+| Vector-backed source | Retrieves through the named capability and preserves underlying document provenance. |
 
-Routing never authorizes writes to an external source, a clone into the HUB, or a local cache.
+Routing never writes to an external source, clones it into the hub, or caches it locally.
 
 ## Reference before capture
 
-Before durable knowledge enters the HUB, decide where it is authoritative. HUB-canonical material
-follows the normal proposal and approval gate. External-canonical material produces a concise
-reference to the catalog record and canonical URI. Unclear authority becomes a question before a
-write, not duplicated prose in two places.
+Before durable knowledge enters the hub, decide where it is authoritative. Material whose
+authoritative home is the hub goes through the usual propose-then-approve step (see the
+[core delivery loop](guide-core-delivery-loop.md)). External-canonical material produces a
+concise reference to the catalog record and canonical URI. When it's unclear who owns the
+material, the agent asks before writing rather than keeping two copies.
 
 ## Setup
 
-`/setup-awow` Step 6 offers to catalog external sources. It drafts records proposal-first, then
-lands approved records in `context/knowledge-sources/`. Teams can add or retire records later
-through the same governed context-write path.
+`/setup-awow` Step 6 offers to catalog external sources. It drafts the records for you to
+review, then writes the approved ones to `context/knowledge-sources/`. Teams can add or retire
+records later through the same review-then-write process.
 
 ## Sources of truth
 

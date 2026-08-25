@@ -4,8 +4,8 @@ Stand a design system up once; produce decks, blogs, and solution designs from i
 
 > **TL;DR** — A design system is a durable team artifact: built once by `/design-system`, then
 > every deck, blog, and one-pager is rendered from it plus a content file by `/artifact`. Opt-in —
-> the shipped pointer says `absent`, so board-only teams never touch it and no command invents a
-> house style.
+> the shipped config file says `absent`, so board-only teams never touch it and no command invents
+> a house style.
 
 ```mermaid
 flowchart LR
@@ -29,7 +29,7 @@ artifacts.
 | `style-guide.html` | One self-contained page: tokens as CSS variables plus *live component demos*. The source of truth. Versioned; old versions deprecated explicitly. |
 | `templates/<type>/` | One `template.html` + `TEMPLATE.md` per artifact type. The HTML carries the full token block; the markdown carries a content→component map, so an artifact generates without re-deriving anything. |
 | `context/tooling/design-system.md` | The pointer: whether a system exists and where. Every artifact-producing command reads it first. |
-| `CLAUDE.md` rule | Enforced instruction — when producing an artifact and a system is present, read the source and adopt it; never invent styling. |
+| `CLAUDE.md` rule | A rule the agent must follow: when producing an artifact and a system is present, read the source and use it — never invent styling. |
 
 One self-contained page means no build step — open it anywhere, mail it, print it to PDF. The cost
 is tokens duplicated across files.
@@ -43,8 +43,9 @@ is tokens duplicated across files.
 | `external` | Another repo, by absolute path. Read from the filesystem — a board MCP will 404 on a private repo. |
 
 That one field is what lets "follow the design system if present" mean something everywhere — a
-command reads it and either enforces or stands down. One rule rides on every mode: **always re-read
-the source before generating**, because the pointer's token summary is a cache and can drift.
+command reads it and either enforces or stands down. One rule applies in every mode: commands
+**re-read the source before generating**, because the pointer's token summary is a cache and can
+drift.
 
 ## Establishing it — `/design-system`
 
@@ -54,9 +55,9 @@ artifacts are generated *from* — no deck comes out of this command.
 1. **Gate 1 — source & method.** Capture a reference site's *computed styles* with a headless
    browser — colours, fonts, sizes, tracking, not screenshots. Extract the **method** and re-express
    it in your own tokens; don't clone a palette and call it a system.
-2. **Gate 2 — tokens & rules.** Resist a sprawling palette. The load-bearing set: one background,
-   one surface, **one accent**, a three-step text ramp, named *semantic* tints, a spacing scale.
-   Pick fonts, cap the weight.
+2. **Gate 2 — tokens & rules.** Resist a sprawling palette. The set that actually does the work:
+   one background, one surface, **one accent**, a three-step text ramp, named *semantic* tints, a
+   spacing scale. Pick fonts, cap the weight.
 3. **Gate 3 — write & wire.** Style-guide page with live demos, `template.html` + `TEMPLATE.md` per
    artifact type, pointer set. Render it in a browser first — never ship a guide you haven't seen.
 
@@ -65,19 +66,19 @@ artifacts are generated *from* — no deck comes out of this command.
 Frequent, every artifact. It gates on content before generating, because regenerating HTML from
 changed markdown is cheap and rewriting hand-tuned HTML is not.
 
-1. **Content first.** Agree the markdown; the gate lands before any HTML exists.
+1. **Content first.** Agree the markdown; the approval happens before any HTML exists.
 2. **Generate from the template**, after re-reading the source. Keep its `<style>` and nav verbatim.
    Prefer HTML/CSS diagrams over raw SVG or Mermaid.
 3. **Verify, then export.** Layout in a headless browser, PDF via Chrome headless. Fix overflow,
    regenerate.
-4. **Land it.** Commit markdown + HTML + PDF; update the board.
+4. **Ship it.** Commit markdown + HTML + PDF; update the board.
 
 On an `absent` pointer it offers `/design-system` first, or proceeds with plain defaults on your
 say-so. It never fakes a house style.
 
 ## How it plugs into the rest of awow
 
-| Surface | What it does with the design system |
+| Where it shows up | What it does with the design system |
 | --- | --- |
 | `CLAUDE.md` rule | "When you produce an HTML artifact" — read the pointer, adopt when present, re-read the source each time. Applies to ad-hoc HTML that never goes through `/artifact`. |
 | `/solution-design-flow` | Phase 0 reads the pointer; the presentation track adopts the system and hands generate-and-render mechanics to `/artifact` rather than duplicating them. |
@@ -86,8 +87,8 @@ say-so. It never fakes a house style.
 
 ## The visual rules
 
-- **Accent is the logo, full stop** — the wordmark or one emphasis, never a fill. Hierarchy comes
-  from weight, not colour.
+- **The accent colour is for the wordmark or a single emphasis** — never a background fill.
+  Hierarchy comes from weight, not colour.
 - **Borders over shadows** — 1px and a small radius. Calmer, and it prints.
 - **Semantic tints** — each family *means* something (plan, action, reference). Colour carries
   information, not decoration.
@@ -97,8 +98,10 @@ say-so. It never fakes a house style.
 - In-repo or external? External wins when design assets already live elsewhere.
 - Which artifact types earn a template? Every type you produce more than once or twice.
 - Is Chrome headless available for print-to-PDF? If not, pick an exporter and constrain the CSS.
-- Enforce "re-read the source" with a lint diffing the pointer's cache against the guide, or trust?
-- If awow dogfoods its own pointer, adopters must still reset to `absent` on clone.
+- Should a lint check the pointer's cached tokens against the style guide, or do you just trust the
+  rule?
+- If awow ships with its own design system configured, adopters must reset the file to `absent`
+  after cloning.
 
 ## Sources of truth
 

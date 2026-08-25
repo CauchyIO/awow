@@ -1,11 +1,13 @@
 # Transcript router
 
-One entry point: the router reads the transcript, recommends a specialist, and walks you through gated review — meeting to board in minutes.
+One entry point: the router reads the transcript, recommends a specialist, and walks you through
+two approval checkpoints — meeting to board in minutes.
 
 > **TL;DR** — `/process-transcript` is the only command you type. It reads the transcript, names
-> every generic meeting lens that applies to each segment, adds any sparse team guidance,
-> recommends specialists with a rationale, and stops at Gate 1. Matched segments are dispatched
-> to their specialist; the rest are analysed with the composed lenses before any board write.
+> the meeting types it recognises in each segment (see the meeting-lenses section below), adds
+> your team's own notes on that meeting type (if you've written any), recommends specialists
+> with a rationale, and stops at Gate 1. Matched segments are dispatched to their specialist;
+> the rest are analysed in place, using the matched lenses together, before any board write.
 
 ## The shape — one entry, many specialists
 
@@ -28,7 +30,7 @@ flowchart TD
 Two rules hold it up:
 
 - **Honest routing.** The top line of every run says what was detected and what was recommended.
-  Silent dispatching creates "why did it do that?" debugging.
+  If it dispatched silently, you'd have no way to tell why it chose that specialist.
 - **Always overridable.** `--as=<skill>` forces a specialist and skips detection entirely; `--yes`
   skips the dispatch gate when you already trust the call.
 
@@ -36,8 +38,8 @@ Two rules hold it up:
 
 Skip this if the repo was bootstrapped with `/setup-awow`.
 
-1. **The prompt is present** — `/process-transcript` under `.agents/commands/`, mirrored to both
-   harness surfaces by `tools/gather.py`.
+1. **The prompt is present** — `/process-transcript` under `.agents/commands/`, copied into both
+   harness directories (`.claude/`, `.github/`) by `tools/gather.py`.
 2. **A folder to drop `.vtt` files in** — e.g. `.github/transcripts/`.
 3. **Keep it out of git.** Transcripts may carry personal data, so add the folder to `.gitignore`.
    The trace pipeline records the *path* to a transcript, never its contents.
@@ -69,12 +71,16 @@ Before reading the transcript, the router loads a small interpretation pack. The
 | `context/team/mission.md` | Relevance, scope, and the team's purpose. |
 | `context/team/members.md` | Speaker identity, role, responsibilities, and focus. |
 | `context/knowledge-base/glossary.md` | Domain vocabulary and transcription correction. |
-| `context/team/meetings/*.md` | Familiar ritual differences and custom meeting recognition. |
+| `context/team/meetings/*.md` | How your version of a standard meeting differs, plus any meeting type unique to your team. |
 | `context/company/neighbouring-teams.md` | Team names, ownership boundaries, and likely dependencies. |
 
-Output configuration stays lazy: `board.md` loads only if local analysis reaches board discovery; conventions and `board-output.md` load through `workitem-write` immediately before Gate 2; knowledge-source routing loads only for a durable KB proposal. A transcript that dispatches fully to specialists never pays those later-phase reads.
+The router only loads output config when it needs it: `board.md` when it starts matching against
+the board, conventions and `board-output.md` (via `workitem-write`) just before Gate 2, and
+knowledge-base routing only if it's proposing a KB entry. If every segment goes to a specialist,
+none of these are read at all.
 
-Missing or stale interpretation context is surfaced at Gate 1 only when it materially lowers confidence.
+The router flags missing or out-of-date interpretation context at Gate 1, but only when it would
+actually change the result.
 
 ## The run — two gates you control
 
@@ -94,7 +100,7 @@ flowchart LR
   p2 -. every segment dispatched .-> done[Done — no Gate 2]
 ```
 
-Phases 3–4 run only when a segment stays in the router for lens-driven analysis.
+Phases 3 and 4 (board discovery, then execution) run only for segments the router analyses itself.
 
 ### Gate 1 — detected & recommended
 
@@ -124,9 +130,10 @@ would change a board write.
 
 ### Gate 2 — board actions, or a proposal
 
-Dispatched segments run their own pipelines, own their own board writes, and get stitched into one
-composite report. Gate 2 fires only for segments analysed locally; for those the router does board
-discovery — matching existing items, detecting cross-team blockers, spotting gaps:
+Dispatched segments run their own pipelines and do their own board writes; the results are
+stitched into one composite report. Gate 2 fires only for segments analysed locally; for those
+the router does board discovery — matching existing items, detecting cross-team blockers,
+spotting gaps:
 
 ```
 GATE 2 — PROPOSED ACTIONS
@@ -142,11 +149,11 @@ Actions:
 Options: "go" · "skip 2,3" · "review" · "cancel"
 ```
 
-Two first-class paths. **Execute** — reply `go` and items are created or updated one at a time;
-`skip` and `review` to be selective. **Capture to a proposal** — *"don't touch the board, drop it
-all in `proposals/<topic>.md`"* — for a project still in discovery, requirements not yet validated
-with business users, or when you want to accumulate several meetings before the board exists.
-Nothing is written without approval at this gate.
+Two ways to go from here. **Execute** — reply `go` and items are created or updated one at a
+time; `skip` and `review` to be selective. **Capture to a proposal** — *"don't touch the board,
+drop it all in `proposals/<topic>.md`"* — for a project still in discovery, requirements not yet
+validated with business users, or when you want to accumulate several meetings before the board
+exists. Nothing is written without approval at this gate.
 
 ## After the gates — enrich the output
 
@@ -179,13 +186,14 @@ v2; meeting 3 + v2 → v3 → board items.
 Once items exist, open one agent session per item and let each pick up its work through
 [`/process-workitem`](guide-core-delivery-loop.md); the board stays current as they go.
 
-## Sub-modes live inside leaves
+## Variants live inside a specialist, not beside it
 
 Some session types have variants that share a pattern library. `/coaching-review` handles both 1:1
 coaching (pairing, demo, onboarding) and 1:many teaching (course, lecture, cohort): same
 teacher/learner dynamic, slightly different patterns to watch. The shared core stays in one place
-and adopters learn one skill instead of five — the variant is detected, not declared. When in
-doubt: sub-mode first, sibling skill only once the shared core is no longer shared.
+and adopters learn one skill instead of five — the variant is detected, not declared. Rule of
+thumb: add a variant to an existing specialist first; split out a new one only when the two stop
+sharing most of their logic.
 
 ## Adding a new specialist
 
@@ -196,18 +204,25 @@ and matches segments against frontmatter, so there is no central registry file t
 | --- | --- | --- |
 | `<skill>.md` | `.agents/commands/` | The full prompt (flat; phase lives in frontmatter) |
 | Mirror files | `.claude/commands/`, `.github/prompts/` | Auto-generated by `tools/gather.py` |
-| Grounding context | `context/<domain>/` | Canon + anti-patterns the owning phase or specialist reads on demand |
+| Grounding context | `context/<domain>/` | Reference material and known pitfalls, read on demand by whichever command needs it |
 | Guide | `guides/guide-<workflow>.md` | Onboarding for first-time adopters |
 | `consumes: transcript` + `when-to-use` / `when-not-to-use` | frontmatter of `<skill>.md` | What the router matches segments against at runtime |
 
-After landing the source, run `python tools/gather.py` to refresh the mirrors, then list the new
-command in [`.agents/commands/README.md`](../.agents/commands/README.md).
+Once the new command file is in place, run `python tools/gather.py` to refresh the mirrors, then
+list the new command in [`.agents/commands/README.md`](../.agents/commands/README.md).
 
 ## Teaching the router about meetings
 
-Generic meeting lenses live under [`.agents/commands/_meeting-archetypes/`](../.agents/commands/_meeting-archetypes/README.md). They describe how to recognise a meeting shape, what to extract, what may be missing, and common interpretation mistakes. A segment can use several lenses at once.
+Generic meeting lenses (the *archetypes* in the directory name) live under
+[`.agents/commands/_meeting-archetypes/`](../.agents/commands/_meeting-archetypes/README.md).
+They describe how to recognise a meeting shape, what to extract, what may be missing, and common
+interpretation mistakes. A segment can use several lenses at once.
 
-Do not copy a generic lens to customise it. Add a small plain-Markdown file under `context/team/meetings/` only when the team's ritual meaningfully differs. Name a familiar ritual after the generic kind, or describe a custom meeting with `How to recognise it`, `What matters in this meeting`, and `What useful output looks like`. The team can edit these files directly or let `/setup-awow` draft them; no file means the generic behaviour already fits.
+Don't fork a generic lens — your copy stops getting updates. Instead, add a small plain-Markdown
+file under `context/team/meetings/`, and only when the team's ritual meaningfully differs. Name a
+familiar ritual after the generic kind, or describe a custom meeting with `How to recognise it`,
+`What matters in this meeting`, and `What useful output looks like`. The team can edit these
+files directly or let `/setup-awow` draft them; no file means the generic behaviour already fits.
 
 ## Sources of truth
 
@@ -215,5 +230,5 @@ Do not copy a generic lens to customise it. Add a small plain-Markdown file unde
 - [`.agents/commands/coaching-review.md`](../.agents/commands/coaching-review.md) — the sub-mode leaf and its pattern library
 - [`.agents/commands/solution-design-flow.md`](../.agents/commands/solution-design-flow.md), [`.agents/commands/process-retro.md`](../.agents/commands/process-retro.md) — the other transcript-consuming leaves
 - [`.agents/commands/README.md`](../.agents/commands/README.md) — the full command catalogue this guide deliberately is not
-- `context/tooling/board.md` — the board surface Gate 2 writes through; written by `/setup-awow`
+- `context/tooling/board.md` — the board integration Gate 2 writes through; written by `/setup-awow`
 - Companion guides: [agentic retro workflow](guide-agentic-retro-workflow.md) — the retro specialist this dispatches to; [solution-design collaboration](guide-solution-design-collaboration.md) — the design specialist this dispatches to; [core delivery loop](guide-core-delivery-loop.md) — where the items it files get worked

@@ -24,10 +24,94 @@ If `--root <path>` is given and `<path>/` does not exist, refuse and tell the us
 ## On every invocation
 
 1. Read `setup-progress.md`.
-2. **Lay out the full plan to the user before doing anything else.** List every step (0 → 9), mark each as ✓ complete, ⧗ deferred/pending, or ☐ untouched, and tell the user which step you are about to resume. Keep this map compact when the user chose the workshop route.
-3. On first entry, offer the workshop and guided routes described below. Walk through the steps in order until Step 0 and Step 1 are both complete on the guided route. On the workshop route, prepare or process the workshop first, then return to uncovered steps and technical wiring.
-4. Write every artefact to `proposals/setup/<step>/` first. Land it (move to its final location) only after the user approves.
-5. Update `setup-progress.md` when a step completes.
+2. Run the **Preflight** (next section). A fatal miss stops here — print the pointer instead of
+   the step map. Soft misses annotate the step map below.
+3. **Lay out the full plan to the user before doing anything else.** List every step (0 → 9), mark each as ✓ complete, ⧗ deferred/pending, or ☐ untouched, and tell the user which step you are about to resume. Keep this map compact when the user chose the workshop route.
+4. On first entry, offer the workshop and guided routes described below. Walk through the steps in order until Step 0 and Step 1 are both complete on the guided route. On the workshop route, prepare or process the workshop first, then return to uncovered steps and technical wiring.
+5. Write every artefact to `proposals/setup/<step>/` first. Land it (move to its final location) only after the user approves.
+6. Update `setup-progress.md` when a step completes.
+
+## Preflight — verify prerequisites, change nothing
+
+Run these checks on every invocation, immediately after reading `setup-progress.md` and before
+laying out the step map. Preflight is read-only. Never install anything, never register an MCP
+server, never run `git init`, never write any file — `setup-progress.md` included. Report, point
+at the fix, and gate. Probe in the non-failing style (`cmd && echo ok || echo missing`); never
+`cat` a possibly-absent file. Re-probe every invocation; never persist a result — recorded auth
+status lies. When the current harness is Visual Studio, do not shell out at all — VS
+approval-gates terminal commands, and the preflight must not become a stream of permission
+prompts. Probe only what file reads answer (the bridge marker, the config files, candidate
+enumeration), render shell-dependent checks as `– (not checkable from Visual Studio)`, and tell
+the user to run `/setup-awow` in a Copilot CLI session for the full preflight.
+
+1. **git on PATH.** `git --version >/dev/null 2>&1 && echo ok || echo missing`. Missing: print
+   the install pointer for the user's platform — macOS: `xcode-select --install` or
+   `brew install git`; Windows: `winget install --id Git.Git` (or `choco install git` where the
+   team already uses chocolatey); Linux: the distro package manager, else
+   https://git-scm.com/downloads — and stop. Print nothing else — no step map, no steps.
+2. **The workspace is a git repository.** `git -C <root> rev-parse --is-inside-work-tree
+   2>/dev/null || echo no`, where `<root>` is the repo root, or the `--root` path when given.
+   Not a repo: tell the user to run `git init` in `<root>` or cd to the repository they meant,
+   and stop as in check 1. Do not offer to run `git init` yourself.
+3. **Board surface.** Enumerate candidates: MCP entries referencing a supported board tool
+   (`linear`, `jira`, `azure`, `github`) in `.mcp.json`, `.claude/settings.json`,
+   `.claude/settings.local.json`, `.vscode/mcp.json` — all relative to `<root>` — plus board
+   MCP tools already loaded in your own tool surface; when the recorded harness roster names
+   Copilot CLI or Visual Studio, also `~/.copilot/mcp-config.json` and `~/.mcp.json`. Identify
+   each as server name + endpoint (URL, or command line for stdio) + provenance (which file or
+   scope). Then classify into exactly one state:
+   - **n/a** — nothing recorded in `setup-progress.md`, no candidates → render
+     `board – (wired in Step 1a)`.
+   - **unconfirmed** — nothing recorded, candidates exist → list each as
+     `<name> — <endpoint> (from <provenance>)`, say confirmation happens at Step 1a, and use
+     none of them meanwhile.
+   - **ok** — a recorded `board-mcp:` identity matches a loaded server and one read-only call
+     (cheapest list call, e.g. a limit-1 issue list) succeeds; or `surface: gh-cli` and check 4
+     passes plus one `gh repo view` succeeds.
+   - **blocked** — a recorded identity this session cannot use. Name the reason and fix, one
+     line: *not loaded but configured in `<file>`* → "restart or run `/mcp`"; *not configured
+     anywhere here* → "registered at another scope or machine — re-add with `claude mcp add
+     --scope user --transport http <name> <endpoint>`, or commit a project `.mcp.json`";
+     *unauthenticated* → "run `/mcp` to authenticate" (or the harness-appropriate re-auth);
+     *diverged* (live candidates, none matching the recorded endpoint) → list them with
+     provenance and say re-confirmation happens at Step 1a. Never silently adopt or switch.
+4. **gh CLI — GitHub-family boards only.** When the recorded surface is `gh-cli`, or the
+   recorded or in-progress board URL is GitHub-hosted: `gh --version`, then `gh auth status`,
+   then confirm scopes `repo`, `project`, `read:org`. Pointers per miss, matched to the user's
+   platform: install `brew install gh` (macOS) / `winget install --id GitHub.cli` (Windows) /
+   https://cli.github.com (elsewhere); `gh auth login`; `gh auth refresh -s
+   repo,project,read:org`. Never render this check for other board families.
+5. **Current-harness wiring.** You know which harness you are running in. Claude Code: nothing
+   to check — the plugin delivered this command. Copilot CLI: `copilot` on PATH — miss points at
+   the Copilot CLI install docs. Copilot in VS Code: `.vscode/mcp.json` present when the surface
+   is MCP — miss points at the Step 1a install snippet. Visual Studio (and any roster that names
+   it): VS never reads the plugin store, so check the bridge chain — `copilot` on PATH, the awow
+   plugin at `~/.copilot/installed-plugins/awow/`, and the bridge marker
+   `~/.copilot/skills/.awow-bridge.json` present with a version equal to the installed plugin's;
+   any miss points at the three-command onboarding (`copilot plugin marketplace add
+   CauchyIO/awow` → `copilot plugin install awow@awow` → `/awow-vs`), a stale marker at
+   "run `/awow-vs`" — and every such pointer names the Copilot CLI session as where to run it:
+   VS has no command surface. Until the VS bridge ships, render `– (VS bridge not yet shipped)`
+   instead of checking. Codex, Pi, opencode: no checks defined; render
+   `harness ✓ (no checks defined for <harness>)`.
+6. **Declared other harnesses.** When `setup-progress.md` records a harness roster, probe what
+   is checkable from this machine for each non-current entry (as in check 5 — for Visual Studio
+   the full bridge chain) and report misses with the same pointers. These never gate: another
+   harness's wiring cannot block this session.
+7. **Payload freshness.** When a secondary local channel with a version marker exists (the VS
+   bridge's `~/.copilot/skills/.awow-bridge.json`), compare its version against
+   `{AWOW_ROOT}/package.json`. Older marker → report it with the pointer to run `/awow-vs` (or
+   update the plugin first via `/plugin`). No channel or no marker → render nothing. Never fetch
+   anything remote for this.
+
+**Render** one line above the step map when all applicable checks pass:
+`preflight: git ✓ · repo ✓ · board ✓ · harness ✓` — expanding any non-✓ item to its own line
+with reason and pointer. Omit items that do not apply.
+
+**Gate.** Checks 1–2 are fatal: stop with the pointer; no step map, no steps. Checks 3–5 are
+soft: continue, but annotate board-dependent work — Step 1b's issue count and mode pick, Step 3
+observe mode, every board write — as `⧗ blocked: <reason>` in the step map, and steer to the
+next step that does not need the missing piece. Checks 6–7 are informational only.
 
 ## Install shape — standalone or spoke
 
@@ -163,17 +247,27 @@ Step 1 has two parts. Step 1a wires up the read/write surface (an MCP or, for Gi
 
    Tell the user: "I can see I'm running in `<current harness>`. Does your team use any other supported harness (Claude Code, Copilot, Codex, Pi, opencode), or is `<current>` the only one to wire up?" Accept *current only* or a list of the additional harnesses. Record the choice; this drives which install snippets you surface in step 4.
 
-2. **Detect existing board surface.** Look for an existing MCP server entry whose name or URL references a supported board tool (`linear`, `jira`, `azure`, `github`) in:
-   - `.claude/settings.json` and `.claude/settings.local.json`
-   - `.mcp.json` at the repo root
-   - `.github/copilot-instructions.md` (MCP block) and `.vscode/mcp.json`
+2. **Enumerate candidate surfaces — confirm one explicitly, adopt nothing silently.** Gather
+   every candidate the preflight enumerated: MCP entries referencing a supported board tool in
+   `.claude/settings.json`, `.claude/settings.local.json`, `.mcp.json`, `.vscode/mcp.json` (all
+   relative to `<root>`), board MCP tools already loaded in your own tool surface, and — for GitHub-hosted boards — an
+   authenticated `gh` CLI with `repo`, `project`, `read:org` scopes (the CLI alternative in
+   `context/tooling/boards/github-issues/reference/mcp.md`).
 
-   For GitHub-hosted boards also check whether `gh auth status` shows an authenticated CLI with `repo`, `project`, and `read:org` scopes — that is the `gh` CLI alternative documented in `context/tooling/boards/github-issues/reference/mcp.md`. If `gh` is authenticated for the right org, treat it as a valid surface and offer it alongside the MCP option.
+   Present the candidates as a numbered list, each as `<server-name> — <endpoint> (from
+   <provenance>)` (`gh` CLI listed as its own entry), and ask the user to pick one or answer
+   "none of these". Never default, never pre-select, never treat a single candidate as
+   confirmed without the user saying so. On a pick:
+   - Record the identity in `setup-progress.md`: `surface: mcp` plus
+     `board-mcp: <server-name> <endpoint> (confirmed <YYYY-MM-DD>)` — or `surface: gh-cli` for
+     the CLI. Record the endpoint, never the provenance: which file supplies a server is
+     machine-local, and committing it would lie on every other machine.
+   - Ask for the canonical board URL (for `board.md` and team-page links later).
+   - Verify with a single read-only call. If verification cannot succeed in this session, add
+     `surface-verification: pending` to `setup-progress.md` and say so; a later session's
+     passing preflight read clears that line. Then skip to step 5.
 
-   If you find an existing surface:
-   - Read the workspace / team identifier from the config.
-   - Verify read access with a single call (`list_issues` or `gh repo view`).
-   - Tell the user what you found and ask them to confirm or paste the canonical board URL (used for `board.md` and so the wizard can surface team-page links later). Then skip to step 5.
+   On "none of these", continue to step 3.
 
 3. **No surface wired yet — ask for the board URL.** Tell the user you need the URL for two reasons: (a) to know which surface to install, (b) to extract the workspace / team identifier that the surface itself requires for config. Refuse to continue without one. Infer the tool family from the URL hostname:
    - `linear.app` → Linear

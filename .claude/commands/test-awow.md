@@ -26,11 +26,31 @@ Print exactly: `=== Scenario: <name> | Phase 1: scratch setup ===`
 SCRATCH=/tmp/awow-test-<suite>-<scenario>-<UTC-timestamp>
 rm -rf "$SCRATCH" && mkdir -p "$SCRATCH"
 cp -R tests/<suite>/fixtures/<scenario>/. "$SCRATCH/"
+[ -e tests/<suite>/setup/<scenario>.sh ] || git init -q "$SCRATCH"
 ```
+
+The `git init -q` is the default: real adopters run commands inside a git repository, so a
+scratch must be one unless the scenario says otherwise. A setup hook's existence suppresses the
+default — the hook owns all post-copy state, including git-ness.
 
 Confirm via `ls -la "$SCRATCH"` that the fixture's contents are present.
 
 If `tests/<suite>/setup/<scenario>.sh` exists, run it as `tests/<suite>/setup/<scenario>.sh "$SCRATCH"` — it finishes the fixture build (e.g. re-dating a frozen activity snapshot to today). A non-zero exit means the fixture could not be built: set `final: indeterminate`, `stage: setup`, and skip to Phase 7.
+
+**Environment container (optional).** If `tests/<suite>/env/<scenario>/` exists, its
+`Dockerfile` defines the machine the scenario must run on — an environment the host cannot
+impersonate (e.g. no git on PATH). Build and start it with the scratch mounted at its own
+absolute path, so in-container commands and host file tools see identical paths:
+
+```bash
+docker build -q -t awow-test-env-<suite>-<scenario> tests/<suite>/env/<scenario>
+ENV_CTR=awow-test-env-<scenario>-<UTC-timestamp>
+docker run -d --name "$ENV_CTR" -v "$SCRATCH":"$SCRATCH" -w "$SCRATCH" awow-test-env-<suite>-<scenario> sleep infinity
+```
+
+If docker is unavailable, or the build or start fails: set `final: indeterminate`, `stage: env`,
+and skip to Phase 7. Never fall back to running the scenario on the host — the environment is
+the point of such a scenario.
 
 ### Phase 2 — Pre-checks (fixture gate)
 
@@ -59,6 +79,12 @@ Print exactly: `=== Phase 3: command run begins ===`
 2. **Read the script:** `Read tests/<suite>/scripts/<scenario>.txt`. Strip comment lines (starting with `#`) and blank lines. The remaining lines are the script.
 
 3. **Execute the command against `$SCRATCH`.** Apply `--root $SCRATCH` discipline: every command-directed tool call uses an absolute path under `$SCRATCH`. Make real `Read`, `Write`, `Bash` calls.
+
+   When Phase 1 started an environment container, run every command-directed Bash call inside
+   it — `docker exec "$ENV_CTR" sh -lc '<command>'` — so the command under test sees the
+   container's environment, not this machine's. Command-directed `Read`/`Write`/`Edit` calls
+   keep using host `$SCRATCH` paths (the mount makes them the same files). Runner bookkeeping —
+   phase markers, the check driver, the evidence bundle — stays on the host and is never wrapped.
 
    For every "ask the user" point, your visible response must contain exactly this structure — not your internal reasoning, your visible output:
 
@@ -120,12 +146,13 @@ Print exactly: `=== Phase 7: compose ===`
 Count the `--- AGENT TURN <N> ---` blocks you produced in Phase 3 and print the count. Then resolve `final` by the first matching rule — this order is load-bearing:
 
 1. The Phase 1 setup hook exited non-zero → `indeterminate`, `stage: setup`.
-2. Phase 2 exited 1 → `indeterminate`, `stage: pre-checks`.
-3. Phase 2 or Phase 5 exited 127 → `indeterminate`, `stage: checks-broken`.
-4. AGENT TURN count is 0 (or the Phase 3 markers are missing) → `indeterminate`, `stage: execution`.
-5. No parsable judge verdict → `indeterminate`, `stage: judge`.
-6. Judge has zero `no` AND Phase 5 exited 0 → `pass`.
-7. Otherwise → `fail`.
+2. The Phase 1 environment container could not be built or started (docker missing included) → `indeterminate`, `stage: env`.
+3. Phase 2 exited 1 → `indeterminate`, `stage: pre-checks`.
+4. Phase 2 or Phase 5 exited 127 → `indeterminate`, `stage: checks-broken`.
+5. AGENT TURN count is 0 (or the Phase 3 markers are missing) → `indeterminate`, `stage: execution`.
+6. No parsable judge verdict → `indeterminate`, `stage: judge`.
+7. Judge has zero `no` AND Phase 5 exited 0 → `pass`.
+8. Otherwise → `fail`.
 
 An `indeterminate` is not a graded failure — it means this run could not measure the prompt. Never soften a rule-6 `fail` into `indeterminate` because the failure "looks environmental"; that reclassification is the maintainer's, made from the run file.
 
@@ -164,7 +191,9 @@ Print exactly: `=== Phase 8: cleanup ===`
 rm -rf "$SCRATCH"
 ```
 
-Skip the `rm` if the user passed `--keep`.
+Skip the `rm` if the user passed `--keep`. If Phase 1 started an environment container, remove
+it unconditionally (`docker rm -f "$ENV_CTR"`) — `--keep` preserves the scratch, never the
+container.
 
 ## Final summary
 

@@ -99,3 +99,7 @@ found — the right server on one machine, the wrong one on another.
   approval-gated execution findings) — every VS pointer now names the Copilot CLI session as
   where to run it, and a preflight running inside Visual Studio degrades to file-reads-only with
   a CLI redirect instead of a stream of approval prompts.
+- 2026-08-25 — implementation: container-isolated environment scenarios added at the
+  maintainer's request (spec §6.4) — a generic `env/<scenario>/Dockerfile` runner convention
+  plus `preflight-no-git`, which exercises the P1 fatal path (git absent) inside a Docker
+  container, the one environment no developer host can produce.

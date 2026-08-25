@@ -667,6 +667,30 @@ on any machine and contact no real board.
   }
   ```
 
+### 6.4 Container-isolated environment scenario (implementation amendment, 2026-08-25)
+
+Added during implementation at the maintainer's request: the §6.3 scenarios control workspace
+state but inherit the host machine, so P1 (git absent) can never fail on a developer machine —
+the one fatal check the suite could not exercise. The runner gains a generic
+**environment-container** convention, sibling to the setup hook:
+
+- `tests/<suite>/env/<scenario>/Dockerfile` defines the machine the scenario must run on.
+  When present, Phase 1 builds the image and starts a container with the scratch mounted at
+  its own absolute path (`-v "$SCRATCH":"$SCRATCH" -w "$SCRATCH"`), and Phase 3 executes every
+  command-directed Bash call inside it (`docker exec … sh -lc '<cmd>'`). File-level tool calls
+  keep using host scratch paths — the mount makes them the same files. Phase 8 always removes
+  the container (`--keep` preserves only the scratch).
+- Docker unavailable, or build/start fails → `indeterminate`, `stage: env` — never a silent
+  host fallback, since the environment is the point of such a scenario.
+- `tools/validate-evals.py` statically checks that an `env/<scenario>/` dir carries a
+  `Dockerfile` and belongs to a runnable scenario.
+
+One scenario uses it — `preflight-no-git`: `debian:bookworm-slim` (whose build asserts git is
+genuinely absent, so the scenario cannot rot into testing nothing), an empty fixture, no
+scripted replies. The wizard must stop at check 1 with a Linux-appropriate pointer and change
+nothing; grades invariants 15–16. This keeps the no-API-key execution model intact — the run
+still happens in the maintainer's session; only the probed environment is containerised.
+
 ## 7. Acceptance criteria, restated testable
 
 1. **Preflight checks with pointers.** Every invocation probes P1–P7 (applicable-only) and
@@ -696,3 +720,4 @@ on any machine and contact no real board.
 | Visual Studio | Covered via its bridge chain — Copilot CLI on PATH, plugin in `~/.copilot/installed-plugins/`, fresh `.awow-bridge.json` — with the three-command onboarding as the pointer; activates when `visual-studio-channel` lands, explicit not-yet-shipped note until then (§2.5–2.7). |
 | VS command execution | VS runs no commands off the bat: every VS pointer names the Copilot CLI session as where to run it (no command surface in the IDE), and with VS as the current harness the preflight is file-reads-only with a CLI redirect — never a stream of approval prompts (§2.5, §5.1 preamble). |
 | Other commands | Out of scope; a future proposal may promote P3 into a shared skill (§1). |
+| Environment isolation | `env/<scenario>/Dockerfile` runner convention: command-directed Bash runs in a container, docker-missing composes `indeterminate (stage: env)`; `preflight-no-git` exercises P1 in a git-less container (§6.4). Added at implementation, 2026-08-25. |

@@ -40,8 +40,14 @@ Scenarios are discovered by intersecting `scripts/*.txt` with `rubrics/*.md`; a 
 | `install-step2-mission` | Step 1 complete | Mission ask, refuse-if-trivial, proposal-first land. |
 | `install-step3-conventions` | Steps 1 & 2 complete | Four REQUIRED conventions drafted and landed. |
 | `install-walkthrough` | Same as `install-step0-inherited` | End-to-end Step 0 → Step 3 in one run. |
+| `preflight-no-git` | `.gitkeep`; runs in an `env/` container without git | Preflight check 1 fatal: stop with a Linux pointer, zero writes. Needs docker. |
+| `preflight-not-a-repo` | `.gitkeep`; setup hook strips git-ness | Preflight check 2 fatal: stop with a pointer, zero writes. |
+| `preflight-board-blocked` | Step 1a done with a decoy `board-mcp:` identity | Preflight board blocked: repair pointer, board steps gated, wizard proceeds to Step 2. |
+| `preflight-ambient-unconfirmed` | Two decoy ambient MCP configs; Step 1a unstarted | Never-silently-adopt: enumerate with provenance, explicit pick, identity-only record, pending verification. |
 
 Per-step scenarios give finer-grained failure signal; the walkthrough is the end-to-end smoke test. Both are intentional.
+
+Scratches are git repositories by default (the runner runs `git init -q` after the fixture copy) — real adopters run `/setup-awow` inside a repo. A scenario that needs different post-copy state ships a `setup/<scenario>.sh` hook, whose existence suppresses the default and which then owns all of it, git-ness included. A scenario that needs a different *machine* (e.g. no git on PATH) ships `env/<scenario>/Dockerfile`; the runner executes its command-directed Bash calls inside that container and composes `indeterminate (stage: env)` when docker is unavailable.
 
 ## Fixture conventions
 
@@ -57,5 +63,6 @@ If a fixture mis-represents the starting state, update the fixture, not the scri
 2. `scripts/<scenario>.txt` — user replies (`#`-prefixed and blank lines skipped).
 3. `rubrics/<scenario>.md` — yes/no questions, each tagged with its invariant.
 4. `checks/<scenario>.sh` — `pre()` asserting the fixture, `post()` mirroring the rubric's mechanical facts (belt-and-braces).
+5. Optional: `setup/<scenario>.sh` (executable) when the scratch's post-copy state differs from the default; `env/<scenario>/Dockerfile` when the scenario needs a machine the host cannot impersonate.
 
 Run `python tools/validate-evals.py` to confirm the wiring; `/test-awow setup-awow <scenario>` picks it up automatically.

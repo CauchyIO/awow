@@ -32,7 +32,7 @@ Scenarios are discovered by intersecting `scripts/*.txt` with `rubrics/*.md`; a 
 
 | Scenario | Fixture state | What it tests |
 |---|---|---|
-| `clean-clone` | Empty workspace | Step 0 installer-permission gate; wizard halts on `no`. |
+| `clean-clone` | Vendored-tree markers (`.agents/AGENTS.md`, `setup/install.sh`); nothing installed | Step 0 installer-permission gate; wizard halts on `no`. |
 | `install-step0-inherited` | `.venv/` + pointer stubs; no `setup-progress.md` | Wizard detects Step 0 inherited; skips installer. |
 | `install-step1a-cli` | + `setup-progress.md` (Step 0 ✓) + board reference tree | Phase 1a: detect `gh` surface, accept URL, draft `board.md`. |
 | `install-step1b-mode-a` | + Phase 1a draft in `proposals/setup/step-1/board.md` | Phase 1b: section walk in Mode A. |

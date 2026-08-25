@@ -107,10 +107,12 @@ Print exactly: `=== Phase 3: command run begins ===`
 Print exactly: `=== Phase 4: post-run state ===`
 
 ```bash
-ls -laR "$SCRATCH" | head -60
+find "$SCRATCH" -name .git -prune -o -print | head -80
 ```
 
-This is the ground truth for state assertions in Phases 5 and 6.
+This is the ground truth for state assertions in Phases 5 and 6. `.git/` is pruned because
+scratches are git repositories by default — an unfiltered recursive listing is swallowed by
+git's object store and the actual workspace tree never reaches the judge.
 
 ### Phase 5 — Post-checks (deterministic witness)
 

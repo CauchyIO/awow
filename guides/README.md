@@ -1,10 +1,57 @@
 # Guides
 
-How awow works, guide by guide. Plain markdown — readable here on GitHub, in
-Obsidian, or by an agent as session context.
+What awow is, why it exists, and how to go from zero to a working setup — then every guide,
+in reading order. Plain markdown throughout: readable here on GitHub, in Obsidian, or by an
+agent as session context.
 
-New here? Start with
-[Setup & the plugin model](guide-setup-and-two-harnesses.md).
+## What awow is
+
+A coding agent is only as useful as the context it starts with, and on most teams that
+context is scattered: the board lives in one tool, the conventions live in heads and wiki
+pages, and every agent product (Claude Code, Copilot, Codex, Pi, opencode) wants its own
+copy of the instructions. Each copy drifts, and every session starts from zero.
+
+awow packages the missing context and the working habits around it:
+
+- **Commands** for the work between people — walking a board item to a PR, preparing a
+  refinement session, turning a meeting recording into decisions and tickets.
+- **Working rules** every session starts from: check the board before starting work, keep
+  the ticket current, write the least that is useful.
+- **A `context/` folder your team owns** — board wiring, a team profile, conventions,
+  members — that every command reads.
+
+There is no magic in it. The commands and rules are markdown files, authored once in a
+single source tree, built into a package each agent product installs, and versioned like
+any other dependency. Everything the agent produces goes through a draft you approve before
+it is written anywhere real — nothing touches your board or your repo without you seeing
+it first.
+
+## From zero to working
+
+1. **Install the plugin.** The per-product install commands are in the
+   [repo README](../README.md).
+2. **Run `/setup-awow`.** A handful of questions and one review: it wires your board
+   (Linear, Jira, Azure DevOps, GitHub Issues), drafts a team profile from what it can
+   observe in your board and repo, and writes both into `context/`. Works solo or for a
+   team, standalone or attached to a shared team repo (a *hub*).
+3. **Work the loop.** `/my-work` for what needs you, `/refinement-prep` before the session,
+   `/process-workitem` from ticket to PR, `/daily-checkin` to cap the day.
+4. **Grow when it earns its place.** Digests, design systems, transcript processing,
+   telemetry — each guide below says what it assumes and what pain it removes.
+
+## Reading order
+
+Three guides carry the core; read them in this order:
+
+1. [Setup & the plugin model](guide-setup-and-two-harnesses.md) — the wizard, and how one
+   source tree serves every agent product without drifting copies.
+2. [The core delivery loop](guide-core-delivery-loop.md) — the day-to-day: board to PR,
+   with a human approval before anything irreversible.
+3. [Board & MCP integration](guide-board-and-mcp.md) — how the agent actually reaches your
+   board, and what gets recorded about it.
+
+Everything else is on-demand — come back when the topic comes up. The tables below say what
+each guide covers.
 
 ## Individual — center of gravity: the session
 
@@ -18,23 +65,23 @@ New here? Start with
 
 | Guide | What it covers |
 |---|---|
-| [The core delivery loop](guide-core-delivery-loop.md) | `/refinement-prep` drafts a right-sized story, `/process-workitem` walks one from board to PR, `/daily-checkin` caps the day — all on the look-first, propose-then-approve spine. |
-| [Setup & the plugin model](guide-setup-and-two-harnesses.md) | The resumable `/setup-awow` wizard — only Steps 0 and 1 required — and how one `.agents/` source becomes the payload every harness installs. |
+| [The core delivery loop](guide-core-delivery-loop.md) | `/refinement-prep` drafts a right-sized story, `/process-workitem` walks one from board to PR, `/daily-checkin` caps the day — all on the same check-the-board-first, propose-then-approve pattern. |
+| [Setup & the plugin model](guide-setup-and-two-harnesses.md) | The resumable `/setup-awow` wizard — only Steps 0 and 1 required — and how one `.agents/` source becomes the plugin package every agent product installs. |
 | [Board & MCP integration](guide-board-and-mcp.md) | How a board URL becomes the one file the agent reads, and how an approved MCP gets wired into both harnesses. |
-| [Canonical knowledge sources](guide-canonical-knowledge-sources.md) | Routing from HUB context to authoritative repositories, SharePoint, and vector-backed sources without copying their contents. |
-| [Updating awow](guide-update-and-versioning.md) | Plugin updates replace the payload wholesale; `/migrate-to-plugin` de-vendors a legacy repo once, edits preserved, parity proven. |
-| [Transcript router](guide-transcript-router.md) | One entry point reads the transcript, recommends a specialist, and gates before anything reaches the board. |
+| [Canonical knowledge sources](guide-canonical-knowledge-sources.md) | Routing from the hub's context to authoritative repositories, SharePoint, and vector-backed sources without copying their contents. |
+| [Updating awow](guide-update-and-versioning.md) | Plugin updates replace the plugin's files wholesale; `/migrate-to-plugin` cleans up an older copied-in install once, edits preserved, parity proven. |
+| [Transcript router](guide-transcript-router.md) | One entry point reads the transcript, recommends a specialist, and pauses for approval before anything reaches the board. |
 | [Solution design collaboration](guide-solution-design-collaboration.md) | The three things a recorded decision needs — a place, a lifecycle, and a feedback channel that doesn't drift into chat. |
 | [Agentic retro workflow](guide-agentic-retro-workflow.md) | Turning retros into named anti-patterns, owned actions, and concrete diffs to your agent instructions. |
-| [Standardise reporting](guide-standardise-reporting.md) | `/daily-digest` at two altitudes, a day or a week: what happened, where it heads, what connects. |
+| [Standardise reporting](guide-standardise-reporting.md) | `/daily-digest` at two zoom levels, a day or a week: what happened, where it heads, what connects. |
 | [Design systems & HTML artifacts](guide-design-system-and-artifacts.md) | Stand a house style up once, then render every deck and one-pager from it. Opt-in. |
-| [Session correlation](guide-session-correlation.md) | Linking agent-authored board entries back to their session trace via a footer id. Opt-in, and gated on tracing already being wired. |
+| [Session correlation](guide-session-correlation.md) | Linking agent-authored board entries back to their session trace via a footer id. Opt-in; requires tracing to already be wired. |
 
 ## Pillar · cross-team — center of gravity: the activity RACI
 
 | Guide | What it covers |
 |---|---|
-| [Cross-team & pillar](guide-cross-team-and-pillar.md) | Why a pillar is a different archetype, not a bigger team: three mechanisms across the seam, spined on one activity×team RACI. (Draft.) |
+| [Cross-team & pillar](guide-cross-team-and-pillar.md) | Why a pillar is a different kind of node, not a bigger team: three mechanisms across the team↔pillar boundary, built on one activity×team RACI. (Draft.) |
 | [Program portfolio view](program-portfolio-view.md) | Allocation under constraint — priority routes down to the team boards, size and progress roll back up. (Illustrative.) |
 
 ## Writing a guide

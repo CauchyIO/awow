@@ -51,7 +51,7 @@ Verify by reporting what a fresh session will see: the connected-spoke reflex wi
 
 ## Orientation — track, hat, and what this repo serves
 
-On first entry (no `track:` recorded in `setup-progress.md`), ask once, in plain language: "Are you setting this up for a whole team, or just yourself?" Record `track: team | solo`. Do not ask about hats: default `hat: both`, and record a more specific hat only when the user volunteers one ("I'm the PO" → `hat: product`). The hat vocabulary surfaces later only when a step lands provisional (see Hats). Never re-ask either.
+On first entry (no `track:` recorded in `setup-progress.md`), ask once, in plain language: "Are you setting this up for a whole team, or just yourself? If it's for a team, feel free to mention your role (PO, engineer, lead, …) — it helps me route later questions." Record `track: team | solo`. Do not present hats as a choice: default `hat: both`, and map a mentioned role to a hat ("I'm the PO" → `hat: product`, "engineer" → `hat: engineering`). The hat vocabulary itself surfaces later only when a step lands provisional (see Hats). Never re-ask either.
 
 In **solo** mode, skip the steps that only make sense for a group and mark them as skipped when you lay out the plan:
 

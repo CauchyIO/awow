@@ -22,7 +22,7 @@ New here? Start with
 | [Setup & the plugin model](guide-setup-and-two-harnesses.md) | The resumable `/setup-awow` wizard — only Steps 0 and 1 required — and how one `.agents/` source becomes the payload every harness installs. |
 | [Board & MCP integration](guide-board-and-mcp.md) | How a board URL becomes the one file the agent reads, and how an approved MCP gets wired into both harnesses. |
 | [Canonical knowledge sources](guide-canonical-knowledge-sources.md) | Routing from HUB context to authoritative repositories, SharePoint, and vector-backed sources without copying their contents. |
-| [Updating awow](guide-update-and-versioning.md) | Pulling newer awow against the lockfile: starter-owned paths move, your edits survive, conflicts land as sidecars. |
+| [Updating awow](guide-update-and-versioning.md) | Plugin updates replace the payload wholesale; `/migrate-to-plugin` de-vendors a legacy repo once, edits preserved, parity proven. |
 | [Transcript router](guide-transcript-router.md) | One entry point reads the transcript, recommends a specialist, and gates before anything reaches the board. |
 | [Solution design collaboration](guide-solution-design-collaboration.md) | The three things a recorded decision needs — a place, a lifecycle, and a feedback channel that doesn't drift into chat. |
 | [Agentic retro workflow](guide-agentic-retro-workflow.md) | Turning retros into named anti-patterns, owned actions, and concrete diffs to your agent instructions. |

@@ -1,7 +1,7 @@
 # tests/awow-lock
 
 A **code-level** regression test for `tools/awow_lock.py` — the 3-way lockfile
-engine behind `/update-awow`. Unlike `tests/setup-awow/` (agent-behaviour
+engine behind `/migrate-to-plugin`. Unlike `tests/setup-awow/` (agent-behaviour
 rubrics run through a harness), this is a plain stdlib `unittest`: no pytest, no
 network, no LLM. It only needs Python and `git`.
 

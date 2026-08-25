@@ -109,11 +109,17 @@ HOOKS_DIR = REPO_ROOT / "hooks"
 # REPO_ROOT from __file__ and would operate on the plugin install dir if
 # shipped (hub-and-spoke WI-4).
 #
-# Base plugin: the pre-push leak scan and its pattern file. Nothing else — the
-# three session-analysis tools below served only skills that have moved.
+# Base plugin: the pre-push leak scan and its pattern file, plus the 3-way
+# lock engine /migrate-to-plugin drives against a vendored repo (AWO-259) —
+# shipped so the migration always runs the payload's current engine, never the
+# repo's vendored vintage. awow_lock.py takes an explicit --root; the command
+# must always pass it, since __file__-relative resolution would point the
+# engine at the plugin install dir. The three session-analysis tools below
+# served only skills that have moved.
 PLUGIN_TOOL_PATHS = [
     "hooks/leak-patterns.txt",
     "hooks/pre-push",
+    "awow_lock.py",
 ]
 
 # awow-telemetry: the session-analysis runtime. project-timeline has no
@@ -395,8 +401,6 @@ def render_plugin_body(text: str) -> str:
 # The commands-as-skills surface (Codex/Pi) can't resolve ${CLAUDE_PLUGIN_ROOT}.
 # Agent Skills resolve paths relative to the skill dir, so from
 # dist/agent-skills/<name>/SKILL.md, ../../tools reaches the payload's dist/tools/.
-# (One residual literal ${CLAUDE_PLUGIN_ROOT} remains, in update-awow — a
-# channel: vendored command that reaches no payload, so it cannot bite here.)
 AGENT_SKILLS_TOKEN_SUBSTITUTIONS = [
     ("{AWOW_TOOLS}", "../../tools"),
     ("{AWOW_ROOT}", "../.."),

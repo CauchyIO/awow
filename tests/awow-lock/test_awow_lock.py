@@ -1,5 +1,5 @@
 """Regression test for tools/awow_lock.py — the 3-way update engine behind
-`/update-awow`.
+`/migrate-to-plugin`.
 
 Builds two throwaway git repos (an upstream `src` and a local `tgt`), seeds a
 baseline, then diverges them so that every classification verdict is exercised

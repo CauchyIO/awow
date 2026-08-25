@@ -74,7 +74,7 @@ TELEMETRY_TOOL_FILES = {
     "session_timeline.py",
     "session_timeline_template.html",
 }
-BASE_TOOL_FILES = {"hooks/leak-patterns.txt", "hooks/pre-push"}
+BASE_TOOL_FILES = {"hooks/leak-patterns.txt", "hooks/pre-push", "awow_lock.py"}
 
 
 def skill_text(name: str) -> str:

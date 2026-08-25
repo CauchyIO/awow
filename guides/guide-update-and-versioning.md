@@ -1,105 +1,65 @@
 # Updating awow
 
-Pull newer awow into a repo that is already set up — without losing anything your team owns.
+How a repo takes newer awow — and how a legacy vendored repo becomes one that can.
 
-> **TL;DR** — `/setup-awow` configures a repo once; `/update-awow` keeps the scaffolding current
-> afterwards. Your two actions are invoke and approve; `tools/awow_lock.py` does the rest against
-> a lockfile recording what you last reconciled, so only starter-owned paths move, your edits
-> survive, and conflicts land as sidecars you merge by hand.
+> **TL;DR** — With the plugin installed, updating is the harness's own gesture:
+> `/plugin update awow` (Copilot CLI: `copilot plugin update awow`). Nothing lives in your repo
+> to reconcile — the payload is replaced wholesale and your `context/` is never part of it. A
+> repo that still carries vendored starter files runs `/migrate-to-plugin` once; after that,
+> updates are plugin updates forever.
 
-## How the update decides what to touch
+## The plugin model: update is not a merge
 
-The lockfile — `tools/awow.lock.json` — records a hash of every starter-owned file as you last
-reconciled it. Each update compares three versions of each file:
+The payload (commands, skills, handlers, runtime tools, reference context) is served from the
+plugin install, not copied into your repo. Team-owned content — `context/team/`,
+`context/company/`, `board.md`, `setup-progress.md`, `proposals/` — lives only in your repo, so
+a plugin update cannot touch it. There is no lockfile, no 3-way compare, no conflict sidecar:
+those existed to merge upstream into vendored copies, and there are no vendored copies left to
+merge into.
 
-```mermaid
-flowchart LR
-  baseline[Lockfile baseline] --> compare{3-way compare}
-  local[Local copy] --> compare
-  upstream[Upstream] --> compare
-  compare -->|only upstream changed| apply[update / new]
-  compare -->|only you changed| keep[keep-local]
-  compare -->|both changed| sidecar[".awow conflict sidecar"]
-```
+The one seam: a command or skill body you deliberately keep as a repo-local file (the parity
+seam `/migrate-to-plugin` flags) shadows the plugin's copy and stops receiving updates. Fold it
+back upstream when your change lands, or re-diff it against the payload after big releases.
 
-| Verdict | Meaning | What happens |
-| --- | --- | --- |
-| **update** | Upstream changed; you didn't | Overwritten with the new version |
-| **new** | Upstream added a file | Created |
-| **keep-local** | You edited; upstream didn't | Left alone — your edit wins |
-| **conflict** | Both changed | Your file untouched; upstream saved beside it as `<file>.awow` to merge |
-| **removed-local** | You deleted it | Not re-added |
-| **removed-upstream** | Upstream deleted it | Your copy left alone (delete by hand if you want to follow) |
+## Legacy vendored repos: migrate once
 
-Only **starter-owned paths** are managed: `.agents/`, `tools/`, `setup/`, `context/` reference
-material, `mcps/`, `pyproject.toml`, `SETUP.md`, `REFERENCES.md`. Team-owned content —
-`context/team/`, `context/company/`, `board.md`, `setup-progress.md`, a bootstrapped
-`AGENTS.md`, everything under `proposals/` — is never rewritten by an update.
-
-## The human flow — two actions
-
-With the awow plugin installed:
+A repo set up before plugin-first distribution still carries `.agents/`, vendored `tools/`, and
+generated stubs. `/migrate-to-plugin` retires that surface in one approved pass:
 
 ```bash
-/plugin update awow     # refresh the bundle (Copilot CLI: copilot plugin update awow)
-/update-awow            # agent shows the plan; you approve or reject
+/plugin update awow      # make sure the payload is current
+/migrate-to-plugin       # classify → plan → approve → apply → parity report
 ```
 
-Without the plugin, point at a checkout: `/update-awow --source ../awow`. The agent pulls the
-source current, verifies it is clean, and takes it from there. Either way it presents a grouped
-plan — what updates, what is new, what conflicts — and **writes nothing until you approve**.
-After apply it re-mirrors the harness stubs (`tools/gather.py`) and reports the version delta
-plus any `.awow` conflict files left to merge.
+Classification is read-only and shown, never assumed: lockfile baseline where
+`tools/awow.lock.json` exists, the repo's own vendor commit where it does not, `--source`
+history-matching as the fallback — and anything unresolved is treated as edited and preserved.
+Edited files migrate to their plugin-era homes (archetypes → `context/team/workitem-archetypes/`,
+meeting lenses → `context/team/meetings/`, edited command bodies → repo-local files); unedited
+files are deleted because the payload now serves them. Nothing is written before you approve the
+plan, and the run ends with a before/after parity table. The flow and its gates:
+[`.agents/commands/migrate-to-plugin.md`](../.agents/commands/migrate-to-plugin.md).
 
-Run it on a branch and read the `git diff` as your final review; git is the backstop. Add
-`--check` to see the plan and stop — "how far behind are we?" without touching anything.
-
-## First run in an older repo
-
-A repo set up before the update machinery existed has no lockfile and no `tools/awow_lock.py`.
-You prepare nothing: the agent self-bootstraps — copies the tool from the source, then seeds the
-lockfile from your current tree (`backfill`, which establishes "you are here" and changes no
-other file).
-
-**The one first-run caveat.** A freshly seeded baseline equals your local state, so the first
-compare cannot distinguish "we edited this" from "upstream moved" — files your team deliberately
-changed show up as *update (will overwrite)* instead of *conflict*. The agent is instructed to
-walk that list against your known customisations and flag high-risk entries (a real product
-`pyproject.toml`, reference `context/` you filled in) before you approve. From the second update
-on, the lockfile holds a true reconciliation point and your edits classify as *keep-local*.
-
-## Merging a conflict
-
-The upstream version lands next to your untouched file as `<file>.awow`; you diff the two, take
-what you want, and delete the sidecar. The update is not done until every `.awow` is gone — the
-report lists them so none are forgotten.
-
-```bash
-diff .agents/commands/daily-digest.md .agents/commands/daily-digest.md.awow
-# merge what you want, then:
-rm .agents/commands/daily-digest.md.awow
-```
+Add `--check` to see the classification and plan without touching anything.
 
 ## What the version numbers mean
 
 | Where | What it is |
 | --- | --- |
-| `.claude-plugin/plugin.json` → `version` | The canonical awow version. Bumped when starter-owned files change; the plugin marketplace serves it and `status` reports it as the "to" side. |
-| `tools/awow.lock.json` → `awow_version` | The version *your repo* last reconciled against — the "from" side of every plan. |
-| Git tags (`v0.4.0`, …) | Pinnable release points on the awow repo, created by the release workflow when a version bump lands on `main`. Pass a tag checkout as `--source` to update to a specific version instead of whatever `main` is. |
+| `.claude-plugin/plugin.json` → `version` | The canonical awow version. Bumped when payload files change; the plugin marketplace serves it. |
+| Git tags (`v0.4.0`, …) | Pinnable release points on the awow repo, created by the release workflow when a version bump lands on `main`. |
 | `CHANGELOG.md` | What each release changed, newest first — the section for a version is also the body of its GitHub release. |
+| `tools/awow.lock.json` → `awow_version` | Legacy vendored repos only: the version the repo last reconciled against. `/migrate-to-plugin` reads it for classification and retires it. |
 
-Correctness never depends on the numbers — the compare is content-hash based — but a plan reading
-`0.3.0 → 0.4.0` tells you you're taking a real release. Maintainers: bump the version in the same
-change that alters starter files and add that version's section to `CHANGELOG.md`
-(`python tools/release-notes.py --changelog CHANGELOG.md` drafts it from the merged PRs since the
-previous release; trim it in the PR). When the bump lands on `main`, the release workflow opens
-the awow-dist publish PR, tags the commit, and publishes the GitHub release with that section as
-its body — there is no tag to push by hand.
+Maintainers: bump the version in the same change that alters payload files and add that
+version's section to `CHANGELOG.md` (`python tools/release-notes.py --changelog CHANGELOG.md`
+drafts it from the merged PRs since the previous release; trim it in the PR). When the bump
+lands on `main`, the release workflow opens the awow-dist publish PR, tags the commit, and
+publishes the GitHub release with that section as its body — there is no tag to push by hand.
 
 ## Sources of truth
 
-- [`.agents/commands/update-awow.md`](../.agents/commands/update-awow.md) — the flow and its approval gate
-- [`tools/awow_lock.py`](../tools/awow_lock.py) — the 3-way compare and lockfile format
+- [`.agents/commands/migrate-to-plugin.md`](../.agents/commands/migrate-to-plugin.md) — the de-vendoring flow and its approval gate
+- [`tools/awow_lock.py`](../tools/awow_lock.py) — the classification engine and lockfile format
 - [`.claude-plugin/plugin.json`](../.claude-plugin/plugin.json) — the canonical version
-- Companion guides: [setup & the plugin model](guide-setup-and-two-harnesses.md) — the wizard that installed what this updates
+- Companion guides: [setup & the plugin model](guide-setup-and-two-harnesses.md) — how the payload reaches a repo in the first place

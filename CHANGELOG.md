@@ -8,6 +8,15 @@ that same PR. When the PR lands on `main`, the release workflow publishes the
 section as the body of the GitHub release and tags the commit. Releases before
 v0.9.2 were not tagged individually; `git log` is their record.
 
+## v0.11.0
+
+### Commands
+- **Feature** `/migrate-to-plugin`: de-vendor a repo the plugin now serves — read-only classification (lockfile 3-way, vendor-commit compare, source-history match; unresolved means edited), edit migration to plugin-era homes, a plan gate with zero writes before approval, and a before/after parity report. Verified against real pre- and post-lockfile vendored fixtures. (#69)
+
+### Harnesses and distribution
+- **API** `/update-awow` is retired from source; existing vendored copies keep working in place, and `/migrate-to-plugin` is the way off the vendored channel. (#69)
+- **Feature** The payload ships `tools/awow_lock.py`, so a migration always runs the current engine rather than the repo's vendored vintage. (#69)
+
 ## v0.10.0
 
 ### Harnesses and distribution

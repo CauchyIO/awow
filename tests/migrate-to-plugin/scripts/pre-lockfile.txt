@@ -1,0 +1,6 @@
+# Invoke as: /migrate-to-plugin --source .awow-payload
+# No plugin install exists in the scratch; .awow-payload (a copy of the current
+# dist/ payload) is both the engine source and the classification source.
+# Expected ask points: the Step 3 plan gate, and possibly where to commit.
+approve the plan
+commit directly on the current branch

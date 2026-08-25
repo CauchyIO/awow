@@ -7,7 +7,7 @@ Every board entry the agent writes carries a back-link to the session that produ
 > session's trace with — so from any board entry you reach the prompts and tool calls behind it.
 > The agent learns its own id from `$CLAUDE_SESSION_ID`, populated once per session by a small
 > `SessionStart` hook. None of this creates traces; it only links to traces you already record.
-> Opt-in, and gated on tracing already being wired.
+> Opt-in, and it only works if you already have tracing set up.
 
 ## Why it's worth doing
 
@@ -18,7 +18,7 @@ Agent-authored issues and PRs normally have **no provenance**: you can read *wha
 - **Coaching.** `awow-usage-coach` and `prompt-skill-analysis` assess *how* people prompt; they can
   only tie feedback to outcomes when board entries name their session.
 - **Digests.** `daily-digest` joins board activity to session data, at either window. Without the
-  id the two surfaces stay disconnected.
+  id, the board and the session data stay disconnected.
 
 ## How it works
 
@@ -37,9 +37,9 @@ flowchart TB
   trace --> join
 ```
 
-The id is ambient rather than contextual: it lives shell-side, so it costs nothing per turn and
-survives compaction and `/clear`, and the hook re-runs on resume/clear/compact to stay populated.
-Downstream skills filter traces by that id to reunite outcome with process.
+The id lives in the shell environment rather than in the conversation, so it uses no context
+window and survives compaction and `/clear`; the hook re-runs on resume/clear/compact to stay
+populated. Downstream skills filter traces by that id to reunite outcome with process.
 
 ## What is responsible for what
 
@@ -51,7 +51,7 @@ The capability is deliberately small. It sits on top of a tracing stack that is 
 | **MLflow Stop hook** *(tracing)* | `.claude/settings.local.json` (per-machine) | Writing each session's trace and tagging it `mlflow.trace.session = <id>`. |
 | **`session_env_hook.py`** *(correlation)* | `.agents/skills/session-correlation/scripts/` | The accessor: exposing the session id as `$CLAUDE_SESSION_ID` via a `SessionStart` hook. |
 | **Footer rule (Rule 4)** *(correlation)* | `context/team/conventions/REQUIRED/output-discipline.md` | Instructing the agent to append `_session: <id>_` to board entries it authors. |
-| **`gather.py`** | `tools/` | Mirroring the rule + skill into the harness surfaces (`.claude/`, `.github/`) so Claude Code and Copilot both see them. |
+| **`gather.py`** | `tools/` | Copying the rule and skill into the folders each tool reads (`.claude/`, `.github/`) so Claude Code and Copilot both see them. |
 | **`/setup-awow` Step 8 · the skill's enabling steps** | `.agents/commands/` | The opt-in moment: runs the tracing prerequisite check, then installs the accessor + footer rule. |
 
 ## How the configuration happens
@@ -92,7 +92,8 @@ resume/clear/compact).
 ### 2 · Install the footer rule
 
 The skill appends Rule 4 to `output-discipline.md` and a shape note to `board-output.md`, then
-re-runs `gather.py`. The base templates stay clean — the rule lands only for teams that opted in.
+re-runs `gather.py`. The base templates stay clean — the rule is added only for teams that
+opted in.
 
 ```markdown
 ## Rule 4 — Session footer
@@ -118,13 +119,13 @@ Exempt: metadata-only changes and one-line status comments.
 | --- | --- |
 | Exposing the session id to the agent (`$CLAUDE_SESSION_ID`) | Setting up MLflow / Databricks tracing — that is `claudetracing` |
 | The footer convention, and where it is required vs. exempt | Writing traces — that is the Stop hook |
-| The opt-in flow and the tracing prerequisite check | Forcing anything into the always-read core instructions |
+| The opt-in flow and the tracing prerequisite check | Adding anything to CLAUDE.md, which every session always loads |
 
 The footer rule is written harness-neutrally ("your harness's session id"). The accessor shown here
 is Claude-Code-specific (`SessionStart` + `CLAUDE_ENV_FILE`); other harnesses keep the same footer
 and supply their own accessor. GitHub Copilot is verified end to end with its equivalent accessor,
-but that support is landing via a pull request that is still pending, so for now it lives outside
-the merged template.
+but that support is in a pull request that hasn't merged yet, so for now it lives outside the
+merged template.
 
 Correlation is only the join. What you *do* with the traces — export, prompt-quality reports,
 usage coaching — is [trace analysis](guide-trace-analysis.md).
@@ -133,6 +134,6 @@ usage coaching — is [trace analysis](guide-trace-analysis.md).
 
 - [`.agents/skills/session-correlation/SKILL.md`](../.agents/skills/session-correlation/SKILL.md) — the capability: the accessor hook, the footer rule, and the opt-in flow
 - [`.agents/skills/session-correlation/scripts/session_env_hook.py`](../.agents/skills/session-correlation/scripts/session_env_hook.py) — the accessor itself
-- [`context/team/conventions/REQUIRED/output-discipline.md`](../context/team/conventions/REQUIRED/output-discipline.md) — where Rule 4 lands for a team that opted in
+- [`context/team/conventions/REQUIRED/output-discipline.md`](../context/team/conventions/REQUIRED/output-discipline.md) — where Rule 4 is written for a team that opted in
 - [`.agents/commands/setup-awow.md`](../.agents/commands/setup-awow.md) (Step 8) — the opt-in moment
 - Companion guides: [trace analysis](guide-trace-analysis.md) — the read side that consumes the join; [session timeline](guide-session-timeline.md) — the visual read of the same sessions

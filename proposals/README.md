@@ -19,6 +19,7 @@ When a proposal's state changes, update its `**Status:**` line *and* the row bel
 
 | Proposal | Status | Outcome / next step |
 |---|---|---|
+| [setup-awow-preflight](setup-awow-preflight.md) | **Accepted** (2026-08-25) | Read-only preflight (git/repo/board/gh/harness, pointers per miss) + explicit board-MCP confirmation in Step 1a. Spec: [setup-awow-preflight-design](setup-awow-preflight-design.md); CAU-1332. Implementation due. |
 | [invoker-topology-and-board-plan](invoker-topology-and-board-plan.md) | **Accepted** (in build) | Hat-aware setup, invoker profile + ladder rungs, board plan gate. AWO-204/205/206, stacked on PR #44; plan at [plans/2026-08-18](plans/2026-08-18-invoker-topology-and-board-plan.md). |
 | [meta-workspace-and-fixture-decoupling](meta-workspace-and-fixture-decoupling.md) | **Landed** | `dogfood/` → `meta/`, test fixtures decoupled (`feature/dry_run_awow`). `meta/` itself since dissolved: proposals merged here, workspace context frozen at `tests/fixtures/fikkert/_seed/`. |
 | [pi-codex-harness-support](pi-codex-harness-support.md) | **Superseded** | Reconciled into hub-and-spoke-design §7/§10; tracked as WI-5. |

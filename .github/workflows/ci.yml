@@ -46,6 +46,8 @@ jobs:
         run: python3 tests/hooks/test_session_start.py
       - name: Lifecycle seam hook
         run: python3 tests/hooks/test_lifecycle_seam_check.py
+      - name: Wrong-root write guard hook
+        run: python3 tests/hooks/test_wrong_root_guard.py
       - name: Release notes generator
         run: python3 tests/release/test_release_notes.py
       # The bump PR must carry its notes: the release workflow publishes this

@@ -21,7 +21,9 @@ The board is the single source of truth for planning, and awow exists to keep it
 
 ## Paths
 
-`{{HUB}}` is the team context root, `{{PROJECT}}` this project's; both resolve to the repo root here. In a spoke (root `AGENTS.md` frontmatter with a `hub:` key), resolve `{{HUB}}` as `$AWOW_HUB`, else the path recorded in the gitignored `.awow/hub.json` after its origin check — a missing or drifted link is a prompt to (re)map interactively and a loud stop headless, never a scan. Machinery reads `{{HUB}}` first, then `{{AWOW_ROOT}}` (its scripts at `{{AWOW_TOOLS}}`). Unresolvable `{{HUB}}`? Stop and say so. Several candidate installations or boards? Resolve per §Context resolution in AGENTS.md — never guess across a repo boundary.
+`{{HUB}}` is the team context root, `{{PROJECT}}` this project's; both resolve to the repo root here. In a spoke (root `AGENTS.md` frontmatter with a `hub:` key), resolve `{{HUB}}` as `$AWOW_HUB`, else the path recorded in the gitignored `.awow/hub.json` after its origin check — a missing or drifted link is a prompt to (re)map interactively and a loud stop headless, never a scan. Machinery reads `{{HUB}}` first, then `{{AWOW_ROOT}}` (its scripts at `{{AWOW_TOOLS}}`). Unresolvable `{{HUB}}`? Stop and say so. Several candidate installations or boards, or CWD outside any scaffolded repo? Resolve per the contract at `{HUB}/context/tooling/context-resolution.md`, falling back to `{AWOW_ROOT}/context/tooling/context-resolution.md` — never guess across a repo boundary.
+
+**The write boundary.** An awow artefact — `{PROJECT}/proposals/`, the `{HUB}/context/` tree, `.awow/` state, a board spec — belongs to the installation you resolved, or its mapped hub. Announce that installation before your first write and land every `{PROJECT}`-anchored file inside it — never at a bare workspace root. Never write across a git repo boundary on your own judgment, however strongly the content points there: crossing needs the user's answer to a question naming both repos, and a generic plan approval ("go") is not that answer. Headless with nobody to ask? Stop loudly, naming the write you refused.
 
 ## Board first
 

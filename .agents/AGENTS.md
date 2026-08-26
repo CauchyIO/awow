@@ -26,6 +26,8 @@ Prompt bodies never hardcode where context or tools live. Four tokens, resolved 
 
 **Reading machinery: `{{HUB}}` first, then `{{AWOW_ROOT}}`.** A team that has vendored and edited a contract must win over the shipped default, so read `{HUB}/context/<path>` and fall back to `{AWOW_ROOT}/context/<path>`. Team data — mission, members, conventions, style, `board.md`, `architecture.md` — is `{{HUB}}` only and has no fallback: absent means absent, and commands branch on that.
 
+**Fill on first need.** An absent team-data file is never a stop and never a hard prerequisite. The command that needs it makes one plain-language offer at that moment — fill it now (drafted from the repo and board where possible), proceed on the shipped default, or skip and note it — and continues with the default on silence. A "fill it now" yes is the approval for that context write. `/setup-awow` remains the place to wire what cannot be defaulted (installer, board surface, spoke registration) and to deepen any fill later.
+
 In a hub-connected spoke — a repo whose root `AGENTS.md` frontmatter names its hub by remote URL — resolve `{{HUB}}` through `$AWOW_HUB`, else the gitignored `.awow/hub.json` link written at registration, after verifying the recorded clone's `origin` still matches the connector's remote. A missing or out-of-sync link is a prompt to the user to (re)map it in an interactive session and a loud stop in a headless one — never scan for candidates, never guess a location, never improvise conventions.
 
 ## Context resolution — which installation, which board

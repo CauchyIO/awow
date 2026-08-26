@@ -1,4 +1,4 @@
-# board is blocked; the wizard should steer to Step 2 (mission) — accept, answer, approve
+# board is blocked; the wizard offers the deferred fills — accept the profile fill, answer, approve
 yes, continue with the mission
 Help ops teams cut incident response time in half within a year
 yes, approve it

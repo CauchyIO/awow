@@ -4,7 +4,7 @@ Step 3 drafts the four REQUIRED conventions (issue-titles, labels, branches, out
 
 ## Wizard behaviour during the run
 
-1. *(invariant 1)* First wizard response lists every step 0 → 9 with status markers; Steps 0–2 marked ✓, Step 3 marked ⧗.
+1. *(invariant 1)* First wizard response shows the required core complete (Steps 0 and 1 ✓) plus a compact deferred-fills line with the team profile marked done — and enters the conventions fill only after the scripted reply named it.
 2. Did the wizard count closed issues and announce Guide mode because the count is below 10?
 3. *(invariant 8)* Did each convention land at `$SCRATCH/proposals/setup/step-3/<name>.md` first, before moving to `$SCRATCH/context/team/conventions/REQUIRED/<name>.md`?
 4. Did the wizard cover all four REQUIRED conventions: `issue-titles.md`, `labels.md`, `branches.md`, `output-discipline.md`?

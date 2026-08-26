@@ -19,12 +19,16 @@ approve
 # --- Step 1 single review gate ---
 land
 
-# --- Step 2 Team profile (wizard drafts from board/repo where it can; the
-# reply supplies the mission line + profile, or answers the fallback ask) ---
+# --- Setup core done; the wizard offers the deferred fills and waits. Name the
+# team-profile fill, then supply the mission line + profile (or answer the
+# fallback ask). ---
+fill in the team profile now
 Cauchy helps engineering teams make their plan as trustworthy as their code, by maintaining the agentic way of working as a living starter pack that adopters can actually read, run, and customise.
 approve
 
-# --- Step 3 Required conventions (issue-titles, labels, branches, output-discipline) ---
+# --- Step 3 Required conventions (issue-titles, labels, branches,
+# output-discipline) — again entered on request, never proactively ---
+now draft the required conventions
 accept
 approve
 accept

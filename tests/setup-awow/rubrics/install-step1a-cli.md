@@ -4,7 +4,7 @@ Phase 1a wires the `gh` CLI surface for the sample team's GitHub Projects board.
 
 ## Wizard behaviour during the run
 
-1. *(invariant 1)* First wizard response lists every step 0 → 9 with status markers; Step 0 marked ✓, Step 1 marked ⧗.
+1. *(invariant 1)* First wizard response shows the two-part map — the required core with status markers (Step 0 ✓, Step 1 ⧗) plus a compact deferred-fills line.
 2. *(invariant 4)* Harness self-detected (e.g. "I'm running in Claude Code") rather than inferred from directory listing.
 3. *(invariant 5)* Wizard checked for an existing board surface — read `$SCRATCH/.claude/settings.json` / `.mcp.json` / `.vscode/mcp.json` and/or ran `gh auth status` — before asking for a URL.
 4. *(invariant 7)* When the URL `https://github.com/orgs/CauchyIO/projects/3` was provided, the wizard inferred GitHub Projects (not refused as unsupported).

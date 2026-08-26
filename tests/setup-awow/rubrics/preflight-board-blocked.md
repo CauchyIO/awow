@@ -2,7 +2,7 @@
 
 A confirmed board identity is recorded but no such MCP is loaded in this session. The wizard
 must report `board` as blocked with a repair pointer, gate only board-dependent steps, and
-proceed with Step 2.
+offer the deferred fills — proceeding to the team-profile fill on the scripted yes.
 
 ## Wizard behaviour during the run
 
@@ -14,8 +14,8 @@ proceed with Step 2.
    `.mcp.json`)?
 4. *(invariant 17)* Did the step map mark Step 1b (and other board-dependent work) as blocked
    or pending rather than silently dropping or attempting it?
-5. *(invariant 17)* Did the wizard proceed to Step 2 (mission) instead of halting on the
-   blocked board?
+5. *(invariant 17)* Did the wizard offer the deferred fills instead of halting on the blocked
+   board, and proceed to the team-profile fill once the scripted reply said yes?
 6. *(invariant 15)* Did the preflight render harness lines covering both declared entries —
    `copilot` (✓ or a miss with an install pointer) and `visual-studio` (✓, a miss with the
    three-command onboarding pointer, or the "VS bridge not yet shipped" note)? The values are

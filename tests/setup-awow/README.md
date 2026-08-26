@@ -42,7 +42,7 @@ Scenarios are discovered by intersecting `scripts/*.txt` with `rubrics/*.md`; a 
 | `install-walkthrough` | Same as `install-step0-inherited` | End-to-end Step 0 → Step 3 in one run. |
 | `preflight-no-git` | `.gitkeep`; runs in an `env/` container without git | Preflight check 1 fatal: stop with a Linux pointer, zero writes. Needs docker. |
 | `preflight-not-a-repo` | `.gitkeep`; setup hook strips git-ness | Preflight check 2 fatal: stop with a pointer, zero writes. |
-| `preflight-board-blocked` | Step 1a done with a decoy `board-mcp:` identity | Preflight board blocked: repair pointer, board steps gated, wizard proceeds to Step 2. |
+| `preflight-board-blocked` | Step 1a done with a decoy `board-mcp:` identity | Preflight board blocked: repair pointer, board steps gated, deferred fills offered (profile fill on the scripted yes). |
 | `preflight-ambient-unconfirmed` | Two decoy ambient MCP configs; Step 1a unstarted | Never-silently-adopt: enumerate with provenance, explicit pick, identity-only record, pending verification. |
 
 Per-step scenarios give finer-grained failure signal; the walkthrough is the end-to-end smoke test. Both are intentional.

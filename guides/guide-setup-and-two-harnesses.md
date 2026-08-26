@@ -26,8 +26,9 @@ Four properties define how it runs:
   in isolation.
 - **Proposal-first.** Every artefact is written to `proposals/setup/<step>/` first and moves to
   its final location (e.g. `context/team/mission.md`) only after explicit approval.
-- **Two required, the rest optional.** Steps 0 and 1 make the repo usable. Steps 2–9 are
-  recommended-next in any order — the wizard offers the next one and lets you choose.
+- **Two required, the rest fills on first need.** Steps 0 and 1 make the repo usable — after
+  that, setup is done. Steps 2–8 are deferred fills: the first command that needs an artefact
+  offers to draft it in the moment; Step 9 (skills review) runs on request.
 
 For the workshop route, `/setup-awow` drafts `proposals/setup/meeting-brief.md` with five short
 conversation blocks. After the meeting, pass the `.vtt`, `.srt`, or notes to `/setup-awow` or

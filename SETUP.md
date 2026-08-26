@@ -38,9 +38,9 @@ The first of the two required steps. After Step 1 the agent can read and propose
 6. Writes `context/tooling/board.md` with the team's full board spec (tool & wiring, state machine, hierarchy, labels, fields, team page, cycles, divergence from reference).
 7. Records Step 1 complete in `setup-progress.md`.
 
-## Recommended next (NOT REQUIRED — any order)
+## Deferred fills (NOT REQUIRED — filled on first need)
 
-Re-invoking `/setup-awow` offers these in the order they pay back fastest. Any can be deferred. State is tracked in `setup-progress.md`.
+Setup ends at Step 1. These artefacts fill on first need: the first command that needs one offers to draft it in the moment, from the board and repo where possible. Re-invoking `/setup-awow` can also fill any of them directly. State is tracked in `setup-progress.md`.
 
 ### Step 2 — Team profile
 
@@ -82,7 +82,7 @@ Glossary, decision template, runbook template. Empty subfolders are tracked by `
 
 Output: `context/company/neighbouring-teams.md`.
 
-1° teams as empty stubs. The convention: each team writes its own summary. The wizard generates stubs the team can fill in later or hand to the neighbouring teams.
+Recorded on first contact: the first cross-team boundary a transcript or design touches offers to record the team it named. No stubs are generated up front; each neighbouring team still writes its own summary — ours records the boundary.
 
 ### Step 8 — Surface the extras
 

@@ -54,7 +54,7 @@ Before any proposal lands, read:
 - `{HUB}/context/tooling/design-system.md`, falling back to `{AWOW_ROOT}/context/tooling/design-system.md` — if `mode:` is not `absent`, any HTML artefact this flow produces (Phase 3.1 presentation track) must adopt it
 - `{HUB}/context/company/neighbouring-teams.md` — for cross-team boundary effects
 
-If a knowledge-base subfolder is empty, note it but proceed. Absence improves nothing; it does not block the pipeline.
+If a knowledge-base subfolder is empty, note it but proceed. Absence improves nothing; it does not block the pipeline. The same holds for `mission.md` and `neighbouring-teams.md` — fill on first need (per the agent instructions): offer the two-to-five-sentence profile, or the neighbouring-team entry the design first touches, once at a gate; continue without on silence.
 
 **An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{HUB}/context/tooling/board.md` yourself.
 

@@ -4,7 +4,6 @@ phase: seed
 layer: team
 prerequisites:
   - "Step 0 of /setup-awow complete (the agent can read and write the board)"
-  - "{HUB}/context/team/mission.md exists"
 removes_pain: "the scramble-the-day-before-refinement problem"
 m365:
   include: true
@@ -45,7 +44,7 @@ The user provides one of:
 
 Read:
 
-- `{HUB}/context/team/mission.md` — the feature must serve the mission. If you cannot see how, ask the user before drafting.
+- `{HUB}/context/team/mission.md` — the feature must serve the team's purpose. If you cannot see how, ask the user before drafting. Absent? Fill on first need: offer a two-to-five-sentence profile drafted from the repo and board (the `/setup-awow` Step 2 method), and proceed without one if declined.
 - The convention set the `workitem-write` skill reads in steps 2–3 — issue titles, labels, output discipline, board voice.
 - `{HUB}/context/knowledge-base/glossary.md` — domain terms; use these consistently
 - `{HUB}/context/knowledge-base/patterns/` — link to existing patterns rather than restating

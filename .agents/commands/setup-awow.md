@@ -26,7 +26,7 @@ If `--root <path>` is given and `<path>/` does not exist, refuse and tell the us
 1. Read `setup-progress.md`.
 2. Run the **Preflight** (next section). A fatal miss stops here — print the pointer instead of
    the step map. Soft misses annotate the step map below.
-3. **Lay out the full plan to the user before doing anything else.** List every step (0 → 9), mark each as ✓ complete, ⧗ deferred/pending, or ☐ untouched, and tell the user which step you are about to resume. Keep this map compact when the user chose the workshop route.
+3. **Lay out the plan to the user before doing anything else.** The map has two parts. First the required core — Step 0 (installer), Step 1 (board), and, for a spoke, registration — each marked ✓ complete, ⧗ deferred/pending, or ☐ untouched, naming the step you are about to resume. Then one compact line for the deferred fills (profile, conventions, members + style, KB seed, neighbouring teams, extras — §Deferred fills), with a ✓ per fill already landed. Never walk a deferred fill proactively. Keep the whole map compact when the user chose the workshop route.
 4. On first entry, offer the workshop and guided routes described below. Walk through the steps in order until Step 0 and Step 1 are both complete on the guided route. On the workshop route, prepare or process the workshop first, then return to uncovered steps and technical wiring.
 5. Write every artefact to `proposals/setup/<step>/` first. Land it (move to its final location) only after the user approves.
 6. Update `setup-progress.md` when a step completes.
@@ -355,9 +355,15 @@ The reference for this team's board lives at `context/tooling/boards/<tool>/refe
 
 After Step 1, tell the user:
 
-> The repo is usable and the board is documented. You can stop here and start using `/refinement-prep` on a real story, or continue with `/setup-awow` to fill in the team profile, conventions, members, and knowledge base. Each step is a few minutes; none are required.
+> The repo is usable and the board is documented — setup is done. Everything else fills in on first need: the first command that needs the team profile, a convention, the member roster, or a neighbouring team will offer to draft it in the moment, from your repo and board where it can. Start with a real command — `/refinement-prep` on a story, `/process-transcript` on a meeting. You can also fill any piece now: say which, or come back to `/setup-awow` whenever.
 
-## Step 2 — Team profile
+## Deferred fills — filled on first need
+
+Steps 2–4 and 6–8 are not wizard stations. Per the fill-on-first-need contract in the agent instructions, the command that first needs each artefact offers to draft it in the moment, and these sections are the method such an offer routes to. Enter one only when a fill offer lands here, when the user names it, or on an explicit `/setup-awow` resume of that step. A fill that lands marks its step ✓ in `setup-progress.md` exactly as a wizard walk would, and the hats rules apply to fills as they do to steps.
+
+## Step 2 — Team profile (deferred fill)
+
+**Owner moment:** the first command that frames scope — `/refinement-prep`, `/process-transcript`, `/solution-design-flow`.
 
 The artefact is a short profile — two to five plain sentences: what the team is building or working on right now, for whom, and the tech stack it works in. A one-sentence mission is an optional first line: keep it when the team has one, never demand one, and do not iterate on its quality.
 
@@ -371,7 +377,9 @@ Present the draft with one gate: "Here's what I gathered from your board and rep
 
 The file keeps its path: land at `context/team/mission.md` via `proposals/setup/step-2/mission.md` — every consumer and existing adopter already reads that path; the file's own heading says "Team profile". Update `setup-progress.md`.
 
-## Step 3 — Required conventions (observe or guide)
+## Step 3 — Required conventions (observe or guide; deferred fill)
+
+**Owner moment:** the first board write — until a convention file exists, `workitem-write` cites the reference defaults and offers this fill.
 
 For each of the four REQUIRED conventions (`issue-titles.md`, `labels.md`, `branches.md`, `output-discipline.md`):
 
@@ -382,7 +390,9 @@ For each of the four REQUIRED conventions (`issue-titles.md`, `labels.md`, `bran
 
 Land each under `proposals/setup/step-3/<convention>.md`, get approval, move to `context/team/conventions/REQUIRED/<convention>.md`. Update `setup-progress.md`.
 
-## Step 4 — Members and style
+## Step 4 — Members and style (deferred fill)
+
+**Owner moment:** the first artefact that needs the roster or the team's voice — speaker mapping in `/process-transcript`, any style-bearing output.
 
 If members are listed in the board's team page, pull the list from there first and present it for confirmation — roles, responsibilities, and focus areas filled in where visible, asked for where not. Ask for the team member list (role, responsibilities, focus areas) only when no team page or member data exists. With more than one board recorded at orientation, also capture per member which boards they work (a `Boards:` line) and name each board's product curator and technical curator — hand-off briefs and provisional confirmations address the curators.
 
@@ -394,7 +404,9 @@ Run `tools/bootstrap-claude-md.py` (or the inline equivalent). It reads the stub
 
 Critically: ask the user to populate the `## Do not propose` block. Surface scope-shedding statements ("we are not adding multi-user this quarter", "do not propose moving away from Linear"). Land the result. In a vendored install, run `tools/gather.py` to mirror it to `.claude/CLAUDE.md` and `.github/AGENTS.md`; a plugin install has nothing to mirror — the landed file is the team's own.
 
-## Step 6 — Knowledge base seed
+## Step 6 — Knowledge base seed (deferred fill)
+
+**Owner moment:** the first `/kb-mine` or `/kb-synthesize` run — the spine works on its shipped defaults; canonical sources come up at the first external reference.
 
 Walk the user through `context/knowledge-base/README.md` — what lives there vs. on the board. Offer to seed `glossary.md` from any glossary they already have. Stub the architecture/patterns/runbooks/decisions subfolders with one example each if useful.
 
@@ -420,11 +432,15 @@ canonical sources; the `selectivity` dial and the two KB paths keep their defaul
 later. Record in `setup-progress.md` whether the defaults were kept or adjusted and whether
 external sources were cataloged.
 
-## Step 7 — Neighbouring teams
+## Step 7 — Neighbouring teams (deferred fill)
 
-Ask for the 1° teams (teams whose work the user's team depends on or supplies into). Generate empty stubs at `context/company/neighbouring-teams.md`. Tell the user each neighbouring team is expected to write its own; the stubs are placeholders.
+**Owner moment:** the first cross-team boundary a transcript or design touches — `/process-transcript` and `/solution-design-flow` offer to record just the team they named in `context/company/neighbouring-teams.md`.
 
-## Step 8 — Surface the extras
+Nothing is scaffolded up front and no stub files are generated. Each neighbouring team still writes its own summary; ours records the boundary. Use this step only to bulk-record several 1° teams when the user asks for that.
+
+## Step 8 — Surface the extras (deferred fill)
+
+**Owner moment:** the extras detect-then-suggest on their own (`design-system.md`'s absent-mode probe, the correlation opt-in, engine detection); walk this step only on request.
 
 Read the commands whose frontmatter declares `phase: spread` or `phase: standardise` — from `{HUB}/.agents/commands/` if that directory exists (a vendored install), otherwise `{AWOW_ROOT}/commands/`. List each command, its phase, its prerequisites, and the pain it removes. Tell the user:
 

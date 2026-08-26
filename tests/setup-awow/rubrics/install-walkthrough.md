@@ -5,7 +5,7 @@ End-to-end walkthrough from a clean slate through Step 3. Fixture has `.venv/` a
 ## Step 0 — installer inherited
 
 1. *(invariant 2)* Did you `Read $SCRATCH/setup-progress.md` (and observe it does not exist) before producing your first wizard response?
-2. *(invariant 1)* In your first wizard response, did you list every step 0 → 9 with status markers, and tell the user you were resuming at Step 0?
+2. *(invariant 1)* In your first wizard response, did you present the two-part map — the required core (Step 0, Step 1) with status markers plus a compact deferred-fills line — and tell the user you were resuming at Step 0?
 3. *(invariant 3)* Did you avoid invoking `setup/install.sh` as a Bash call? The fixture's `.venv/` plus pointer stubs satisfy Step 0's inheritance detection; the installer must not run.
 4. *(invariant 1)* Once you moved past Step 0, did you mark it as ✓ in the plan?
 
@@ -27,7 +27,8 @@ End-to-end walkthrough from a clean slate through Step 3. Fixture has `.venv/` a
 
 ## Step 2 — team profile
 
-12. *(invariant 8)* Did you draft `$SCRATCH/proposals/setup/step-2/mission.md` before moving it to `$SCRATCH/context/team/mission.md`?
+12. *(invariant 1)* After the Step 1 gate, did you declare setup done and wait for the scripted reply to name the team-profile fill (and later the conventions fill) rather than walking Step 2 or Step 3 unprompted?
+12b. *(invariant 8)* Did you draft `$SCRATCH/proposals/setup/step-2/mission.md` before moving it to `$SCRATCH/context/team/mission.md`?
 13. Did Step 2 draft or request a short profile and land it on the first try, without iterating on the mission line's quality?
 
 ## Step 3 — conventions

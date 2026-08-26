@@ -5,30 +5,30 @@
 #
 # Assumes the maintainer's `gh` is authenticated for the CauchyIO org — the
 # wizard detects gh as the existing GitHub surface at Phase 1a §2 and skips
-# straight to Phase 1a §5 (Record). If gh is not authenticated, this script
-# is wrong — the wizard would ask "MCP or gh-cli?" after the URL and need
-# `gh-cli` as a reply.
+# straight to Phase 1a §5 (Record). If gh is not authenticated, the wizard
+# defaults to the MCP by observation and states the choice — no extra reply
+# needed, but the surface recorded would be `mcp`, not `gh-cli`.
 
 # --- Step 1 Phase 1a ---
 current only
 https://github.com/orgs/CauchyIO/projects/3
 approve
 
-# --- Step 1 Phase 1b (Mode A — greenfield walks the reference sections) ---
-accept
-accept
-accept
-accept
-accept
+# --- Step 1 Phase 1b (Mode A drafts all sections in one pass; no per-section replies) ---
 
-# --- Step 1 review-and-adjust gate ---
-proceed
+# --- Step 1 single review gate ---
+land
 
-# --- Step 2 Mission ---
+# --- Setup core done; the wizard offers the deferred fills and waits. Name the
+# team-profile fill, then supply the mission line + profile (or answer the
+# fallback ask). ---
+fill in the team profile now
 Cauchy helps engineering teams make their plan as trustworthy as their code, by maintaining the agentic way of working as a living starter pack that adopters can actually read, run, and customise.
 approve
 
-# --- Step 3 Required conventions (issue-titles, labels, branches, output-discipline) ---
+# --- Step 3 Required conventions (issue-titles, labels, branches,
+# output-discipline) — again entered on request, never proactively ---
+now draft the required conventions
 accept
 approve
 accept

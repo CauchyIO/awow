@@ -187,6 +187,17 @@ def check_suite(suite_md: Path, findings: list[str]) -> int:
             ok, err = bash_syntax_ok(setup)
             if not ok:
                 findings.append(f"{rel} fails bash -n: {err}")
+        env_dir = suite_dir / "env" / name
+        if env_dir.is_dir() and not (env_dir / "Dockerfile").is_file():
+            findings.append(f"{suite}/{name}: env/{name}/ has no Dockerfile")
+
+    env_root = suite_dir / "env"
+    if env_root.is_dir():
+        for orphan_env in sorted(p.name for p in env_root.iterdir() if p.is_dir()):
+            if orphan_env not in scenarios:
+                findings.append(
+                    f"{suite}: env/{orphan_env}/ matches no runnable scenario — the container will never build"
+                )
     return len(scenarios)
 
 

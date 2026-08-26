@@ -4,7 +4,7 @@ Fixture has `.venv/` and populated `.claude/commands/` + `.github/prompts/` stub
 
 ## Wizard behaviour during the run
 
-1. *(invariant 1)* In your first wizard response, did you list every step 0 → 9 with a status marker (✓ / ⧗ / ☐)?
+1. *(invariant 1)* In your first wizard response, did you present the two-part map — the required core (Step 0, Step 1) with status markers (✓ / ⧗ / ☐) plus a compact deferred-fills line?
 2. *(invariant 2)* Did you `Read $SCRATCH/.venv` (or `ls $SCRATCH`) — or otherwise inspect — to confirm `.venv/` exists before deciding what to do about Step 0?
 3. *(invariant 3)* Did you avoid invoking `setup/install.sh` as a Bash call? The fixture's `.venv/` already exists; the installer must not run.
 4. *(invariant 1)* Did you mark Step 0 as ✓ (or equivalent) in the plan listing rather than ☐?

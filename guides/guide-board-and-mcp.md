@@ -2,12 +2,12 @@
 
 How a board URL becomes one configured file the agent reads — and how an approved MCP gets wired into both harnesses.
 
-> **TL;DR** — Give `/setup-awow` Step 1 a board URL. It wires a read/write surface (an MCP, or
-> the `gh` CLI for GitHub), then walks the per-tool `reference/` files one section at a time and
-> writes the team's real spec into `context/tooling/board.md` — thereafter the only board file
-> the agent reads. MCP servers are governed separately: a server clears an intake, joins
-> `mcps/catalogue.md`, then gets wired into `.mcp.json` (Claude Code) and `.vscode/mcp.json`
-> (Copilot).
+> **TL;DR** — Give `/setup-awow` Step 1 a board URL. It wires up a connection the agent can
+> read and write the board through (an MCP server, or the `gh` CLI for GitHub), then walks the
+> per-tool `reference/` files one section at a time and writes the team's real spec into
+> `context/tooling/board.md` — thereafter the only board file the agent reads. MCP servers are
+> governed separately: a server passes a review, is added to `mcps/catalogue.md`, then gets
+> wired into `.mcp.json` (Claude Code) and `.vscode/mcp.json` (Copilot).
 
 ## The single source of truth
 
@@ -38,9 +38,9 @@ One subfolder per tool under `context/tooling/boards/`. Depth varies; all share 
 
 | Folder | Board tool | Depth |
 | --- | --- | --- |
-| `linear/` | Linear | Full reference. Takes a team greenfield-to-running without leaving the wizard. The worked example other tools match. |
+| `linear/` | Linear | Full reference. Takes a new (greenfield) team all the way to a working board inside the wizard. The reference the other tools are modelled on. |
 | `azure-devops/` | Azure DevOps | Full reference; some sections marked TODO for v0.2. |
-| `jira/` | Jira | Skeleton. Mode B (assess current) is the expected path; v0.2 fills in Mode A. |
+| `jira/` | Jira | Skeleton. Mode B (assess an existing board — see below) is the expected path; v0.2 fills in Mode A. |
 | `github-issues/` | GitHub Issues + Projects v2 | Skeleton, plus a `gh` CLI alternative to the MCP. |
 
 Step 1 infers the tool family from the board URL hostname — `linear.app`,
@@ -50,19 +50,20 @@ is unsupported and the wizard stops.
 ## What the wizard reads, and what it writes
 
 **Read — per-tool `reference/`.** Same shape for every tool; one file per concern, so the team
-can accept / override / skip each independently.
+can accept or change each one when the wizard pauses for review.
 
-- `states.md` — five-state contract → the tool's workflow states
-- `hierarchy.md` — L1–L4 mapping to the tool's primitives
+- `states.md` — maps awow's five standard states onto the tool's own workflow states
+- `hierarchy.md` — maps the four work levels (outcome → epic → feature → story) onto the tool's
+  item types
 - `labels.md` — `type:` / `area:` / `status:` taxonomy
 - `fields.md` — priority, estimate, iteration, assignee
 - `duplicates.md` — dedup features + search-before-create recipe
 - `team-page.md` — team page / project description conventions
-- `mcp.md` — surface install for both harnesses + verify checklist
+- `mcp.md` — how to install the connection in both harnesses, plus a check that it works
 - `cycles.md` / `iterations.md` — only if the tool has the concept
 
 **Write — `board.md` headings.** Both modes produce the same artefact shape, so the agent never
-needs to know which mode produced it: Tool & wiring (family, URL, MCP/CLI surface, verify
+needs to know which mode produced it: Tool & wiring (family, URL, MCP/CLI connection, verify
 status) · State machine · Hierarchy · Label taxonomy · Required fields · Avoiding duplicates
 (dedup limits + the team's recipe) · Team page conventions · Cycles / iterations · Divergence
 from reference (populated by Mode B, empty for Mode A).
@@ -73,8 +74,8 @@ Step 1b picks a mode automatically by counting closed (or `Done`) issues. The th
 
 | Mode | Trigger | Behaviour |
 | --- | --- | --- |
-| **A — set up from reference** | <10 closed issues (greenfield or under-configured) | Walks the reference, asks *accept / override / skip* per section, applies choices via the surface where it can mutate config. Where it cannot (Linear Free workflow states, ADO process templates, Jira workflows) it emits a manual checklist and re-verifies after the user confirms. `Divergence from reference` stays empty. |
-| **B — assess & capture current** | ≥10 closed issues (established board) | Pulls the actual state machine, hierarchy, labels, and fields from the surface into `board.md`, then diffs the capture against the reference and surfaces gaps — not to force adoption, but so the team can close, override, or accept each. Resolutions land in `Divergence from reference`. |
+| **A — set up from reference** | <10 closed issues (greenfield or under-configured) | Drafts the full spec from the reference in one pass, pauses once for review (*land / adjust / evaluate* — land meaning save to its final location), then applies your choices through the connection wherever it can change settings itself. Where it cannot (Linear Free workflow states, ADO process templates, Jira workflows) it emits a manual checklist and re-verifies after the user confirms. `Divergence from reference` stays empty. |
+| **B — assess & capture current** | ≥10 closed issues (established board) | Pulls the actual state machine, hierarchy, labels, and fields through the connection into `board.md`, then diffs the capture against the reference and surfaces gaps — not to force adoption, but so the team can close, override, or accept each. Resolutions are recorded in `Divergence from reference`. |
 
 ## The override model — two layers
 
@@ -84,11 +85,11 @@ precedence order; the wizard always says which layer it read from for each secti
 | Layer | Lives in | Behaviour |
 | --- | --- | --- |
 | **1. Enterprise override** (per file) | `.agents-overrides/tooling/boards/<tool>/reference/` | A parent org ships its own board standards next to the adopter's `.agents/`. Files here **supersede** the starter pack's reference of the same name, and the wizard announces it. |
-| **2. Team override** (in `board.md`) | `context/tooling/board.md` itself | The team's accept / override / skip decisions land inline (Mode A) or in `Divergence from reference` (Mode B). **There is no separate team-level override file.** |
+| **2. Team override** (in `board.md`) | `context/tooling/board.md` itself | The team's review-gate decisions are written inline (Mode A) or in `Divergence from reference` (Mode B). **There is no separate team-level override file.** |
 
 ## The `gh` CLI alternative (GitHub only)
 
-For GitHub-hosted boards the surface need not be an MCP. If `gh` is installed and authenticated
+For GitHub-hosted boards the connection need not be an MCP. If `gh` is installed and authenticated
 for the org, the agent shells out to it through the harness's Bash tool — lighter, with no extra
 PAT to manage. The wizard offers it whenever a user hits friction at the MCP install step.
 
@@ -152,17 +153,17 @@ Copilot fires MCP tools only in Agent mode, not inline or Ask.
 
 Every `reference/mcp.md` has the same structure so the wizard knows where to look: a **Source
 docs** reference (authoritative — the in-repo snippet is a summary and may have drifted),
-**Install — Claude Code**, **Install — Copilot**, and **Verify**. The verify step is
-non-negotiable:
+**Install — Claude Code**, **Install — Copilot**, and **Verify**. The wizard always runs the
+verify step:
 
 1. **Read access** — one call (e.g. `list_issues`, or `gh repo view`).
 2. **Write access** — a *no-op* write on a scratch issue (re-set an existing label or its current
    description). Read-only is a blocker: the agent cannot do its job without write.
 3. **Record the verification status** in `context/tooling/board.md` (`Tool & wiring`).
 
-If the install cannot be completed in-session (token in another browser, IT ticket), the surface
-is recorded as `pending` and the wizard continues with Step 1b so the repo is at least partially
-usable; write-dependent items are marked `pending-write`.
+If the install cannot be completed in-session (token in another browser, IT ticket), the
+connection is recorded as `pending` and the wizard continues with Step 1b so the repo is at
+least partially usable; write-dependent items are marked `pending-write`.
 
 ## Sources of truth
 

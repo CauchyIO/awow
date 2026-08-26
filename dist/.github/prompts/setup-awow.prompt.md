@@ -24,10 +24,94 @@ If `--root <path>` is given and `<path>/` does not exist, refuse and tell the us
 ## On every invocation
 
 1. Read `setup-progress.md`.
-2. **Lay out the full plan to the user before doing anything else.** List every step (0 → 9), mark each as ✓ complete, ⧗ deferred/pending, or ☐ untouched, and tell the user which step you are about to resume. Keep this map compact when the user chose the workshop route.
-3. On first entry, offer the workshop and guided routes described below. Walk through the steps in order until Step 0 and Step 1 are both complete on the guided route. On the workshop route, prepare or process the workshop first, then return to uncovered steps and technical wiring.
-4. Write every artefact to `proposals/setup/<step>/` first. Land it (move to its final location) only after the user approves.
-5. Update `setup-progress.md` when a step completes.
+2. Run the **Preflight** (next section). A fatal miss stops here — print the pointer instead of
+   the step map. Soft misses annotate the step map below.
+3. **Lay out the plan to the user before doing anything else.** The map has two parts. First the required core — Step 0 (installer), Step 1 (board), and, for a spoke, registration — each marked ✓ complete, ⧗ deferred/pending, or ☐ untouched, naming the step you are about to resume. Then one compact line for the deferred fills (profile, conventions, members + style, KB seed, neighbouring teams, extras — §Deferred fills), with a ✓ per fill already landed. Never walk a deferred fill proactively. Keep the whole map compact when the user chose the workshop route.
+4. On first entry, offer the workshop and guided routes described below. Walk through the steps in order until Step 0 and Step 1 are both complete on the guided route. On the workshop route, prepare or process the workshop first, then return to uncovered steps and technical wiring.
+5. Write every artefact to `proposals/setup/<step>/` first. Land it (move to its final location) only after the user approves.
+6. Update `setup-progress.md` when a step completes.
+
+## Preflight — verify prerequisites, change nothing
+
+Run these checks on every invocation, immediately after reading `setup-progress.md` and before
+laying out the step map. Preflight is read-only. Never install anything, never register an MCP
+server, never run `git init`, never write any file — `setup-progress.md` included. Report, point
+at the fix, and gate. Probe in the non-failing style (`cmd && echo ok || echo missing`); never
+`cat` a possibly-absent file. Re-probe every invocation; never persist a result — recorded auth
+status lies. When the current harness is Visual Studio, do not shell out at all — VS
+approval-gates terminal commands, and the preflight must not become a stream of permission
+prompts. Probe only what file reads answer (the bridge marker, the config files, candidate
+enumeration), render shell-dependent checks as `– (not checkable from Visual Studio)`, and tell
+the user to run `/setup-awow` in a Copilot CLI session for the full preflight.
+
+1. **git on PATH.** `git --version >/dev/null 2>&1 && echo ok || echo missing`. Missing: print
+   the install pointer for the user's platform — macOS: `xcode-select --install` or
+   `brew install git`; Windows: `winget install --id Git.Git` (or `choco install git` where the
+   team already uses chocolatey); Linux: the distro package manager, else
+   https://git-scm.com/downloads — and stop. Print nothing else — no step map, no steps.
+2. **The workspace is a git repository.** `git -C <root> rev-parse --is-inside-work-tree
+   2>/dev/null || echo no`, where `<root>` is the repo root, or the `--root` path when given.
+   Not a repo: tell the user to run `git init` in `<root>` or cd to the repository they meant,
+   and stop as in check 1. Do not offer to run `git init` yourself.
+3. **Board surface.** Enumerate candidates: MCP entries referencing a supported board tool
+   (`linear`, `jira`, `azure`, `github`) in `.mcp.json`, `.claude/settings.json`,
+   `.claude/settings.local.json`, `.vscode/mcp.json` — all relative to `<root>` — plus board
+   MCP tools already loaded in your own tool surface; when the recorded harness roster names
+   Copilot CLI or Visual Studio, also `~/.copilot/mcp-config.json` and `~/.mcp.json`. Identify
+   each as server name + endpoint (URL, or command line for stdio) + provenance (which file or
+   scope). Then classify into exactly one state:
+   - **n/a** — nothing recorded in `setup-progress.md`, no candidates → render
+     `board – (wired in Step 1a)`.
+   - **unconfirmed** — nothing recorded, candidates exist → list each as
+     `<name> — <endpoint> (from <provenance>)`, say confirmation happens at Step 1a, and use
+     none of them meanwhile.
+   - **ok** — a recorded `board-mcp:` identity matches a loaded server and one read-only call
+     (cheapest list call, e.g. a limit-1 issue list) succeeds; or `surface: gh-cli` and check 4
+     passes plus one `gh repo view` succeeds.
+   - **blocked** — a recorded identity this session cannot use. Name the reason and fix, one
+     line: *not loaded but configured in `<file>`* → "restart or run `/mcp`"; *not configured
+     anywhere here* → "registered at another scope or machine — re-add with `claude mcp add
+     --scope user --transport http <name> <endpoint>`, or commit a project `.mcp.json`";
+     *unauthenticated* → "run `/mcp` to authenticate" (or the harness-appropriate re-auth);
+     *diverged* (live candidates, none matching the recorded endpoint) → list them with
+     provenance and say re-confirmation happens at Step 1a. Never silently adopt or switch.
+4. **gh CLI — GitHub-family boards only.** When the recorded surface is `gh-cli`, or the
+   recorded or in-progress board URL is GitHub-hosted: `gh --version`, then `gh auth status`,
+   then confirm scopes `repo`, `project`, `read:org`. Pointers per miss, matched to the user's
+   platform: install `brew install gh` (macOS) / `winget install --id GitHub.cli` (Windows) /
+   https://cli.github.com (elsewhere); `gh auth login`; `gh auth refresh -s
+   repo,project,read:org`. Never render this check for other board families.
+5. **Current-harness wiring.** You know which harness you are running in. Claude Code: nothing
+   to check — the plugin delivered this command. Copilot CLI: `copilot` on PATH — miss points at
+   the Copilot CLI install docs. Copilot in VS Code: `.vscode/mcp.json` present when the surface
+   is MCP — miss points at the Step 1a install snippet. Visual Studio (and any roster that names
+   it): VS never reads the plugin store, so check the bridge chain — `copilot` on PATH, the awow
+   plugin at `~/.copilot/installed-plugins/awow/`, and the bridge marker
+   `~/.copilot/skills/.awow-bridge.json` present with a version equal to the installed plugin's;
+   any miss points at the three-command onboarding (`copilot plugin marketplace add
+   CauchyIO/awow` → `copilot plugin install awow@awow` → `/awow-vs`), a stale marker at
+   "run `/awow-vs`" — and every such pointer names the Copilot CLI session as where to run it:
+   VS has no command surface. Until the VS bridge ships, render `– (VS bridge not yet shipped)`
+   instead of checking. Codex, Pi, opencode: no checks defined; render
+   `harness ✓ (no checks defined for <harness>)`.
+6. **Declared other harnesses.** When `setup-progress.md` records a harness roster, probe what
+   is checkable from this machine for each non-current entry (as in check 5 — for Visual Studio
+   the full bridge chain) and report misses with the same pointers. These never gate: another
+   harness's wiring cannot block this session.
+7. **Payload freshness.** When a secondary local channel with a version marker exists (the VS
+   bridge's `~/.copilot/skills/.awow-bridge.json`), compare its version against
+   `${CLAUDE_PLUGIN_ROOT}/package.json`. Older marker → report it with the pointer to run `/awow-vs` (or
+   update the plugin first via `/plugin`). No channel or no marker → render nothing. Never fetch
+   anything remote for this.
+
+**Render** one line above the step map when all applicable checks pass:
+`preflight: git ✓ · repo ✓ · board ✓ · harness ✓` — expanding any non-✓ item to its own line
+with reason and pointer. Omit items that do not apply.
+
+**Gate.** Checks 1–2 are fatal: stop with the pointer; no step map, no steps. Checks 3–5 are
+soft: continue, but annotate board-dependent work — Step 1b's issue count and mode pick, Step 3
+observe mode, every board write — as `⧗ blocked: <reason>` in the step map, and steer to the
+next step that does not need the missing piece. Checks 6–7 are informational only.
 
 ## Install shape — standalone or spoke
 
@@ -35,7 +119,7 @@ Classify the install shape before Step 0, once per repo:
 
 - A vendored tree (`.agents/AGENTS.md`) or a recorded `install-shape:` in `setup-progress.md` settles it; do not re-ask.
 - A root `AGENTS.md` whose frontmatter carries a `hub:` key marks this repo as a spoke; go to the Spoke track to complete or repair its registration.
-- Otherwise, when you run from a plugin install in a repo with no awow files, ask once: standalone, or a spoke of an existing team hub? Record the answer as `install-shape: standalone | spoke` in `setup-progress.md`; standalone continues with the steps below, spoke continues with the Spoke track.
+- Otherwise, when you run from a plugin install in a repo with no awow files, ask once — and explain the choice inside the ask, in adopter language: "Is this repo joining a team that already runs awow from a shared repo (a 'hub')? If yes, I'll link this repo to it as a spoke — you'll need the hub's git URL. If no, or you're not sure, I'll set this repo up on its own; you can join a hub later." A hub must already exist for spoke to be a valid answer; "not sure" means standalone. Record the answer as `install-shape: standalone | spoke` in `setup-progress.md`; standalone continues with the steps below, spoke continues with the Spoke track.
 
 ## Spoke track — register this repo against a hub
 
@@ -44,29 +128,29 @@ A spoke commits its hub's identity (git remote URL), never a path. Walk these fi
 1. **Identify the hub.** Ask for the hub's git remote URL and this repo's project name (default: the repo directory name). Never infer the hub from sibling directories without the user confirming.
 2. **Resolve the hub locally.** Offer an accessible checkout whose normalized `origin` — host + owner/repo, ignoring scheme, credentials, an optional `.git` suffix, and a trailing slash — equals the hub remote; else ask for a path or offer to clone. A checkout whose `origin` does not match is a stop, not a warning.
 3. **Write the machine link.** Write `.awow/hub.json` as `{"remote": "<hub remote URL>", "path": "<absolute path to the clone>"}` and ensure `.gitignore` covers `.awow/`. This link is machine-local state: never commit it and never record the path in any committed file.
-4. **Draft the spoke PR** in this repo: root `AGENTS.md` with connector frontmatter (`awow: spoke`, `hub: <remote URL>`, `project: <name>`) and a short body pointing collaborators at the hub; `.claude/settings.json` enabling the awow plugin at project scope; `context/mission.md`; `context/board-scope.md` with frontmatter `board:` (the hub's index name for it), `team:` (the board team items land on), optional `project:` and `subpath:` — ask which of the hub's boards this repo maps to, and with a single-board hub offer to skip the file; `context/do-not-propose.md` when the user wants one; the `.awow/` gitignore entry. Open the PR only after approval.
+4. **Draft the spoke PR** in this repo: root `AGENTS.md` with connector frontmatter (`awow: spoke`, `hub: <remote URL>`, `project: <name>`) and a short body pointing collaborators at the hub; `.claude/settings.json` enabling the awow plugin at project scope; `context/mission.md` (a project-level profile: what this repo is and its stack, same shape as the hub's team profile); `context/board-scope.md` with frontmatter `board:` (the hub's index name for it), `team:` (the board team items land on), optional `project:` and `subpath:` — ask which of the hub's boards this repo maps to, and with a single-board hub offer to skip the file; `context/do-not-propose.md` when the user wants one; the `.awow/` gitignore entry. Open the PR only after approval.
 5. **Draft the hub PR** in the hub checkout: a knowledge-source record for this repo per `{HUB}/context/tooling/knowledge-sources.md` — routing profile plus `spoke:` block — and its `index.md` line. Open it only after approval; when the user lacks hub PR rights, leave the drafted record under this repo's `proposals/` with a handoff note naming who can land it.
 
 Verify by reporting what a fresh session will see: the connected-spoke reflex with `{HUB}` resolved to the recorded path. Tell the user registration completes when both PRs merge; neither blocks the other, and teammates need only clone the spoke and answer the one-time map-the-hub prompt.
 
 ## Orientation — track, hat, and what this repo serves
 
-On first entry (no `track:` recorded in `setup-progress.md`), ask once, as one question: "Is this for a whole team, or just you — and which hat are you wearing: product, engineering, or both?" Record `track: team | solo` and `hat: product | engineering | both`; a bare "team" or "solo" answer defaults `hat: both`. Never re-ask either.
+On first entry (no `track:` recorded in `setup-progress.md`), ask once, in plain language: "Are you setting this up for a whole team, or just yourself? If it's for a team, feel free to mention your role (PO, engineer, lead, …) — it helps me route later questions." Record `track: team | solo`. Do not present hats as a choice: default `hat: both`, and map a mentioned role to a hat ("I'm the PO" → `hat: product`, "engineer" → `hat: engineering`). The hat vocabulary itself surfaces later only when a step lands provisional (see Hats). Never re-ask either.
 
 In **solo** mode, skip the steps that only make sense for a group and mark them as skipped when you lay out the plan:
 
 - **Step 4 members** — skip; the roster is just the user. Still draft the style files, since they shape every artefact.
 - **Step 7 neighbouring teams** — skip; there are no 1° teams to stub.
 
-Reframe **Step 2** as the user's focus for the work, not a team charter. Everything else runs unchanged. A solo adopter can switch later by re-running `/setup-awow` and answering "team".
+Reframe **Step 2** as what the user is building and in what stack, not a team charter — usually draftable straight from the repo. Everything else runs unchanged. A solo adopter can switch later by re-running `/setup-awow` and answering "team".
 
-With `track: team`, ask once what this repo serves: which board or boards, and which team or teams, by name. Record `boards: <comma list>` and `teams: <comma list>` in `setup-progress.md`. One board, one team — continue; this default path adds no further ceremony. More than one board — Step 1b drafts the index-form `board.md` (a `## Boards` list with sibling `board-<name>.md` specs, per §Context resolution in the agent instructions) and walks its configuration once per board. More than one team sharing members and conventions is one installation — say so, and recommend a separate installation only when the teams' conventions genuinely diverge.
+With `track: team`, establish what this repo serves: which board or boards, and which team or teams. When a wired surface or board URL is already known and names exactly one team, infer both and state them instead of asking; ask only when nothing is wired or the mapping is ambiguous. Record `boards: <comma list>` and `teams: <comma list>` in `setup-progress.md`. One board, one team — continue; this default path adds no further ceremony. More than one board — Step 1b drafts the index-form `board.md` (a `## Boards` list with sibling `board-<name>.md` specs, per §Context resolution in the agent instructions) and walks its configuration once per board. More than one team sharing members and conventions is one installation — say so, and recommend a separate installation only when the teams' conventions genuinely diverge.
 
 Write `{PROJECT}/.awow/profile.json` (schema per §Context resolution) with the stated hat and, once boards are named, the invoker's default board. Never commit it.
 
 ### Hats — who answers which step
 
-Steps carry a hat — **engineering**: 0 (installer), 1a (surface), 5 (bootstrap), 9 (skills review); **product**: 1b (board config), 2 (mission), 3 (conventions), 4 (members + style), 6 (KB seed), 7 (neighbouring teams), 8 (extras). `hat: both` answers everything with no ceremony.
+Steps carry a hat — **engineering**: 0 (installer), 1a (surface), 5 (bootstrap), 9 (skills review); **product**: 1b (board config), 2 (team profile), 3 (conventions), 4 (members + style), 6 (KB seed), 7 (neighbouring teams), 8 (extras). `hat: both` answers everything with no ceremony.
 
 Any hat may answer any step — never block on the wrong hat. When the invoker's hat does not match the step's, land the artefact with a first line `provisional: needs <hat> confirmation`, mirror it in `setup-progress.md` under `## Pending confirmations`, and offer a hand-off brief at `proposals/setup/handoff-<step>.md` (e.g. `handoff-step-2.md`): one paragraph naming the step, what was answered provisionally, and that running `/setup-awow` resumes exactly there.
 
@@ -76,10 +160,10 @@ Surface pending confirmations in the step map on every invocation. When the righ
 
 When `setup-progress.md` has no `route:` entry, offer two equivalent ways to supply the team's setup context:
 
-- **Workshop.** Prepare a 25–30 minute agenda brief so the team can talk naturally about how it works. Process the transcript or notes afterward and turn the agreements into setup proposals.
-- **Guided.** Continue through Steps 0–9 conversationally, one step at a time.
+- **Guided** (default) — offer it as "answer as we go": continue through Steps 0–9 conversationally, one step at a time; the required steps take about 15 minutes.
+- **Workshop** — offer it as "have the team talk it through": prepare a 25–30 minute meeting agenda, the team meets in its own time, and the transcript or notes come back as setup proposals.
 
-Accept either route without persuasion. Record `route: workshop` or `route: guided`. Allow the user to switch or combine them later. Both routes land the same context files and use the same approval gates.
+Offer both in that plain language — a first-time user must be able to choose confidently without knowing awow's terms. Accept either route without persuasion; a user who doesn't choose gets guided. Record `route: workshop` or `route: guided`. Allow the user to switch or combine them later. Both routes land the same context files and use the same approval gates.
 
 Treat a `.vtt`, `.srt`, or transcript-shaped Markdown argument as workshop input. Enter **Process the workshop** directly, including when `/process-transcript` hands you a parsed setup-workshop segment. Do not ask the route question in that case.
 
@@ -103,7 +187,7 @@ Show the brief and ask whether to use it. After approval, keep it at `proposals/
 
 Read the transcript plus existing `setup-progress.md` and context. Build a coverage map for:
 
-- mission and scope boundaries;
+- the team profile — what the team works on, its stack, and any mission line — plus scope boundaries;
 - board practice and work flow;
 - conventions, members, and writing style;
 - recurring and custom meetings;
@@ -161,19 +245,33 @@ Step 1 has two parts. Step 1a wires up the read/write surface (an MCP or, for Gi
    - If you are Pi, the current harness is Pi. (Corroborating on-disk signal: a `.pi/` directory.)
    - If you are opencode, the current harness is opencode. (Corroborating on-disk signal: an `.opencode/` directory or a repo-root `opencode.json`.)
 
-   Tell the user: "I can see I'm running in `<current harness>`. Does your team use any other supported harness (Claude Code, Copilot, Codex, Pi, opencode), or is `<current>` the only one to wire up?" Accept *current only* or a list of the additional harnesses. Record the choice; this drives which install snippets you surface in step 4.
+   State it with an escape hatch rather than asking: "I'll wire up `<current harness>`, where we're running now. If your team also uses another supported agent (Claude Code, Copilot, Codex, Pi, opencode), name it and I'll wire that too — otherwise I'll continue." Silence or "continue" means current-only. Record the choice; this drives which install snippets you surface in step 4.
 
-2. **Detect existing board surface.** Look for an existing MCP server entry whose name or URL references a supported board tool (`linear`, `jira`, `azure`, `github`) in:
-   - `.claude/settings.json` and `.claude/settings.local.json`
-   - `.mcp.json` at the repo root
-   - `.github/copilot-instructions.md` (MCP block) and `.vscode/mcp.json`
+2. **Enumerate candidate surfaces — adopt a sole verified candidate with an escape hatch, ask on ambiguity.** Gather
+   every candidate the preflight enumerated: MCP entries referencing a supported board tool in
+   `.claude/settings.json`, `.claude/settings.local.json`, `.mcp.json`, `.vscode/mcp.json` (all
+   relative to `<root>`), board MCP tools already loaded in your own tool surface, and — for GitHub-hosted boards — an
+   authenticated `gh` CLI with `repo`, `project`, `read:org` scopes (the CLI alternative in
+   `context/tooling/boards/github-issues/reference/mcp.md`).
 
-   For GitHub-hosted boards also check whether `gh auth status` shows an authenticated CLI with `repo`, `project`, and `read:org` scopes — that is the `gh` CLI alternative documented in `context/tooling/boards/github-issues/reference/mcp.md`. If `gh` is authenticated for the right org, treat it as a valid surface and offer it alongside the MCP option.
+   Exactly one candidate, and a single read-only call verifies it: adopt it with the escape
+   hatch rather than asking — "I found `<server-name>` (`<endpoint>`) already wired and
+   verified — I'll use it unless you say otherwise." Silence means confirmed. More than one
+   candidate, or a sole candidate failing verification: present them as a numbered list, each
+   as `<server-name> — <endpoint> (from <provenance>)` (`gh` CLI listed as its own entry), and
+   ask the user to pick one or answer "none of these" — never pre-select among several. On an
+   adoption or a pick:
+   - Record the identity in `setup-progress.md`: `surface: mcp` plus
+     `board-mcp: <server-name> <endpoint> (confirmed <YYYY-MM-DD>)` — or `surface: gh-cli` for
+     the CLI. Record the endpoint, never the provenance: which file supplies a server is
+     machine-local, and committing it would lie on every other machine.
+   - State the canonical board URL derived from the config; ask for it only when it cannot be
+     derived (it is needed for `board.md` and later team-page links).
+   - Verify with a single read-only call. If verification cannot succeed in this session, add
+     `surface-verification: pending` to `setup-progress.md` and say so; a later session's
+     passing preflight read clears that line. Then skip to step 5.
 
-   If you find an existing surface:
-   - Read the workspace / team identifier from the config.
-   - Verify read access with a single call (`list_issues` or `gh repo view`).
-   - Tell the user what you found and ask them to confirm or paste the canonical board URL (used for `board.md` and so the wizard can surface team-page links later). Then skip to step 5.
+   On "none of these", or with no candidates at all, continue to step 3.
 
 3. **No surface wired yet — ask for the board URL.** Tell the user you need the URL for two reasons: (a) to know which surface to install, (b) to extract the workspace / team identifier that the surface itself requires for config. Refuse to continue without one. Infer the tool family from the URL hostname:
    - `linear.app` → Linear
@@ -185,7 +283,7 @@ Step 1 has two parts. Step 1a wires up the read/write surface (an MCP or, for Gi
 4. **Install and verify the read/write surface.** Load `context/tooling/boards/<tool>/reference/mcp.md` (the same file the per-tool `<tool>/README.md` indexes). That file is structured as: **Source docs** link, **Install — Claude Code** snippet, **Install — Copilot** snippet, **Verify** checklist; for GitHub it also includes the **`gh` CLI alternative**. Then:
    - Pick the install snippet that matches the harness recorded in step 1. If the user confirmed they use both, surface both — they will need to wire each.
    - Surface the **Source docs** URL first and tell the user it is authoritative: the snippet in the reference is a summary and may have drifted from upstream.
-   - For GitHub, ask whether the user prefers the MCP (full-feature, PAT-managed) or the `gh` CLI (lighter; reuses existing auth). Record the choice as `surface: mcp` or `surface: gh-cli`.
+   - For GitHub, pick by observation instead of asking: `gh` already authenticated with the right scopes → default to the `gh` CLI (reuses existing auth); otherwise default to the MCP (full-feature, PAT-managed). State the choice in one line and name the alternative as the escape hatch. Record it as `surface: mcp` or `surface: gh-cli`.
    - Print the exact install command (or JSON snippet) for the user to run / paste. Configure it using the workspace / team identifier extracted from the URL where applicable.
    - Verify read access with a single call.
    - Verify write access with a **no-op** write against a scratch issue (set the description to its current value, or re-add an existing label). If write access is not granted yet, surface that as a blocker — the agent cannot do its job read-only.
@@ -197,11 +295,11 @@ The reference for this team's board lives at `context/tooling/boards/<tool>/refe
 
 5. **Pick mode by counting closed issues.** Use the surface to count closed (or `Done`) issues on the team's board. The threshold is **10 closed issues**: at or above, run Mode B; below, run Mode A. Surface the count and the chosen mode to the user before proceeding:
 
-   > "I see **<n>** closed issues on this board. **<n> < 10**, so I'm running **Mode A — Set up from reference**. I will walk you through each section of the reference and ask you to accept, override, or skip."
+   > "I see **<n>** closed issues on this board. **<n> < 10**, so I'm running **Mode A — Set up from reference**. I'll draft the full board spec from the reference and you review it once at the end."
    >
    > _or_
    >
-   > "I see **<n>** closed issues on this board. **<n> ≥ 10**, so I'm running **Mode B — Assess and capture current**. I will pull what is actually on the board, write it to `board.md` under the same section headings the reference uses, and surface any divergence so you can decide what to close, override, or accept."
+   > "I see **<n>** closed issues on this board. **<n> ≥ 10**, so I'm running **Mode B — Assess and capture current**. I will pull what is actually on the board, write it to `board.md` under the same section headings the reference uses, and surface any divergence at the review gate so you can decide what to close, override, or accept."
 
    If the count cannot be obtained (e.g. surface is `pending`), default to Mode A and note the deferral.
 
@@ -213,16 +311,16 @@ The reference for this team's board lives at `context/tooling/boards/<tool>/refe
 
 7. **Walk the reference sections in order.** For each file under `<tool>/reference/` (`states.md`, `hierarchy.md`, `labels.md`, `fields.md`, `team-page.md`, `mcp.md` already covered in Step 1a, `cycles.md` / `iterations.md` if present):
 
-   - **Mode A.** Read the reference file. Summarise its decisions to the user. For each decision the reference asks the wizard to surface, ask **accept / override / skip**. Where the surface supports mutation (Linear MCP can create labels; `gh` can edit Project fields), apply the accepted choices. Where it does not (Linear Free workflow states, ADO process templates, Jira project workflows), emit a step-by-step manual checklist for the user to run in the board UI and re-verify after the user confirms. Skipped decisions land in `board.md` as `skipped: <reason>`.
-   - **Mode B.** Read the same reference file for its `## What lands in board.md` shape. Pull the current state from the surface (workflow statuses, labels in use, native fields, team page contents). Write it to the corresponding `board.md` section. Diff against the reference; populate the `## Divergence from reference` section of `board.md` with each gap and the user's resolution (`close`, `override`, `accept`).
+   - **Mode A.** Read the reference file and draft the section by applying its defaults — do not interrogate the user per decision. Mark inside the draft any decision the reference flags as team-specific, so the review gate surfaces it. Where the surface supports mutation (Linear MCP can create labels; `gh` can edit Project fields), stage the changes and apply them only after the review gate. Where it does not (Linear Free workflow states, ADO process templates, Jira project workflows), include a step-by-step manual checklist in the draft for the user to run in the board UI, and re-verify after the user confirms.
+   - **Mode B.** Read the same reference file for its `## What lands in board.md` shape. Pull the current state from the surface (workflow statuses, labels in use, native fields, team page contents). Write it to the corresponding `board.md` section. Diff against the reference; populate the `## Divergence from reference` section of `board.md` with each gap, and collect the user's resolutions (`close`, `override`, `accept`) as a set at the review gate — not one question per gap.
 
-   Land each section's draft under `proposals/setup/step-1/board.md` incrementally — append, do not overwrite — and keep the user in the loop after each section. Do not silently progress through all sections without stopping; one section per agent turn is fine.
+   Land each section's draft under `proposals/setup/step-1/board.md` incrementally — append, do not overwrite. Draft all sections in one pass: the user reviews the complete spec once at the gate below instead of approving section by section.
 
 8. **Update labels.md to match reality.** If Mode B surfaces label names that diverge from the reference (e.g. team uses `bug` instead of `type:bug`), update `context/team/conventions/REQUIRED/labels.md` to reflect what is actually on the board, so future agent proposals match the team's reality. Draft the update under `proposals/setup/step-1/labels.md` and ask the user to approve before landing.
 
 ### Record and complete
 
-9. **Final board.md.** When all sections are drafted, the file shape under `proposals/setup/step-1/board.md` is:
+9. **The one review gate.** When all sections are drafted, the file shape under `proposals/setup/step-1/board.md` is:
 
    ```
    # Board — <team name>
@@ -238,20 +336,18 @@ The reference for this team's board lives at `context/tooling/boards/<tool>/refe
    ## Divergence from reference   # populated by Mode B; empty for Mode A
    ```
 
-   Ask the user for final approval. Move to `context/tooling/board.md` once approved.
+   Summarise the whole draft in a few bullets — surface (MCP / `gh` CLI / pending), state-machine mapping, hierarchy levels in use, label prefixes, fields in use, and any `## Divergence from reference` entries with their pending resolutions — and ask once:
 
-10. **Review-and-adjust gate.** With `context/tooling/board.md` now in place, do **not** silently move on. Read the landed file back, summarise it to the user in a few bullets — surface (MCP / `gh` CLI / pending), state-machine mapping, hierarchy levels in use, label prefixes, fields in use, and any `## Divergence from reference` entries — and ask:
-
-    > "`context/tooling/board.md` is in place. Want me to adjust or evaluate any section before moving on, or are you happy with this and we proceed?"
+    > "Here is your board spec. Happy for me to land it, or is there a section you want to adjust — or have me evaluate against the live board?"
 
     Accept one of:
-    - **Proceed.** Continue to step 11.
-    - **Adjust `<section>`.** Re-enter Step 1b for that section only. Re-walk it in Mode A or Mode B (whichever was used originally; the user can switch), update the draft under `proposals/setup/step-1/board.md`, ask for approval, replace the corresponding section of `context/tooling/board.md`, then return to this gate.
-    - **Evaluate `<section>`.** Re-pull the live board state for that section via the surface, diff it against what is in `board.md`, surface differences, and ask the user whether to update `board.md` or leave as-is. Return to this gate.
+    - **Land.** Move the file to `context/tooling/board.md`, apply any board mutations staged in Mode A, re-verify them, and continue to step 10.
+    - **Adjust `<section>`.** Re-walk that section only (in the mode used originally; the user can switch), update the draft under `proposals/setup/step-1/board.md`, then return to this gate.
+    - **Evaluate `<section>`.** Re-pull the live board state for that section via the surface, diff it against the draft, surface differences, and ask whether to update the draft or leave as-is. Return to this gate.
 
-    Loop on the gate until the user says proceed. Do not skip the gate even if the user approved the final draft in step 9 — the file existing on disk changes the question from "is this draft good enough to land?" to "now that it is the source of truth, does it still represent the team?".
+    Loop on the gate until the user says land. This is the single review gate for Step 1b: no per-section approvals before it, no second confirmation after landing. When a later session resumes with `board.md` already landed but Step 1 unchecked, re-enter this gate against the landed file (offering *proceed* instead of *land*) rather than re-walking sections.
 
-11. Update `setup-progress.md` to check off Step 1. Record:
+10. Update `setup-progress.md` to check off Step 1. Record:
     - The mode used (A or B).
     - Any `pending` items (surface install, manual board-UI checklists, label normalisation).
     - The reference layer used per section (starter pack vs. enterprise override).
@@ -259,17 +355,31 @@ The reference for this team's board lives at `context/tooling/boards/<tool>/refe
 
 After Step 1, tell the user:
 
-> The repo is usable and the board is documented. You can stop here and start using `/refinement-prep` on a real story, or continue with `/setup-awow` to fill in mission, conventions, members, and knowledge base. Each step is a few minutes; none are required.
+> The repo is usable and the board is documented — setup is done. Everything else fills in on first need: the first command that needs the team profile, a convention, the member roster, or a neighbouring team will offer to draft it in the moment, from your repo and board where it can. Start with a real command — `/refinement-prep` on a story, `/process-transcript` on a meeting. You can also fill any piece now: say which, or come back to `/setup-awow` whenever.
 
-## Step 2 — Mission
+## Deferred fills — filled on first need
 
-Ask: "What is your team's mission, in one sentence?"
+Steps 2–4 and 6–8 are not wizard stations. Per the fill-on-first-need contract in the agent instructions, the command that first needs each artefact offers to draft it in the moment, and these sections are the method such an offer routes to. Enter one only when a fill offer lands here, when the user names it, or on an explicit `/setup-awow` resume of that step. A fill that lands marks its step ✓ in `setup-progress.md` exactly as a wizard walk would, and the hats rules apply to fills as they do to steps.
 
-Refuse anything trivial ("be excellent", "ship great software"). A useful mission names the audience, the change being made, and the constraint. Iterate with the user until you have a sentence both of you would put a name to.
+## Step 2 — Team profile (deferred fill)
 
-Land at `context/team/mission.md` via `proposals/setup/step-2/mission.md`. Update `setup-progress.md`.
+**Owner moment:** the first command that frames scope — `/refinement-prep`, `/process-transcript`, `/solution-design-flow`.
 
-## Step 3 — Required conventions (observe or guide)
+The artefact is a short profile — two to five plain sentences: what the team is building or working on right now, for whom, and the tech stack it works in. A one-sentence mission is an optional first line: keep it when the team has one, never demand one, and do not iterate on its quality.
+
+Draft the profile from observation before asking anything:
+
+- **The board.** Project / epic / initiative names and recent item titles say what is being worked on — reuse what Step 1 already pulled where possible.
+- **The repo.** Manifests (`pyproject.toml`, `package.json`, `go.mod`, …) and the language mix give the tech stack.
+- **The adopter repo's own README**, when one exists.
+
+Present the draft with one gate: "Here's what I gathered from your board and repo — edit anything, or approve." Ask the open question — "what does your team work on, and in what stack?" — only as the fallback when observation comes up empty (bare repo, near-empty board).
+
+The file keeps its path: land at `context/team/mission.md` via `proposals/setup/step-2/mission.md` — every consumer and existing adopter already reads that path; the file's own heading says "Team profile". Update `setup-progress.md`.
+
+## Step 3 — Required conventions (observe or guide; deferred fill)
+
+**Owner moment:** the first board write — until a convention file exists, `workitem-write` cites the reference defaults and offers this fill.
 
 For each of the four REQUIRED conventions (`issue-titles.md`, `labels.md`, `branches.md`, `output-discipline.md`):
 
@@ -280,11 +390,11 @@ For each of the four REQUIRED conventions (`issue-titles.md`, `labels.md`, `bran
 
 Land each under `proposals/setup/step-3/<convention>.md`, get approval, move to `context/team/conventions/REQUIRED/<convention>.md`. Update `setup-progress.md`.
 
-**Session-board correlation (opt-in).** Ask whether the team wants agent-authored board entries linked back to their session traces. If **yes**, first run the `session-correlation` skill's prerequisite check: tracing must already be wired (`MLFLOW_CLAUDE_TRACING_ENABLED=true` plus the MLflow `Stop` hook in `.claude/settings.local.json`). This skill does **not** set tracing up — if it is missing, stop and point the user at their own tracing library to configure tracing first, then resume. Once tracing is confirmed: install the footer rule from the skill — append its Rule 4 to `output-discipline.md` here, add its shape note to `board-output.md` in Step 4, and wire the SessionStart accessor hook per the skill's "Enabling it" steps. The rule then flows into the generated `CLAUDE.md` at Step 5 and is enforced from then on. If **no**: leave all three untouched; the skill stays available to enable later by following its "Enabling it" steps. Record the choice in `setup-progress.md`.
+## Step 4 — Members and style (deferred fill)
 
-## Step 4 — Members and style
+**Owner moment:** the first artefact that needs the roster or the team's voice — speaker mapping in `/process-transcript`, any style-bearing output.
 
-Ask for the team member list (role, responsibilities, focus areas). If members are listed in the board's team page, offer to pull from there. With more than one board recorded at orientation, also capture per member which boards they work (a `Boards:` line) and name each board's product curator and technical curator — hand-off briefs and provisional confirmations address the curators.
+If members are listed in the board's team page, pull the list from there first and present it for confirmation — roles, responsibilities, and focus areas filled in where visible, asked for where not. Ask for the team member list (role, responsibilities, focus areas) only when no team page or member data exists. With more than one board recorded at orientation, also capture per member which boards they work (a `Boards:` line) and name each board's product curator and technical curator — hand-off briefs and provisional confirmations address the curators.
 
 Draft `context/team/style/board-output.md`, `comments.md`, `placement.md`, `prose.md` from the reference templates, customising only where the user pushes back.
 
@@ -294,17 +404,19 @@ Run `tools/bootstrap-claude-md.py` (or the inline equivalent). It reads the stub
 
 Critically: ask the user to populate the `## Do not propose` block. Surface scope-shedding statements ("we are not adding multi-user this quarter", "do not propose moving away from Linear"). Land the result. In a vendored install, run `tools/gather.py` to mirror it to `.claude/CLAUDE.md` and `.github/AGENTS.md`; a plugin install has nothing to mirror — the landed file is the team's own.
 
-## Step 6 — Knowledge base seed
+## Step 6 — Knowledge base seed (deferred fill)
+
+**Owner moment:** the first `/kb-mine` or `/kb-synthesize` run — the spine works on its shipped defaults; canonical sources come up at the first external reference.
 
 Walk the user through `context/knowledge-base/README.md` — what lives there vs. on the board. Offer to seed `glossary.md` from any glossary they already have. Stub the architecture/patterns/runbooks/decisions subfolders with one example each if useful.
 
 **The capture → synthesize spine.** Explain how durable knowledge gets *in*, so the KB isn't a folder nobody fills:
 
 - **Capture.** Mining a day's activity (`/kb-mine`) stages candidates as committed files in `context/kb-inbox/` — one durable insight per file. Point the user at `context/kb-inbox/README.md`.
-- **Tune.** What mining keeps is governed by `context/knowledge-base/mining-policy.md`. Show its frontmatter dials (`selectivity`, `categories`, the two caps). It ships strict (`selectivity: 2`); ask whether the team wants to start more generous, and adjust the one value if so. This is the only knob they need to touch.
+- **Tune.** What mining keeps is governed by `context/knowledge-base/mining-policy.md`. Keep its shipped defaults without asking (`selectivity: 2`, strict); say in one line that the dial exists there and can be loosened later. Adjust it now only if the user raises it.
 - **Synthesize.** Draining the inbox into the durable KB is `/kb-synthesize` (per `context/knowledge-base/synthesis.md`) — **human-gated by default** (novel → write, matches → annotate, covered → no-op, thin → drop). Make clear no autonomous write path ships; unattended nightly drain is opt-in and out of the box.
 
-**Locations (optional).** The two KB folders — `kb_root` (default `context/knowledge-base/`) and `inbox` (default `context/kb-inbox/`) — are declared in `context/tooling/knowledge-base.md`. Ask whether the team wants them elsewhere (e.g. a top-level `docs/kb/`, or an existing wiki/vault path). If **yes**: update the two paths in that config **and move the folders to match** (`git mv` the existing `context/knowledge-base/` and `context/kb-inbox/` contents). The contracts and commands resolve locations from the config, so nothing else needs editing. If **no**, leave the defaults. Keep the two folders distinct — the drain moves files from `inbox` into `kb_root`.
+**Locations.** The two KB folders — `kb_root` (default `context/knowledge-base/`) and `inbox` (default `context/kb-inbox/`) — are declared in `context/tooling/knowledge-base.md`. Keep the defaults without asking; note in one line that they can be relocated later by updating the two paths in that config **and moving the folders to match** (`git mv`). Act on it now only if the user raises it. Keep the two folders distinct — the drain moves files from `inbox` into `kb_root`.
 
 **Canonical sources (optional).** Ask whether important knowledge remains canonical in another
 repository, SharePoint, a vector-backed retrieval system, or another provider. If yes, read
@@ -315,15 +427,20 @@ After approval, ensure `context/knowledge-sources/index.md` exists with `okf_ver
 the records beside it, and link them from that index. Do not test access by writing to an external
 source. If no, leave an existing empty catalog alone; when no catalog exists, routing stays inert.
 
-Nothing is required here — the spine works on its defaults. The optional choices are the
-`selectivity` dial, the two KB paths, and canonical-source records. Record in `setup-progress.md`
-whether the defaults were kept or adjusted and whether external sources were cataloged.
+Nothing is required here — the spine works on its defaults. The one question this step asks is
+canonical sources; the `selectivity` dial and the two KB paths keep their defaults, adjustable
+later. Record in `setup-progress.md` whether the defaults were kept or adjusted and whether
+external sources were cataloged.
 
-## Step 7 — Neighbouring teams
+## Step 7 — Neighbouring teams (deferred fill)
 
-Ask for the 1° teams (teams whose work the user's team depends on or supplies into). Generate empty stubs at `context/company/neighbouring-teams.md`. Tell the user each neighbouring team is expected to write its own; the stubs are placeholders.
+**Owner moment:** the first cross-team boundary a transcript or design touches — `/process-transcript` and `/solution-design-flow` offer to record just the team they named in `context/company/neighbouring-teams.md`.
 
-## Step 8 — Surface the extras
+Nothing is scaffolded up front and no stub files are generated. Each neighbouring team still writes its own summary; ours records the boundary. Use this step only to bulk-record several 1° teams when the user asks for that.
+
+## Step 8 — Surface the extras (deferred fill)
+
+**Owner moment:** the extras detect-then-suggest on their own (`design-system.md`'s absent-mode probe, the correlation opt-in, engine detection); walk this step only on request.
 
 Read the commands whose frontmatter declares `phase: spread` or `phase: standardise` — from `{HUB}/.agents/commands/` if that directory exists (a vendored install), otherwise `${CLAUDE_PLUGIN_ROOT}/commands/`. List each command, its phase, its prerequisites, and the pain it removes. Tell the user:
 
@@ -335,6 +452,8 @@ Read the commands whose frontmatter declares `phase: spread` or `phase: standard
 - If `mode: absent`, ask one question: *"Does your team produce styled HTML artifacts — decks, blogs, solution designs, one-pagers?"* If **yes**, recommend the add-on flow: *"Run `/design-system` to stand one up or point at an existing one. Until then, HTML artifacts use plain defaults."* Do not run it now — it is opt-in. If **no**, leave the pointer at `absent`.
 
 Record the answer (and any configured `path:`) in `setup-progress.md`.
+
+**Session-board correlation (opt-in).** Ask whether the team wants agent-authored board entries linked back to their session traces. If **yes**, first run the `session-correlation` skill's prerequisite check: tracing must already be wired (`MLFLOW_CLAUDE_TRACING_ENABLED=true` plus the MLflow `Stop` hook in `.claude/settings.local.json`). This skill does **not** set tracing up — if it is missing, stop and point the user at their own tracing library to configure tracing first, then resume. Once tracing is confirmed: install the footer rule from the skill — append its Rule 4 to `context/team/conventions/REQUIRED/output-discipline.md`, add its shape note to `context/team/style/board-output.md`, and wire the SessionStart accessor hook per the skill's "Enabling it" steps. If Step 5 already generated the team's `CLAUDE.md` / `AGENTS.md`, re-run the bootstrap (or edit the file) so the rule flows into it. If **no**: leave all three untouched; the skill stays available to enable later by following its "Enabling it" steps. Record the choice in `setup-progress.md`.
 
 **Build engine (detect, then suggest).** awow owns the outer loop (board, planning, landing) and hands the *build* step to an optional inner-loop engine. Detect whether one is installed by checking for a `superpowers` directory under `~/.claude/plugins/cache/*/`, `~/.claude/plugins/*/`, or this repo's `.claude/plugins/*/`.
 
@@ -353,15 +472,15 @@ The starter pack ships several skills — under `{HUB}/.agents/skills/` if that 
 
 For each entry in that directory (read it; a vendored install holds both declarative `<name>.md` files and operational `<name>/SKILL.md` directories, while the payload renders every skill as `<name>/SKILL.md`):
 
-1. Read the skill's frontmatter `description` and the first body paragraph. Summarise in one sentence.
-2. Identify the **specific assumption** the skill bakes in (e.g. *"assumes Databricks MLflow"*, *"reads Claude Code JSONL"*, *"uses our story template"*). The "Starter shape — adjust for ..." callout at the top of each shipped operational skill states this directly; quote it.
-3. Ask the user one question:
+1. Read each skill's frontmatter `description` and first body paragraph; summarise in one sentence.
+2. Identify the **specific assumption** each skill bakes in (e.g. *"assumes Databricks MLflow"*, *"reads Claude Code JSONL"*, *"uses our story template"*). The "Starter shape — adjust for ..." callout at the top of each shipped operational skill states this directly; quote it.
+3. Present **one table** covering every shipped skill — summary, baked-in assumption, and what depends on it (from the SKILL.md "Interplay" section) — with the default **keep all**, and ask for exceptions only:
 
-   > **`<skill>`** — keep as-is, customise to your stack, or drop?
-   >
-   > Bakes in: <assumption>. Used by: <commands or other skills that depend on it, from the SKILL.md "Interplay" section>.
+   > "Default is to keep all of these. Name any skill to customise or drop — or say keep."
 
-4. Apply the user's answer:
+   Do not ask per skill.
+
+4. Apply the user's answer per named exception:
    - **Keep** — no change.
    - **Customise** — open the SKILL.md and the bundled scripts. Draft the changes under `proposals/setup/step-10/<skill>/` first (full proposal-first treatment). Common customisations to surface as concrete options:
      - **mlflow-export**, **prompt-skill-analysis**, **awow-usage-coach**, **project-timeline**, **session-export** — these five ship in the separate `awow-telemetry` plugin, not in `awow`. If the team has not installed it (`/plugin install awow-telemetry@awow`), say so once and move on; do not offer to customise skills that are not present. If it is installed, or the repo is vendored and carries the sources under `.agents/skills/`, the customisations worth surfacing are:

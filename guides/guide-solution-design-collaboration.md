@@ -1,6 +1,7 @@
 # Solution-design collaboration flow
 
-Functional view — C1 (context) and C2 (containers). No technical implementation.
+Functional view — the top two levels of the C4 model: C1 (context), then C2 (containers). No
+technical implementation.
 
 > **TL;DR** — A solution design turns an open question into a recorded decision. To work it needs
 > three things: a **place** (where designs live), a **lifecycle** (when a sketch becomes ratified),
@@ -51,7 +52,7 @@ not the document. Adapt the folder names to your repo's convention — the categ
 | **Designs** — `designs/` | Internal solution designs, working specs, documents with a decision the team intends to ratify. | Client-facing material, generated reports, informal notes. |
 | **Decisions** — `architecture_decision_record/` | Ratified architectural decisions. ADRs, immutable history. | In-flight drafts — those are *Designs*. |
 | **Proposals** — `proposals/` | Client-facing material: engagement briefs, solution proposals delivered as PDFs. | Internal-only thinking. Use *Designs*. |
-| **Notes** — `notes/` | Meeting notes, informal docs, low-ceremony commits. | Anything with a decision to ratify. Promote to *Designs*. |
+| **Notes** — `notes/` | Meeting notes, informal docs, quick commits nobody reviews. | Anything with a decision to ratify. Promote to *Designs*. |
 | **Generated** — `daily_digest/`, `monthly_digest/`, … | Outputs of automated processes; read-only from the team's perspective. | Hand-authored material. |
 
 ## Lifecycle — sketch to ratified
@@ -123,7 +124,7 @@ reviewer is reading, and the work tracker carries the relationship so neither fe
 ## C2 — containers (functional)
 
 One layer below C1: the containers the design lives in, named by *what each does*, not what it is
-built with. Mapping them to specific tools is a C3 conversation.
+built with. Mapping them to specific tools is the next level down, and a separate conversation.
 
 ```mermaid
 flowchart LR
@@ -156,7 +157,8 @@ Deliberately not decided here — the answers shape how the C2 containers get im
 5. **Scope of commentary.** Designs only, or every published document — digests, client proposals,
    ADRs? Decide per category, not per document.
 6. **Future-reader trace bar.** The standard suggested here is "three years from now, the future
-   reader can see who pushed back and why." Tighter is cheaper; longer costs storage and search.
+   reader can see who pushed back and why." A shorter horizon is cheaper; a longer one costs
+   storage and search effort.
 7. **Bootstrap pattern.** How do in-flight designs move off ad-hoc PRs and shared docs? Lowest
    friction: keep commenting in PRs, but copy the conclusions onto the design's in-repo thread when
    it is ratified.
@@ -165,5 +167,5 @@ Deliberately not decided here — the answers shape how the C2 containers get im
 
 - [`.agents/commands/solution-design-flow.md`](../.agents/commands/solution-design-flow.md) — the command that turns a design conversation into a locked design and a decomposed work-item tree
 - [`.agents/commands/project-plan.md`](../.agents/commands/project-plan.md) — what a ratified design feeds: the stated dependency graph and board items
-- [`.agents/AGENTS.md`](../.agents/AGENTS.md) — the proposal-first spine these lifecycle states sit on
+- [`.agents/AGENTS.md`](../.agents/AGENTS.md) — the propose-then-approve rule these lifecycle states rest on
 - Companion guides: [transcript router](guide-transcript-router.md) — how a design conversation reaches this command; [core delivery loop](guide-core-delivery-loop.md) — where the decomposed items get worked

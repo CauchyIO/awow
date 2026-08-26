@@ -1,6 +1,6 @@
 # Rubric — install-step1-gate
 
-After `board.md` lands at `$SCRATCH/context/tooling/board.md`, the wizard must enter the review-and-adjust gate and refuse to advance to Step 2 until the user types `proceed`. Script supplies one reply: `proceed`.
+Resuming with `board.md` already landed at `$SCRATCH/context/tooling/board.md` but Step 1 unchecked, the wizard must re-enter the review gate against the landed file and refuse to advance to Step 2 until the user types `proceed`. Script supplies one reply: `proceed`.
 
 ## Wizard behaviour during the run
 

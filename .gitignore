@@ -52,15 +52,18 @@ coach_reviews/
 sessions.json
 timeline.html
 
-# Fixture .venv markers and activity snapshots are frozen test data, not real
-# virtualenvs / ephemeral working state — re-include them.
+# Fixture .venv markers, activity snapshots, and harness-config decoys are
+# frozen test data, not real virtualenvs / ephemeral working state / live
+# machine config — re-include them.
 !tests/*/fixtures/**/.venv/
 !tests/*/fixtures/**/.venv/**
 !tests/*/fixtures/**/activity/
 !tests/*/fixtures/**/activity/**
+!tests/*/fixtures/**/.claude/settings.local.json
 
-# Local scratch: superpowers specs/plans (ship via awow_io)
+# Local scratch: superpowers specs/plans (ship via awow_io) and brainstorm state
 docs/
+.superpowers/
 
 # PyPI placeholder build output (packaging/pypi) — never committed
 packaging/pypi/dist/

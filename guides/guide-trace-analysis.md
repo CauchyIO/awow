@@ -5,9 +5,10 @@ What you do with the sessions once they exist: export, then assess.
 > **TL;DR** — One skill **pulls** traces down to local JSON (`mlflow-export`); two skills **read**
 > that JSON into markdown reports — `prompt-skill-analysis` (how well someone prompts) and
 > `awow-usage-coach` (how a team or person works, and what to change). The scripts only count and
-> extract; the judgment lives in the agent. All three need the traces to already exist — the MLflow
-> Stop hook records them, set up via `claudetracing` — and all three ship in `awow-telemetry`
-> (`/plugin install awow-telemetry@awow`), Claude Code only; Codex and Pi get the base plugin alone.
+> extract — the interpretation is done by the model reading the output. All three need the traces
+> to already exist — the MLflow Stop hook records them, set up via `claudetracing` — and all three
+> ship in `awow-telemetry` (`/plugin install awow-telemetry@awow`), Claude Code only; Codex and Pi
+> users get the core awow plugin only (no telemetry skills).
 
 ## The pipeline
 
@@ -33,12 +34,12 @@ not a team uses awow's slash commands. Three lenses, in priority order:
 | Lens | What it measures |
 | --- | --- |
 | **Intent shape** | Every prompt is classified into one of the eight intent labels (else `other`) — see [prompt taxonomy](guide-prompt-taxonomy.md). |
-| **Sequence patterns** | Bigrams / trigrams of intent transitions per session reveal the working rhythm. In self-coach mode, subject vs. team rhythms are compared. |
+| **Sequence patterns** | Runs of two or three intents in a row (e.g. *explore → propose → implement*) show the working rhythm. In self-coach mode, subject vs. team rhythms are compared. |
 | **Edit patterns** | Each trace's `files.modified` is bucketed by type (proposal, context, agents-config, code, markdown…) and crossed with intent — e.g. *"when teammates 'propose', 70% of touched files are .md; when you 'propose', 50% are code."* |
 
-Without `--user` it runs **team-nudge**: proposed additions to `.agents/AGENTS.md` /
-copilot-instructions from patterns recurring across the team. With `--user` it runs **self-coach**:
-imperative, encouraging coaching for one developer against the team baseline.
+Without `--user` it runs **team-nudge**: it finds habits recurring across the team and drafts
+rules to add to `.agents/AGENTS.md` / copilot-instructions. With `--user` it runs **self-coach**:
+direct, encouraging coaching for one developer, measured against the team average.
 
 ## Running the pipeline
 
@@ -64,8 +65,8 @@ python3 .agents/skills/awow-usage-coach/scripts/awow_extract.py \
 ## Backend & harness portability
 
 These ship as starters for **Databricks MLflow** + **Claude Code**. The analysis rubrics are
-harness-agnostic — only the input parsing is tied to a shape. A team on another backend either
-emits the same JSON layout `mlflow-export` produces, or extends the extractor scripts
+harness-agnostic — only the input parsing assumes MLflow's JSON layout. A team on another backend
+either emits the same layout `mlflow-export` produces, or extends the extractor scripts
 (`extract_prompts.py`, `awow_extract.py`) with a reader for their format. That customisation is
 what `/setup-awow` Step 9 (Skills review) is for.
 

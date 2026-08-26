@@ -1,6 +1,10 @@
-# Step 2 — Mission. Wizard asks "What is your team's mission, in one sentence?"
-# Reply: the sample team's mission. Wizard refuses anything trivial; this one
-# names audience, change, and constraint, so it should land on first try.
-# Second reply approves the proposals/setup/step-2/mission.md → context/team/mission.md move.
-Cauchy helps engineering teams make their plan as trustworthy as their code, by maintaining the agentic way of working as a living starter pack that adopters can actually read, run, and customise.
+# Step 2 — Team profile, fallback path. The wizard's map shows the core done
+# and the deferred fills; it must not walk a fill unprompted, so the first reply
+# names the fill. The scratch workspace has no repo manifests and no reachable
+# board items, so observation comes up empty and the wizard asks the fallback
+# question (what the team works on, and in what stack).
+fill in the team profile
+# Reply: a profile with the mission line first, then the work + stack. Second
+# reply approves the proposals/setup/step-2/mission.md → context/team/mission.md move.
+Cauchy helps engineering teams make their plan as trustworthy as their code, by maintaining the agentic way of working as a living starter pack that adopters can actually read, run, and customise. We work on the awow starter pack itself: markdown command specs, Python tooling, and a plugin payload built for five coding-agent harnesses.
 approve

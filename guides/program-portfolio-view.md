@@ -2,11 +2,12 @@
 
 One tier above the team boards: a ranked portfolio of initiatives against finite specialist capacity.
 
-> **TL;DR** — The team tier clears the fog of *what's happening*. Up here the job is **allocation
-> under constraint**, so the centre of gravity is the portfolio, not a board. Priority routes
-> **down** to team boards as stories; size and progress roll **up** from them — that read-back is
-> the resource management. The view exists so a manager-of-managers can see where capacity is
-> contended and rebalance. It is a lens over the team boards, never a second source of truth.
+> **TL;DR** — The team tier answers *what's happening*. Up here the question is **who gets which
+> people**, so the unit of work is the portfolio, not a board. Priority routes **down** to team
+> boards as stories; size and progress roll **up** from them — seeing those sizes come back up is
+> what makes capacity planning possible. The view exists so a manager-of-managers can see where
+> capacity is contended and rebalance. It is a lens over the team boards, never a second source
+> of truth.
 
 Illustrative data throughout — a worked mockup of the tier, not a live report.
 
@@ -43,7 +44,7 @@ Platform and Security carry almost everything; no team-level fix clears an over-
 | 2 | Data governance & lineage | Data Governance · Platform, BI & Analytics | 8.7 | On track | Sized | 40% | 4 items · 3 boards | Foundation for #4 — sequenced first on purpose. |
 | 3 | Cloud landing zone | Infrastructure · Security, Platform | 8.1 | Blocked | Sized | 25% | 3 items · 3 boards | Needs Security sign-off, but Security is committed to #1. A sequencing conflict the program owns. |
 | 4 | Self-service BI layer | BI & Analytics · Data Governance, Platform | 6.9 | On track | Partly sized | 15% | 3 items · 3 boards | Waiting on #2's lineage before it can fully size — cross-initiative dependency. |
-| 5 | API & integration mesh | Platform · Architecture, Security | 6.4 | At risk | Sized | 30% | 3 items · 3 boards | Architecture single-threaded across design reviews — a staffing call, not a team fix. |
+| 5 | API & integration mesh | Platform · Architecture, Security | 6.4 | At risk | Sized | 30% | 3 items · 3 boards | Architecture has one reviewer covering every design review — a staffing call, not a team fix. |
 | 6 | Regulatory reporting | Data Governance · BI & Analytics, Security | 5.8 | Not started | Unsized | 0% | 2 items · 2 boards | Allocated and prioritised; awaiting sizing at the next refinement. |
 | 7 | DR & resilience | Infrastructure · Platform, Security | 4.9 | Not started | Unsized | 0% | 2 items · 2 boards | Lowest priority and its teams are the contended ones — proposed move to the next increment. |
 
@@ -68,16 +69,17 @@ Not bugs and not stories, but **allocation decisions**: re-sequence, re-staff, o
 
 | # | Constraint | Why it can't be fixed below | The move |
 | --- | --- | --- | --- |
-| A1 | Platform is at 132% — six initiatives funnel through it. | It is the program's true constraint; the ranking is meaningless until its load is under 100%. | Defer #7 to the next increment → Platform drops to ~108%; then re-time #5 to land under capacity. |
+| A1 | Platform is at 132% — six initiatives funnel through it. | It is the program's true constraint; the ranking is meaningless until its load is under 100%. | Defer #7 to the next increment → Platform drops to ~108%; then re-time #5 so Platform stays under 100%. |
 | A2 | #3 blocked on Security sign-off while Security is committed to #1. | Two of the top three compete for the same Security capacity in the same window — a cross-initiative priority clash. | Sequence #1's sign-off ahead of #3, or pull in external Security review for #3. |
-| A3 | Architecture is single-threaded across #1 and #5 design reviews. | One reviewer gates two initiatives' design gates; a staffing decision, not something the team can absorb. | Add a second reviewer for the increment, or stagger the two gates two weeks apart. |
-| A4 | #4 can't fully size until #2 delivers lineage. | A forecast gap, not a block — fine as sequenced, but flag it so the dependency isn't read as a stalled team. | Watch: hold #4's commit until #2 hits 60%; revisit at the next plenary. |
+| A3 | Architecture has one reviewer across #1 and #5 design reviews. | One reviewer is the bottleneck for design sign-off on two initiatives; a staffing decision, not something the team can absorb. | Add a second reviewer for the increment, or stagger the two gates two weeks apart. |
+| A4 | #4 can't fully size until #2 delivers lineage. | This affects the forecast, not delivery — the current sequence is fine, but flag it so the wait isn't mistaken for a stalled team. | Watch: hold #4's commit until #2 hits 60%; revisit at the next portfolio review. |
 
-The two tiers meet at the plenary, where teams see the ranked, allocated portfolio and commit.
+The two tiers meet at the portfolio review, where teams see the ranked, allocated portfolio and
+commit.
 
 ## Sources of truth
 
 - [`.agents/commands/okr-cascade.md`](../.agents/commands/okr-cascade.md) — the department-tier read across teams' quarterly docs that this view sits alongside
 - [`.agents/commands/project-plan.md`](../.agents/commands/project-plan.md) — where the sequencing and dependency facts behind a ranking are stated
-- `context/tooling/board.md` — the per-team board surfaces the roll-up reads; written by `/setup-awow`
+- `context/tooling/board.md` — the per-team board integrations the roll-up reads from; written by `/setup-awow`
 - Companion guides: [two feedback loops + a plan↔execution bridge](guide-cross-team-and-pillar.md) — the mechanism that keeps this roll-up honest

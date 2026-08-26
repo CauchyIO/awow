@@ -57,6 +57,8 @@ Before reading the transcript, load the context that shapes what you notice and 
 - `{HUB}/context/team/meetings/*.md`, excluding `README.md` — apply this team's ritual differences and recognise custom meetings.
 - `{HUB}/context/company/neighbouring-teams.md` — recognise team names, ownership boundaries, and likely dependencies.
 
+Any of these absent is not a stop — proceed, and fill on first need (per the agent instructions): offer the team profile as a two-to-five-sentence draft from repo and board at the first gate; offer a `neighbouring-teams.md` entry the first time the transcript crosses a team boundary, recording just the team it named.
+
 Keep output configuration lazy:
 
 - Resolve `board.md` only when a locally analysed segment reaches Phase 3.

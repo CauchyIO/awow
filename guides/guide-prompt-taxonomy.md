@@ -4,9 +4,9 @@ One vocabulary, two directions: eight intent labels you prompt *with*, and the s
 
 > **TL;DR** — Every prompt is doing one of eight things: `investigate`, `plan`, `propose`,
 > `implement`, `refine`, `verify`, `document`, `inform`. Name which one *before* you type and the
-> prompt gets sharper now; `/awow-usage-coach` classifies your traces into the same eight, so the
-> reflection later arrives in a language you already use. If you can't name the move, default to
-> `investigate` — not knowing *is* the signal that you can't plan yet.
+> prompt gets sharper now; `/awow-usage-coach` classifies your recorded sessions (*traces*) into
+> the same eight, so the reflection later arrives in a language you already use. If you can't name
+> the move, default to `investigate` — not knowing *is* the signal that you can't plan yet.
 
 ## The loop this closes
 
@@ -38,7 +38,7 @@ team uses any awow slash-commands.
 | `investigate` | Gathering information; reading code; mapping the terrain. | *"find every place we call X / explain how Y is wired"* |
 | `plan` | Sketching what you'd do, without committing to a change. | *"what would it take to add Y? list the steps"* |
 | `propose` | Drafting the change to *review* before doing it — the awow staple. | *"draft a proposal in `proposals/Y.md`"* |
-| `implement` | Making the change in the canonical files. | *"apply that proposal to `Y.ts`"* |
+| `implement` | Making the change in the real files. | *"apply that proposal to `Y.ts`"* |
 | `refine` | Iterating on something just made — tightening, polishing, narrowing. | *"tighten the error message; keep the API the same"* |
 | `verify` | Checking it works — tests, types, the real app, a screenshot. | *"run the tests / open it and confirm Z renders"* |
 | `document` | Recording the *why*, for the future reader (often you). | *"add a why-comment / write a `context/knowledge-base/` entry"* |
@@ -52,10 +52,10 @@ accuracy.
 
 Intent *sequences* — pairs and triples through a session — tell you more than any single label.
 
-| Rhythm | Read |
+| Rhythm | What it tells you |
 | --- | --- |
 | `plan → propose → implement` | Healthy: the textbook awow rhythm. Cheap iteration in markdown, applied once it's right. |
-| `implement → verify → refine` | Healthy: TDD-shaped, when the change actually lands. |
+| `implement → verify → refine` | Healthy: TDD-shaped, when the change actually ships. |
 | `investigate → plan` | Healthy: read the terrain, then commit to a route. |
 | `implement × 3+`, no `verify` | Nudge: execution without checks; correlates with `refine` later (rework). |
 | `investigate × 3+` | Nudge: fine on unfamiliar code, expensive when the answer was already in `context/knowledge-base/`. |
@@ -81,9 +81,9 @@ third (the loop closes).
 
 A large `other` share does not mean the taxonomy is broken — it means your style isn't the median
 style it was tuned for, and that is signal too. The coach reports it honestly and quotes a handful
-of those prompts, so you can decide whether to nudge your phrasing or accept it. Don't
+of those prompts, so you can decide whether to nudge your phrasing or accept it. The coach doesn't
 over-classify: very short follow-ups and conversational acknowledgements genuinely don't fit, and
-forcing them in just makes the report wrong.
+forcing them in would just make the report wrong.
 
 ## Sources of truth
 

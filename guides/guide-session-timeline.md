@@ -6,8 +6,9 @@ An interactive visual timeline of a project's Claude Code sessions, built straig
 > `~/.claude/projects/` and emits `sessions.json` plus a self-contained `timeline.html` (vanilla JS
 > + SVG, no server, no CDN). The page is a Gantt swimlane of every session with a concurrency
 > strip, handoff arrows, idle gaps, and per-session peak context; click a bar for its detail panel.
-> Its one advantage over the MLflow path: it needs no MLflow, no Databricks, no Stop hook — just
-> the logs on disk. Ships in the `awow-telemetry` plugin (`/plugin install awow-telemetry@awow`).
+> Its one advantage over the MLflow-based tooling (see [trace analysis](guide-trace-analysis.md)):
+> it needs no MLflow, no Databricks, no Stop hook — just the logs on disk. Ships in the
+> `awow-telemetry` plugin (`/plugin install awow-telemetry@awow`).
 
 ## From raw logs to one HTML file
 
@@ -30,10 +31,10 @@ the work actually unfolded.
 | Element | What it reveals |
 | --- | --- |
 | **Gantt swimlane** | One bar per session: width is duration, colour is the **functional area** (the top-level dir most touched), hatching means read-only. Bars are packed into rows so overlapping sessions stack instead of colliding. |
-| **Concurrency strip** | A band across the top counting how many sessions ran **simultaneously** at each moment — the fan-out / contract rhythm made visible. |
+| **Concurrency strip** | A band across the top counting how many sessions ran **simultaneously** at each moment — so you can see when work spread across many sessions and when it narrowed back to one. |
 | **Handoff arrows** | An arrow from an earlier session to a later one when the later session edited files the earlier one last wrote (inferred per-file last-writer). |
 | **Idle gaps** | Grey bands where **no session logged any event** — the difference between active time and elapsed time. |
-| **Peak context** | Per session, the input + cache tokens at its fullest turn plus total output tokens. Sessions past the standard 200K window are flagged — compaction / large-context territory, where quality and cost both shift. |
+| **Peak context** | Per session, the input + cache tokens at its fullest turn plus total output tokens. Sessions past the standard 200K window are flagged — past that point the session has probably been compacted, and both answer quality and cost change. |
 | **Detail panel** | Click any bar for that session's area, duration, peak context, file footprint, and handoff links. |
 
 Three of those repay a closer look:
@@ -94,17 +95,18 @@ python tools/session_timeline.py \
 ```
 
 Then double-click `timeline.html`. No build step, no local server, no network. `sessions.json`
-stays next to it for any other tool that wants the parsed data. Both embed inputs
-are markdown you bring — the tool only renders and places them, which keeps the picture and the
-prose separable while letting them appear in one view.
+stays next to it for any other tool that wants the parsed data. `--coach-dir` and `--overview`
+both take markdown you write yourself — the tool only renders and places it, which keeps the
+picture and the prose separable while letting them appear in one view.
 
 ## Where it fits among the analysis tools
 
 This is the visual, zero-setup on-ramp to awow's session analysis: the picture that
 [trace analysis](guide-trace-analysis.md) describes in words, and it reads Claude Code's own JSONL
 so there is nothing to wire up first. The trace-analysis path (`mlflow-export` →
-`prompt-skill-analysis` / `awow-usage-coach`) needs traces already recorded by a Stop hook; embed
-that prose coaching here via `--coach-dir`, and defer to those skills for a deep read.
+`prompt-skill-analysis` / `awow-usage-coach`) needs traces already recorded by a Stop hook; you
+can embed that written coaching here with `--coach-dir`, and for a deep read those skills are
+the place to go.
 [Session correlation](guide-session-correlation.md) is a different concern — board↔trace plumbing —
 which this tool does not touch.
 
@@ -117,5 +119,5 @@ per-turn context. Copilot teams use the MLflow path.
 
 - [`tools/session_timeline.py`](../tools/session_timeline.py) — the engine; emits `sessions.json` and `timeline.html`
 - [`tools/session_timeline_template.html`](../tools/session_timeline_template.html) — the self-contained view it fills
-- [`.agents/skills/project-timeline/SKILL.md`](../.agents/skills/project-timeline/SKILL.md) — the judgment layer: scope, cost-gating, reading the picture, coaching
+- [`.agents/skills/project-timeline/SKILL.md`](../.agents/skills/project-timeline/SKILL.md) — the judgment layer: scope, when the cost is worth it, reading the picture, coaching
 - Companion guides: [trace analysis](guide-trace-analysis.md) — the export-then-assess pipeline this pictures; [session correlation](guide-session-correlation.md) — the board↔trace plumbing

@@ -2,12 +2,13 @@
 
 The loop one person runs, day to day, that proves awow earns its place.
 
-> **TL;DR** — Two Seed commands run again and again through the day: `/refinement-prep` drafts
-> a right-sized feature the team reviews ahead of a session, `/process-workitem` walks one
-> story from board to PR through a seven-step frame that iterates on a *plan*, never on
-> production code. The Standardise companion `/daily-checkin` caps the day by reconciling what
-> happened against the board. One spine throughout: board look-first, never duplicate, draft to
-> markdown under `proposals/`, land only after a human approves.
+> **TL;DR** — Two Seed commands (awow's adoption stages: seed → standardise → spread) run
+> again and again through the day: `/refinement-prep` drafts a right-sized feature the team
+> reviews ahead of a session, `/process-workitem` walks one story from board to PR through a
+> seven-step frame that iterates on a *plan*, never on production code. The Standardise
+> companion `/daily-checkin` caps the day by reconciling what happened against the board. Four
+> rules run through all of it: check the board first, never create a duplicate, draft in
+> markdown under `proposals/`, and write anything real only after a human approves.
 
 ## The loop
 
@@ -30,10 +31,10 @@ dependent stories — for a single throwaway story, go straight to `/process-wor
 
 ## The day-to-day commands at a glance
 
-| Command | Stage | What it produces | The gate |
+| Command | Stage | What it produces | Where it stops for you |
 | --- | --- | --- | --- |
 | `/refinement-prep` | seed | A reviewed feature draft — right-sized stories — at `proposals/refinement/<slug>.md`, ready for the live session. | Duplicate check *before* drafting; co-author until the owner would put their name on it. |
-| `/process-workitem` | seed | An approved plan at `proposals/<id>.md`, then the change applied, verified, and opened as a PR linked to the story. | Plan approved before any code is touched; check-in before each irreversible step. |
+| `/process-workitem` | seed | An approved plan at `proposals/<id>.md`, then the change applied, verified, and opened as a PR linked to the story. | It won't touch code until you approve the plan, and checks in before anything irreversible. |
 | `/daily-checkin` | standardise | A short daily summary plus proposed board updates — mostly comments and moves, rarely a new issue. | Read-only synthesis until an explicit "execute these updates?" approval. |
 
 ## `/refinement-prep` — draft a feature before refinement
@@ -47,8 +48,8 @@ Arrive at refinement with a draft in hand, so the session is *design discussion*
 **What it does, in order:**
 
 1. **Load context.** Mission (the feature must serve it — if it can't see how, it asks before
-   drafting), the REQUIRED conventions, board-output style, glossary, existing patterns, and
-   the board's sizing rules.
+   drafting), the conventions marked required in `context/`, board-output style, glossary,
+   existing patterns, and the board's sizing rules.
 2. **Check for duplicates — before drafting.** Searches the board on keywords from the brief
    for overlapping stories, a parent feature to attach to, and related work that should shape
    scope. On a hit it stops, reports IDs and titles, and asks whether to proceed, link/extend,
@@ -78,7 +79,7 @@ refinement should paper over by inventing stories.
 | **Feature-level refinement** | A feature becomes 3–7 stories, reviewed in a session. The default — what `/refinement-prep` produces. |
 | **User-story refinement** | A smaller team skips the feature wrapper and refines stories directly from a thin brief. |
 | **Continuous / BAU / operations** | No session — a PO or analyst spins up individual stories as operational work arrives. Same right-sizing and duplicate rules; there is just no feature to wrap. |
-| **Solution design** | The feature carries a real architectural decision: refine it through `/solution-design-flow`, which locks the design and decomposes it into a work-item tree with stated edges. |
+| **Solution design** | The feature carries a real architectural decision: refine it through `/solution-design-flow`, which locks the design and breaks it into a tree of work items that each name what they depend on. |
 
 How outcome → epic → feature → story map onto your board's primitives — and the fact that
 "epic" sits at a different level on each board — lives in
@@ -86,29 +87,29 @@ How outcome → epic → feature → story map onto your board's primitives — 
 
 ## `/process-workitem` — take a work item from refinement to PR
 
-A generic seven-step frame, the same for every kind of work. Work-specific rules live in
-archetype handlers: a shipped set (`feature`, `bugfix`, `refactor`, and friends) that the
-team overlays from `context/team/workitem-archetypes/` — a same-named file replaces a
-shipped handler, a new name registers a new archetype.
+A generic seven-step frame, the same for every kind of work. The rules specific to each kind
+live in per-type handler files (`feature`, `bugfix`, `refactor`, and so on). Drop a file with
+the same name in `context/team/workitem-archetypes/` to replace one; a new name adds a new
+type.
 
 | Step | What happens |
 | --- | --- |
-| **1 · Load** | Resolve the story from the board (or local cache) and read it through the user-story template — title, body, tags, acceptance criteria, scope boundary. If it doesn't fit the template, *stop* and repair the story; don't infer scope. |
-| **2 · Classify / route** | Match the story to an archetype handler. Empty directory: run generically and suggest scaffolding a handler (stub under `proposals/archetypes/`) — don't block. Handlers exist but none match: the story is too broad (split it) or needs a new handler (ask). |
-| **3 · Validate inputs** | Run the archetype's checks *before* planning. Working from assumed state is the most common cause of agent-driven bugs. If anything blocks, stop. |
-| **4 · Plan** | Draft `proposals/<work-item-id>.md` — story anchor, file-by-file changes, risks, verification. **Get approval before touching code.** Iterate here, in the cheap artefact. |
-| **5 · Apply** | Execute the approved plan without drifting. If scope needs to grow, raise it and amend the plan first. Respect output-placement rules — a story can't absorb knowledge-base content. |
-| **6 · Verify** | Run the archetype's checks: tests / build / lint pass, each acceptance criterion has evidence, behaviour changes get a smoke check. If anything is red, stop and report. |
-| **7 · Report** | Open the PR linked to the work item, summarise changes and verification, advance the board state, surface manual follow-ups. |
+| **1 · Load** | Resolves the story from the board (or local cache) and reads it through the user-story template — title, body, tags, acceptance criteria, scope boundary. If the story doesn't fit the template it stops and asks you to fix it, rather than guessing the scope. |
+| **2 · Classify / route** | Matches the story to an archetype handler. With no handlers yet, it runs the generic path and offers to scaffold one (stub under `proposals/archetypes/`). With handlers that none match, the story is either too broad to run as one item or needs a new handler — it asks which. |
+| **3 · Validate inputs** | Runs the archetype's checks *before* planning — working from assumed state is the most common cause of agent-driven bugs. If any check fails, it stops there. |
+| **4 · Plan** | Drafts `proposals/<work-item-id>.md` — story anchor, file-by-file changes, risks, verification. **It waits for your approval before touching code.** Argue with the plan here, where changes are free. |
+| **5 · Apply** | Executes the approved plan and sticks to it; if scope needs to grow it comes back and amends the plan first. Long-lived rationale goes to the knowledge base, not into the story. |
+| **6 · Verify** | Runs the archetype's checks: tests / build / lint pass, each acceptance criterion has evidence, behaviour changes get a smoke check. If anything is red, it stops and reports. |
+| **7 · Report** | Opens the PR linked to the work item, summarises changes and verification, advances the board state, and surfaces manual follow-ups. |
 
-Three principles hold it together:
+Three rules the command follows:
 
-- **Iterate on the plan.** The plan is cheap to change; the codebase is not. All back-and-forth
-  happens in `proposals/<id>.md` before a line of production code is written.
-- **Validate before acting.** Never act on un-validated assumptions about state. Check inputs
-  first; check in before each irreversible step.
-- **Stay in scope.** The story defines the boundary. Related work becomes separate proposals.
-  Observability, refactors, and docs are follow-up stories.
+- **It iterates on the plan.** The plan is cheap to change; the codebase is not. All
+  back-and-forth happens in `proposals/<id>.md` before a line of production code is written.
+- **It validates before acting.** It never acts on assumptions about the current state: it
+  checks inputs first, and checks in with you before anything irreversible.
+- **It stays in scope.** The story defines the boundary. Related work becomes separate
+  proposals. Observability, refactors, and docs are follow-up stories.
 
 ## `/daily-checkin` — the daily companion
 
@@ -119,18 +120,18 @@ most of the signal.
 
 **It is built to bias against noise.** The default is to advance work that is already tracked
 (comment on or move an existing issue); creating a new issue is the exception that must justify
-itself. If the proposed list has more new issues than updates, re-map.
+itself. If it proposes more new issues than updates to existing ones, it reworks the mapping.
 
 How it reads the day:
 
 - **Up to three input sources, none mandatory:** the user's own account (written note, voice
   memo, or none), code activity (automatic — today's commits, PRs, reviews), and meeting
-  transcripts (routed through `/process-transcript`, never parsed inline). On conflict,
-  processed transcript beats verifiable code activity beats the user's account.
+  transcripts (routed through `/process-transcript`, never parsed inline). Where these
+  disagree, a processed transcript wins, then code activity, then your own account.
 - **Written input is taken at face value.** Voice-to-text is treated as unreliable and runs a
   disambiguation protocol — every proper noun cross-referenced against known people, projects,
-  and repos, with all ambiguous terms confirmed *before* the summary is produced. No silent
-  guessing.
+  and repos, with all ambiguous terms confirmed *before* the summary is produced. It asks
+  rather than guessing.
 - **Read-only until the gate.** Nothing is created, moved, or commented on until the user
   explicitly answers "execute these updates?" — then each match is re-verified before it's
   touched.
@@ -142,26 +143,26 @@ list, and genuine gaps only — "no gaps today" is a fine and common outcome.
 ## Where this loop plugs into design and coordination
 
 When the work is larger than a single story, two further commands bracket the loop. All of it
-turns on one shared artefact: a **stated dependency graph**, without which coordination has
-nothing to read.
+turns on one shared artefact: a **written-down dependency graph** — without it, nothing
+downstream knows what order to work in.
 
 | Command | Stage | What it adds |
 | --- | --- | --- |
-| `/solution-design-flow` | spread | Turns a design conversation (live or a transcript) into a locked design plus a decomposed work-item tree with stated edges — each child names what blocks it. It lands the design; it does not create the board items. |
+| `/solution-design-flow` | spread | Turns a design conversation (live or a transcript) into a locked design plus a decomposed work-item tree with stated edges — each child names what blocks it. It writes the design; it doesn't create the board items. |
 | `/project-plan` | spread | The bridge. Takes that tree and states the dependency graph — nodes, edges, sequence vs parallel layers, critical path — translates it into board items created in order with blocked-by links, and publishes a durable plan at `proposals/plans/<slug>.md`. |
 | `/process-workitem` | seed | The same seven-step loop, now checking the graph before starting; it won't silently begin an item whose blockers are still open. |
 
 `/refinement-prep` seeds the graph earlier still: it already captures dependencies as edges, so
 they feed forward.
 
-## The spine that runs through all three
+## The four rules that run through all three
 
 | Rule | What it means in the loop |
 | --- | --- |
 | **Board look-first** | Before starting anything with a discernible outcome, search the board for an existing ticket. `/refinement-prep` does it before drafting; `/daily-checkin` before proposing; `/process-workitem` starts from a ticket that already exists. |
-| **Never duplicate** | If a ticket already covers the scope, use it. Duplicate detection is an explicit, blocking step in `/refinement-prep` and the anti-reflex at the heart of `/daily-checkin`. |
-| **Proposal-first** | Draft to markdown under `proposals/` first; the board, the knowledge base, and production code land only after a human approves. Iterate on the cheap artefact, never the expensive one. |
-| **Output discipline** | Minimum-useful text; intent → story body, status → comment, durable rationale → knowledge base. A story never absorbs content that belongs elsewhere. |
+| **Never duplicate** | If a ticket already covers the scope, use it. Duplicate detection is an explicit, blocking step in `/refinement-prep` and the main thing `/daily-checkin` is built to resist. |
+| **Proposal-first** | Draft to markdown under `proposals/` first; the board, the knowledge base, and production code are written only after a human approves. Iterate on the cheap artefact, never the expensive one. |
+| **Output discipline** | Write the least that's useful: intent in the story body, status in a comment, lasting rationale in the knowledge base. A story never absorbs content that belongs elsewhere. |
 
 ## Sources of truth
 

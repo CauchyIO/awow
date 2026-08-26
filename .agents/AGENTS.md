@@ -121,7 +121,7 @@ Drafting content first in markdown, then generating HTML from the template, is t
 
 If the team has wired up trace recording (Stop hook plus `MLFLOW_CLAUDE_TRACING_ENABLED=true` in `.claude/settings.local.json`), the hook writes session metadata to the team's MLflow experiment. **Treat tracing as on-by-default once wired up.** Do not disable it mid-session or strip the Stop hook to "speed things up" — the traces are the substrate every coaching, digest, and prompt-skill skill reads. If the hook fails, surface the error to the user; do not paper over it.
 
-Linking those traces back to the board — a `_session: <id>_` footer on issues and PRs the agent authors — is the opt-in `session-correlation` skill. It is inactive unless the team enabled it during `/setup-awow` (Step 3) or later by following the skill's enabling steps. If enabled, follow the footer rule that setup installed into the conventions; if not, do not add footers.
+Linking those traces back to the board — a `_session: <id>_` footer on issues and PRs the agent authors — is the opt-in `session-correlation` skill. It is inactive unless the team enabled it during `/setup-awow` (Step 8) or later by following the skill's enabling steps. If enabled, follow the footer rule that setup installed into the conventions; if not, do not add footers.
 
 ## Public repo: private session data must never be committed (REQUIRED)
 

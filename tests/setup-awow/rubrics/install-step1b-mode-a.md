@@ -1,6 +1,6 @@
 # Rubric — install-step1b-mode-a
 
-Phase 1b walks the reference sections for `context/tooling/boards/github-issues/reference/` in Mode A (greenfield). Script provides six `accept` replies covering each reference section in order.
+Phase 1b drafts the reference sections for `context/tooling/boards/github-issues/reference/` in Mode A (greenfield) in one pass, presenting a single review gate at the end. Script provides one reply: `land` at the gate.
 
 ## Wizard behaviour during the run
 

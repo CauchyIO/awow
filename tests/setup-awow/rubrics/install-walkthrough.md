@@ -21,14 +21,14 @@ End-to-end walkthrough from a clean slate through Step 3. Fixture has `.venv/` a
 9. *(invariant 13)* Did you count closed issues on the board, announce the count, and tell the user you are running Mode A because the count is below 10?
 10. *(invariant 8)* For each reference section walked, did its draft go to `$SCRATCH/proposals/setup/step-1/board.md` first (appended) before landing at `$SCRATCH/context/tooling/board.md`?
 
-## Step 1 review-and-adjust gate
+## Step 1 review gate
 
-11. *(invariant 14)* After board.md landed at `$SCRATCH/context/tooling/board.md`, did you summarise the file in a few bullets and offer the three replies (`proceed` / `adjust <section>` / `evaluate <section>`) before advancing to Step 2?
+11. *(invariant 14)* Before landing board.md, did you summarise the complete draft in a few bullets and offer the three replies (`land` / `adjust <section>` / `evaluate <section>`) — and did `$SCRATCH/context/tooling/board.md` appear only after the `land` reply, with no per-section approvals before the gate and no second confirmation after landing?
 
-## Step 2 — mission
+## Step 2 — team profile
 
 12. *(invariant 8)* Did you draft `$SCRATCH/proposals/setup/step-2/mission.md` before moving it to `$SCRATCH/context/team/mission.md`?
-13. Did you accept the sample mission sentence on the first try (it names audience, change, and constraint)?
+13. Did Step 2 draft or request a short profile and land it on the first try, without iterating on the mission line's quality?
 
 ## Step 3 — conventions
 

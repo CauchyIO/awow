@@ -27,7 +27,7 @@ Three label prefixes carry semantics. Everything else is optional decoration the
 **Mode B (assess current).** Use the MCP to list existing labels (`mcp__linear-server__list_issue_labels`).
 
 1. Bucket the labels into: matches-prefix-scheme / informal / orphaned-priority / other.
-2. Surface the buckets and propose normalisations (rename `bug` → `type:bug`, etc.). For each: accept / override / skip.
+2. Surface the buckets and propose normalisations (rename `bug` → `type:bug`, etc.) in the draft; the team resolves each at the review gate.
 3. Update `context/team/conventions/REQUIRED/labels.md` to reflect the **actual** taxonomy on the board so future agent proposals match the team's reality.
 
 ## What lands in `board.md`

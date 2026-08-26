@@ -1,12 +1,13 @@
 # Two feedback loops + a plan↔execution bridge
 
-Three mechanisms across the team↔pillar seam — and why a pillar is a different archetype, not a bigger team.
+Three mechanisms for where teams meet a pillar — and why a pillar is a different *kind of thing*, not a bigger team.
 
 > **TL;DR** — Feedback *on* the way of working stays inside a team, on a weekly clock. Re-defining
 > a **service** lives between teams and up at the pillar, and must run on accumulated evidence, not
 > a cadence. Reconciling plan with board is a third thing again — a continuous sync. So a pillar is
-> a different **archetype**, an internal node rather than a leaf, and it turns on **one
-> activity×team RACI**: services distil up from it, project routing decomposes down through it.
+> a different kind of node — it sits [*above* teams](#the-tier-tree--leaf-vs-internal-nodes) rather
+> than beside them — and it rests on one table mapping activities to teams: services are read off
+> that table, and incoming projects are broken down against it.
 
 Draft, for review. Team names and activities throughout are placeholders.
 
@@ -16,10 +17,10 @@ Draft, for review. Team names and activities throughout are placeholders.
 | --- | --- | --- |
 | P1 | No live picture of who's working on what, so leadership can't see where to add or shift people. | the bridge |
 | P2 | The planning model (goals, services, dependencies) and the board (epics/stories) don't reflect each other. | the bridge |
-| P3 | Routing and classification are ambiguous; the service definition drifts as ambiguous work arrives. | the two loops + the RACI spine |
+| P3 | Routing and classification are ambiguous; the service definition drifts as ambiguous work arrives. | the two loops + the activity RACI |
 | P4 | Planned work, maintenance, and incidents are managed as one undifferentiated stream. | falls out of P2 + P3 |
 | P5 | Cross-team critical-path blocks surface only after they've sunk a deliverable. | the bridge |
-| P6 | While everything is novel, people must both *feel* and *be* heard. | the two loops + the RACI spine |
+| P6 | Early on, while the way of working is still new, people must both *feel* and *be* heard. | the two loops + the activity RACI |
 
 ## The principle both loops share
 
@@ -29,26 +30,26 @@ Draft, for review. Team names and activities throughout are placeholders.
 
 **Stated feedback** is what someone says in a retro. **Revealed feedback** is what their sessions
 show — usage-coach, digests — the channel that survives a thin week. Both loops close the same way:
-the change lands as a **git diff**, so "heard" is auditable instead of vibes.
+the change ships as a **git diff**, so "we heard you" is auditable rather than a feeling.
 
 ## Two loops, two triggers
 
 | | Loop 1 — feedback ON the way of working | Loop 2 — service-definition drift |
 | --- | --- | --- |
-| Scope | Inside one team's repo. Fits awow today. | Between teams and up to the pillar. Ascends out of team scope. |
+| Scope | Inside one team's repo. Fits awow today. | Between teams and up to the pillar. Reaches past what one team can decide. |
 | Trigger | The clock — a weekly 20–30 min retro, kept frequent while the learning rate is highest. | Evidence, not a clock. Reviewing a definition on a cadence destabilises it. |
-| Mechanic | Rotate the convener; the substrate (usage-coach) drives, the human just convenes. | Log, don't meet: every time work won't fit the RACI, one line in the exceptions log. |
+| Mechanic | Rotate the convener; the tooling (usage-coach) supplies the agenda, the human just convenes. | Log, don't meet: every time work won't fit the RACI, one line in the exceptions log. |
 | Closure | A diff to conventions, *or* a recorded "heard X, chose not to act because Y." | Revise when N same-failures pile up, *or* one severe collision/gap appears. |
 
 ## The tier tree — leaf vs internal nodes
 
 "Team vs pillar" is really **leaf vs internal node**, and it nests: team → pillar → department →
-org. Same substrate everywhere; only the *role* differs.
+org. Same tooling everywhere; only the *role* differs.
 
 ```mermaid
 flowchart TD
   pillar["Pillar (internal node)<br>services · RACI · exceptions log"]
-  a["Team A (leaf)<br>pins RACI · own board"]
+  a["Team A (leaf)<br>uses the published RACI · own board"]
   b["Team B (leaf)"]
   c["Team C (leaf)"]
   pillar -->|contracts published down| a
@@ -68,18 +69,18 @@ flowchart TD
 | Pipeline | refinement → process-workitem → PR | exception → accumulate → threshold → revision PR → ratify → publish |
 | Register | the team's backlog | service map + exceptions log (not a backlog) |
 | Required setup | `context/tooling/board.md` | `context/services/` (activities + map + log) |
-| Data-flow direction | consumes only (vendors awow in) | **bidirectional** — publishes down, aggregates up |
+| Data-flow direction | consumes only (copies awow in as a dependency) | **bidirectional** — publishes down, aggregates up |
 | Rhythm | daily / weekly cadence | mostly dormant + event-triggered |
-| Has code? | often | no — pure governance substrate |
+| Has code? | often | no — governance only |
 
 The bidirectionality is the new machinery, and why a pillar can't be "a team repo with extra files"
-— that smuggles in a work pipeline with no meaning at this tier. The fix isn't a second product but
-one substrate parameterised by node role (`role: leaf | internal`) with a parent pointer, exactly as
-`phase:` frontmatter already gates command discovery.
+— that would drag along a story-delivery pipeline that means nothing at pillar level. The fix isn't
+a second product but the same tooling parameterised by node role (`role: leaf | internal`) with a
+parent pointer, the same way `phase:` frontmatter already controls which commands are visible.
 
-## One activity RACI is the spine
+## One activity RACI holds it together
 
-The primitive is the **activity** — the lowest-granularity unit of work, concrete enough to assign
+The basic unit is the **activity** — the lowest-granularity unit of work, concrete enough to assign
 unambiguously, which is why it beats fuzzy "services". **One** RACI maps activities → teams;
 services distil up from it, project routing decomposes down through it. There is no separate
 "service RACI" — service drift *is* activity-RACI drift, and the invariant is **exactly one
@@ -103,7 +104,7 @@ flowchart LR
   acc["02 Accumulate — the steward watches evidence gather."]
   thr{"03 Threshold — N same-failures, or one severe collision/gap"}
   pr["04 Revision PR — a team authors the RACI change, reviewed in the open."]
-  pub["05 Ratify & publish — pillar ratifies; merge pins the new version down."]
+  pub["05 Ratify & publish — pillar ratifies; merging publishes the new version to every team."]
   log --> acc
   acc --> thr
   thr -->|trips| pr
@@ -112,30 +113,31 @@ flowchart LR
 ```
 
 Teams *author* their boundaries; the pillar *ratifies* coverage coherence — ratification, not
-dictation. The moment the tier-up hands teams their definitions, the autonomy that drives adoption
+dictation. The moment the pillar hands teams their definitions, the autonomy that drives adoption
 dies, and "feel heard" with it.
 
 ## The plan↔execution bridge
 
 The loops and the RACI govern the *definition* of work; they do **not** keep plan and execution in
-sync. That seam is where P1, P2 and P5 live, and it decides whether a portfolio roll-up is truth or
-fiction. It is a *sync*, not a feedback ritual, running in two continuous directions:
+sync. That gap — between plan and execution — is where P1, P2 and P5 live, and it decides whether a
+portfolio roll-up is truth or fiction. It is a *sync*, not a feedback ritual, running in two
+continuous directions:
 
 - **Down — translation.** A plan node decomposes into **activities**, each routed to its Accountable
-  team by the RACI and sized, via a human-set directive. An activity that won't route is exactly an
-  exceptions-log entry.
+  team by the RACI, then estimated according to rules a human sets. An activity that won't route is
+  exactly an exceptions-log entry.
 - **Up — reconciliation.** As work moves on the board, status flows back to the plan node so the
   portfolio stays current — the leaf agent's existing board maintenance, extended.
 
-Maintained by hand the link rots within a sprint, reintroducing one tier up the drift awow exists to
-remove — so the mapping is a **versioned, owned artifact**, not an integration script. Not at day
-zero, though: routing is wrong while definitions are fuzzy. Pilot on one well-defined plan node, let
-the threshold mature the definitions under it, then widen.
+Maintained by hand, the link rots within a sprint — recreating at pillar level exactly the drift
+awow exists to remove. So the mapping is a **versioned, owned artifact**, not an integration
+script. Not at day zero, though: routing is wrong while definitions are fuzzy. Pilot on one
+well-defined plan node, let the threshold mature the definitions under it, then widen.
 
 Where the plan already lives in an external EA system, awow doesn't duplicate it: that system stays
-authoritative, awow owns only the **linkage** and **up-reconciliation**, and even the RACI becomes a
-pinned projection. The leaf agent maintains the links, the steward owns the translation directive —
-no new human role.
+authoritative, awow owns only the **linkage** and **up-reconciliation**, and even the RACI becomes
+a read-only copy of that system's data. The leaf agent maintains the links, the steward owns the
+translation directive — no new human role.
 
 ## Sources of truth
 

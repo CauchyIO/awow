@@ -2,8 +2,40 @@
 
 awow gives a coding agent your team's context: the board it reads, the
 conventions it follows, and commands for the work that happens between people.
+The full technical guide lives [here](guides/README.md).
 
-## Install
+**Install options**
+
+awow can be used in two configurations:
+
+1. **Standalone install**. Install awow for one specific repo with its own
+   context and board wiring.
+2. **Hub-and-spoke**. Run awow from a **hub**: one centralized repo holding
+   the shared `context/` — board wiring, mission, conventions, members. Other
+   repos register as **spokes** and use the hub's context instead of carrying
+   their own. Useful for teams that want to use a shared agentic core
+   throughout multiple repositories.
+
+`/setup-awow` asks which shape you want and records it — details in
+[Setup & the plugin model](guides/guide-setup-and-two-harnesses.md).
+
+---
+
+## Before you install
+
+- **A supported harness**, installed and signed in: Claude Code, Codex, Pi,
+  the GitHub Copilot CLI, or opencode.
+- **The `gh` CLI, authenticated** (`gh auth login`). Commands use it to open
+  PRs, and it doubles as the board surface for GitHub-hosted boards.
+- **Access to your team's board** — an account that can read and write it.
+  Nothing needs wiring yet: `/setup-awow`'s first required step installs and
+  verifies the surface the agent will use — an MCP server for Linear, Jira,
+  or Azure DevOps, or `gh` for GitHub Issues and Projects — and records it
+  in `context/tooling/board.md`.
+
+---
+
+## Installing the plugin
 
 Claude Code:
 
@@ -19,7 +51,7 @@ Pi:
 
     pi install git:github.com/CauchyIO/awow-dist
 
-GitHub Copilot:
+GitHub Copilot (requires the Copilot CLI):
 
     copilot plugin marketplace add CauchyIO/awow
     copilot plugin install awow@awow
@@ -33,9 +65,32 @@ manifest both read. Codex, Pi and opencode install from `awow-dist`, which
 carries the built payload. Copilot exposes the commands as skills rather than
 slash commands.
 
-## Then what
+---
 
-The commands work in any repo without further setup.
+## First: run `/setup-awow`
+
+`/setup-awow` is the first command to run after installing the plugin. It
+wires your board (Linear, Jira, Azure DevOps, GitHub Issues) and writes your
+mission, conventions, and members into `context/` — the context every other
+command reads. Run it for both **hub** and **spoke** repos.
+
+- Detects whether you are using a hub or spoke repo. Spoke repos need only
+  minimal setup.
+- Choose a guided walkthrough, or a 25–30 minute team workshop whose
+  transcript becomes the same gated setup proposals.
+- It is incremental and resumable: stop after any step, pick up where you
+  left off.
+- Only Steps 0 and 1 (install shape and board) are required; the rest are
+  recommended in any order.
+
+The other commands do run without setup — they ask for what's missing and
+carry on — but they work better with it.
+
+---
+
+## Then: the commands
+
+The commands work in any repo (hub or spoke).
 
 | | |
 |---|---|
@@ -49,28 +104,28 @@ The commands work in any repo without further setup.
 Each command carries a description of the situation it applies to, so you can
 describe what you need instead of typing the command name.
 
+---
+
 ## What the agent picks up
 
 Every session starts by reading awow's working rules: go to the board before
 starting work, write or update the ticket, and keep the admin current while you
 work. Commands read your team context where it exists. An optional OKF catalog
 routes them to canonical repositories, SharePoint, or vector-backed sources
-without copying that material into the HUB.
+without copying that material into the hub.
+
+---
 
 ## Going deeper
 
 The guides live in [`guides/`](guides/README.md) — plain markdown, readable
 directly on GitHub or as agent context.
 
-`/setup-awow` offers either a guided walkthrough or a 25–30 minute team
-workshop whose transcript becomes the same gated setup proposals. It wires
-your board (Linear, Jira, Azure DevOps, GitHub Issues) and
-writes your mission, conventions, and members into `context/`. It is incremental
-and resumable. Commands work better with it, and none require it.
-
 `awow-telemetry` is a second plugin for measuring how the way of working is
 going: session timelines, prompt-quality review, usage coaching. It runs on
 Claude Code only.
+
+---
 
 ## Developing awow
 
@@ -86,19 +141,17 @@ maintainer's own sessions (`/plugin marketplace update awow`, then
 `/test-awow`, the eval runner, is the one command that lives in this repo's
 `.claude/commands/` rather than the payload.
 
-## Prerequisites
-
-A board with hierarchy. The agent reaches it however your team already does:
-`gh`, an MCP server, or your own skills and scripts, as long as the instructions
-say how. `/setup-awow` records that in `context/tooling/board.md`. Without it the
-board commands ask you once and carry on.
+---
 
 ## Status
 
 The installs, the command set, canonical knowledge-source routing, the session
 context, and the build with its drift check in CI are working; what each
-release changed is in [`CHANGELOG.md`](CHANGELOG.md). awow installs as a plugin: the prompts stay in the payload and an adopter repo
-holds only its own `context/`. `awow-telemetry` runs on Claude Code only.
+release changed is in [`CHANGELOG.md`](CHANGELOG.md). awow installs as a
+plugin: the prompts stay in the payload and an adopter repo holds only its own
+`context/`. `awow-telemetry` runs on Claude Code only.
+
+---
 
 ## License
 

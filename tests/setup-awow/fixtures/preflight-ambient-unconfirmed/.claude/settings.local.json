@@ -1,0 +1,5 @@
+{
+  "mcpServers": {
+    "jira": { "type": "sse", "url": "https://jira.example.invalid/sse" }
+  }
+}

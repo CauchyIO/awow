@@ -1,0 +1,5 @@
+{
+  "mcpServers": {
+    "linear-server": { "type": "http", "url": "https://linear.example.invalid/mcp" }
+  }
+}

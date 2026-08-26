@@ -1,0 +1,3 @@
+# Step 1a asks which candidate; pick the .mcp.json linear entry, then supply the board URL
+the linear-server from .mcp.json
+https://linear.app/example-team/team/EX/all

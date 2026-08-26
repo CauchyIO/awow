@@ -19,7 +19,8 @@ When a proposal's state changes, update its `**Status:**` line *and* the row bel
 
 | Proposal | Status | Outcome / next step |
 |---|---|---|
-| [jit-context](jit-context.md) | **Draft** (2026-08-26) | Fill-on-first-need contract: absence as the marker, `/setup-awow` shrinks to install + board + registration, `company/` pruned. Reconciliation criterion for the PR #73/#76 overlap. Board item due. |
+| [jit-context](jit-context.md) | **Draft** (2026-08-26) | Fill-on-first-need contract: absence as the marker, `/setup-awow` shrinks to install + board + registration, `company/` pruned. CAU-1422; the reconciliation criterion for the PR #73/#76 overlap, both absorbed into its PR. |
+| [setup-awow-preflight](setup-awow-preflight.md) | **Accepted** (2026-08-25) | Read-only preflight (git/repo/board/gh/harness, pointers per miss) + board-MCP confirmation in Step 1a, reconciled per [jit-context](jit-context.md): explicit pick only on ambiguity. Spec: [setup-awow-preflight-design](setup-awow-preflight-design.md); CAU-1332, lands via CAU-1422's PR. |
 | [invoker-topology-and-board-plan](invoker-topology-and-board-plan.md) | **Accepted** (in build) | Hat-aware setup, invoker profile + ladder rungs, board plan gate. AWO-204/205/206, stacked on PR #44; plan at [plans/2026-08-18](plans/2026-08-18-invoker-topology-and-board-plan.md). |
 | [meta-workspace-and-fixture-decoupling](meta-workspace-and-fixture-decoupling.md) | **Landed** | `dogfood/` → `meta/`, test fixtures decoupled (`feature/dry_run_awow`). `meta/` itself since dissolved: proposals merged here, workspace context frozen at `tests/fixtures/fikkert/_seed/`. |
 | [pi-codex-harness-support](pi-codex-harness-support.md) | **Superseded** | Reconciled into hub-and-spoke-design §7/§10; tracked as WI-5. |

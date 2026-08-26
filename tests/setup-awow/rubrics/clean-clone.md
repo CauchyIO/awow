@@ -1,6 +1,6 @@
 # Rubric — clean-clone
 
-The `clean-clone` scenario starts with an empty scratch (no `.venv/`, no `setup-progress.md`). The script's only reply is `no` to the installer permission, so the wizard should stop at Step 0.
+The `clean-clone` scenario starts from a vendored-tree scratch with nothing installed — `.agents/AGENTS.md` and `setup/install.sh` present, no stubs, no `.venv/`, no `setup-progress.md`. The script's only reply is `no` to the installer permission, so the wizard should stop at Step 0.
 
 ## Wizard behaviour during the run
 

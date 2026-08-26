@@ -61,8 +61,9 @@ timeline.html
 !tests/*/fixtures/**/activity/**
 !tests/*/fixtures/**/.claude/settings.local.json
 
-# Local scratch: superpowers specs/plans (ship via awow_io)
+# Local scratch: superpowers specs/plans (ship via awow_io) and brainstorm state
 docs/
+.superpowers/
 
 # PyPI placeholder build output (packaging/pypi) — never committed
 packaging/pypi/dist/

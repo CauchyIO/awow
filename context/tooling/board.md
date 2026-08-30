@@ -5,7 +5,6 @@
 - Tool: Linear. Workspace `cauchyio` — https://linear.app/cauchyio. Team **Cauchyio**, issue prefix `CAU`.
 - Surface: the `linear-server` MCP (Claude Code). Read access verified 2026-08-25 (`list_teams`, `list_issues`, `list_issue_statuses`, `list_issue_labels`).
 - Harness: Claude Code.
-- History: until 2026-08-25 this repo's items lived on the awowio workspace's AWO team (session-inferred, never durably wired). New items land on CAU; historic `AWO-###` references in commits, docs, and proposals stay valid against the old board and are not rewritten. Items still open on AWO are ported individually (description ends "Ported from awowio/AWO-###"; the original is Canceled).
 
 ## State machine
 

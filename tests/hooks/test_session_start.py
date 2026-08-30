@@ -113,6 +113,39 @@ def _spoke_project(hub_key=CONNECTOR_REMOTE, link=None):
     return d
 
 
+def _stamped_plugin(version, digest):
+    """A plugin root whose payload carries a build stamp (gather.py schema)."""
+    d = _plugin(payload_skill="PAYLOAD-SENTINEL")
+    os.makedirs(os.path.join(d, ".claude-plugin"))
+    with open(os.path.join(d, ".claude-plugin", "build.json"), "w") as f:
+        json.dump({"version": version, "content": "sha256:" + digest}, f)
+    return d
+
+
+def _vendored_project(plugin_name=None, dist_stamp=None, lock_version=None):
+    """An adopted (vendored) repo: .agents/AGENTS.md always; optionally a
+    plugin manifest naming `plugin_name` ("awow" marks the maintainer repo,
+    anything else a plugin repo that vendored awow), a dist/ build stamp, and
+    a legacy lockfile with an awow_version."""
+    d = _tmpdir()
+    os.makedirs(os.path.join(d, ".agents"))
+    open(os.path.join(d, ".agents", "AGENTS.md"), "w").close()
+    if plugin_name is not None:
+        os.makedirs(os.path.join(d, ".claude-plugin"))
+        with open(os.path.join(d, ".claude-plugin", "plugin.json"), "w") as f:
+            json.dump({"name": plugin_name, "version": "0.0.0"}, f)
+    if dist_stamp is not None:
+        os.makedirs(os.path.join(d, "dist", ".claude-plugin"))
+        with open(os.path.join(d, "dist", ".claude-plugin", "build.json"), "w") as f:
+            json.dump({"version": dist_stamp[0],
+                       "content": "sha256:" + dist_stamp[1]}, f)
+    if lock_version is not None:
+        os.makedirs(os.path.join(d, "tools"))
+        with open(os.path.join(d, "tools", "awow.lock.json"), "w") as f:
+            json.dump({"awow_version": lock_version, "files": {}}, f)
+    return d
+
+
 # The path prefixes under which the two layouts (payload dist/, source
 # checkout) can carry the same skill or command body.
 LAYOUT_PREFIXES = ("skills/", ".agents/skills/", "commands/", ".agents/commands/")
@@ -221,6 +254,61 @@ with open(os.path.join(plain, "AGENTS.md"), "w") as f:
     f.write("# Just docs, not an awow connector\n")
 ctx, _, _ = _run(SPOKE_PLUGIN, project=plain)
 check("plain root AGENTS.md still gets the setup nudge", "/setup-awow" in ctx)
+
+# --- Vendored drift tier (CAU-1338) -----------------------------------------
+# Messages begin "awow drift:", the silence sentinel for every negative check.
+STAMPED = _stamped_plugin("0.13.0", "aaaa11112222")
+
+# Maintainer checkout whose dist/ stamp differs from the installed payload:
+# the recorded incident shape — warn, naming both stamps and the remedies.
+ctx, _, _ = _run(STAMPED, project=_vendored_project(
+    plugin_name="awow", dist_stamp=("0.12.0", "bbbb33334444")))
+check("maintainer drift names both stamps",
+      "0.12.0+bbbb33334444" in ctx and "0.13.0+aaaa11112222" in ctx)
+check("maintainer drift explains precedence and the remedies",
+      "{HUB}-first" in ctx and "--plugin-dir dist" in ctx)
+
+# Matching stamps: silent.
+ctx, _, _ = _run(STAMPED, project=_vendored_project(
+    plugin_name="awow", dist_stamp=("0.13.0", "aaaa11112222")))
+check("matching stamps stay silent", "awow drift" not in ctx)
+
+# A maintainer branch too old to carry a stamp is behind every stamped
+# payload by definition: warn, never fall through to the adopter branch.
+ctx, _, _ = _run(STAMPED, project=_vendored_project(plugin_name="awow"))
+check("unstamped maintainer checkout warns",
+      "unstamped" in ctx and "0.13.0+aaaa11112222" in ctx)
+
+# The maintainer marker is the awow plugin manifest, not any plugin manifest:
+# a plugin repo that vendored awow is an adopter, and with no lockfile it has
+# no vintage to compare — silent, never "unstamped".
+ctx, _, _ = _run(STAMPED, project=_vendored_project(plugin_name="other-plugin"))
+check("a non-awow plugin repo that vendored awow stays silent",
+      "awow drift" not in ctx)
+
+# The maintainer repo also carries a stale legacy lockfile; the maintainer
+# compare must win or the repo that builds the plugin would be told to
+# /migrate-to-plugin (misroute guard).
+ctx, _, _ = _run(STAMPED, project=_vendored_project(
+    plugin_name="awow", dist_stamp=("0.12.0", "bbbb33334444"), lock_version="0.7.0"))
+check("maintainer with stale lockfile gets the maintainer message",
+      "--plugin-dir dist" in ctx and "/migrate-to-plugin" not in ctx)
+
+# Legacy vendored adopter behind the installed payload: warn, name the exit.
+ctx, _, _ = _run(STAMPED, project=_vendored_project(lock_version="0.7.0"))
+check("older vendored adopter is pointed at /migrate-to-plugin",
+      "0.7.0" in ctx and "/migrate-to-plugin" in ctx)
+
+# Adopter at, ahead of, or unparseable vs the payload: silent.
+for v in ("0.13.0", "0.14.0", "not-a-version"):
+    ctx, _, _ = _run(STAMPED, project=_vendored_project(lock_version=v))
+    check(f"adopter lock {v} vs 0.13.0 stays silent", "awow drift" not in ctx)
+
+# Pre-stamp installed payload (no build.json): nothing to compare — silent
+# even when the repo looks maximally drifty.
+ctx, _, _ = _run(_plugin(payload_skill="PAYLOAD-SENTINEL"),
+                 project=_vendored_project(plugin_name="awow", lock_version="0.7.0"))
+check("unstamped installed payload stays silent", "awow drift" not in ctx)
 
 # Payload guard: every probe group a dist hook cats resolves inside dist/.
 check("dist hooks probe only paths that exist in the payload",

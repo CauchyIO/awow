@@ -87,6 +87,23 @@ ENGINE_NUDGE = (
     "and do not raise it again this session.</important-reminder>"
 )
 
+VENDORED_DRIFT_MAINTAINER = (
+    "<important-reminder>awow drift: this checkout's dist/ payload is "
+    "{repo_stamp} but the installed plugin payload is {installed_stamp}. "
+    "Machinery reads follow this checkout ({{HUB}}-first), so this session "
+    "runs the checkout's vintage — if that is unexpected, rebuild and run the "
+    "branch payload (python tools/gather.py && claude --plugin-dir dist) or "
+    "re-sync the installed plugin.</important-reminder>"
+)
+
+VENDORED_DRIFT_ADOPTER = (
+    "<important-reminder>awow drift: this repo vendored awow {vendored} but "
+    "the installed plugin payload is {installed}. Vendored files win "
+    "({{HUB}}-first), so this session runs the {vendored} vintage. Run "
+    "/migrate-to-plugin to de-vendor and pick up the installed "
+    "payload.</important-reminder>"
+)
+
 
 def read_bootstrap(plugin_root):
     """The using-awow reflex body. Payload path first: a plugin install ships
@@ -198,6 +215,107 @@ def spoke_context(repo_dir):
     return SPOKE_DRIFTED.format(hub=hub, path=candidate)
 
 
+def read_json_file(path):
+    """Parsed JSON object at path; None when the file is absent (the normal
+    case for every optional marker below) or not a JSON object. A present but
+    unparseable file is logged, then treated as absent — the drift tier must
+    degrade to silence on corruption, never crash the session."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except OSError:
+        return None
+    except ValueError as exc:
+        print(f"awow session-start: unreadable {path}: {exc}", file=sys.stderr)
+        return None
+    if not isinstance(data, dict):
+        print(f"awow session-start: {path} is not a JSON object", file=sys.stderr)
+        return None
+    return data
+
+
+def read_stamp(root):
+    """(version, digest) from <root>/.claude-plugin/build.json, or None when
+    absent or unreadable. Payloads predating the stamp have no file; the
+    caller treats None on the installed side as nothing-to-compare."""
+    data = read_json_file(os.path.join(root, ".claude-plugin", "build.json"))
+    if data is None:
+        return None
+    version = str(data.get("version", ""))
+    digest = str(data.get("content", ""))
+    if digest.startswith("sha256:"):
+        digest = digest[len("sha256:"):]
+    if not version or not digest:
+        return None
+    return version, digest
+
+
+def stamp_display(stamp):
+    return "%s+%s" % stamp
+
+
+def maintainer_checkout(repo_dir):
+    """True only for the awow maintainer repo: a .claude-plugin/plugin.json
+    naming the awow plugin. Bare manifest presence is not enough — a plugin
+    repo that vendored awow is an adopter, and must be classified as one."""
+    data = read_json_file(os.path.join(repo_dir, ".claude-plugin", "plugin.json"))
+    return data is not None and data.get("name") == "awow"
+
+
+def lock_version(repo_dir):
+    """awow_version from tools/awow.lock.json — the vintage a legacy vendored
+    install recorded at setup; "" when absent or unreadable."""
+    data = read_json_file(os.path.join(repo_dir, "tools", "awow.lock.json"))
+    if data is None:
+        return ""
+    return str(data.get("awow_version", ""))
+
+
+def semver_tuple(version):
+    """Comparable tuple, or None for anything that is not digits-and-dots —
+    an unparseable vintage must stay silent, never misreport drift."""
+    try:
+        return tuple(int(part) for part in version.split("."))
+    except ValueError:
+        return None
+
+
+def vendored_drift_context(plugin_root, repo_dir):
+    """Tier message when a vendored install's machinery vintage differs from
+    the installed payload; None when aligned or undecidable (CAU-1338).
+
+    Maintainer checkout first. Its payload-to-payload compare must win over
+    the lockfile branch: the maintainer repo also carries a stale legacy
+    awow.lock.json, and routing it there would prescribe /migrate-to-plugin
+    to the repo that builds the plugin. A maintainer checkout with no dist/
+    stamp at all predates stamping and is behind every stamped payload by
+    definition — the recorded incident shape. The maintainer compare fires in
+    both directions (a stale plugin cache is as silent as a stale branch);
+    the adopter compare only when the vendored vintage is strictly older —
+    a vendored tree ahead of the payload is the deliberate-edit case the
+    {HUB}-first rule exists to protect."""
+    installed = read_stamp(plugin_root)
+    if installed is None:
+        return None
+    if maintainer_checkout(repo_dir):
+        local = read_stamp(os.path.join(repo_dir, "dist"))
+        if local is None:
+            return VENDORED_DRIFT_MAINTAINER.format(
+                repo_stamp="unstamped (predates build stamps)",
+                installed_stamp=stamp_display(installed))
+        if local != installed:
+            return VENDORED_DRIFT_MAINTAINER.format(
+                repo_stamp=stamp_display(local),
+                installed_stamp=stamp_display(installed))
+        return None
+    vendored = lock_version(repo_dir)
+    old, new = semver_tuple(vendored), semver_tuple(installed[0])
+    if old is not None and new is not None and old < new:
+        return VENDORED_DRIFT_ADOPTER.format(
+            vendored=vendored, installed=stamp_display(installed))
+    return None
+
+
 def engine_installed(repo_dir):
     """An inner-loop build engine (superpowers) anywhere the plugin loader
     looks: marketplace cache, user scope, or project scope."""
@@ -222,6 +340,15 @@ def build_context(plugin_root, repo_dir):
     elif not adopted and not os.path.isfile(
             os.path.join(repo_dir, ".awow", "no-setup-prompt")):
         sections.append(SETUP_NUDGE)
+    # Vendored drift: warn when the machinery vintage this session will read
+    # ({HUB}-first) differs from the installed payload (CAU-1338). Keyed on
+    # the vendored markers themselves (awow plugin manifest, legacy lockfile),
+    # not on `adopted`, so the tier is inert for every other repo and survives
+    # a re-keying of `adopted` unchanged.
+    if spoke is None:
+        drift = vendored_drift_context(plugin_root, repo_dir)
+        if drift is not None:
+            sections.append(drift)
     # Soft-dependency nudge: an adopted repo with no build engine. Mutually
     # exclusive with the setup nudge (adopted vs not), so the two never stack.
     if adopted and not engine_installed(repo_dir) and not os.path.isfile(

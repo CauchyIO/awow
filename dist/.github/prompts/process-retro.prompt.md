@@ -330,7 +330,7 @@ For each diff approved at Gate 2, edit `.agents/AGENTS.md` (or the named prompt 
 <!-- Added 2026-05-23 from retro: retro-reports/platform-team/2026-05-22-hybrid.md -->
 ```
 
-**Never edit the generated harness instruction files.** `.agents/AGENTS.md` is the source; run `${CLAUDE_PLUGIN_ROOT}/tools/gather.py` after landing a diff so the generated surfaces regenerate. A diff written straight into a generated file is destroyed by the next build, which is why every instruction diff this command landed before 2026-07-20 is gone.
+**Never edit the generated harness instruction files.** `.agents/AGENTS.md` is the source; run `gather.py` after landing a diff so the generated surfaces regenerate. A diff written straight into a generated file is destroyed by the next build, which is why every instruction diff this command landed before 2026-07-20 is gone.
 
 ### 3.3 Confirm and offer follow-ups
 

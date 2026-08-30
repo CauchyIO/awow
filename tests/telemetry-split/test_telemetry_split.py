@@ -74,7 +74,12 @@ TELEMETRY_TOOL_FILES = {
     "session_timeline.py",
     "session_timeline_template.html",
 }
-BASE_TOOL_FILES = {"hooks/leak-patterns.txt", "hooks/pre-push", "awow_lock.py"}
+BASE_TOOL_FILES = {
+    "hooks/leak-patterns.txt",
+    "hooks/pre-push",
+    "awow_lock.py",
+    "cascade_check.py",  # /okr-cascade and /setup-department sweep
+}
 
 
 def skill_text(name: str) -> str:

@@ -114,12 +114,19 @@ HOOKS_DIR = REPO_ROOT / "hooks"
 # shipped so the migration always runs the payload's current engine, never the
 # repo's vendored vintage. awow_lock.py takes an explicit --root; the command
 # must always pass it, since __file__-relative resolution would point the
-# engine at the plugin install dir. The three session-analysis tools below
-# served only skills that have moved.
+# engine at the plugin install dir. cascade_check.py is the department sweep
+# /okr-cascade and /setup-department run as {AWOW_TOOLS}/cascade_check.py; it
+# resolves the department root from its own cwd, never from __file__, so it is
+# safe at the plugin install dir. The three session-analysis tools below served
+# only skills that have moved.
+#
+# tests/payload-tools/ fails the build when a shipped body references a tool
+# this list does not carry — add here, never allowlist there.
 PLUGIN_TOOL_PATHS = [
     "hooks/leak-patterns.txt",
     "hooks/pre-push",
     "awow_lock.py",
+    "cascade_check.py",
 ]
 
 # awow-telemetry: the session-analysis runtime. project-timeline has no

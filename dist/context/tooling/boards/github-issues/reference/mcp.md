@@ -37,7 +37,7 @@ Confirm against the github-mcp-server repo README.
 
 ### Verify
 
-1. List issues from a known repo to verify read access.
+1. Resolve the repo the board URL names (`gh repo view <owner/repo>` or the MCP's repository lookup) to verify read access *and identity* — a server that answers but cannot see the repo is wired to the wrong account or host.
 2. A no-op write on a scratch issue (set a label that's already set) to verify write access.
 3. Record the verification status in `context/tooling/board.md`.
 

@@ -1,6 +1,6 @@
 # `/setup-awow` Preflight — Design Spec
 
-**Status:** Approved design (Arie, 2026-08-25). Derived from
+**Status:** Approved design (Arie, 2026-08-25). Built in PR #80 (2026-08-26); amended 2026-08-30 — identity-bearing verification (§3.2–3.3), §5.3 reconciled with what shipped. Derived from
 [setup-awow-preflight.md](setup-awow-preflight.md), which carries the incident history and review
 trail. Board item:
 [CAU-1332](https://linear.app/cauchyio/issue/CAU-1332/add-a-prerequisite-preflight-to-setup-awow).
@@ -170,10 +170,14 @@ preflight):
 ```
 surface: mcp
 board-mcp: <server-name> <endpoint> (confirmed <YYYY-MM-DD>)
+board-url: <canonical board URL>
 ```
 
-or, for the GitHub CLI surface, the existing `surface: gh-cli` (identity is the board URL already
-recorded by Step 1a; auth is machine-local and checked live by P4). When Step 1a's verification
+or, for the GitHub CLI surface, the existing `surface: gh-cli` plus the same `board-url:` (auth is
+machine-local and checked live by P4). The URL is the identity that matters: a loaded MCP exposes
+its server *name* only — never its endpoint, account, or workspace — so `board-mcp:` alone cannot
+tell the right workspace from the wrong one behind the same name (amended 2026-08-30 after a live
+session rendered a `linear-server` logged into another workspace as usable). When Step 1a's verification
 read cannot succeed in the confirming session, add:
 
 ```
@@ -194,9 +198,11 @@ the committed state lie on every other machine. Each machine re-verifies live.
   `<server-name> — <endpoint> (from <provenance>)`, state that confirmation happens at Step 1a,
   and use none of them meanwhile. Not a failure; it is the "never silently adopt" guard.
 - **ok** — an identity is recorded and this session can use it: for `surface: mcp`, a live server
-  with the recorded endpoint is loaded and one read-only call succeeds (cheapest list call the
-  server offers, e.g. a limit-1 issue list); for `surface: gh-cli`, P4 passes and one
-  `gh repo view`/`gh project list --limit 1` succeeds.
+  with the recorded name is loaded and one *identity-bearing* read succeeds — it returns the board
+  `board-url:` names (Linear: `list_teams` contains the team key; Jira: the project key resolves;
+  Azure DevOps: the org/project resolves; GitHub: the repo resolves). A bare "list anything" call
+  is not verification. For `surface: gh-cli`, P4 passes and `gh repo view <owner/repo>` on the
+  recorded repo succeeds.
 - **blocked** — an identity is recorded but the session cannot use it. Name the reason and the
   fix, one line each:
   - *not loaded* — no live server matches the recorded endpoint, but a config file names one →
@@ -206,6 +212,11 @@ the committed state lie on every other machine. Each machine re-verifies live.
     `.mcp.json`" (the CAU-1332 lived failure).
   - *unauthenticated* — the server is loaded but the read call fails on auth → "run `/mcp` to
     authenticate" (or the harness-appropriate re-auth).
+  - *wrong workspace* — a server with the recorded name is loaded and answers, but the identity
+    read does not return the recorded team/project/repo → "`<name>` is loaded but serves
+    `<what it returned>`, not `<recorded>` — re-authenticate it, or re-confirm at Step 1a".
+  - *unverifiable* — no `board-url:` recorded and no `board.md` to fall back on → "identity
+    cannot be proven — re-run Step 1a to record the board URL".
   - *diverged* — live candidates exist but none matches the recorded endpoint → list them with
     provenance and say re-confirmation happens at Step 1a. Never silently switch to one.
   - for `surface: gh-cli`: whatever P4 reports, verbatim.
@@ -293,16 +304,26 @@ the user to run `/setup-awow` in a Copilot CLI session for the full preflight.
    - **unconfirmed** — nothing recorded, candidates exist → list each as
      `<name> — <endpoint> (from <provenance>)`, say confirmation happens at Step 1a, and use
      none of them meanwhile.
-   - **ok** — a recorded `board-mcp:` identity matches a loaded server and one read-only call
-     (cheapest list call, e.g. a limit-1 issue list) succeeds; or `surface: gh-cli` and check 4
-     passes plus one `gh repo view` succeeds.
+   - **ok** — a recorded `board-mcp:` identity matches a loaded server *by name* and one
+     identity-bearing read succeeds. Loaded tools expose a server's name only — never its
+     endpoint, account, or workspace — so a name match proves nothing on its own; the read must
+     return the board the recorded `board-url:` names (else `board.md` §Tool & wiring): Linear —
+     `list_teams` contains the team key in the URL; Jira — the project key resolves; Azure
+     DevOps — the org/project resolves; GitHub — the repo resolves. A bare "list anything" call
+     is not verification. For `surface: gh-cli`: check 4 passes and `gh repo view <owner/repo>`
+     on the recorded repo succeeds.
    - **blocked** — a recorded identity this session cannot use. Name the reason and fix, one
      line: *not loaded but configured in `<file>`* → "restart or run `/mcp`"; *not configured
      anywhere here* → "registered at another scope or machine — re-add with `claude mcp add
      --scope user --transport http <name> <endpoint>`, or commit a project `.mcp.json`";
      *unauthenticated* → "run `/mcp` to authenticate" (or the harness-appropriate re-auth);
-     *diverged* (live candidates, none matching the recorded endpoint) → list them with
-     provenance and say re-confirmation happens at Step 1a. Never silently adopt or switch.
+     *wrong workspace* (a server with the recorded name is loaded and answers, but the identity
+     read does not return the recorded team/project/repo) → "`<name>` is loaded but serves
+     `<what it returned>`, not `<recorded>` — re-authenticate it (`/mcp`, or the harness
+     equivalent) or re-confirm at Step 1a"; *unverifiable* (no `board-url:` recorded and no
+     `board.md` to fall back on) → "identity cannot be proven — re-run Step 1a to record the
+     board URL"; *diverged* (live candidates, none matching the recorded endpoint) → list them
+     with provenance and say re-confirmation happens at Step 1a. Never silently adopt or switch.
 4. **gh CLI — GitHub-family boards only.** When the recorded surface is `gh-cli`, or the
    recorded or in-progress board URL is GitHub-hosted: `gh --version`, then `gh auth status`,
    then confirm scopes `repo`, `project`, `read:org`. Pointers per miss, matched to the user's
@@ -351,33 +372,48 @@ Insert a new item 2 (renumbering the rest):
    the step map. Soft misses annotate the step map below.
 ```
 
-### 5.3 Step 1a §2 hardening — explicit surface confirmation
+### 5.3 Step 1a §2 hardening — confirm on ambiguity, adopt a sole verified candidate
 
-Replace Step 1a's current item 2 ("Detect existing board surface. … Tell the user what you found
-and ask them to confirm or paste the canonical board URL … Then skip to step 5.") with:
+Reconciled by PR #80 per [jit-context](jit-context.md) (2026-08-26) and amended 2026-08-30
+(identity-bearing verification; `board-url:` recorded): an explicit pick fires on ambiguity —
+several candidates, or a sole candidate failing verification — while exactly one candidate that
+passes the identity read is adopted with a stated escape hatch. This replaces the original
+"never pre-select, even a single candidate" rule. Step 1a item 2 as shipped, verbatim from
+`.agents/commands/setup-awow.md`:
 
 ```markdown
-2. **Enumerate candidate surfaces — confirm one explicitly, adopt nothing silently.** Gather
+2. **Enumerate candidate surfaces — adopt a sole verified candidate with an escape hatch, ask on ambiguity.** Gather
    every candidate the preflight enumerated: MCP entries referencing a supported board tool in
    `.claude/settings.json`, `.claude/settings.local.json`, `.mcp.json`, `.vscode/mcp.json` (all
    relative to `<root>`), board MCP tools already loaded in your own tool surface, and — for GitHub-hosted boards — an
    authenticated `gh` CLI with `repo`, `project`, `read:org` scopes (the CLI alternative in
    `context/tooling/boards/github-issues/reference/mcp.md`).
 
-   Present the candidates as a numbered list, each as `<server-name> — <endpoint> (from
-   <provenance>)` (`gh` CLI listed as its own entry), and ask the user to pick one or answer
-   "none of these". Never default, never pre-select, never treat a single candidate as
-   confirmed without the user saying so. On a pick:
+   Exactly one candidate, and an identity-bearing read verifies it — the read returns the
+   board it serves (Linear: `list_teams`; Jira / Azure DevOps: the projects; GitHub: the repo),
+   never a bare "list anything" call — adopt it with the escape hatch rather than asking —
+   "I found `<server-name>` (`<endpoint>`) already wired; it serves `<workspace / team>` — I'll
+   use it unless you say otherwise." Silence means confirmed. More than one
+   candidate, or a sole candidate failing verification: present them as a numbered list, each
+   as `<server-name> — <endpoint> (from <provenance>)` (`gh` CLI listed as its own entry), and
+   ask the user to pick one or answer "none of these" — never pre-select among several. On an
+   adoption or a pick:
+   - State the canonical board URL — derived from the config, or from what the identity read
+     returned (workspace + team, project, or repo); ask for it only when it cannot be derived.
+     It pins the board's identity for every later preflight, and `board.md` and team-page links
+     need it.
    - Record the identity in `setup-progress.md`: `surface: mcp` plus
      `board-mcp: <server-name> <endpoint> (confirmed <YYYY-MM-DD>)` — or `surface: gh-cli` for
-     the CLI. Record the endpoint, never the provenance: which file supplies a server is
-     machine-local, and committing it would lie on every other machine.
-   - Ask for the canonical board URL (for `board.md` and team-page links later).
-   - Verify with a single read-only call. If verification cannot succeed in this session, add
-     `surface-verification: pending` to `setup-progress.md` and say so; a later session's
-     passing preflight read clears that line. Then skip to step 5.
+     the CLI — plus `board-url: <canonical board URL>`. Record the endpoint and the URL, never
+     the provenance: which file supplies a server is machine-local, and committing it would lie
+     on every other machine.
+   - Verify with a single identity-bearing read against that URL: the team key, project, or
+     repo it names must come back. If verification cannot succeed in this session — nothing
+     loaded, or the loaded server serves another workspace — add `surface-verification:
+     pending` to `setup-progress.md` and say so; a later session's passing preflight read
+     clears that line. Then skip to step 5.
 
-   On "none of these", continue to step 3.
+   On "none of these", or with no candidates at all, continue to step 3.
 ```
 
 ## 6. Tests
@@ -403,7 +439,7 @@ Appended to the suite's invariant numbering (1–14 exist):
 | 15 | Every invocation renders the preflight line before the step map; all seven checks are probed, applicable-only items rendered. |
 | 16 | A fatal preflight miss (git absent, workspace not a repo) stops the wizard before any step, with a fix-it pointer, and the wizard makes no change of any kind — no writes, no state-changing commands. |
 | 17 | A soft preflight miss gates only the steps that need the missing piece; the wizard proceeds to the next unaffected step. |
-| 18 | The board surface is never adopted silently: candidates are enumerated with provenance, one is confirmed explicitly by the user, only the identity (name + endpoint) is recorded, and verification failure is recorded as pending — never papered over. |
+| 18 | The board surface is never adopted silently: candidates are enumerated with provenance; a sole candidate is adopted only after an identity-bearing read and with a stated escape hatch, several always mean an explicit pick; only the identity (name + endpoint + board URL) is recorded, and verification failure — including a server that answers for the wrong workspace — is recorded as pending, never papered over. |
 
 Amendment: invariant 1 ("every invocation lists all steps with status markers") now reads "every
 invocation **that passes fatal preflight** …". Existing rubrics are unaffected — their scenarios
@@ -691,6 +727,25 @@ scripted replies. The wizard must stop at check 1 with a Linux-appropriate point
 nothing; grades invariants 15–16. This keeps the no-API-key execution model intact — the run
 still happens in the maintainer's session; only the probed environment is containerised.
 
+### 6.5 Identity-bearing verification (amendment, 2026-08-30)
+
+`tests/setup-awow/` is canonical for scenario definitions since PR #80 (its rubrics already
+diverged from §6.3 when the deferred-fills map landed). What this amendment changed there:
+
+- `preflight-board-blocked` — the fixture records
+  `board-url: https://linear.app/example-team/team/EX/all`; `pre()`/`post()` assert it and that no
+  `surface-verification:` line appears; rubric Q2/Q3/Q7 accept *wrong workspace* (a real
+  `linear-server` loaded on the runner's machine answers but has no team `EX`) alongside *not
+  loaded*, and allow the single identity read. Either environment yields *blocked* — the
+  scenario no longer depends on what the runner has loaded.
+- `preflight-ambient-unconfirmed` — `post()` asserts the recorded `board-url:`; rubric Q5/Q6
+  expect the pick verified against team `EX` and recorded as pending because no loaded server
+  can return it.
+- A sole-candidate wrong-workspace auto-adoption scenario is **not** added: on a machine with a
+  real Linear MCP loaded the fixture's lone candidate is never alone, so the scenario would be
+  machine-dependent by construction. Labelled coverage hole; the `preflight-board-blocked`
+  wrong-workspace branch is the witness for the identity read.
+
 ## 7. Acceptance criteria, restated testable
 
 1. **Preflight checks with pointers.** Every invocation probes P1–P7 (applicable-only) and
@@ -720,4 +775,6 @@ still happens in the maintainer's session; only the probed environment is contai
 | Visual Studio | Covered via its bridge chain — Copilot CLI on PATH, plugin in `~/.copilot/installed-plugins/`, fresh `.awow-bridge.json` — with the three-command onboarding as the pointer; activates when `visual-studio-channel` lands, explicit not-yet-shipped note until then (§2.5–2.7). |
 | VS command execution | VS runs no commands off the bat: every VS pointer names the Copilot CLI session as where to run it (no command surface in the IDE), and with VS as the current harness the preflight is file-reads-only with a CLI redirect — never a stream of approval prompts (§2.5, §5.1 preamble). |
 | Other commands | Out of scope; a future proposal may promote P3 into a shared skill (§1). |
+| Identity proof | Verification reads are identity-bearing: the read must return the team/project/repo the recorded `board-url:` names; a name match or a bare list call proves nothing (§3.2–3.3). Amended 2026-08-30 after a live wrong-workspace pass. |
+| Reconciliation with jit-context (PR #80) | A sole candidate that passes the identity read is adopted with a stated escape hatch; an explicit pick fires on ambiguity — several candidates, or a sole candidate failing verification (§5.3). |
 | Environment isolation | `env/<scenario>/Dockerfile` runner convention: command-directed Bash runs in a container, docker-missing composes `indeterminate (stage: env)`; `preflight-no-git` exercises P1 in a git-less container (§6.4). Added at implementation, 2026-08-25. |

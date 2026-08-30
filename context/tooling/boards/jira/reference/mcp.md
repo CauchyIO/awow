@@ -29,7 +29,7 @@ TODO (v0.2) — confirmed `.vscode/mcp.json` snippet. Likely shape:
 
 ## Verify
 
-1. List issues from a known project to verify read access.
+1. Resolve the project key from the board URL to verify read access *and identity* — a server that answers but lacks the project is wired to the wrong site.
 2. A no-op write on a scratch issue (set the description to its current value) to verify write access.
 3. Record the verification status in `context/tooling/board.md`.
 

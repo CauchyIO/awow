@@ -1,8 +1,8 @@
 # Proposal — preflight prerequisite check for `/setup-awow`
 
-**Status:** Accepted (2026-08-25). Spec derived:
-[setup-awow-preflight-design.md](setup-awow-preflight-design.md) — the full check matrix, both
-prompt edits verbatim, and complete test definitions. Implementation due.
+**Status:** Landed — built in PR #80 (2026-08-26), amended 2026-08-30 (identity-bearing
+verification). Spec: [setup-awow-preflight-design.md](setup-awow-preflight-design.md) — the check
+matrix, the prompt edits, and the test definitions (`tests/setup-awow/` canonical since PR #80).
 **Board item:** [CAU-1332 — add a prerequisite preflight to setup-awow](https://linear.app/cauchyio/issue/CAU-1332/add-a-prerequisite-preflight-to-setup-awow)
 **Scope:** `/setup-awow` verifies its prerequisites up front and tells the user how to fix what is
 missing, instead of failing midway or silently adopting whatever is configured. Explicit non-goals:
@@ -34,10 +34,13 @@ found — the right server on one machine, the wrong one on another.
    freshness). Each miss is reported with a pointer to the fix.
 2. **Explicit board-MCP confirmation.** The board surface is never inherited silently from
    ambient machine config. Candidates are enumerated with provenance (which config file or scope
-   supplies each server); the user picks one explicitly at Step 1a; only the identity (server
-   name + endpoint) is ever recorded — provenance is machine-local and stays unrecorded.
-   Divergence between the recorded identity and the live session triggers re-confirmation, never
-   a silent switch.
+   supplies each server); a sole candidate that passes an identity-bearing read is adopted with
+   a stated escape hatch, and any ambiguity — several candidates, or a sole one failing
+   verification — means the user picks explicitly at Step 1a (reconciled per
+   [jit-context](jit-context.md), PR #80); only the identity (server name + endpoint + board
+   URL) is ever recorded — provenance is machine-local and stays unrecorded. Divergence between
+   the recorded identity and the live session — including a server of the right name serving
+   the wrong workspace — triggers re-confirmation, never a silent switch.
 3. **Preflight makes no changes.** Read-only in full: no installs, no MCP registration, no
    `git init`, no file writes — state files included. The one confirmation write belongs to
    Step 1a's normal flow.
@@ -58,7 +61,7 @@ found — the right server on one machine, the wrong one on another.
   explicit not-yet-shipped note until then.
 - **Four-state board check** (spec §3): *n/a* (nothing to check — Step 1a wires it),
   *unconfirmed* (candidates exist, none in use until confirmed), *ok* (recorded identity live +
-  one read call succeeds), *blocked* (recorded identity unusable — reason and repair named, incl.
+  one identity-bearing read returns the recorded board), *blocked* (recorded identity unusable — reason and repair named, incl.
   the local-scope MCP gotcha from the incident).
 - **Zero-writes preflight**: the confirmation is asked and recorded only inside a hardened
   Step 1a §2 — enumerate, explicit pick, record `board-mcp: <name> <endpoint> (confirmed <date>)`
@@ -103,3 +106,10 @@ found — the right server on one machine, the wrong one on another.
   maintainer's request (spec §6.4) — a generic `env/<scenario>/Dockerfile` runner convention
   plus `preflight-no-git`, which exercises the P1 fatal path (git absent) inside a Docker
   container, the one environment no developer host can produce.
+- 2026-08-26 — reconciled and built (PR #80, jit-context): explicit pick only on ambiguity; a sole
+  verified candidate is adopted with an escape hatch.
+- 2026-08-30 — review: a live session showed the *ok* check passing on a `linear-server` logged
+  into a different workspace than the one `board.md` records — the loaded tool surface carries
+  server names, not endpoints. Verification made identity-bearing: Step 1a records `board-url:`,
+  every verification read must return the team/project/repo it names, and the two decoy scenarios
+  become deterministic whatever the runner's machine has loaded.

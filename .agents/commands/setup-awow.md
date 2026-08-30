@@ -65,16 +65,26 @@ the user to run `/setup-awow` in a Copilot CLI session for the full preflight.
    - **unconfirmed** — nothing recorded, candidates exist → list each as
      `<name> — <endpoint> (from <provenance>)`, say confirmation happens at Step 1a, and use
      none of them meanwhile.
-   - **ok** — a recorded `board-mcp:` identity matches a loaded server and one read-only call
-     (cheapest list call, e.g. a limit-1 issue list) succeeds; or `surface: gh-cli` and check 4
-     passes plus one `gh repo view` succeeds.
+   - **ok** — a recorded `board-mcp:` identity matches a loaded server *by name* and one
+     identity-bearing read succeeds. Loaded tools expose a server's name only — never its
+     endpoint, account, or workspace — so a name match proves nothing on its own; the read must
+     return the board the recorded `board-url:` names (else `board.md` §Tool & wiring): Linear —
+     `list_teams` contains the team key in the URL; Jira — the project key resolves; Azure
+     DevOps — the org/project resolves; GitHub — the repo resolves. A bare "list anything" call
+     is not verification. For `surface: gh-cli`: check 4 passes and `gh repo view <owner/repo>`
+     on the recorded repo succeeds.
    - **blocked** — a recorded identity this session cannot use. Name the reason and fix, one
      line: *not loaded but configured in `<file>`* → "restart or run `/mcp`"; *not configured
      anywhere here* → "registered at another scope or machine — re-add with `claude mcp add
      --scope user --transport http <name> <endpoint>`, or commit a project `.mcp.json`";
      *unauthenticated* → "run `/mcp` to authenticate" (or the harness-appropriate re-auth);
-     *diverged* (live candidates, none matching the recorded endpoint) → list them with
-     provenance and say re-confirmation happens at Step 1a. Never silently adopt or switch.
+     *wrong workspace* (a server with the recorded name is loaded and answers, but the identity
+     read does not return the recorded team/project/repo) → "`<name>` is loaded but serves
+     `<what it returned>`, not `<recorded>` — re-authenticate it (`/mcp`, or the harness
+     equivalent) or re-confirm at Step 1a"; *unverifiable* (no `board-url:` recorded and no
+     `board.md` to fall back on) → "identity cannot be proven — re-run Step 1a to record the
+     board URL"; *diverged* (live candidates, none matching the recorded endpoint) → list them
+     with provenance and say re-confirmation happens at Step 1a. Never silently adopt or switch.
 4. **gh CLI — GitHub-family boards only.** When the recorded surface is `gh-cli`, or the
    recorded or in-progress board URL is GitHub-hosted: `gh --version`, then `gh auth status`,
    then confirm scopes `repo`, `project`, `read:org`. Pointers per miss, matched to the user's
@@ -254,22 +264,29 @@ Step 1 has two parts. Step 1a wires up the read/write surface (an MCP or, for Gi
    authenticated `gh` CLI with `repo`, `project`, `read:org` scopes (the CLI alternative in
    `context/tooling/boards/github-issues/reference/mcp.md`).
 
-   Exactly one candidate, and a single read-only call verifies it: adopt it with the escape
-   hatch rather than asking — "I found `<server-name>` (`<endpoint>`) already wired and
-   verified — I'll use it unless you say otherwise." Silence means confirmed. More than one
+   Exactly one candidate, and an identity-bearing read verifies it — the read returns the
+   board it serves (Linear: `list_teams`; Jira / Azure DevOps: the projects; GitHub: the repo),
+   never a bare "list anything" call — adopt it with the escape hatch rather than asking —
+   "I found `<server-name>` (`<endpoint>`) already wired; it serves `<workspace / team>` — I'll
+   use it unless you say otherwise." Silence means confirmed. More than one
    candidate, or a sole candidate failing verification: present them as a numbered list, each
    as `<server-name> — <endpoint> (from <provenance>)` (`gh` CLI listed as its own entry), and
    ask the user to pick one or answer "none of these" — never pre-select among several. On an
    adoption or a pick:
+   - State the canonical board URL — derived from the config, or from what the identity read
+     returned (workspace + team, project, or repo); ask for it only when it cannot be derived.
+     It pins the board's identity for every later preflight, and `board.md` and team-page links
+     need it.
    - Record the identity in `setup-progress.md`: `surface: mcp` plus
      `board-mcp: <server-name> <endpoint> (confirmed <YYYY-MM-DD>)` — or `surface: gh-cli` for
-     the CLI. Record the endpoint, never the provenance: which file supplies a server is
-     machine-local, and committing it would lie on every other machine.
-   - State the canonical board URL derived from the config; ask for it only when it cannot be
-     derived (it is needed for `board.md` and later team-page links).
-   - Verify with a single read-only call. If verification cannot succeed in this session, add
-     `surface-verification: pending` to `setup-progress.md` and say so; a later session's
-     passing preflight read clears that line. Then skip to step 5.
+     the CLI — plus `board-url: <canonical board URL>`. Record the endpoint and the URL, never
+     the provenance: which file supplies a server is machine-local, and committing it would lie
+     on every other machine.
+   - Verify with a single identity-bearing read against that URL: the team key, project, or
+     repo it names must come back. If verification cannot succeed in this session — nothing
+     loaded, or the loaded server serves another workspace — add `surface-verification:
+     pending` to `setup-progress.md` and say so; a later session's passing preflight read
+     clears that line. Then skip to step 5.
 
    On "none of these", or with no candidates at all, continue to step 3.
 
@@ -285,7 +302,7 @@ Step 1 has two parts. Step 1a wires up the read/write surface (an MCP or, for Gi
    - Surface the **Source docs** URL first and tell the user it is authoritative: the snippet in the reference is a summary and may have drifted from upstream.
    - For GitHub, pick by observation instead of asking: `gh` already authenticated with the right scopes → default to the `gh` CLI (reuses existing auth); otherwise default to the MCP (full-feature, PAT-managed). State the choice in one line and name the alternative as the escape hatch. Record it as `surface: mcp` or `surface: gh-cli`.
    - Print the exact install command (or JSON snippet) for the user to run / paste. Configure it using the workspace / team identifier extracted from the URL where applicable.
-   - Verify read access with a single call.
+   - Verify read access with a single identity-bearing read: it must return the team, project, or repo the board URL names, not merely answer.
    - Verify write access with a **no-op** write against a scratch issue (set the description to its current value, or re-add an existing label). If write access is not granted yet, surface that as a blocker — the agent cannot do its job read-only.
    - If the user cannot complete the install in this session (token in another browser, IT ticket, etc.), record the surface as `pending` in `setup-progress.md` and continue with Step 1b so the repo is at least partially usable; mark configuration items that depend on write access as `pending-write`.
 

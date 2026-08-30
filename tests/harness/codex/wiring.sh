@@ -23,7 +23,7 @@ wiring() {
   file-exists "$r/dist/agent-skills/setup-awow/SKILL.md"
   file-exists "$r/dist/agent-skills/daily-digest/SKILL.md"
 
-  # The spoke registration flow must reach the commands-as-skills render.
+  # The anchored-repo registration flow must reach the commands-as-skills render.
   file-contains "$r/dist/agent-skills/setup-awow/SKILL.md" 'Anchored track'
 
   # Version lockstep: the codex manifest is derived from the one canonical plugin

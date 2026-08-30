@@ -15,7 +15,7 @@ import json
 skills = json.load(open('$p')).get('pi', {}).get('skills', [])
 raise SystemExit(0 if './agent-skills' in skills else 1)"
 
-  # The commands-as-skills surface pi.skills points at, carrying the spoke
+  # The commands-as-skills surface pi.skills points at, carrying the anchored-repo
   # registration flow.
   file-exists "$r/dist/agent-skills/setup-awow/SKILL.md"
   file-contains "$r/dist/agent-skills/setup-awow/SKILL.md" 'Anchored track'

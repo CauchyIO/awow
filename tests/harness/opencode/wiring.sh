@@ -8,7 +8,7 @@ wiring() {
 
   # No in-repo command stubs (AWO-257): opencode reaches awow's flows through
   # the plugin's commands-as-skills surface, the same way an adopter does. The
-  # spoke registration flow must still be reachable from this harness.
+  # anchored-repo registration flow must still be reachable from this harness.
   dir-absent "$r/.opencode/commands"
   file-contains "$r/dist/agent-skills/setup-awow/SKILL.md" 'Anchored track'
 

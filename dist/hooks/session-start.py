@@ -4,11 +4,16 @@
 Injects the `using-awow` operating reflex into every session, tiered by what
 the current repo actually is:
 
-  vendored install  -> full reflex (plus engine nudge when no build engine)
-  connected spoke   -> reflex + resolved {ANCHOR} pointer
-  unmapped spoke    -> reflex + one-time map-the-hub prompt
-  drifted spoke     -> reflex + update-the-link prompt (loud stop headless)
-  plain repo        -> reflex + one-time /setup-awow nudge
+  vendored install      -> full reflex (plus engine nudge when no build engine)
+  connected anchored repo -> reflex + resolved {ANCHOR} pointer
+  unmapped anchored repo  -> reflex + one-time map-the-anchor prompt
+  drifted anchored repo   -> reflex + update-the-link prompt (loud stop headless)
+  plain repo            -> reflex + one-time /setup-awow nudge
+
+The anchor forms (anchor:, $AWOW_ANCHOR, .awow/anchor.json) are preferred; the
+pre-rename spoke forms (hub:, $AWOW_HUB, .awow/hub.json) are silently
+dual-accepted on every read. New writes the messages instruct always use the
+anchor forms.
 
 Invoked through the `session-start` bash shim (same pattern as
 lifecycle-seam-check); run-hook.cmd bridges Windows to that shim. Decision
@@ -39,39 +44,40 @@ PREAMBLE = (
     "command or skill, use the 'Skill' tool or the slash command.**"
 )
 
-SPOKE_CONNECTED = (
-    "<important-reminder>This repo is the awow spoke \"{project}\" of hub "
-    "{hub}. {{ANCHOR}} resolves to: {path} — read the team's shared context, board "
-    "config, and conventions from that root. {{PROJECT}} is this repo. Do not "
-    "re-derive the hub location or scan for other candidates.</important-reminder>"
+ANCHORED_CONNECTED = (
+    "<important-reminder>This repo is the awow project \"{project}\", anchored "
+    "to {anchor}. {{ANCHOR}} resolves to: {path} — read the team's shared "
+    "context, board config, and conventions from that root. {{PROJECT}} is this "
+    "repo. Do not re-derive the anchor location or scan for other "
+    "candidates.</important-reminder>"
 )
 
-SPOKE_UNMAPPED = (
-    "<important-reminder>This repo is an awow spoke of hub {hub}, but the hub "
-    "is not mapped on this machine: no .awow/hub.json and no $AWOW_HUB. IN YOUR "
-    "FIRST REPLY, ask the user where their local clone of {hub} lives (offer to "
-    "clone it if they have none), verify that clone's git origin matches the "
-    "remote, then write .awow/hub.json as {{\"remote\": \"{hub}\", \"path\": "
-    "\"<absolute path>\"}}. Never scan for or guess a location. In a headless "
-    "run, stop loudly naming this missing link — do not improvise "
-    "conventions.</important-reminder>"
+ANCHORED_UNMAPPED = (
+    "<important-reminder>This repo is anchored to {anchor}, but the anchor is "
+    "not mapped on this machine: no .awow/anchor.json and no $AWOW_ANCHOR. IN "
+    "YOUR FIRST REPLY, ask the user where their local clone of {anchor} lives "
+    "(offer to clone it if they have none), verify that clone's git origin "
+    "matches the remote, then write .awow/anchor.json as {{\"remote\": "
+    "\"{anchor}\", \"path\": \"<absolute path>\"}}. Never scan for or guess a "
+    "location. In a headless run, stop loudly naming this missing link — do "
+    "not improvise conventions.</important-reminder>"
 )
 
-SPOKE_DRIFTED = (
-    "<important-reminder>This repo is an awow spoke of hub {hub}, but the local "
-    "hub link is out of sync: the recorded clone at {path} is missing, moved, "
-    "or its git origin no longer matches {hub}. IN YOUR FIRST REPLY, prompt the "
-    "user to update the link — confirm where the hub clone lives now, verify "
-    "its origin against the remote, and rewrite .awow/hub.json. Never silently "
-    "re-scan or fall back to another location. In a headless run, stop loudly "
-    "instead.</important-reminder>"
+ANCHORED_DRIFTED = (
+    "<important-reminder>This repo is anchored to {anchor}, but the local "
+    "anchor link is out of sync: the recorded clone at {path} is missing, "
+    "moved, or its git origin no longer matches {anchor}. IN YOUR FIRST REPLY, "
+    "prompt the user to update the link — confirm where the anchor clone lives "
+    "now, verify its origin against the remote, and rewrite .awow/anchor.json. "
+    "Never silently re-scan or fall back to another location. In a headless "
+    "run, stop loudly instead.</important-reminder>"
 )
 
 SETUP_NUDGE = (
     "<important-reminder>This repo has the awow plugin enabled but has not "
     "adopted awow yet (no .agents/AGENTS.md). IN YOUR FIRST REPLY, offer once "
     "to run /setup-awow to bring the board-linked way of working into this repo "
-    "— standalone, or connected as a spoke of an existing team hub. If the user "
+    "— standalone, or anchored to an existing team's anchor. If the user "
     "declines, create an empty file at .awow/no-setup-prompt so this nudge "
     "stops, and do not ask again this session.</important-reminder>"
 )
@@ -152,10 +158,21 @@ def normalize_remote(url):
     return r.lower()
 
 
-def read_hub_link(link_file):
-    """(remote, path) from .awow/hub.json; ("", "") when absent or unreadable.
-    An unreadable link is logged and then treated as unmapped — the repair
-    prompt tells the user to rewrite it."""
+def anchor_link_file(repo_dir):
+    """The machine-local link file: .awow/anchor.json, else the pre-rename
+    .awow/hub.json. An anchor.json that exists always wins — even an
+    unreadable one is the explicit signal (logged, treated as unmapped by the
+    reader below), never silently skipped for the legacy file."""
+    preferred = os.path.join(repo_dir, ".awow", "anchor.json")
+    if os.path.exists(preferred):
+        return preferred
+    return os.path.join(repo_dir, ".awow", "hub.json")
+
+
+def read_anchor_link(link_file):
+    """(remote, path) from the anchor link file; ("", "") when absent or
+    unreadable. An unreadable link is logged and then treated as unmapped —
+    the repair prompt tells the user to rewrite it."""
     try:
         with open(link_file, encoding="utf-8") as f:
             data = json.load(f)
@@ -181,38 +198,41 @@ def clone_origin(path):
     return p.stdout.strip() if p.returncode == 0 else ""
 
 
-def spoke_context(repo_dir):
-    """Tier message for a spoke repo, or None when this repo is not a spoke.
+def anchored_context(repo_dir):
+    """Tier message for an anchored repo, or None when this repo is not one.
 
-    A connected spoke commits its identity in root AGENTS.md frontmatter
-    (awow: spoke / hub: <git remote URL> / project: <name>). Detection keys on
-    the `hub:` key, never on file presence — many repos carry a plain
-    AGENTS.md that has nothing to do with awow. The hub's local path is
-    machine-local state, resolved once at registration and read from the
-    gitignored .awow/hub.json ($AWOW_HUB overrides)."""
+    An anchored repo commits its identity in root AGENTS.md frontmatter
+    (awow: anchored / anchor: <git remote URL> / project: <name>); the
+    pre-rename spoke forms (awow: spoke / hub:) are dual-accepted, silently.
+    Detection keys on the `anchor:` (else `hub:`) key, never on file presence
+    — many repos carry a plain AGENTS.md that has nothing to do with awow.
+    The anchor's local path is machine-local state, resolved once at
+    registration and read from the gitignored .awow/anchor.json, else the
+    pre-rename .awow/hub.json ($AWOW_ANCHOR overrides, else $AWOW_HUB)."""
     if os.path.isfile(os.path.join(repo_dir, ".agents", "AGENTS.md")):
         return None
     connector = os.path.join(repo_dir, "AGENTS.md")
-    hub = frontmatter_value(connector, "hub")
-    if not hub:
+    anchor = (frontmatter_value(connector, "anchor")
+              or frontmatter_value(connector, "hub"))
+    if not anchor:
         return None
 
     project = frontmatter_value(connector, "project") or os.path.basename(repo_dir)
-    want = normalize_remote(hub)
+    want = normalize_remote(anchor)
 
     recorded_remote = ""
-    candidate = os.environ.get("AWOW_HUB", "")
+    candidate = (os.environ.get("AWOW_ANCHOR", "")
+                 or os.environ.get("AWOW_HUB", ""))
     if not candidate:
-        recorded_remote, candidate = read_hub_link(
-            os.path.join(repo_dir, ".awow", "hub.json"))
+        recorded_remote, candidate = read_anchor_link(anchor_link_file(repo_dir))
     if not candidate:
-        return SPOKE_UNMAPPED.format(hub=hub)
+        return ANCHORED_UNMAPPED.format(anchor=anchor)
 
     origin_matches = normalize_remote(clone_origin(candidate)) == want
     record_matches = not recorded_remote or normalize_remote(recorded_remote) == want
     if origin_matches and record_matches:
-        return SPOKE_CONNECTED.format(project=project, hub=hub, path=candidate)
-    return SPOKE_DRIFTED.format(hub=hub, path=candidate)
+        return ANCHORED_CONNECTED.format(project=project, anchor=anchor, path=candidate)
+    return ANCHORED_DRIFTED.format(anchor=anchor, path=candidate)
 
 
 def read_json_file(path):
@@ -330,13 +350,14 @@ def engine_installed(repo_dir):
 
 def build_context(plugin_root, repo_dir):
     adopted = os.path.isfile(os.path.join(repo_dir, ".agents", "AGENTS.md"))
-    spoke = spoke_context(repo_dir)
+    anchored = anchored_context(repo_dir)
 
     sections = [PREAMBLE, read_bootstrap(plugin_root)]
-    if spoke is not None:
-        sections.append(spoke)
-    # One-time setup nudge: only a repo that is neither vendored nor a spoke,
-    # and has not opted out. A connectable spoke gets its tier message instead.
+    if anchored is not None:
+        sections.append(anchored)
+    # One-time setup nudge: only a repo that is neither vendored nor anchored,
+    # and has not opted out. A connectable anchored repo gets its tier message
+    # instead.
     elif not adopted and not os.path.isfile(
             os.path.join(repo_dir, ".awow", "no-setup-prompt")):
         sections.append(SETUP_NUDGE)

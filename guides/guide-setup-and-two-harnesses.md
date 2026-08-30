@@ -65,8 +65,8 @@ The wizard first decides what kind of repo it is in:
 
 | Detected | Meaning |
 | --- | --- |
-| Root `AGENTS.md` frontmatter carries a `hub:` key | A **spoke** — a repo attached to a central team repo (its *hub*). The wizard's Spoke track finishes or repairs that link. |
-| Plugin install, no awow files yet | Asks once: standalone, or a spoke of an existing team hub? Records `install-shape` in `setup-progress.md`. Standalone has nothing to install: the step is `n/a`. |
+| Root `AGENTS.md` frontmatter carries an `anchor:` key (`hub:` pre-rename) | An **anchored repo** — one attached to a central team repo (its *anchor*). The wizard's Anchored track finishes or repairs that link. |
+| Plugin install, no awow files yet | Asks once: standalone, or anchored to an existing team anchor? Records `install-shape` in `setup-progress.md`. Standalone has nothing to install: the step is `n/a`. |
 | `.agents/AGENTS.md` and `setup/install.sh` present | A **legacy vendored tree** — the installer path still applies there, and only there. |
 
 The wizard won't copy awow's files into your repo, and won't run an installer against it.
@@ -142,7 +142,7 @@ lives in `.claude/commands/` rather than the payload.
 
 ## Sources of truth
 
-- [`.agents/commands/setup-awow.md`](../.agents/commands/setup-awow.md) — the wizard spec, Steps 0–9 and the Spoke track
+- [`.agents/commands/setup-awow.md`](../.agents/commands/setup-awow.md) — the wizard spec, Steps 0–9 and the Anchored track
 - [`README.md`](../README.md) — "Install", "Developing awow"
 - [`.agents/AGENTS.md`](../.agents/AGENTS.md) — the canonical rule set and the path tokens
 - [`tools/gather.py`](../tools/gather.py) — the payload build and `--check` drift gate

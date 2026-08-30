@@ -16,7 +16,7 @@ A `.opencode/` directory or an `opencode.json` at the repo root, or the user exp
 
 ## How `.agents/` reaches opencode
 
-- Repo-root `AGENTS.md` — hand-authored (in the awow repo it points at `.agents/AGENTS.md`; an adopter's is its own bootstrapped file or spoke connector). This steers opencode today; no install required.
+- Repo-root `AGENTS.md` — hand-authored (in the awow repo it points at `.agents/AGENTS.md`; an adopter's is its own bootstrapped file or anchored-repo connector). This steers opencode today; no install required.
 - Every command and skill → the plugin's `agent-skills/` surface, registered at runtime by the plugin's `config` hook (see Plugin notes). In the awow repo the directory-shaped skills under `.agents/skills/` are also discovered in place.
 
 The single source of truth is `.agents/`. Edits to the generated payload are overwritten on the next `gather.py` run.

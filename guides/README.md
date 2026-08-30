@@ -33,7 +33,7 @@ it first.
 2. **Run `/setup-awow`.** A handful of questions and one review: it wires your board
    (Linear, Jira, Azure DevOps, GitHub Issues), drafts a team profile from what it can
    observe in your board and repo, and writes both into `context/`. Works solo or for a
-   team, standalone or attached to a shared team repo (a *hub*).
+   team, standalone or attached to a shared team repo (an *anchor*).
 3. **Work the loop.** `/my-work` for what needs you, `/refinement-prep` before the session,
    `/process-workitem` from ticket to PR, `/daily-checkin` to cap the day.
 4. **Grow when it earns its place.** Digests, design systems, transcript processing,
@@ -68,7 +68,7 @@ each guide covers.
 | [The core delivery loop](guide-core-delivery-loop.md) | `/refinement-prep` drafts a right-sized story, `/process-workitem` walks one from board to PR, `/daily-checkin` caps the day — all on the same check-the-board-first, propose-then-approve pattern. |
 | [Setup & the plugin model](guide-setup-and-two-harnesses.md) | The resumable `/setup-awow` wizard — only Steps 0 and 1 required — and how one `.agents/` source becomes the plugin package every agent product installs. |
 | [Board & MCP integration](guide-board-and-mcp.md) | How a board URL becomes the one file the agent reads, and how an approved MCP gets wired into both harnesses. |
-| [Canonical knowledge sources](guide-canonical-knowledge-sources.md) | Routing from the hub's context to authoritative repositories, SharePoint, and vector-backed sources without copying their contents. |
+| [Canonical knowledge sources](guide-canonical-knowledge-sources.md) | Routing from the anchor's context to authoritative repositories, SharePoint, and vector-backed sources without copying their contents. |
 | [Updating awow](guide-update-and-versioning.md) | Plugin updates replace the plugin's files wholesale; `/migrate-to-plugin` cleans up an older copied-in install once, edits preserved, parity proven. |
 | [Transcript router](guide-transcript-router.md) | One entry point reads the transcript, recommends a specialist, and pauses for approval before anything reaches the board. |
 | [Solution design collaboration](guide-solution-design-collaboration.md) | The three things a recorded decision needs — a place, a lifecycle, and a feedback channel that doesn't drift into chat. |

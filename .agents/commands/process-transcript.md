@@ -295,7 +295,7 @@ ESCALATE [blocker]
 
 **Knowledge-base promotions** (durable content extracted from the meeting):
 
-Before proposing a destination, invoke `knowledge-source-routing` and load its catalog. Keep externally canonical knowledge as a reference rather than copying it into the HUB.
+Before proposing a destination, invoke `knowledge-source-routing` and load its catalog. Keep externally canonical knowledge as a reference rather than copying it into the ANCHOR.
 
 ```
 KB:decisions  Write {ANCHOR}/context/knowledge-base/decisions/<x>.md: [decision + rationale]

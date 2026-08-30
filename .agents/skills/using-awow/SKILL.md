@@ -21,7 +21,7 @@ The board is the single source of truth for planning, and awow exists to keep it
 
 ## Paths
 
-`{{ANCHOR}}` is the team context root, `{{PROJECT}}` this project's; both resolve to the repo root here. In a spoke (root `AGENTS.md` frontmatter with a `hub:` key), resolve `{{ANCHOR}}` as `$AWOW_HUB`, else the path recorded in the gitignored `.awow/hub.json` after its origin check — a missing or drifted link is a prompt to (re)map interactively and a loud stop headless, never a scan. Machinery reads `{{ANCHOR}}` first, then `{{AWOW_ROOT}}` (its scripts at `{{AWOW_TOOLS}}`). Unresolvable `{{ANCHOR}}`? Stop and say so. Several candidate installations or boards? Resolve per §Context resolution in AGENTS.md — never guess across a repo boundary.
+`{{ANCHOR}}` is the team context root, `{{PROJECT}}` this project's; both resolve to the repo root here. In an anchored repo (root `AGENTS.md` frontmatter with an `anchor:` key; `hub:` pre-rename), resolve `{{ANCHOR}}` as `$AWOW_ANCHOR`, else the path recorded in the gitignored `.awow/anchor.json` after its origin check (the pre-rename `$AWOW_HUB` and `.awow/hub.json` are still honoured) — a missing or drifted link is a prompt to (re)map interactively and a loud stop headless, never a scan. Machinery reads `{{ANCHOR}}` first, then `{{AWOW_ROOT}}` (its scripts at `{{AWOW_TOOLS}}`). Unresolvable `{{ANCHOR}}`? Stop and say so. Several candidate installations or boards? Resolve per §Context resolution in AGENTS.md — never guess across a repo boundary.
 
 ## Board first
 
@@ -33,11 +33,11 @@ Before work with a discernible outcome, read `{ANCHOR}/context/tooling/board.md`
 
 ## Route canonical knowledge
 
-When a task reads HUB context or may create durable HUB knowledge, check
+When a task reads ANCHOR context or may create durable ANCHOR knowledge, check
 `{ANCHOR}/context/knowledge-sources/index.md`. If it exists, use the
 `knowledge-source-routing` skill. The catalog contains semantic routes and canonical URIs, never
-mirrored content or machine-local paths. No match is ordinary HUB-only behavior; an external
-match is read-only and must be referenced rather than copied into the HUB.
+mirrored content or machine-local paths. No match is ordinary ANCHOR-only behavior; an external
+match is read-only and must be referenced rather than copied into the ANCHOR.
 
 ## Route to the moment
 

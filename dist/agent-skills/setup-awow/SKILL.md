@@ -20,7 +20,7 @@ If `--root <path>` is given and `<path>/` does not exist, refuse and tell the us
 1. Read `setup-progress.md`.
 2. Run the **Preflight** (next section). A fatal miss stops here — print the pointer instead of
    the step map. Soft misses annotate the step map below.
-3. **Lay out the plan to the user before doing anything else.** The map has two parts. First the required core — Step 0 (installer), Step 1 (board), and, for a spoke, registration — each marked ✓ complete, ⧗ deferred/pending, or ☐ untouched, naming the step you are about to resume. Then one compact line for the deferred fills (profile, conventions, members + style, KB seed, neighbouring teams, extras — §Deferred fills), with a ✓ per fill already landed. Never walk a deferred fill proactively. Keep the whole map compact when the user chose the workshop route.
+3. **Lay out the plan to the user before doing anything else.** The map has two parts. First the required core — Step 0 (installer), Step 1 (board), and, for an anchored repo, registration — each marked ✓ complete, ⧗ deferred/pending, or ☐ untouched, naming the step you are about to resume. Then one compact line for the deferred fills (profile, conventions, members + style, KB seed, neighbouring teams, extras — §Deferred fills), with a ✓ per fill already landed. Never walk a deferred fill proactively. Keep the whole map compact when the user chose the workshop route.
 4. On first entry, offer the workshop and guided routes described below. Walk through the steps in order until Step 0 and Step 1 are both complete on the guided route. On the workshop route, prepare or process the workshop first, then return to uncovered steps and technical wiring.
 5. Write every artefact to `proposals/setup/<step>/` first. Land it (move to its final location) only after the user approves.
 6. Update `setup-progress.md` when a step completes.
@@ -117,25 +117,25 @@ soft: continue, but annotate board-dependent work — Step 1b's issue count and 
 observe mode, every board write — as `⧗ blocked: <reason>` in the step map, and steer to the
 next step that does not need the missing piece. Checks 6–7 are informational only.
 
-## Install shape — standalone or spoke
+## Install shape — standalone or anchored
 
 Classify the install shape before Step 0, once per repo:
 
 - A vendored tree (`.agents/AGENTS.md`) or a recorded `install-shape:` in `setup-progress.md` settles it; do not re-ask.
-- A root `AGENTS.md` whose frontmatter carries a `hub:` key marks this repo as a spoke; go to the Spoke track to complete or repair its registration.
-- Otherwise, when you run from a plugin install in a repo with no awow files, ask once — and explain the choice inside the ask, in adopter language: "Is this repo joining a team that already runs awow from a shared repo (a 'hub')? If yes, I'll link this repo to it as a spoke — you'll need the hub's git URL. If no, or you're not sure, I'll set this repo up on its own; you can join a hub later." A hub must already exist for spoke to be a valid answer; "not sure" means standalone. Record the answer as `install-shape: standalone | spoke` in `setup-progress.md`; standalone continues with the steps below, spoke continues with the Spoke track.
+- A root `AGENTS.md` whose frontmatter carries an `anchor:` key (`hub:` pre-rename) marks this repo as anchored; go to the Anchored track to complete or repair its registration.
+- Otherwise, when you run from a plugin install in a repo with no awow files, ask once — and explain the choice inside the ask, in adopter language: "Is this repo joining a team that already runs awow from a shared repo (an 'anchor')? If yes, I'll anchor this repo to it — you'll need the anchor's git URL. If no, or you're not sure, I'll set this repo up on its own; you can anchor it later." An anchor must already exist for anchored to be a valid answer; "not sure" means standalone. Record the answer as `install-shape: standalone | anchored` in `setup-progress.md`; standalone continues with the steps below, anchored continues with the Anchored track.
 
-## Spoke track — register this repo against a hub
+## Anchored track — register this repo against an anchor
 
-A spoke commits its hub's identity (git remote URL), never a path. Walk these five steps in order; every repo write follows draft → approval → land.
+An anchored repo commits its anchor's identity (git remote URL), never a path. Walk these five steps in order; every repo write follows draft → approval → land.
 
-1. **Identify the hub.** Ask for the hub's git remote URL and this repo's project name (default: the repo directory name). Never infer the hub from sibling directories without the user confirming.
-2. **Resolve the hub locally.** Offer an accessible checkout whose normalized `origin` — host + owner/repo, ignoring scheme, credentials, an optional `.git` suffix, and a trailing slash — equals the hub remote; else ask for a path or offer to clone. A checkout whose `origin` does not match is a stop, not a warning.
-3. **Write the machine link.** Write `.awow/hub.json` as `{"remote": "<hub remote URL>", "path": "<absolute path to the clone>"}` and ensure `.gitignore` covers `.awow/`. This link is machine-local state: never commit it and never record the path in any committed file.
-4. **Draft the spoke PR** in this repo: root `AGENTS.md` with connector frontmatter (`awow: spoke`, `hub: <remote URL>`, `project: <name>`) and a short body pointing collaborators at the hub; `.claude/settings.json` enabling the awow plugin at project scope; `context/mission.md` (a project-level profile: what this repo is and its stack, same shape as the hub's team profile); `context/board-scope.md` with frontmatter `board:` (the hub's index name for it), `team:` (the board team items land on), optional `project:` and `subpath:` — ask which of the hub's boards this repo maps to, and with a single-board hub offer to skip the file; `context/do-not-propose.md` when the user wants one; the `.awow/` gitignore entry. Open the PR only after approval.
-5. **Draft the hub PR** in the hub checkout: a knowledge-source record for this repo per `{ANCHOR}/context/tooling/knowledge-sources.md` — routing profile plus `spoke:` block — and its `index.md` line. Open it only after approval; when the user lacks hub PR rights, leave the drafted record under this repo's `proposals/` with a handoff note naming who can land it.
+1. **Identify the anchor.** Ask for the anchor's git remote URL and this repo's project name (default: the repo directory name). Never infer the anchor from sibling directories without the user confirming.
+2. **Resolve the anchor locally.** Offer an accessible checkout whose normalized `origin` — host + owner/repo, ignoring scheme, credentials, an optional `.git` suffix, and a trailing slash — equals the anchor remote; else ask for a path or offer to clone. A checkout whose `origin` does not match is a stop, not a warning.
+3. **Write the machine link.** Write `.awow/anchor.json` as `{"remote": "<anchor remote URL>", "path": "<absolute path to the clone>"}` and ensure `.gitignore` covers `.awow/`. This link is machine-local state: never commit it and never record the path in any committed file.
+4. **Draft the anchored-repo PR** in this repo: root `AGENTS.md` with connector frontmatter (`awow: anchored`, `anchor: <remote URL>`, `project: <name>`) and a short body pointing collaborators at the anchor; `.claude/settings.json` enabling the awow plugin at project scope; `context/mission.md` (a project-level profile: what this repo is and its stack, same shape as the anchor's team profile); `context/board-scope.md` with frontmatter `board:` (the anchor's index name for it), `team:` (the board team items land on), optional `project:` and `subpath:` — ask which of the anchor's boards this repo maps to, and with a single-board anchor offer to skip the file; `context/do-not-propose.md` when the user wants one; the `.awow/` gitignore entry. Open the PR only after approval.
+5. **Draft the anchor PR** in the anchor checkout: a knowledge-source record for this repo per `{ANCHOR}/context/tooling/knowledge-sources.md` — routing profile plus `anchored:` block — and its `index.md` line. Open it only after approval; when the user lacks anchor PR rights, leave the drafted record under this repo's `proposals/` with a handoff note naming who can land it.
 
-Verify by reporting what a fresh session will see: the connected-spoke reflex with `{ANCHOR}` resolved to the recorded path. Tell the user registration completes when both PRs merge; neither blocks the other, and teammates need only clone the spoke and answer the one-time map-the-hub prompt.
+Verify by reporting what a fresh session will see: the connected-anchored reflex with `{ANCHOR}` resolved to the recorded path. Tell the user registration completes when both PRs merge; neither blocks the other, and teammates need only clone the repo and answer the one-time map-the-anchor prompt.
 
 ## Orientation — track, hat, and what this repo serves
 

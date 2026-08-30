@@ -1,20 +1,20 @@
 # Canonical knowledge sources
 
 Route from shared team context to authoritative knowledge without copying that knowledge into
-the hub (this repo, which holds your team's shared context).
+the anchor (this repo, which holds your team's shared context).
 
-> **TL;DR** The hub keeps a small catalog of source records (OKF — open knowledge-source
+> **TL;DR** The anchor keeps a small catalog of source records (OKF — open knowledge-source
 > format): source descriptions, routing signals, canonical URIs, and access capabilities. The
 > agent picks the source that matches the question, works out how to reach it for this session,
 > and reads it where it lives. External knowledge stays read-only and is referenced, never
-> copied into the hub.
+> copied into the anchor.
 
 ## The boundary
 
 | Location | Owns | Never owns |
 |---|---|---|
-| Hub `context/` | Team policy, local durable knowledge, canonical-source catalog | Copies of content from spoke repos, SharePoint, or search indexes |
-| External source | Its own documents and history | Hub-specific team context |
+| Anchor `context/` | Team policy, local durable knowledge, canonical-source catalog | Copies of content from anchored repos, SharePoint, or search indexes |
+| External source | Its own documents and history | Anchor-specific team context |
 | Agent session | What it fetched this session, plus any local clone it happened to find | A saved list of paths, or a synced copy |
 
 The catalog just points at sources; it doesn't merge or serve their content. A repository
@@ -36,22 +36,22 @@ neither exists.
 
 | Situation | What the agent does |
 |---|---|
-| No catalog, empty catalog, or no credible match | Falls back to hub context only. |
+| No catalog, empty catalog, or no credible match | Falls back to anchor context only. |
 | One credible match | Resolves and reads the canonical source for this session. |
 | Several credible matches | Lists the candidates and asks rather than guessing. |
 | Matching local checkout | Checks the clone's git remote matches the record before searching it. Uses it for this session only; doesn't remember the path. |
 | No local checkout | Uses the declared native read capability when available. |
-| No usable capability | Names the source and URI, explains the missing access, and continues hub-only where possible. |
+| No usable capability | Names the source and URI, explains the missing access, and continues anchor-only where possible. |
 | OKF source | Starts at the source's declared index and opens further documents only as needed. |
 | SharePoint source | Searches and reads through the SharePoint capability. |
 | Vector-backed source | Retrieves through the named capability and preserves underlying document provenance. |
 
-Routing never writes to an external source, clones it into the hub, or caches it locally.
+Routing never writes to an external source, clones it into the anchor, or caches it locally.
 
 ## Reference before capture
 
-Before durable knowledge enters the hub, decide where it is authoritative. Material whose
-authoritative home is the hub goes through the usual propose-then-approve step (see the
+Before durable knowledge enters the anchor, decide where it is authoritative. Material whose
+authoritative home is the anchor goes through the usual propose-then-approve step (see the
 [core delivery loop](guide-core-delivery-loop.md)). External-canonical material produces a
 concise reference to the catalog record and canonical URI. When it's unclear who owns the
 material, the agent asks before writing rather than keeping two copies.

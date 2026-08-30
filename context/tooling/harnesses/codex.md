@@ -1,6 +1,6 @@
 # Codex — harness reference
 
-The Codex coding agent. It reads `AGENTS.md` from the repo root by convention, so any repo carrying one — the awow repo itself, or an adopter with a bootstrapped root file or spoke connector — is legible to it with **no install step**.
+The Codex coding agent. It reads `AGENTS.md` from the repo root by convention, so any repo carrying one — the awow repo itself, or an adopter with a bootstrapped root file or anchored-repo connector — is legible to it with **no install step**.
 
 ## When `/setup-awow` infers Codex
 
@@ -15,7 +15,7 @@ A repo-root `AGENTS.md` together with a `.codex-plugin/` directory, or the user 
 
 ## How `.agents/` reaches Codex
 
-- Repo-root `AGENTS.md` — hand-authored: in the awow repo it points at `.agents/AGENTS.md`; in an adopter repo it is the file `/setup-awow` Step 5 bootstraps, or the spoke connector. This is what steers Codex today; no install required.
+- Repo-root `AGENTS.md` — hand-authored: in the awow repo it points at `.agents/AGENTS.md`; in an adopter repo it is the file `/setup-awow` Step 5 bootstraps, or the anchored-repo connector. This is what steers Codex today; no install required.
 - `.agents/commands/*` and `.agents/skills/*` → a shared commands-as-skills surface rendered from the `dist/` payload (`gather.py --surface plugin`, into `dist/agent-skills/`). A user invokes an awow flow by asking for it by name; Codex loads the matching `SKILL.md`.
 
 The single source of truth is `.agents/`. Edits to generated surfaces are overwritten on the next `gather.py` run.

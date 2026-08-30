@@ -10,7 +10,7 @@ wiring() {
   # the plugin's commands-as-skills surface, the same way an adopter does. The
   # spoke registration flow must still be reachable from this harness.
   dir-absent "$r/.opencode/commands"
-  file-contains "$r/dist/agent-skills/setup-awow/SKILL.md" 'Spoke track'
+  file-contains "$r/dist/agent-skills/setup-awow/SKILL.md" 'Anchored track'
 
   # Payload half: the plugin module package.json `main` resolves to.
   local js="$r/dist/.opencode/plugins/awow.js"

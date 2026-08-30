@@ -60,6 +60,7 @@ git checkouts (a linked worktree below a payload root) are never swept.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -986,6 +987,50 @@ def plan_plugin() -> list[Stub]:
     return plans
 
 
+def payload_stamp(root: Path, stubs: list[Stub], version: str) -> str:
+    """build.json content for one payload root: the canonical version plus a
+    digest of the planned payload, so two rebuilds of the same version are
+    distinguishable (CAU-1338). Content-derived only — no clock, no commit —
+    keeping the build a deterministic function of the source tree so --check
+    cannot flap. Paths hash relative to the payload root and sorted, so
+    neither the checkout location nor plan assembly order matters; mode bits
+    are excluded (content changes are the vintage signal)."""
+    h = hashlib.sha256()
+    for stub in sorted(stubs, key=lambda s: s.target.relative_to(root).as_posix()):
+        h.update(stub.target.relative_to(root).as_posix().encode())
+        h.update(b"\0")
+        h.update(stub.content.encode())
+        h.update(b"\0")
+    return json.dumps(
+        {"version": version, "content": f"sha256:{h.hexdigest()[:12]}"},
+        indent=2, ensure_ascii=False) + "\n"
+
+
+def stamp_stub(root: Path, stubs: list[Stub]) -> Stub:
+    """The planned stamp file for a payload root, digesting every OTHER stub
+    (the stamp cannot be part of its own input or the build never converges)."""
+    version = json.loads(PLUGIN_MANIFEST.read_text())["version"]
+    return Stub(root / ".claude-plugin" / "build.json",
+                payload_stamp(root, stubs, version))
+
+
+def dist_surface_plans() -> list[Stub]:
+    """Every dist/ stub for --surface plugin, plus the build stamp over them.
+
+    m365 (independently managed, nested under dist/) deliberately never enters
+    the digest: its stubs join the plan only under --surface m365/all, and a
+    surface-dependent digest would make --check disagree between invocations."""
+    plans = (plan_plugin() + plan_agent_skills() + plan_codex() + plan_pi()
+             + plan_opencode_plugin())
+    return plans + [stamp_stub(DIST_DIR, plans)]
+
+
+def telemetry_surface_plans() -> list[Stub]:
+    """The dist-telemetry/ plan plus its build stamp — same mechanism as dist/."""
+    plans = plan_telemetry()
+    return plans + [stamp_stub(DIST_TELEMETRY_DIR, plans)]
+
+
 SURFACE_ROOTS = {
     "plugin": [DIST_DIR],
     "telemetry": [DIST_TELEMETRY_DIR],
@@ -1080,13 +1125,9 @@ def main() -> int:
     surfaces = list(SURFACE_ROOTS[args.surface])
     plans: list[Stub] = []
     if DIST_DIR in surfaces:
-        plans += plan_plugin()
-        plans += plan_agent_skills()
-        plans += plan_codex()
-        plans += plan_pi()
-        plans += plan_opencode_plugin()
+        plans += dist_surface_plans()
     if DIST_TELEMETRY_DIR in surfaces:
-        plans += plan_telemetry()
+        plans += telemetry_surface_plans()
     binary_plans: list[BinaryStub] = []
     if M365_ROOT in surfaces:
         from gather_m365 import M365BudgetError, M365ConfigError, plan_m365

@@ -33,6 +33,9 @@ PAYLOAD_ROOTS = ("dist", "dist-telemetry")
 NO_DECLARED_PATHS: tuple[str, ...] = (
     # source "./" is the payload root itself, which trivially exists.
     "dist/.agents/plugins/marketplace.json",
+    # Build stamps: version + content digest, no filesystem paths (CAU-1338).
+    "dist/.claude-plugin/build.json",
+    "dist-telemetry/.claude-plugin/build.json",
 )
 
 FAILURES: list[str] = []

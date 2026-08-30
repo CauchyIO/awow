@@ -28,6 +28,8 @@ jobs:
         run: python3 tests/payload-manifests/test_manifest_integrity.py
       - name: Payload tool references
         run: python3 tests/payload-tools/test_tool_references.py
+      - name: Payload build stamp determinism
+        run: python3 tests/payload-manifests/test_build_stamp.py
       - name: Payload command surface
         run: python3 tests/payload-commands/test_command_surface.py
       - name: Migration surface (AWO-259)

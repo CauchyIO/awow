@@ -1,6 +1,6 @@
 {
   "name": "awow",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "Board-first delivery workflows for coding agents. /setup-awow connects your issue board (Linear, Jira, GitHub Issues, Azure DevOps) and your team's conventions; the delivery commands then keep the board current as a byproduct of the work.",
   "license": "MIT",
   "homepage": "https://github.com/CauchyIO/awow",

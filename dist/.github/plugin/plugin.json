@@ -1,7 +1,7 @@
 {
   "name": "awow",
   "description": "Set up or extend awow (the Agentic Way of Working) in any repo. The setup-awow prompt connects your issue board and conventions; the delivery prompts and skills then work board-first.",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "skills": [
     ".github/plugin/skills/"
   ]

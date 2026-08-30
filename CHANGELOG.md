@@ -8,6 +8,27 @@ that same PR. When the PR lands on `main`, the release workflow publishes the
 section as the body of the GitHub release and tags the commit. Releases before
 v0.9.2 were not tagged individually; `git log` is their record.
 
+## v0.13.0
+
+### Migration — hub → anchor rename
+
+Pre-rename repos need no action: the machinery silently accepts the spoke forms (`awow: spoke`, `hub:`, `$AWOW_HUB`, `.awow/hub.json`) and the `{HUB}` token wherever an adopter-owned file still carries them. New registrations and repair prompts use the anchor forms — `awow: anchored`, `anchor:`, `$AWOW_ANCHOR`, `.awow/anchor.json`, `{ANCHOR}`. v1.0 makes no statement about removing the legacy forms.
+
+### Context and contracts
+- **API** Rename hub → anchor: the `{ANCHOR}` path token and lint, dual-accept resolution in the session-start hook (anchor forms preferred, spoke forms silently honoured), anchor vocabulary across live docs and the `/setup-awow` Anchored track, the `anchored:` knowledge-source block, and a legacy-spoke regression pinning the dual-accept. (#84)
+- **Feature** CAU-1422: the fill-on-first-need context contract — absence as the marker, `/setup-awow` shrunk to its required core. (#80)
+- **Enhancement** Wire this repo's own board source to the CAU board. (#74)
+
+### Harnesses and distribution
+- **Enhancement** CAU-1338: stamp every payload build, and warn at session start when a vendored install's machinery vintage diverges from the installed payload. (#82)
+- **Enhancement** Ship `cascade_check.py` in the plugin payload, and fail CI on any tool reference the payload cannot resolve. (#81)
+
+### Commands
+- **Enhancement** CAU-1332: `/setup-awow`'s board verification is identity-bearing — a same-named MCP serving another workspace renders blocked, not ✓. (#83)
+
+### Docs
+- **Enhancement** CAU-1329: rewrite the README as the adopter's start-here path. (#72)
+
 ## v0.12.0
 
 ### Commands

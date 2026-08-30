@@ -323,7 +323,7 @@ ctx, _, _ = _run(STAMPED, project=_vendored_project(
 check("maintainer drift names both stamps",
       "0.12.0+bbbb33334444" in ctx and "0.13.0+aaaa11112222" in ctx)
 check("maintainer drift explains precedence and the remedies",
-      "{HUB}-first" in ctx and "--plugin-dir dist" in ctx)
+      "{ANCHOR}-first" in ctx and "--plugin-dir dist" in ctx)
 
 # Matching stamps: silent.
 ctx, _, _ = _run(STAMPED, project=_vendored_project(

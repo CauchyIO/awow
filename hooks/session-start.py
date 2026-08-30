@@ -96,7 +96,7 @@ ENGINE_NUDGE = (
 VENDORED_DRIFT_MAINTAINER = (
     "<important-reminder>awow drift: this checkout's dist/ payload is "
     "{repo_stamp} but the installed plugin payload is {installed_stamp}. "
-    "Machinery reads follow this checkout ({{HUB}}-first), so this session "
+    "Machinery reads follow this checkout ({{ANCHOR}}-first), so this session "
     "runs the checkout's vintage — if that is unexpected, rebuild and run the "
     "branch payload (python tools/gather.py && claude --plugin-dir dist) or "
     "re-sync the installed plugin.</important-reminder>"
@@ -105,7 +105,7 @@ VENDORED_DRIFT_MAINTAINER = (
 VENDORED_DRIFT_ADOPTER = (
     "<important-reminder>awow drift: this repo vendored awow {vendored} but "
     "the installed plugin payload is {installed}. Vendored files win "
-    "({{HUB}}-first), so this session runs the {vendored} vintage. Run "
+    "({{ANCHOR}}-first), so this session runs the {vendored} vintage. Run "
     "/migrate-to-plugin to de-vendor and pick up the installed "
     "payload.</important-reminder>"
 )
@@ -313,7 +313,7 @@ def vendored_drift_context(plugin_root, repo_dir):
     both directions (a stale plugin cache is as silent as a stale branch);
     the adopter compare only when the vendored vintage is strictly older —
     a vendored tree ahead of the payload is the deliberate-edit case the
-    {HUB}-first rule exists to protect."""
+    {ANCHOR}-first rule exists to protect."""
     installed = read_stamp(plugin_root)
     if installed is None:
         return None
@@ -362,11 +362,11 @@ def build_context(plugin_root, repo_dir):
             os.path.join(repo_dir, ".awow", "no-setup-prompt")):
         sections.append(SETUP_NUDGE)
     # Vendored drift: warn when the machinery vintage this session will read
-    # ({HUB}-first) differs from the installed payload (CAU-1338). Keyed on
+    # ({ANCHOR}-first) differs from the installed payload (CAU-1338). Keyed on
     # the vendored markers themselves (awow plugin manifest, legacy lockfile),
     # not on `adopted`, so the tier is inert for every other repo and survives
     # a re-keying of `adopted` unchanged.
-    if spoke is None:
+    if anchored is None:
         drift = vendored_drift_context(plugin_root, repo_dir)
         if drift is not None:
             sections.append(drift)

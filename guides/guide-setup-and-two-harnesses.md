@@ -111,10 +111,10 @@ flowchart LR
   dist --> adopter["adopter repo<br/>context/ + board wiring + root AGENTS.md"]
 ```
 
-Path tokens make this possible: prompt bodies name `{HUB}`, `{PROJECT}`, `{AWOW_ROOT}` and
+Path tokens make this possible: prompt bodies name `{ANCHOR}`, `{PROJECT}`, `{AWOW_ROOT}` and
 `{AWOW_TOOLS}` instead of literal paths, and gather substitutes the harness-correct form at build
 time — `${CLAUDE_PLUGIN_ROOT}` for Claude Code, a skill-relative path for Codex and Pi — while
-`{HUB}` and `{PROJECT}` ship as-is; the agent fills them in at the start of each session.
+`{ANCHOR}` and `{PROJECT}` ship as-is; the agent fills them in at the start of each session.
 
 ## The maintainer loop
 

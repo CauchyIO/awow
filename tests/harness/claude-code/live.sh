@@ -41,7 +41,7 @@ live() {
   cmd-succeeds "dist plugin.json valid" -- python3 -c "import json; json.load(open('$HARNESS_REPO_ROOT/dist/.claude-plugin/plugin.json'))"
   if ls "$HARNESS_REPO_ROOT"/dist/commands/*.md >/dev/null 2>&1; then _record pass "dist payload carries commands"; else _record fail "dist payload has no commands"; fi
   local spoke; spoke="$(make_spoke_fixture "$(mktemp -d)/spoke")" || { _record fail "spoke fixture build"; return 0; }
-  # T1-equivalent (read path): the shipped dist hook resolves {HUB} for a
+  # T1-equivalent (read path): the shipped dist hook resolves {ANCHOR} for a
   # connected spoke — identity from the committed connector, path from the
   # gitignored .awow/hub.json, origin verified. No model needed.
   local hubdir tier_out

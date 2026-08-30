@@ -27,9 +27,9 @@ Phase 2 ─ Refine into KRs + land draft    ──→ GATE 2 (confirm OKR set)
 
 Read the repo before you say anything.
 
-- Locate and read the team's mission and vision in `{HUB}/context/team/`, and everything under `{HUB}/context/quarterly/`.
-- Read `{HUB}/context/tooling/board.md` for the board pointer and read surface, then read the live board: active projects and current engagements.
-- Load the `department-coach` skill — it is the battery you will run in Phase 2 and carries the objective-level tests Phase 2's per-bet requirements come from. If the team keeps its own strategy framework doc in `{HUB}/context/`, read it and follow its vocabulary where it is stricter.
+- Locate and read the team's mission and vision in `{ANCHOR}/context/team/`, and everything under `{ANCHOR}/context/quarterly/`.
+- Read `{ANCHOR}/context/tooling/board.md` for the board pointer and read surface, then read the live board: active projects and current engagements.
+- Load the `department-coach` skill — it is the battery you will run in Phase 2 and carries the objective-level tests Phase 2's per-bet requirements come from. If the team keeps its own strategy framework doc in `{ANCHOR}/context/`, read it and follow its vocabulary where it is stricter.
 
 Open with a one-screen summary: "Here is the strategy I can already infer from the repo and board." Do not ask the human to start from a blank page. If `$ARGUMENTS` carries draft bets, reconcile them against what you inferred and show the merged starting set.
 

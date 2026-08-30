@@ -18,7 +18,7 @@ One person can do this alone. The value shows up immediately in their own work, 
 
 ## What refinement decides — the *how*, never the *what*
 
-Refinement works out **how** to deliver work that has already been chosen. It does not decide *what* to build or *why* — that is set upstream in quarter planning, where the program board and PO define the outcomes (OKRs), the PO breaks each outcome into epics, and the PO with the tech lead breaks an epic into the **features** that enter refinement. A feature arrives already mapped to an outcome; refinement turns it into board-ready, right-sized stories and never re-opens the decision to build it. If a feature's *what* or *why* is still open, that is a planning gap — surface it; do not resolve it by drafting stories. The planning chain lives in `{HUB}/context/quarterly/`; how outcome → epic → feature → story map onto board primitives lives in the board hierarchy reference under `{HUB}/context/tooling/boards/`, falling back to `{AWOW_ROOT}/context/tooling/boards/`.
+Refinement works out **how** to deliver work that has already been chosen. It does not decide *what* to build or *why* — that is set upstream in quarter planning, where the program board and PO define the outcomes (OKRs), the PO breaks each outcome into epics, and the PO with the tech lead breaks an epic into the **features** that enter refinement. A feature arrives already mapped to an outcome; refinement turns it into board-ready, right-sized stories and never re-opens the decision to build it. If a feature's *what* or *why* is still open, that is a planning gap — surface it; do not resolve it by drafting stories. The planning chain lives in `{ANCHOR}/context/quarterly/`; how outcome → epic → feature → story map onto board primitives lives in the board hierarchy reference under `{ANCHOR}/context/tooling/boards/`, falling back to `{AWOW_ROOT}/context/tooling/boards/`.
 
 Populating the board is not one ceremony. Which route you take depends on team size, the kind of work, and cadence:
 
@@ -44,11 +44,11 @@ The user provides one of:
 
 Read:
 
-- `{HUB}/context/team/mission.md` — the feature must serve the team's purpose. If you cannot see how, ask the user before drafting. Absent? Fill on first need: offer a two-to-five-sentence profile drafted from the repo and board (the `/setup-awow` Step 2 method), and proceed without one if declined.
+- `{ANCHOR}/context/team/mission.md` — the feature must serve the team's purpose. If you cannot see how, ask the user before drafting. Absent? Fill on first need: offer a two-to-five-sentence profile drafted from the repo and board (the `/setup-awow` Step 2 method), and proceed without one if declined.
 - The convention set the `workitem-write` skill reads in steps 2–3 — issue titles, labels, output discipline, board voice.
-- `{HUB}/context/knowledge-base/glossary.md` — domain terms; use these consistently
-- `{HUB}/context/knowledge-base/patterns/` — link to existing patterns rather than restating
-- `{HUB}/context/tooling/board.md` — sizing rules per board family; absent-`board.md` fallback per `workitem-write` step 1
+- `{ANCHOR}/context/knowledge-base/glossary.md` — domain terms; use these consistently
+- `{ANCHOR}/context/knowledge-base/patterns/` — link to existing patterns rather than restating
+- `{ANCHOR}/context/tooling/board.md` — sizing rules per board family; absent-`board.md` fallback per `workitem-write` step 1
 
 ### 2. Check for duplicates and overlap (REQUIRED before drafting)
 
@@ -95,7 +95,7 @@ The feature wrapper:
 ## Draft state
 
 <REQUIRED, always present. List every REQUIRED step you could not perform (board
-duplicate search, mission check) and every `{HUB}/context/` file you relied on that is still
+duplicate search, mission check) and every `{ANCHOR}/context/` file you relied on that is still
 a stub. If everything checked out, write "All required steps performed." — never omit
 the section.>
 

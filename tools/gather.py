@@ -372,8 +372,9 @@ def copy_stub(target: Path, source: Path) -> Stub:
 
 # Path tokens (see .agents/AGENTS.md "Path tokens"): {AWOW_TOOLS} and
 # {AWOW_ROOT} resolve at build time for the plugin surface — the payload knows
-# where it lives. {HUB} and {PROJECT} ship as-is; the session reflex teaches
-# their resolution.
+# where it lives. {ANCHOR} and {PROJECT} ship as-is; the session reflex teaches
+# their resolution. {HUB}, the pre-rename spelling of {ANCHOR}, is likewise
+# never substituted, so adopter-owned files that still use it render unchanged.
 PLUGIN_TOKEN_SUBSTITUTIONS = [
     ("{AWOW_TOOLS}", "${CLAUDE_PLUGIN_ROOT}/tools"),
     ("{AWOW_ROOT}", "${CLAUDE_PLUGIN_ROOT}"),
@@ -383,10 +384,12 @@ PLUGIN_TOKEN_SUBSTITUTIONS = [
 # A prompt body must be able to NAME a token without USING it — using-awow and
 # AGENTS.md both document the token vocabulary and are themselves rendered.
 # {{TOKEN}} is the escape: protected before substitution, unwrapped after.
-# Scoped to the four path-token names deliberately: a blanket {{[A-Z_]+}} escape
+# Scoped to the path-token names deliberately: a blanket {{[A-Z_]+}} escape
 # would also unwrap the {{PLACEHOLDER}} markers /daily-digest documents for the
 # adopter's HTML template, corrupting the syntax that file exists to describe.
-PATH_TOKEN_NAMES = ("HUB", "PROJECT", "AWOW_TOOLS", "AWOW_ROOT")
+# HUB stays listed after the {ANCHOR} rename so prose documenting the
+# pre-rename spelling can still escape it.
+PATH_TOKEN_NAMES = ("ANCHOR", "HUB", "PROJECT", "AWOW_TOOLS", "AWOW_ROOT")
 _ESCAPED_TOKEN = re.compile(r"\{\{(" + "|".join(PATH_TOKEN_NAMES) + r")\}\}")
 _ESCAPE_SENTINEL = "\x00"
 
@@ -821,8 +824,8 @@ def plan_telemetry() -> list[Stub]:
 
 def plan_context_payload(dest_root: Path, render=render_plugin_body) -> list[Stub]:
     """The context/ machinery that ships, rendered for one channel. Commands
-    reach these as {AWOW_ROOT}/context/... — {HUB} first so a vendored override
-    wins, then {AWOW_ROOT}. See the predicate above PAYLOAD_CONTEXT_PATHS."""
+    reach these as {AWOW_ROOT}/context/... — {ANCHOR} first so a vendored
+    override wins, then {AWOW_ROOT}. See the predicate above PAYLOAD_CONTEXT_PATHS."""
     plans: list[Stub] = []
     for path in sorted(CONTEXT_DIR.rglob("*")):
         if not path.is_file() or path.name == ".gitkeep":

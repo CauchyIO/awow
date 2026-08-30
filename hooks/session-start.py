@@ -5,7 +5,7 @@ Injects the `using-awow` operating reflex into every session, tiered by what
 the current repo actually is:
 
   vendored install  -> full reflex (plus engine nudge when no build engine)
-  connected spoke   -> reflex + resolved {HUB} pointer
+  connected spoke   -> reflex + resolved {ANCHOR} pointer
   unmapped spoke    -> reflex + one-time map-the-hub prompt
   drifted spoke     -> reflex + update-the-link prompt (loud stop headless)
   plain repo        -> reflex + one-time /setup-awow nudge
@@ -41,7 +41,7 @@ PREAMBLE = (
 
 SPOKE_CONNECTED = (
     "<important-reminder>This repo is the awow spoke \"{project}\" of hub "
-    "{hub}. {{HUB}} resolves to: {path} — read the team's shared context, board "
+    "{hub}. {{ANCHOR}} resolves to: {path} — read the team's shared context, board "
     "config, and conventions from that root. {{PROJECT}} is this repo. Do not "
     "re-derive the hub location or scan for other candidates.</important-reminder>"
 )

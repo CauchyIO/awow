@@ -133,9 +133,9 @@ A spoke commits its hub's identity (git remote URL), never a path. Walk these fi
 2. **Resolve the hub locally.** Offer an accessible checkout whose normalized `origin` — host + owner/repo, ignoring scheme, credentials, an optional `.git` suffix, and a trailing slash — equals the hub remote; else ask for a path or offer to clone. A checkout whose `origin` does not match is a stop, not a warning.
 3. **Write the machine link.** Write `.awow/hub.json` as `{"remote": "<hub remote URL>", "path": "<absolute path to the clone>"}` and ensure `.gitignore` covers `.awow/`. This link is machine-local state: never commit it and never record the path in any committed file.
 4. **Draft the spoke PR** in this repo: root `AGENTS.md` with connector frontmatter (`awow: spoke`, `hub: <remote URL>`, `project: <name>`) and a short body pointing collaborators at the hub; `.claude/settings.json` enabling the awow plugin at project scope; `context/mission.md` (a project-level profile: what this repo is and its stack, same shape as the hub's team profile); `context/board-scope.md` with frontmatter `board:` (the hub's index name for it), `team:` (the board team items land on), optional `project:` and `subpath:` — ask which of the hub's boards this repo maps to, and with a single-board hub offer to skip the file; `context/do-not-propose.md` when the user wants one; the `.awow/` gitignore entry. Open the PR only after approval.
-5. **Draft the hub PR** in the hub checkout: a knowledge-source record for this repo per `{HUB}/context/tooling/knowledge-sources.md` — routing profile plus `spoke:` block — and its `index.md` line. Open it only after approval; when the user lacks hub PR rights, leave the drafted record under this repo's `proposals/` with a handoff note naming who can land it.
+5. **Draft the hub PR** in the hub checkout: a knowledge-source record for this repo per `{ANCHOR}/context/tooling/knowledge-sources.md` — routing profile plus `spoke:` block — and its `index.md` line. Open it only after approval; when the user lacks hub PR rights, leave the drafted record under this repo's `proposals/` with a handoff note naming who can land it.
 
-Verify by reporting what a fresh session will see: the connected-spoke reflex with `{HUB}` resolved to the recorded path. Tell the user registration completes when both PRs merge; neither blocks the other, and teammates need only clone the spoke and answer the one-time map-the-hub prompt.
+Verify by reporting what a fresh session will see: the connected-spoke reflex with `{ANCHOR}` resolved to the recorded path. Tell the user registration completes when both PRs merge; neither blocks the other, and teammates need only clone the spoke and answer the one-time map-the-hub prompt.
 
 ## Orientation — track, hat, and what this repo serves
 
@@ -453,7 +453,7 @@ Nothing is scaffolded up front and no stub files are generated. Each neighbourin
 
 **Owner moment:** the extras detect-then-suggest on their own (`design-system.md`'s absent-mode probe, the correlation opt-in, engine detection); walk this step only on request.
 
-Read the commands whose frontmatter declares `phase: spread` or `phase: standardise` — from `{HUB}/.agents/commands/` if that directory exists (a vendored install), otherwise `../../commands/`. List each command, its phase, its prerequisites, and the pain it removes. Tell the user:
+Read the commands whose frontmatter declares `phase: spread` or `phase: standardise` — from `{ANCHOR}/.agents/commands/` if that directory exists (a vendored install), otherwise `../../commands/`. List each command, its phase, its prerequisites, and the pain it removes. Tell the user:
 
 > These are all available now; each earns its place once its prerequisites hold.
 
@@ -479,7 +479,7 @@ Update `setup-progress.md` to mark all steps surfaced.
 
 ## Step 9 — Skills review (keep / customise / drop)
 
-The starter pack ships several skills — under `{HUB}/.agents/skills/` if that directory exists (a vendored install), otherwise `../../skills/`. Each is opinionated about *some* part of the stack — harness session format, tracing backend, rubric — and will not fit every team out of the box. This step walks the user through each shipped skill once they have enough context to make a call.
+The starter pack ships several skills — under `{ANCHOR}/.agents/skills/` if that directory exists (a vendored install), otherwise `../../skills/`. Each is opinionated about *some* part of the stack — harness session format, tracing backend, rubric — and will not fit every team out of the box. This step walks the user through each shipped skill once they have enough context to make a call.
 
 For each entry in that directory (read it; a vendored install holds both declarative `<name>.md` files and operational `<name>/SKILL.md` directories, while the payload renders every skill as `<name>/SKILL.md`):
 
@@ -501,7 +501,7 @@ For each entry in that directory (read it; a vendored install holds both declara
      - **user-story-template** — replace with the team's own template if it differs from the seeded shape.
    - **Drop** — `git rm -r` the skill directory or file. Note in `setup-progress.md` so a re-run of `/setup-awow` doesn't keep re-offering it.
 
-5. If the user wants to **add** a new skill that isn't in the starter pack, point at `{HUB}/.agents/skills/README.md` ("When to write a skill") when the vendored tree is present — the payload does not carry it — and offer to scaffold one — either a declarative `<name>.md` or an operational `<name>/SKILL.md` with a `scripts/` directory.
+5. If the user wants to **add** a new skill that isn't in the starter pack, point at `{ANCHOR}/.agents/skills/README.md` ("When to write a skill") when the vendored tree is present — the payload does not carry it — and offer to scaffold one — either a declarative `<name>.md` or an operational `<name>/SKILL.md` with a `scripts/` directory.
 
 Update `setup-progress.md` to mark Step 9 complete (record per-skill decisions inline so the next session has context).
 

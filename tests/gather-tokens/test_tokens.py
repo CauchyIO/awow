@@ -1,9 +1,11 @@
 """Regression test for the path-token substitution tables in tools/gather.py.
 
-{AWOW_TOOLS} and {AWOW_ROOT} are resolved at build time per channel; {HUB} and
-{PROJECT} ship as-is because the session reflex teaches their resolution. This
-asserts all four behaviours on both channels, and that the agent-skills channel
-never emits ${CLAUDE_PLUGIN_ROOT} (Codex and Pi cannot resolve it).
+{AWOW_TOOLS} and {AWOW_ROOT} are resolved at build time per channel; {ANCHOR}
+and {PROJECT} ship as-is because the session reflex teaches their resolution
+({HUB} is the pre-rename spelling of {ANCHOR} and also still passes through —
+silent dual-accept). This asserts those behaviours on both channels, and that
+the agent-skills channel never emits ${CLAUDE_PLUGIN_ROOT} (Codex and Pi
+cannot resolve it).
 
 Pure stdlib; no pytest, no network.
 
@@ -52,10 +54,17 @@ def main() -> int:
         skills("run {AWOW_TOOLS}/gather.py"),
         "run ../../tools/gather.py",
     )
-    # {HUB}/{PROJECT} are session-resolved, never build-substituted.
+    # {ANCHOR}/{PROJECT} are session-resolved, never build-substituted.
+    # {HUB} is the legacy spelling of {ANCHOR}: never substituted either, so an
+    # adopter-owned file that still says {HUB} keeps rendering unchanged.
     for name, render in (("plugin", plugin), ("agent-skills", skills)):
         check(
-            f"{name}: {{HUB}} passes through",
+            f"{name}: {{ANCHOR}} passes through",
+            render("read {ANCHOR}/context/tooling/board.md"),
+            "read {ANCHOR}/context/tooling/board.md",
+        )
+        check(
+            f"{name}: legacy {{HUB}} passes through",
             render("read {HUB}/context/tooling/board.md"),
             "read {HUB}/context/tooling/board.md",
         )
@@ -80,6 +89,18 @@ def main() -> int:
         skills("the {{AWOW_TOOLS}} token points at tools/"),
         "the {AWOW_TOOLS} token points at tools/",
     )
+    # Both spellings of the team-context token stay escapable: {ANCHOR} is the
+    # current name, {HUB} the pre-rename one prose may still document.
+    check(
+        "plugin: {{ANCHOR}} escapes to a literal",
+        plugin("the {{ANCHOR}} token names the team context root"),
+        "the {ANCHOR} token names the team context root",
+    )
+    check(
+        "agent-skills: {{HUB}} still escapes to a literal",
+        skills("{{HUB}} is the pre-rename spelling"),
+        "{HUB} is the pre-rename spelling",
+    )
     # Escaping must not disable real substitution in the same string.
     check(
         "plugin: escaped and live tokens coexist",
@@ -90,7 +111,7 @@ def main() -> int:
     reflex = (REPO_ROOT / ".agents" / "skills" / "using-awow" / "SKILL.md").read_text()
     for name, render in (("plugin", plugin), ("agent-skills", skills)):
         out = render(reflex)
-        for tok in ("{AWOW_ROOT}", "{AWOW_TOOLS}", "{HUB}", "{PROJECT}"):
+        for tok in ("{AWOW_ROOT}", "{AWOW_TOOLS}", "{ANCHOR}", "{PROJECT}"):
             if tok not in out:
                 FAILURES.append(
                     f"{name}: using-awow/SKILL.md ships with no literal {tok} — "

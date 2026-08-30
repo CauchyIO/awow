@@ -1,6 +1,6 @@
 # Canonical knowledge sources — routing contract
 
-`{HUB}/context/knowledge-sources/index.md` is the team-owned catalog of knowledge that is
+`{ANCHOR}/context/knowledge-sources/index.md` is the team-owned catalog of knowledge that is
 canonical somewhere else: another repository, SharePoint, a vector-backed retrieval system,
 or another provider with a native read capability. The HUB records how to find it, not its
 contents.

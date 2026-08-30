@@ -67,4 +67,4 @@ When the bet is locked and the session moves to materialization, **the same deci
 - **Never invent a number.** Baselines, revenue, team counts — 🔴 lookups belong to a named owner with a date, or get a provisional labeled as such. Financial figures live outside the repo; ask.
 - **Never relitigate the ratified register.** New arguments against a locked item → note for the next re-bet, unless the board explicitly reopens it.
 - **Never write the board or team context from this skill** — board writes route through `workitem-write` on an explicit go; context writes through `/update-context`.
-- **Board-level outputs go to the full board** as named in `{HUB}/context/team/members.md`, always — never to a subset.
+- **Board-level outputs go to the full board** as named in `{ANCHOR}/context/team/members.md`, always — never to a subset.

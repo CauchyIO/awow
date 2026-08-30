@@ -5,8 +5,8 @@ description: "Use when a task reads shared HUB context, mentions another reposit
 
 # Route canonical knowledge
 
-Treat `{HUB}/context/knowledge-sources/index.md` as a semantic routing catalog, not a content
-store. Read `{HUB}/context/tooling/knowledge-sources.md`, falling back to
+Treat `{ANCHOR}/context/knowledge-sources/index.md` as a semantic routing catalog, not a content
+store. Read `{ANCHOR}/context/tooling/knowledge-sources.md`, falling back to
 `{AWOW_ROOT}/context/tooling/knowledge-sources.md`, for the record profile and full contract.
 
 ## Route

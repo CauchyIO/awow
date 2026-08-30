@@ -46,7 +46,7 @@ Parse the argument. It selects one of two windows, and every step below runs ove
 - `--week` → the **week** window, the current ISO week.
 - `YYYY-Www` (e.g. `2026-W12`) → the **week** window, that ISO week.
 
-For a week window, resolve the ISO week to its Monday–Friday date range. If the team's working week differs, read `{HUB}/context/team/members.md` or `{HUB}/context/team/conventions/REQUIRED/labels.md` for the convention before assuming Mon–Fri.
+For a week window, resolve the ISO week to its Monday–Friday date range. If the team's working week differs, read `{ANCHOR}/context/team/members.md` or `{ANCHOR}/context/team/conventions/REQUIRED/labels.md` for the convention before assuming Mon–Fri.
 
 State the resolved window back to the user in one line before doing any work — `Day: 2026-07-20` or `Week 2026-W29: Mon 13 Jul – Fri 17 Jul` — so a misparsed argument is caught before collection, not after.
 
@@ -67,9 +67,9 @@ Collect the day's activity once, via the shared collection step, then project th
 
 ### Run the shared collection step
 
-Follow `{HUB}/context/tooling/activity-collection.md`, falling back to `${CLAUDE_PLUGIN_ROOT}/context/tooling/activity-collection.md` (a vendored copy wins over the shipped one): **reuse `activity/YYYY-MM-DD.json` if it already exists for the day, otherwise produce it.** That step owns the board / code / chat queries (all keyed off `{HUB}/context/tooling/board.md`), the normalised snapshot schema, and the private-team gate — so you do not re-query per lens, and the private-team exclusion is already applied. Scope every board query to the board-team filter in `{HUB}/context/tooling/board.md` when one is declared; the digest covers this installation's slice only.
+Follow `{ANCHOR}/context/tooling/activity-collection.md`, falling back to `${CLAUDE_PLUGIN_ROOT}/context/tooling/activity-collection.md` (a vendored copy wins over the shipped one): **reuse `activity/YYYY-MM-DD.json` if it already exists for the day, otherwise produce it.** That step owns the board / code / chat queries (all keyed off `{ANCHOR}/context/tooling/board.md`), the normalised snapshot schema, and the private-team gate — so you do not re-query per lens, and the private-team exclusion is already applied. Scope every board query to the board-team filter in `{ANCHOR}/context/tooling/board.md` when one is declared; the digest covers this installation's slice only.
 
-**An absent board pointer is a question, not a stop.** If `{HUB}/context/tooling/board.md` is missing, infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess a board from a GitLab, Bitbucket, or Azure DevOps remote; those map to several products. With no remote, or with `gh` absent or unauthenticated, ask the user once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line, and read it instead of asking again — ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make the answer durable; never write `{HUB}/context/tooling/board.md` yourself.
+**An absent board pointer is a question, not a stop.** If `{ANCHOR}/context/tooling/board.md` is missing, infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess a board from a GitLab, Bitbucket, or Azure DevOps remote; those map to several products. With no remote, or with `gh` absent or unauthenticated, ask the user once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line, and read it instead of asking again — ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make the answer durable; never write `{ANCHOR}/context/tooling/board.md` yourself.
 
 This relaxation covers an absent pointer only. **A fatal auth failure on a data source still stops the run** — surface it and do not synthesise from a half-snapshot.
 
@@ -143,7 +143,7 @@ Be specific. "<Name>'s rate-limit work could inform <Name>'s gateway redesign" i
 
 ### Personalized takeaways
 
-Per team member (from `{HUB}/context/team/members.md`), answer:
+Per team member (from `{ANCHOR}/context/team/members.md`), answer:
 
 - What happened today that is relevant to YOUR work specifically?
 - Decisions or deliverables from others that affect your projects?

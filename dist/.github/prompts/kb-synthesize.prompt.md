@@ -2,34 +2,34 @@
 description: "Use when mined knowledge candidates are piling up unpromoted, or the user asks to drain the KB inbox, review staged candidates, or fold recent learnings into the durable knowledge base."
 phase: standardise
 prerequisites:
-  - "{HUB}/context/kb-inbox/ holds one or more candidate files (produced by /kb-mine or /update-context)"
-  - "{HUB}/context/knowledge-base/ set up (the durable layer the drain writes into)"
+  - "{ANCHOR}/context/kb-inbox/ holds one or more candidate files (produced by /kb-mine or /update-context)"
+  - "{ANCHOR}/context/knowledge-base/ set up (the durable layer the drain writes into)"
 removes_pain: "mined candidates piling up in the inbox because promoting them is a manual slog"
 ---
 
 # /kb-synthesize — drain the inbox into the durable knowledge base
 
-You run the **synthesis drain**: read the committed candidates in `{HUB}/context/kb-inbox/`,
+You run the **synthesis drain**: read the committed candidates in `{ANCHOR}/context/kb-inbox/`,
 decide each one's fate against the existing KB, and — **on explicit approval** — promote
-the survivors into `{HUB}/context/knowledge-base/`. This is the back half of the pipeline whose
+the survivors into `{ANCHOR}/context/knowledge-base/`. This is the back half of the pipeline whose
 front half is `/kb-mine` (capture); this command is capture's counterpart (synthesize).
 
 **One drain, one source of truth.** The disposition rules — how a candidate is judged
 (novel / matches / covered / thin), how contradictions are reconciled, what the gate
 requires, and how a drained file is cleared — are defined once in
-`{HUB}/context/knowledge-base/synthesis.md`, falling back to
+`{ANCHOR}/context/knowledge-base/synthesis.md`, falling back to
 `${CLAUDE_PLUGIN_ROOT}/context/knowledge-base/synthesis.md`. This
 command only sequences that contract; it does not restate the rules, so it stays correct
 as synthesis evolves.
 
 **Writes the durable KB — but only past the gate.** Unlike `/kb-mine` (which proposes
-only), this command *does* write into `{HUB}/context/knowledge-base/`. It never does so without
+only), this command *does* write into `{ANCHOR}/context/knowledge-base/`. It never does so without
 explicit approval: it presents the full drain plan and waits.
 
 **Paths.** The KB `inbox` and `kb_root` locations resolve via
-`{HUB}/context/tooling/knowledge-base.md`, falling back to
-`${CLAUDE_PLUGIN_ROOT}/context/tooling/knowledge-base.md` (defaults `{HUB}/context/kb-inbox/`,
-`{HUB}/context/knowledge-base/`). `synthesis.md` honours the same config, so this command
+`{ANCHOR}/context/tooling/knowledge-base.md`, falling back to
+`${CLAUDE_PLUGIN_ROOT}/context/tooling/knowledge-base.md` (defaults `{ANCHOR}/context/kb-inbox/`,
+`{ANCHOR}/context/knowledge-base/`). `synthesis.md` honours the same config, so this command
 inherits any relocation automatically.
 
 ---
@@ -39,14 +39,14 @@ inherits any relocation automatically.
 ```
 Phase 0 ─ Load inbox
 Phase 1 ─ Plan dispositions (per synthesis.md)   ──→ drain plan
-Phase 2 ─ GATE (approval)  ──→ promote / annotate / no-op / drop  ──→ {HUB}/context/knowledge-base/
+Phase 2 ─ GATE (approval)  ──→ promote / annotate / no-op / drop  ──→ {ANCHOR}/context/knowledge-base/
 ```
 
 ---
 
 ## Phase 0 — Load inbox
 
-Read the **committed** candidate files in `{HUB}/context/kb-inbox/` (skip `README.md` and
+Read the **committed** candidate files in `{ANCHOR}/context/kb-inbox/` (skip `README.md` and
 `_synthesis-log.md`). If a file is present but uncommitted, warn and skip it — the drain
 operates on committed state (`synthesis.md`, *Input*).
 
@@ -66,7 +66,7 @@ subset; default is the whole inbox.
 ## Phase 1 — Plan dispositions
 
 For each loaded candidate, follow
-`{HUB}/context/knowledge-base/synthesis.md`, falling back to
+`{ANCHOR}/context/knowledge-base/synthesis.md`, falling back to
 `${CLAUDE_PLUGIN_ROOT}/context/knowledge-base/synthesis.md`,
 exactly: read the KB subfolder its `suggested_target` names (and the glossary), then
 assign a disposition — **novel** (write a new note), **matches** (annotate/strengthen an
@@ -99,9 +99,9 @@ report it, leave it in the inbox, and do not offer it for approval.
 On approval, apply per `synthesis.md`, *The gate*:
 
 1. Apply each approved disposition (write / annotate / no-op / drop).
-2. Leave a `Promoted to {HUB}/context/knowledge-base/<subfolder>/<x>.md` pointer in the source
+2. Leave a `Promoted to {ANCHOR}/context/knowledge-base/<subfolder>/<x>.md` pointer in the source
    item's board comment for anything promoted.
-3. Append one provenance line per candidate to `{HUB}/context/kb-inbox/_synthesis-log.md`.
+3. Append one provenance line per candidate to `{ANCHOR}/context/kb-inbox/_synthesis-log.md`.
 4. Remove each drained candidate file and commit the removal.
 
 Candidates the user does not approve stay in the inbox for a later drain — they are not
@@ -113,7 +113,7 @@ lost. Reconcile contradictions *with* the user; never silently overwrite a note.
 
 - **One drain definition.** All disposition/reconcile/gate rules live in `synthesis.md`;
   this command must not diverge from them.
-- **Gated writes only.** No write into `{HUB}/context/knowledge-base/`, no board comment, and no
+- **Gated writes only.** No write into `{ANCHOR}/context/knowledge-base/`, no board comment, and no
   inbox removal before explicit approval.
 - **Never create a convention or style file.** A guidance candidate with no existing
   destination is *unroutable* and stays in the inbox. Promotion moves a rule into a file

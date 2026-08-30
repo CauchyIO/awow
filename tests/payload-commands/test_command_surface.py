@@ -78,7 +78,7 @@ def check_command_dirs() -> None:
 def resolve_handler_ref(path: Path, root: Path, ref: str) -> Path | None:
     """The directory `ref` points at, or None when it is not payload-rooted.
 
-    Unrooted references — the `{HUB}/...` vendored fallback, or a bare
+    Unrooted references — the `{ANCHOR}/...` vendored fallback, or a bare
     `_workitem-archetypes/` mentioned in prose — name no payload location and
     are out of scope here.
     """

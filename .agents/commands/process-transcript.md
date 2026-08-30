@@ -22,7 +22,7 @@ This prompt runs as a pipeline with **three gates**. You stop at each gate, pres
 
 You are the entry point for the transcript-prompt family. Match each segment against every generic meeting lens, then recommend a specialist when another skill owns the workflow. When no specialist fits, apply the matched lenses here.
 
-**The filesystem holds two registries.** Load generic lenses from `{HUB}/.agents/commands/_meeting-archetypes/` when this repo has vendored them; otherwise load `{AWOW_ROOT}/handlers/_meeting-archetypes/`. Enumerate specialist commands from the awow command catalog and filter to frontmatter declaring `consumes: transcript`. Skip `README.md` and every path under `_workitem-archetypes/` or `_meeting-archetypes/` when building the specialist registry.
+**The filesystem holds two registries.** Load generic lenses from `{ANCHOR}/.agents/commands/_meeting-archetypes/` when this repo has vendored them; otherwise load `{AWOW_ROOT}/handlers/_meeting-archetypes/`. Enumerate specialist commands from the awow command catalog and filter to frontmatter declaring `consumes: transcript`. Skip `README.md` and every path under `_workitem-archetypes/` or `_meeting-archetypes/` when building the specialist registry.
 
 **Mode flags** from `$ARGUMENTS`:
 
@@ -51,11 +51,11 @@ When every segment dispatches to a specialist, Phases 3 and 4 are skipped — ea
 
 Before reading the transcript, load the context that shapes what you notice and how you interpret it:
 
-- `{HUB}/context/team/mission.md` — frame relevance, scope, and the team's purpose.
-- `{HUB}/context/team/members.md` — recognise speakers, roles, responsibilities, and focus areas.
-- `{HUB}/context/knowledge-base/glossary.md` — recognise domain terms and likely transcription errors.
-- `{HUB}/context/team/meetings/*.md`, excluding `README.md` — apply this team's ritual differences and recognise custom meetings.
-- `{HUB}/context/company/neighbouring-teams.md` — recognise team names, ownership boundaries, and likely dependencies.
+- `{ANCHOR}/context/team/mission.md` — frame relevance, scope, and the team's purpose.
+- `{ANCHOR}/context/team/members.md` — recognise speakers, roles, responsibilities, and focus areas.
+- `{ANCHOR}/context/knowledge-base/glossary.md` — recognise domain terms and likely transcription errors.
+- `{ANCHOR}/context/team/meetings/*.md`, excluding `README.md` — apply this team's ritual differences and recognise custom meetings.
+- `{ANCHOR}/context/company/neighbouring-teams.md` — recognise team names, ownership boundaries, and likely dependencies.
 
 Any of these absent is not a stop — proceed, and fill on first need (per the agent instructions): offer the team profile as a two-to-five-sentence draft from repo and board at the first gate; offer a `neighbouring-teams.md` entry the first time the transcript crosses a team boundary, recording just the team it named.
 
@@ -114,7 +114,7 @@ For one-type sessions, produce one segment spanning the full transcript. For mix
 
 Read only the `When this lens applies` section from each generic handler in `_meeting-archetypes/`. Match each segment against every handler and attach a confidence label (`clear` / `likely` / `weak`) to each match; apply all matches rather than choosing one primary type.
 
-Match the preloaded Markdown files under `{HUB}/context/team/meetings/`, excluding `README.md`, semantically:
+Match the preloaded Markdown files under `{ANCHOR}/context/team/meetings/`, excluding `README.md`, semantically:
 
 - A file named for a generic meeting adds local guidance to that lens.
 - A differently named file may describe a custom recurring meeting; match it from its `How to recognise it` prose.
@@ -298,9 +298,9 @@ ESCALATE [blocker]
 Before proposing a destination, invoke `knowledge-source-routing` and load its catalog. Keep externally canonical knowledge as a reference rather than copying it into the HUB.
 
 ```
-KB:decisions  Write {HUB}/context/knowledge-base/decisions/<x>.md: [decision + rationale]
-KB:patterns   Write {HUB}/context/knowledge-base/patterns/<x>.md: [pattern description]
-KB:glossary   Add term to {HUB}/context/knowledge-base/glossary.md: [term — definition]
+KB:decisions  Write {ANCHOR}/context/knowledge-base/decisions/<x>.md: [decision + rationale]
+KB:patterns   Write {ANCHOR}/context/knowledge-base/patterns/<x>.md: [pattern description]
+KB:glossary   Add term to {ANCHOR}/context/knowledge-base/glossary.md: [term — definition]
 ```
 
 **Housekeeping** (non-urgent board hygiene): missing AC, suspected duplicates, stale items, missing links.
@@ -315,7 +315,7 @@ Stop here. Render the board plan per `workitem-write` step 4 over everything Pha
 
 ## Phase 4 — Execute
 
-Execute and report per `workitem-write` step 5 — one action at a time, re-verify before touching, pause if an item changed since the meeting. The DONE report also lists knowledge-base writes (`{HUB}/context/knowledge-base/<path>`) and cross-team escalations as manual follow-ups.
+Execute and report per `workitem-write` step 5 — one action at a time, re-verify before touching, pause if an item changed since the meeting. The DONE report also lists knowledge-base writes (`{ANCHOR}/context/knowledge-base/<path>`) and cross-team escalations as manual follow-ups.
 
 ---
 

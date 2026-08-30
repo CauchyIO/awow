@@ -211,7 +211,7 @@ SPOKE_PLUGIN = _plugin(payload_skill="PAYLOAD-SENTINEL")
 # Connected: valid link, origin matches the connector remote.
 hub = _make_hub(CONNECTOR_REMOTE + ".git")
 ctx, err, rc = _run(SPOKE_PLUGIN, project=_spoke_project(link=(CONNECTOR_REMOTE, hub)))
-check("connected spoke resolves {HUB} to the recorded path", hub in ctx and "resolves to" in ctx)
+check("connected spoke resolves {ANCHOR} to the recorded path", hub in ctx and "resolves to" in ctx)
 check("connected spoke names its hub and project",
       CONNECTOR_REMOTE in ctx and "demo-spoke" in ctx)
 check("connected spoke injects the reflex", "PAYLOAD-SENTINEL" in ctx)

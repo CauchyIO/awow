@@ -3,8 +3,8 @@ description: "Use when a department's quarterly OKR cascade needs attention — 
 phase: spread
 layer: department
 prerequisites:
-  - "{HUB}/context/department/ stood up and at least one team joined (`/setup-department`)"
-  - "an OKR doc for the current quarter at `{HUB}/context/department/okrs-<quarter>.md`"
+  - "{ANCHOR}/context/department/ stood up and at least one team joined (`/setup-department`)"
+  - "an OKR doc for the current quarter at `{ANCHOR}/context/department/okrs-<quarter>.md`"
 removes_pain: "the quarter's OKR cascade drifting out of sync with team reality because nothing forces regular reconciliation"
 when-to-use: "The department's standing quarter machinery: Articulate, Refine, Translate, or Review. Review is the recurring strategic review — grading KR movement against board reality."
 when-not-to-use: "Forming the strategy in the first place — vision to bets to a draft KR set is /strategy-flow. Working one locked bet in a live board session — that is the bet-refinement-coach skill."
@@ -20,14 +20,14 @@ You drive the department's OKR cascade through four stages — **Articulate, Ref
 
 Run this section on every invocation before entering any stage below.
 
-1. **Read the indirection.** Read `{HUB}/context/tooling/department.md`. Resolve `teams_root`, `read_scope`, `decisions_dir`, and `stale_after_days` from its frontmatter for every later step — never from the inline literals written in this file.
+1. **Read the indirection.** Read `{ANCHOR}/context/tooling/department.md`. Resolve `teams_root`, `read_scope`, `decisions_dir`, and `stale_after_days` from its frontmatter for every later step — never from the inline literals written in this file.
 2. **Run the check.** Run `python ${CLAUDE_PLUGIN_ROOT}/tools/cascade_check.py --json` from the repo root. Parse the JSON body: `quarter`, `findings` (list of `{class, team, detail}`), `drift` (list of `{team, pinned, remote}`), `pin_age_days` (map of team → integer days).
 3. **Exit 2 stops you cold.** No JSON is emitted on exit 2 — only a `CascadeConfigError` message on stderr. Show that message verbatim and stop before touching any stage.
-   - **Already carries its own fix** — show it and stop, nothing more to add: missing `{HUB}/context/tooling/department.md` (the message itself says "— run `/setup-department` first"); no `origin` remote configured (the message names the exact `git remote add` command).
-   - **`{HUB}/context/tooling/department.md` present but malformed** — a missing required field, or a non-integer `stale_after_days` — show the error verbatim and name the exact line to fix: add the missing field (one of `teams_root`, `read_scope`, `decisions_dir`, `stale_after_days`) with a value, or replace the `stale_after_days` value with a plain integer.
-   - **Everything else, name the fix yourself:** missing or malformed `teams.md` → run `/setup-department`'s join loop or fix the `| Team | Path | Lead |` table by hand; no `{HUB}/context/department/okrs-<quarter>.md` found → run `/setup-department` Step 4 to scaffold the current quarter's doc.
+   - **Already carries its own fix** — show it and stop, nothing more to add: missing `{ANCHOR}/context/tooling/department.md` (the message itself says "— run `/setup-department` first"); no `origin` remote configured (the message names the exact `git remote add` command).
+   - **`{ANCHOR}/context/tooling/department.md` present but malformed** — a missing required field, or a non-integer `stale_after_days` — show the error verbatim and name the exact line to fix: add the missing field (one of `teams_root`, `read_scope`, `decisions_dir`, `stale_after_days`) with a value, or replace the `stale_after_days` value with a plain integer.
+   - **Everything else, name the fix yourself:** missing or malformed `teams.md` → run `/setup-department`'s join loop or fix the `| Team | Path | Lead |` table by hand; no `{ANCHOR}/context/department/okrs-<quarter>.md` found → run `/setup-department` Step 4 to scaffold the current quarter's doc.
 4. **Exit 0 or 1, read on regardless.** Present `findings` as a compact table (`class | team | detail`) — empty is worth stating plainly ("no findings"), not skipping. Note `drift` separately if non-empty: a drift entry can exist without a `pin-stale` finding, since drift fires on any pinned/remote mismatch while `pin-stale` only fires past `stale_after_days`.
-5. **Read the department's own docs.** Read `{HUB}/context/department/definition.md`, `{HUB}/context/department/teams.md`, the current `okrs-<quarter>.md`, and any prior files under `<decisions_dir>/`. This is your working knowledge for every stage below.
+5. **Read the department's own docs.** Read `{ANCHOR}/context/department/definition.md`, `{ANCHOR}/context/department/teams.md`, the current `okrs-<quarter>.md`, and any prior files under `<decisions_dir>/`. This is your working knowledge for every stage below.
 6. **Load the coach.** Load `department-coach` — Refine and Review lean on its battery and discipline directly; Articulate and Translate lean on it lighter.
 7. **Recommend a stage.** Every finding class the script can emit routes to exactly one bolded recommendation; check in this order and stop at the first match:
    - `registered-missing`, `backlink-missing`, or `backlink-mismatch` present → recommend **`/setup-department`**, not a cascade stage. A team's join is itself broken (missing checkout, missing backlink, or a backlink pointing at the wrong parent) — fix that first via its join loop or a backlink PR before any objective, KR, or mapping work means anything. Exception: if a `registered-missing` finding's detail names a git/network failure (e.g. mentions `ls-remote` or an unreachable remote) rather than a missing checkout, the join itself may be fine — recommend fixing connectivity and re-running the check instead of `/setup-department`.
@@ -71,7 +71,7 @@ Each objective's key results go through the coach's full battery before they cou
 
 The department only *proposes* the objective→team mapping. A team accepts by merging the `Serves:` header into its own quarterly doc — you never write into a team repo except by PR, and every PR needs explicit approval before it exists.
 
-1. Ask which PI is being planned (e.g. `2026-PI-4`), mirroring `/setup-department`'s quarter ask. If `{HUB}/context/department/pi-plan-<PI>.md` does not exist for that PI, copy `{HUB}/context/department/templates/pi-plan.md` to that path and update its heading to name the actual PI; if it exists, read it.
+1. Ask which PI is being planned (e.g. `2026-PI-4`), mirroring `/setup-department`'s quarter ask. If `{ANCHOR}/context/department/pi-plan-<PI>.md` does not exist for that PI, copy `{ANCHOR}/context/department/templates/pi-plan.md` to that path and update its heading to name the actual PI; if it exists, read it.
 2. For each objective flagged by `serves-nothing` or `orphaned-objective` (or any objective the user wants remapped), propose which team or teams should serve it. Fill the proposal table's `Proposed teams` column; leave `Accepted (Serves: merged)` blank until a team's PR actually merges — that column is never fabricated ahead of the real merge.
 3. Show the proposal table, get approval, then write and commit the department's own PI-plan doc.
 4. For each accepted team, offer to prepare its acceptance PR: draft the `Serves: O<n>` header addition to that team's `<teams_root>/<team>/context/quarterly/*.md`, show the diff, and get explicit approval before creating anything. On approval: in the `<teams_root>/<team>` submodule checkout, branch (e.g. `awow/serves-<objective>`), commit the header addition, push the branch to the team repo's remote, and run `gh pr create` against that repo's default branch.

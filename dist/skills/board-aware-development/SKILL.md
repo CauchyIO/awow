@@ -14,7 +14,7 @@ This is the **ungated path**. `/process-workitem` already owns the seam when you
 | Engine skill (the moment it fires) | Board action riveted to it |
 |---|---|
 | `brainstorming` (creative work starting) | This is your board moment. No ticket and it is an initiative → the brainstorm output is your `{PROJECT}/proposals/` draft → approve → create (`/feature`, `/bugfix`, `/spike`). Ticket exists → move it to **In Progress**. |
-| `writing-plans` (a spec exists) | Link the plan to the ticket: intent + acceptance criteria in the body, durable rationale to `{HUB}/context/knowledge-base/`. |
+| `writing-plans` (a spec exists) | Link the plan to the ticket: intent + acceptance criteria in the body, durable rationale to `{ANCHOR}/context/knowledge-base/`. |
 | `executing-plans` / `test-driven-development` / `subagent-driven-development` | Ticket is **In Progress**; comment findings and blockers *as you go*, not at the end. |
 | `systematic-debugging` | An initiative with no ticket → open one (`/bugfix`, `/incident`); the root cause goes in a comment. |
 | `verification-before-completion` | Gate: do **not** move the ticket to In Review/Done until verification evidence exists. Paste the evidence into a comment. |

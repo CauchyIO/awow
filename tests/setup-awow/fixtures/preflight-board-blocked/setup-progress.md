@@ -12,3 +12,4 @@ harnesses: claude-code, copilot, visual-studio
 
 surface: mcp
 board-mcp: linear-server https://linear.example.invalid/mcp (confirmed 2026-08-20)
+board-url: https://linear.app/example-team/team/EX/all

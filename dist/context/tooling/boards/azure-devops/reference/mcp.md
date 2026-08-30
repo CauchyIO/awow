@@ -35,7 +35,7 @@ Confirm field names and env-var binding against the Azure DevOps MCP repo README
 
 ## Verify
 
-1. List work items from a known project to verify read access.
+1. Resolve the organisation/project from the board URL to verify read access *and identity* — a server that answers but lacks the project is wired to the wrong organisation.
 2. A no-op write on a scratch work item (set a field to its current value) to verify write access.
 3. Record the verification status in `context/tooling/board.md`.
 

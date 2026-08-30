@@ -11,6 +11,7 @@ pre() {
 post() {
   file-contains setup-progress.md 'surface: mcp'
   file-contains setup-progress.md 'board-mcp: linear-server https://linear\.example\.invalid/mcp'
+  file-contains setup-progress.md 'board-url: https://linear\.app/example-team/team/EX/all'
   file-contains setup-progress.md 'surface-verification: pending'
   file-not-contains setup-progress.md 'jira\.example\.invalid'
 }

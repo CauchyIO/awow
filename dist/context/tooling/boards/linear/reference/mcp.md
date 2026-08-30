@@ -33,7 +33,7 @@ The exact field names (`type`/`transport`, `url`/`endpoint`) and any auth fields
 
 ## Verify
 
-1. `mcp__linear-server__list_issues` to verify read access.
+1. `mcp__linear-server__list_teams` to verify read access *and identity*: the team key from the board URL must be in the result — a server that answers with other teams is wired to the wrong workspace.
 2. A no-op write on a scratch issue (set the description to its current value) to verify write access.
 3. Record the verification status (`read-ok`, `write-ok`, `pending`) in `context/tooling/board.md`.
 

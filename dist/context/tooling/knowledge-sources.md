@@ -1,8 +1,8 @@
 # Canonical knowledge sources — routing contract
 
-`{HUB}/context/knowledge-sources/index.md` is the team-owned catalog of knowledge that is
+`{ANCHOR}/context/knowledge-sources/index.md` is the team-owned catalog of knowledge that is
 canonical somewhere else: another repository, SharePoint, a vector-backed retrieval system,
-or another provider with a native read capability. The HUB records how to find it, not its
+or another provider with a native read capability. The ANCHOR records how to find it, not its
 contents.
 
 ## Source record
@@ -30,7 +30,7 @@ routing:
   when_to_use:
     - Work concerns the payments platform or its operating procedures.
   when_not_to_use:
-    - Work concerns team policy that is already canonical in this HUB.
+    - Work concerns team policy that is already canonical in this ANCHOR.
 source:
   kind: repository
   provider: github
@@ -65,32 +65,34 @@ Use source-specific types and abstract capabilities. Typical pairs are `Project 
 `semantic-knowledge-search`. Provider names belong under `source.provider`; harness-specific tool
 names do not belong in the catalog.
 
-## Spoke records
+## Anchored-repo records
 
-When the resource is a repository this team governs as a spoke — the repo commits a connector
-naming this HUB by remote URL and its sessions read team context from here — add one block:
+When the resource is a repository this team governs as an anchored repo — the repo commits a
+connector naming this ANCHOR by remote URL and its sessions read team context from here — add
+one block:
 
 ```yaml
-spoke:
+anchored:
   board:
-    team: Payments            # board team the spoke's items land on
+    team: Payments            # board team the anchored repo's items land on
     project: Payments platform  # optional board project/container
   subpath: services/payments  # optional, monorepo scoping
   capabilities: [team]        # e.g. solo | team
 ```
 
-`spoke:` adds governance metadata only; the rest of the record keeps its routing meaning, so a
-spoke is also an ordinary routable read-only source. Records without `spoke:` are plain external
-sources. Never put a clone path in a spoke record — the machine-local link lives in the spoke's
-gitignored `.awow/hub.json`, written at registration by `/setup-awow`.
+`anchored:` adds governance metadata only; the rest of the record keeps its routing meaning, so
+an anchored repo is also an ordinary routable read-only source (`spoke:` is the pre-rename key
+for the same block and stays readable). Records without `anchored:` are plain external sources.
+Never put a clone path in an anchored-repo record — the machine-local link lives in that repo's
+gitignored `.awow/anchor.json`, written at registration by `/setup-awow`.
 
 ## Resolution
 
-When a task consumes HUB context or may create durable HUB knowledge:
+When a task consumes ANCHOR context or may create durable ANCHOR knowledge:
 
 1. **Select semantically.** Read the catalog once. Compare the request, transcript, board item,
    and project vocabulary with each source's title, description, aliases, signals, and use
-   boundaries. Zero credible matches means HUB-only behavior. One match activates that source.
+   boundaries. Zero credible matches means ANCHOR-only behavior. One match activates that source.
    Several plausible matches are ambiguity: say which ones and do not guess.
 2. **Resolve access for this session.** Prefer a matching local checkout only when its normalized
    git remote equals `resource`; discover it from the current workspace or other accessible
@@ -103,7 +105,7 @@ When a task consumes HUB context or may create durable HUB knowledge:
    path or object identifier the provider returns.
 
 Retrieval is read-only and session-local. Never write to a source repo or external system while
-acting from the HUB.
+acting from the ANCHOR.
 
 For repository identity, normalize away transport and syntax differences: compare host plus
 owner/repository, ignoring credentials, an optional `.git` suffix, and a trailing slash. Search
@@ -112,9 +114,9 @@ matching checkouts are ambiguity, not permission to choose one silently.
 
 ## Reference before capture
 
-Before proposing any durable HUB write, classify the material:
+Before proposing any durable ANCHOR write, classify the material:
 
-- **HUB-canonical** — write through the normal proposal and approval gate.
+- **ANCHOR-canonical** — write through the normal proposal and approval gate.
 - **External-canonical** — write only a concise pointer to the source record and canonical URI;
   do not reproduce the source body.
 - **Authority unclear** — ask which location is canonical before proposing a write.
@@ -124,10 +126,10 @@ show it to the user, and land it only after approval.
 
 ## Degraded behavior
 
-- Missing catalog: retain current HUB-only behavior.
-- Empty catalog or no match: retain current HUB-only behavior.
+- Missing catalog: retain current ANCHOR-only behavior.
+- Empty catalog or no match: retain current ANCHOR-only behavior.
 - Missing provider capability: name the source and URI, explain what access is unavailable, and
-  continue with HUB context where possible.
+  continue with ANCHOR context where possible.
 - Broken entrypoint: use the canonical URI and native provider navigation; report the broken
   pointer rather than silently substituting another source.
 - Unsupported OKF version: read ordinary Markdown where possible, but do not claim conformant

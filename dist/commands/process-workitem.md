@@ -11,7 +11,7 @@ removes_pain: "the every-story-is-treated-the-same-regardless-of-type problem"
 
 # /process-workitem — take a board work item from refinement to PR
 
-You load a board work item, validate its inputs, plan the change, apply it, verify the result, and report back. The work-specific rules (what to validate, what to check at the end) live in the archetype handlers. Build the registry by overlay: start from the shipped set — `{HUB}/.agents/commands/_workitem-archetypes/` if this repo has vendored it, otherwise `${CLAUDE_PLUGIN_ROOT}/handlers/_workitem-archetypes/` — then lay `{HUB}/context/team/workitem-archetypes/` (excluding `README.md`) over it, where a same-named team file replaces the shipped handler and a new name registers a new archetype. This file is the generic frame that wraps every archetype.
+You load a board work item, validate its inputs, plan the change, apply it, verify the result, and report back. The work-specific rules (what to validate, what to check at the end) live in the archetype handlers. Build the registry by overlay: start from the shipped set — `{ANCHOR}/.agents/commands/_workitem-archetypes/` if this repo has vendored it, otherwise `${CLAUDE_PLUGIN_ROOT}/handlers/_workitem-archetypes/` — then lay `{ANCHOR}/context/team/workitem-archetypes/` (excluding `README.md`) over it, where a same-named team file replaces the shipped handler and a new name registers a new archetype. This file is the generic frame that wraps every archetype.
 
 This is the **seed** shipped with awow v0.1 — the flow below is a sensible default, not a contract. Edit it to fit how your team actually works.
 
@@ -30,9 +30,9 @@ This is the **seed** shipped with awow v0.1 — the flow below is a sensible def
 
 ### 1. Load the work item
 
-Resolve the ID via the team's board surface (per `{HUB}/context/tooling/board.md`), or read the local cache at `{PROJECT}/proposals/workitems/<id>.md`. Read it through the lens of `user-story-template.md`: title, body (what changes + why), tags, acceptance criteria if present, scope boundary if present, parent/children, recent comments.
+Resolve the ID via the team's board surface (per `{ANCHOR}/context/tooling/board.md`), or read the local cache at `{PROJECT}/proposals/workitems/<id>.md`. Read it through the lens of `user-story-template.md`: title, body (what changes + why), tags, acceptance criteria if present, scope boundary if present, parent/children, recent comments.
 
-**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{HUB}/context/tooling/board.md` yourself.
+**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{ANCHOR}/context/tooling/board.md` yourself.
 
 Confirm to the user: title, state, number of children, the archetype you plan to route to.
 
@@ -42,9 +42,9 @@ Confirm to the user: title, state, number of children, the archetype you plan to
 
 ### 2. Classify and route
 
-Match the story to an archetype registered in the overlaid registry built above (common ones: `feature`, `bugfix`, `refactor`, `doc`; teams register others in `{HUB}/context/team/workitem-archetypes/` as their work demands). The archetype handler carries the work-specific rules.
+Match the story to an archetype registered in the overlaid registry built above (common ones: `feature`, `bugfix`, `refactor`, `doc`; teams register others in `{ANCHOR}/context/team/workitem-archetypes/` as their work demands). The archetype handler carries the work-specific rules.
 
-**If the registry is empty** (apart from `README.md`), proceed generically: use the validation, planning, and verification rules from this file as-is, but tell the user no archetype was matched and suggest scaffolding one based on the work just classified. Capture the suggestion as a stub proposal at `{PROJECT}/proposals/archetypes/<name>.md`; once the team approves it, it lands in `{HUB}/context/team/workitem-archetypes/` so the next cycle starts richer. Do not block on this — generic execution is the day-one fallback.
+**If the registry is empty** (apart from `README.md`), proceed generically: use the validation, planning, and verification rules from this file as-is, but tell the user no archetype was matched and suggest scaffolding one based on the work just classified. Capture the suggestion as a stub proposal at `{PROJECT}/proposals/archetypes/<name>.md`; once the team approves it, it lands in `{ANCHOR}/context/team/workitem-archetypes/` so the next cycle starts richer. Do not block on this — generic execution is the day-one fallback.
 
 **If archetypes exist but none match**, the story is either too broad — split it — or a new handler is needed. Ask the user.
 
@@ -52,7 +52,7 @@ Match the story to an archetype registered in the overlaid registry built above 
 
 The archetype handler says what to validate for this work type and what counts as a stop condition. Do those checks *before* any planning. Working from assumed state is the most common cause of agent-driven bugs.
 
-If the handler doesn't specify checks, ask the user what "validated" means for this work and capture the answer into the team's copy of the handler under `{HUB}/context/team/workitem-archetypes/` (creating it from the shipped one if needed) so the next run is deterministic.
+If the handler doesn't specify checks, ask the user what "validated" means for this work and capture the answer into the team's copy of the handler under `{ANCHOR}/context/team/workitem-archetypes/` (creating it from the shipped one if needed) so the next run is deterministic.
 
 Report findings to the user. If anything blocks, stop.
 
@@ -91,7 +91,7 @@ Iterate on the plan with the user. Do not touch code or the board until approved
 
 Execute the plan. Don't drift — if scope needs to expand, raise it and amend the plan.
 
-If your team uses output-placement tagging (story body vs. comment vs. knowledge base vs. code, per `{HUB}/context/team/conventions/REQUIRED/output-discipline.md`), respect it: a story is not allowed to absorb content that belongs in the knowledge base.
+If your team uses output-placement tagging (story body vs. comment vs. knowledge base vs. code, per `{ANCHOR}/context/team/conventions/REQUIRED/output-discipline.md`), respect it: a story is not allowed to absorb content that belongs in the knowledge base.
 
 ### 6. Verify
 
@@ -111,4 +111,4 @@ Open the PR with a link to the work item, summary of changes, and verification r
 - **Never act on un-validated assumptions about state.**
 - **The plan is the cheap-to-change artefact** — iterate there, not in production.
 - **Don't gold-plate.** First story delivers the feature; observability, refactors, and docs are follow-up stories.
-- **Follow the team's conventions** in `{HUB}/context/team/conventions/REQUIRED/*.md` (labels, branches, output discipline).
+- **Follow the team's conventions** in `{ANCHOR}/context/team/conventions/REQUIRED/*.md` (labels, branches, output discipline).

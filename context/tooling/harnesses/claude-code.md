@@ -16,7 +16,7 @@ Presence of `.claude/` directory in the repo root, or the user explicitly choose
 
 ## How `.agents/` reaches Claude Code
 
-Through the awow plugin. `tools/gather.py` builds `.agents/` into `dist/` — `commands/` and `skills/` as full copies, `hooks/` for the session reflex — and the marketplace manifest in the awow repo serves that directory, so `/plugin marketplace add CauchyIO/awow` and `/plugin install awow` deliver the commands, skills and hooks to any repo. Path tokens in the prompt bodies render to `${CLAUDE_PLUGIN_ROOT}` at build time; `{HUB}` and `{PROJECT}` resolve at runtime through the session reflex.
+Through the awow plugin. `tools/gather.py` builds `.agents/` into `dist/` — `commands/` and `skills/` as full copies, `hooks/` for the session reflex — and the marketplace manifest in the awow repo serves that directory, so `/plugin marketplace add CauchyIO/awow` and `/plugin install awow` deliver the commands, skills and hooks to any repo. Path tokens in the prompt bodies render to `${CLAUDE_PLUGIN_ROOT}` at build time; `{ANCHOR}` and `{PROJECT}` resolve at runtime through the session reflex.
 
 Nothing is copied into a repo's `.claude/`: the team's own `CLAUDE.md` there is theirs (bootstrapped by `/setup-awow` Step 5), and awow never regenerates it. A legacy vendored tree still mirrors `.agents/` into `.claude/` with its own `tools/gather.py`; that route is retired for new installs.
 

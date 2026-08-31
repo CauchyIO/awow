@@ -12,8 +12,8 @@ and indexes, not invented or rewritten knowledge.
 ## Boundaries
 
 - Work only in the repository or collection the user explicitly authorized for modification.
-- When reached through HUB canonical-source routing, remain read-only; do not adopt OKF in the
-  spoke as a side effect.
+- When reached through ANCHOR canonical-source routing, remain read-only; do not adopt OKF in
+  the anchored repo as a side effect.
 - Preserve every document body and every unknown frontmatter field.
 - Do not create missing tutorials, explanations, or decisions. Report gaps separately.
 

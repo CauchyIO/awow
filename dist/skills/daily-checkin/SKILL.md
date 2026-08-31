@@ -57,7 +57,7 @@ If an account is provided, read all of it before interpreting anything. The rich
 **Disambiguation protocol (voice input only):**
 
 1. Read the full transcript before interpreting anything.
-2. Cross-reference every proper noun against known entities: projects and people from `{HUB}/context/team/members.md`, product and domain names from `{HUB}/context/team/`, and code repositories.
+2. Cross-reference every proper noun against known entities: projects and people from `{ANCHOR}/context/team/members.md`, product and domain names from `{ANCHOR}/context/team/`, and code repositories.
 3. When a word matches no known entity but sounds like one, assume the known entity.
 4. Collect all ambiguous terms and present them for confirmation **before** producing the summary. Do not guess silently. Group the questions efficiently ("I read X as Y and A as B — correct?").
 
@@ -119,11 +119,11 @@ Map today's code activity to board issues (linked branches, issue IDs in commit 
 
 ### E. Structural gaps
 
-Note only genuine gaps — work a teammate would expect on the board but can't find, a real dependency or follow-up that would otherwise be lost. What counts as board-worthy is the team's call (set in the repo's agent instructions and `{HUB}/context/team/style/board-output.md`); apply it, don't redefine it. "No gaps today" is a fine and common outcome.
+Note only genuine gaps — work a teammate would expect on the board but can't find, a real dependency or follow-up that would otherwise be lost. What counts as board-worthy is the team's call (set in the repo's agent instructions and `{ANCHOR}/context/team/style/board-output.md`); apply it, don't redefine it. "No gaps today" is a fine and common outcome.
 
 ### F. Knowledge discovery (implicit)
 
-Without being asked, identify reusable insights, documentation gaps, and recurring confusion, and suggest a capture location — for durable rationale that's `{HUB}/context/knowledge-base/` (per the placement rules in the repo's agent instructions). No speculation beyond what the sources support.
+Without being asked, identify reusable insights, documentation gaps, and recurring confusion, and suggest a capture location — for durable rationale that's `{ANCHOR}/context/knowledge-base/` (per the placement rules in the repo's agent instructions). No speculation beyond what the sources support.
 
 ---
 
@@ -156,11 +156,11 @@ almost certainly generating noise — go back to Section 2.C and re-map.
 ## Gaps & follow-ups  *(only genuine ones — omit the section if none)*
 * Work with no ticket that truly needs one (not every passing task).
 * A repo with no corresponding board project.
-* An insight worth capturing durably → suggest `{HUB}/context/knowledge-base/`.
+* An insight worth capturing durably → suggest `{ANCHOR}/context/knowledge-base/`.
 * Tomorrow's single top priority or a real blocker, if there is one.
 ```
 
-Proposed board comments follow the team's board-output rules (`{HUB}/context/team/style/board-output.md`). Use this shape:
+Proposed board comments follow the team's board-output rules (`{ANCHOR}/context/team/style/board-output.md`). Use this shape:
 
 ```
 [Daily check-in — YYYY-MM-DD]
@@ -205,6 +205,6 @@ Gate and execution per `workitem-write` steps 4–5: explicit approval, pre-imag
 - **Stay source-grounded.** Synthesize only from the user's account (if any), code activity, and processed transcript. Never fabricate activity or attribute work incorrectly — and never invent a richer day than the sources support to compensate for a sparse or missing account.
 - **No silent guessing** on garbled proper nouns — disambiguate at the gate in Section 0.A (voice input only).
 - **No performance evaluation, no strategic forecasting.** Surface structure and gaps; let the human decide.
-- **Respect private-team boundaries.** If the team has a private board surface (per `{HUB}/context/team/conventions/REQUIRED/labels.md`), a check-in for a private-team member may write there, but never leak private-team work into a shared surface.
+- **Respect private-team boundaries.** If the team has a private board surface (per `{ANCHOR}/context/team/conventions/REQUIRED/labels.md`), a check-in for a private-team member may write there, but never leak private-team work into a shared surface.
 - **Read-only until Section 5.** The board is not touched until the user approves.
 - **Route transcripts through `/process-transcript`** — do not ingest raw meeting transcripts inline.

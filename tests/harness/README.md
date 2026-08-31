@@ -36,11 +36,12 @@ The transport is resolved by available credential (`tests/harness/lib/gateway.sh
   request is still rejected, the turn SKIPs with that reason rather than failing. (Note: a gateway
   tier that proxies to the same downstream model would hit the same wall — the fix is disabling the
   tools, not the transport.)
-- **Hub-spoke deploy**: the Claude Code deploy scenario checks the payload + connector deterministically.
+- **Anchored deploy**: the Claude Code deploy scenario checks the payload + connector deterministically.
   The codex/pi `live` paths now install the real awow plugin/package from the built `dist/` (staged as a
   git repo, mirroring `tools/sync-dist.sh` → `CauchyIO/awow-dist`) and assert a flow is discoverable —
-  no model needed. Hub resolution is asserted deterministically through the shipped `dist/` session-start
-  hook (AWO-133): connected-spoke read path and unmapped fail-loud, against the identity-carrying spoke
-  fixture. Model-driven spoke behaviour (does the agent *act* on the resolved hub) remains eval territory.
+  no model needed. Anchor resolution is asserted deterministically through the shipped `dist/` session-start
+  hook (AWO-133): connected read path and unmapped fail-loud against the identity-carrying anchored
+  fixture, plus the pre-rename spoke fixture as the legacy dual-accept regression (CAU-1415).
+  Model-driven behaviour (does the agent *act* on the resolved anchor) remains eval territory.
 - **Pi apim mode** needs a `models.json` provider block (Pi ignores `OPENAI_BASE_URL`); openrouter mode
   uses Pi's built-in `openrouter` provider.

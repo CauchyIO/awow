@@ -31,7 +31,7 @@ The five **shipped** handlers cover the universal work shapes, so `/process-work
 
 When a kind of work shows up often enough to deserve its own rules:
 
-1. Write the handler as `<archetype>.md` in `{HUB}/context/team/workitem-archetypes/`.
+1. Write the handler as `<archetype>.md` in `{ANCHOR}/context/team/workitem-archetypes/`.
 2. Use the handler in the next session and iterate from real output.
 
 No router edit is needed — `process-workitem` reads the overlaid registry and matches the incoming story against the handlers it finds. Keep handlers generic enough to reuse; resist encoding one-off, hyper-specific work types.

@@ -51,14 +51,14 @@ If the transcript quality is poor (garbled tech terms, multilingual speech-to-te
 
 Read enough to ground your reading:
 
-- `{HUB}/context/team/mission.md` — what the team is for
-- `{HUB}/context/team/members.md` — names, roles, who teaches what
-- `{HUB}/context/knowledge-base/patterns/` — any existing patterns about adoption, coaching, onboarding
-- `{HUB}/context/tooling/board.md` — for any work-tracking conventions the session references
+- `{ANCHOR}/context/team/mission.md` — what the team is for
+- `{ANCHOR}/context/team/members.md` — names, roles, who teaches what
+- `{ANCHOR}/context/knowledge-base/patterns/` — any existing patterns about adoption, coaching, onboarding
+- `{ANCHOR}/context/tooling/board.md` — for any work-tracking conventions the session references
 
 Absence improves nothing; it does not block the pipeline. Proceed.
 
-**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{HUB}/context/tooling/board.md` yourself.
+**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{ANCHOR}/context/tooling/board.md` yourself.
 
 ---
 

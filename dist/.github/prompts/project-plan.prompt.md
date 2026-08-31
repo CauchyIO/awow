@@ -25,7 +25,7 @@ This prompt runs as a pipeline with **two gates**. Stop at each, present your wo
 Read `$ARGUMENTS`:
 
 - A path to a design artefact (a `{PROJECT}/proposals/<topic>.md` or decomposition from `/solution-design-flow`) → plan from its work-item tree.
-- A parent work-item ID → load the parent and its children from the board (surface per `{HUB}/context/tooling/board.md`).
+- A parent work-item ID → load the parent and its children from the board (surface per `{ANCHOR}/context/tooling/board.md`).
 - Empty → ask which design or parent to plan. Do not invent a tree.
 
 If no decomposed design exists yet, stop and route the user to `/solution-design-flow` — this command plans a design, it does not create one.
@@ -45,7 +45,7 @@ Phase 3 ─ Publish & report
 
 ## Phase 0 — Load the design and the board state
 
-Read the design artefact and its decomposed work items: parent, children, each child's scope, acceptance criteria, and any dependency notes the design already carries. Read `{HUB}/context/tooling/board.md` for the write surface and **whether the board supports dependency links** (a native blocked-by relation) or not — this decides how the graph is encoded in Phase 2.
+Read the design artefact and its decomposed work items: parent, children, each child's scope, acceptance criteria, and any dependency notes the design already carries. Read `{ANCHOR}/context/tooling/board.md` for the write surface and **whether the board supports dependency links** (a native blocked-by relation) or not — this decides how the graph is encoded in Phase 2.
 
 Search the board for items that already exist for this initiative; plan against them rather than creating duplicates. Discovery, the convention inventory, and the absent-`board.md` fallback follow `workitem-write` steps 1–2.
 

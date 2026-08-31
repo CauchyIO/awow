@@ -56,7 +56,7 @@ def check_mirror_mentions() -> None:
                 FAILURES.append(
                     f"{rel}:{n} names a generated instruction file. gather.py "
                     f"rewrites it on every build, so a diff landed there is lost. "
-                    f"Target .agents/AGENTS.md or {{HUB}}/context/team/ instead.\n"
+                    f"Target .agents/AGENTS.md or {{ANCHOR}}/context/team/ instead.\n"
                     f"    {line.strip()}"
                 )
             elif path.name == "update-context.md" and "Never write" not in line:

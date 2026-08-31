@@ -20,7 +20,7 @@ Read-only by default. You triage; you do not silently mutate the board.
 
 ## Inputs
 
-- Optional: a person (name or board handle) to run it for. Default: the current user — read `{PROJECT}/.awow/profile.json` (`board_identity`) first, else `{HUB}/context/tooling/board.md` (board identity) or the git identity.
+- Optional: a person (name or board handle) to run it for. Default: the current user — read `{PROJECT}/.awow/profile.json` (`board_identity`) first, else `{ANCHOR}/context/tooling/board.md` (board identity) or the git identity.
 - Optional: a scope — a single project/team. Default: everything assigned to you.
 
 ## Flow
@@ -31,9 +31,9 @@ Determine whose work to pull. Read `{PROJECT}/.awow/profile.json` first; if the 
 
 ### 2. Pull assigned work
 
-Query the board (surface per `{HUB}/context/tooling/board.md`) for items assigned to that person across all states. When `board.md` declares a board-team filter for a shared board, scope the query to the filter. Pull enough to triage: title, state, priority, due date, last-update time, parent, and whether the item is blocked or in review.
+Query the board (surface per `{ANCHOR}/context/tooling/board.md`) for items assigned to that person across all states. When `board.md` declares a board-team filter for a shared board, scope the query to the filter. Pull enough to triage: title, state, priority, due date, last-update time, parent, and whether the item is blocked or in review.
 
-**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{HUB}/context/tooling/board.md` yourself.
+**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{ANCHOR}/context/tooling/board.md` yourself.
 
 ### 3. Group by what it needs from you — not by raw status
 

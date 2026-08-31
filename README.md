@@ -10,9 +10,9 @@ awow can be used in two configurations:
 
 1. **Standalone install**. Install awow for one specific repo with its own
    context and board wiring.
-2. **Hub-and-spoke**. Run awow from a **hub**: one centralized repo holding
+2. **Anchored**. Run awow from an **anchor**: one centralized repo holding
    the shared `context/` — board wiring, mission, conventions, members. Other
-   repos register as **spokes** and use the hub's context instead of carrying
+   repos register as **anchored repos** and use the anchor's context instead of carrying
    their own. Useful for teams that want to use a shared agentic core
    throughout multiple repositories.
 
@@ -72,9 +72,9 @@ slash commands.
 `/setup-awow` is the first command to run after installing the plugin. It
 wires your board (Linear, Jira, Azure DevOps, GitHub Issues) and writes your
 mission, conventions, and members into `context/` — the context every other
-command reads. Run it for both **hub** and **spoke** repos.
+command reads. Run it for both **anchor** and **anchored** repos.
 
-- Detects whether you are using a hub or spoke repo. Spoke repos need only
+- Detects whether you are using an anchor or an anchored repo. Anchored repos need only
   minimal setup.
 - Choose a guided walkthrough, or a 25–30 minute team workshop whose
   transcript becomes the same gated setup proposals.
@@ -90,7 +90,7 @@ carry on — but they work better with it.
 
 ## Then: the commands
 
-The commands work in any repo (hub or spoke).
+The commands work in any repo (anchor or anchored).
 
 | | |
 |---|---|
@@ -112,7 +112,7 @@ Every session starts by reading awow's working rules: go to the board before
 starting work, write or update the ticket, and keep the admin current while you
 work. Commands read your team context where it exists. An optional OKF catalog
 routes them to canonical repositories, SharePoint, or vector-backed sources
-without copying that material into the hub.
+without copying that material into the anchor.
 
 ---
 

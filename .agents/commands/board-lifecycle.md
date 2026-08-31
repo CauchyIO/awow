@@ -3,7 +3,7 @@ description: "Use when the board's project layer needs governing — projects wi
 phase: standardise
 argument-hint: "[--check] [--snapshot <path>] [--ledger]"
 prerequisites:
-  - "The board is readable per {HUB}/context/tooling/board.md."
+  - "The board is readable per {ANCHOR}/context/tooling/board.md."
 removes_pain: "the board's project list decaying into an unreadable mix of live work and dead containers nobody dares close"
 when-to-use: "Governing the project containers themselves: declaring shapes and horizons, running the recurring sweep, producing the exception plan, or preparing the sign-off ledger for adopting the mechanism on a lived-in board."
 when-not-to-use: "Grading KRs against board movement — /okr-cascade Review. Your personal plate — /my-work. What shipped — /daily-digest. Sequencing one project's work — /project-plan."
@@ -25,7 +25,7 @@ The user's job is two actions: invoke, and approve (or reject) the exception pla
 
 ## Ground — the lifecycle contract
 
-Read the `## Lifecycle` section of `{HUB}/context/tooling/board.md`: the shape set, each shape's horizon rule, and the exception status name (see the boards reference for the section's documented form). When the section is absent, draft it from the defaults above, present it, and — only on explicit approval — append it to `{HUB}/context/tooling/board.md`. Never invent a team's lifecycle silently, and never write team context without that approval.
+Read the `## Lifecycle` section of `{ANCHOR}/context/tooling/board.md`: the shape set, each shape's horizon rule, and the exception status name (see the boards reference for the section's documented form). When the section is absent, draft it from the defaults above, present it, and — only on explicit approval — append it to `{ANCHOR}/context/tooling/board.md`. Never invent a team's lifecycle silently, and never write team context without that approval.
 
 ## Sweep — classify the estate (read-only)
 

@@ -9,13 +9,13 @@ Every board item create or update routes through these six steps: a flow delegat
 
 ## 1. Look first
 
-Search the board (surface per `{HUB}/context/tooling/board.md`) before drafting anything new, along four axes: keywords from the request, named owners' assigned items, project / area scope, and recency (items updated in the last two cycles). Note match confidence: exact / likely related / weak signal. When `board.md` declares a board-team filter for a shared board, scope reads to the filter but run the duplicate search board-wide — a duplicate across teams is still a duplicate.
+Search the board (surface per `{ANCHOR}/context/tooling/board.md`) before drafting anything new, along four axes: keywords from the request, named owners' assigned items, project / area scope, and recency (items updated in the last two cycles). Note match confidence: exact / likely related / weak signal. When `board.md` declares a board-team filter for a shared board, scope reads to the filter but run the duplicate search board-wide — a duplicate across teams is still a duplicate.
 
 Found coverage → link or comment with no ceremony. **Smallest board footprint wins:** comment > move > create. Creating a new item is the exception that must justify itself against the search you just ran, never the reflex.
 
-**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{HUB}/context/tooling/board.md` yourself.
+**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{ANCHOR}/context/tooling/board.md` yourself.
 
-**Several `board.md` candidates, or an index-form `board.md`?** Resolve per §Context resolution in the agent instructions (AGENTS.md) before any board read or write: the nearest installation inside the repo boundary — never a parent or sibling repo's — then, for an index, the ladder (explicit reference → scope match → session pin → spoke board scope → invoker default → picker), recording the answer in `.awow/board-session.md` beside the absent-board note. Announce a silently-resolved target with `targeting board: <name>` before the first write.
+**Several `board.md` candidates, or an index-form `board.md`?** Resolve per §Context resolution in the agent instructions (AGENTS.md) before any board read or write: the nearest installation inside the repo boundary — never a parent or sibling repo's — then, for an index, the ladder (explicit reference → scope match → session pin → anchored board scope → invoker default → picker), recording the answer in `.awow/board-session.md` beside the absent-board note. Announce a silently-resolved target with `targeting board: <name>` before the first write.
 
 **Record the pre-image.** For every item you may change, record what you just read — current state, title, and the body section a change would touch. This snapshot is the board plan's "before"; step 5 re-verifies it line by line.
 
@@ -23,17 +23,17 @@ Found coverage → link or comment with no ceremony. **Smallest board footprint 
 
 Before shaping a draft, read and apply:
 
-- `{HUB}/context/team/conventions/REQUIRED/issue-titles.md` — title verbs and patterns
-- `{HUB}/context/team/conventions/REQUIRED/labels.md` — the label taxonomy
+- `{ANCHOR}/context/team/conventions/REQUIRED/issue-titles.md` — title verbs and patterns
+- `{ANCHOR}/context/team/conventions/REQUIRED/labels.md` — the label taxonomy
 - The board's existing projects / containers and their naming
 
 The draft **cites** which conventions shaped it — title pattern, labels chosen, container — so the user approves against the team's rules, not your taste. Placing an item in a new container requires stating why no existing one fits.
 
 ## 3. Shape the body
 
-- Story shape per the `user-story-template` skill; voice per `{HUB}/context/team/style/board-output.md`.
-- Placement per `{HUB}/context/team/conventions/REQUIRED/output-discipline.md` Rule 2: intent + acceptance criteria → body; status, blockers, execution decisions → comment; durable rationale → `{HUB}/context/knowledge-base/`. Label every section by placement before the gate — the user approves placement, not just words.
-- **No invented specifics.** A draft may not name a technology, path, endpoint, count, limit, or time window the source material or `{HUB}/context/` did not state — those are design decisions; surface them as open questions. Never fill in Owner or Cycle unless the user named them.
+- Story shape per the `user-story-template` skill; voice per `{ANCHOR}/context/team/style/board-output.md`.
+- Placement per `{ANCHOR}/context/team/conventions/REQUIRED/output-discipline.md` Rule 2: intent + acceptance criteria → body; status, blockers, execution decisions → comment; durable rationale → `{ANCHOR}/context/knowledge-base/`. Label every section by placement before the gate — the user approves placement, not just words.
+- **No invented specifics.** A draft may not name a technology, path, endpoint, count, limit, or time window the source material or `{ANCHOR}/context/` did not state — those are design decisions; surface them as open questions. Never fill in Owner or Cycle unless the user named them.
 - **Source every action.** Record where each proposed action comes from — the transcript segment, user statement, board item, or convention that motivates it. Step 4 refuses a line with no source.
 
 ## 4. Gate — the board plan

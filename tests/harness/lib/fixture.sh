@@ -15,28 +15,40 @@ make_template_fixture() {  # <dir>
   ( cd "$dir" && git init -q && git add -A && git -c user.email=t@t -c user.name=t commit -qm fixture ) || return 1
 }
 
-make_spoke_fixture() {  # <dir> ; echoes <dir>
-  # The shipped connector shape (AWO-133): committed files carry the hub's
+_make_connector_fixture() {  # <dir> <awow-value> <connector-key> <link-name> ; echoes <dir>
+  # The shipped connector shape (AWO-133): committed files carry the anchor's
   # IDENTITY (remote URL), never a path; the machine-local clone path lives in
-  # the gitignored .awow/hub.json, and the hub clone's origin must match.
-  local dir="$1" hub="$1.hub" remote="https://github.com/example/fixture-hub"
-  mkdir -p "$dir/context" "$hub/context/tooling" || return 1
+  # the gitignored .awow/ link file, and the anchor clone's origin must match.
+  local dir="$1" awow="$2" key="$3" link_name="$4"
+  local anchor="$1.anchor" remote="https://github.com/example/fixture-anchor"
+  mkdir -p "$dir/context" "$anchor/context/tooling" || return 1
   cat > "$dir/AGENTS.md" <<EOF
 ---
-awow: spoke
-hub: $remote
+awow: $awow
+$key: $remote
 project: fixture
 ---
-This repo follows awow; its hub is named by remote identity above.
+This repo follows awow; its anchor is named by remote identity above.
 EOF
   printf 'fixture project\n' > "$dir/context/mission.md"
   printf 'team: fixture\nproject: fixture\n' > "$dir/context/board-scope.md"
   printf '.awow/\n' > "$dir/.gitignore"
-  printf 'board: none (fixture)\n' > "$hub/context/tooling/board.md"
-  ( cd "$dir" && git init -q && git add -A && git -c user.email=t@t -c user.name=t commit -qm spoke ) || return 1
-  ( cd "$hub" && git init -q && git remote add origin "$remote" \
-      && git add -A && git -c user.email=t@t -c user.name=t commit -qm hub ) || return 1
+  printf 'board: none (fixture)\n' > "$anchor/context/tooling/board.md"
+  ( cd "$dir" && git init -q && git add -A && git -c user.email=t@t -c user.name=t commit -qm anchored ) || return 1
+  ( cd "$anchor" && git init -q && git remote add origin "$remote" \
+      && git add -A && git -c user.email=t@t -c user.name=t commit -qm anchor ) || return 1
   mkdir -p "$dir/.awow" || return 1
-  printf '{"remote": "%s", "path": "%s"}\n' "$remote" "$hub" > "$dir/.awow/hub.json"
+  printf '{"remote": "%s", "path": "%s"}\n' "$remote" "$anchor" > "$dir/.awow/$link_name"
   printf '%s' "$dir"
+}
+
+make_anchored_fixture() {  # <dir> ; echoes <dir>
+  _make_connector_fixture "$1" anchored anchor anchor.json
+}
+
+make_legacy_spoke_fixture() {  # <dir> ; echoes <dir>
+  # The pre-rename spoke forms — what an adopter registered before the anchor
+  # rename still carries. The machinery dual-accepts them silently; this
+  # builder is the harness-level legacy regression (CAU-1415).
+  _make_connector_fixture "$1" spoke hub hub.json
 }

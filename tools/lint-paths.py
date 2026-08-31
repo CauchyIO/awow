@@ -1,5 +1,6 @@
 """Fail if a non-vendored .agents/ prompt body references context/, tools/,
-or proposals/ by bare path instead of the {HUB}/{PROJECT}/{AWOW_TOOLS} tokens
+or proposals/ by bare path instead of the {ANCHOR}/{PROJECT}/{AWOW_TOOLS}
+tokens, or still uses the pre-rename {HUB} token spelling
 (see .agents/AGENTS.md "Path tokens")."""
 from __future__ import annotations
 
@@ -9,6 +10,9 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BARE = re.compile(r"(?<![{/\w.\-])(context|tools|proposals)/")
+# The unescaped legacy token. {{HUB}} (prose documenting the old spelling)
+# stays legal; source bodies themselves must say {ANCHOR}.
+LEGACY_TOKEN = re.compile(r"(?<!\{)\{HUB\}")
 
 
 def channel(text: str) -> str:
@@ -44,11 +48,15 @@ def main() -> int:
             for n, line in enumerate(text.splitlines(), 1):
                 if BARE.search(line):
                     bad.append(f"{path.relative_to(REPO_ROOT)}:{n}: bare path reference: {line.strip()}")
+                if LEGACY_TOKEN.search(line):
+                    bad.append(
+                        f"{path.relative_to(REPO_ROOT)}:{n}: legacy token spelling "
+                        f"{{HUB}} — use {{ANCHOR}}: {line.strip()}")
     for b in bad:
         print(b)
     if bad:
         print(
-            f"\n{len(bad)} bare path reference(s). Use {{HUB}}/{{PROJECT}}/{{AWOW_TOOLS}} "
+            f"\n{len(bad)} finding(s). Use {{ANCHOR}}/{{PROJECT}}/{{AWOW_TOOLS}} "
             f"(see .agents/AGENTS.md 'Path tokens') or mark the file channel: vendored.",
             file=sys.stderr,
         )

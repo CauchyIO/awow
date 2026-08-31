@@ -67,14 +67,15 @@ def _run(plugin_root, project=None, extra_env=None):
     # The default project dir is adopted (vendored), suppressing the setup
     # nudge; isolated HOME keeps the engine glob from seeing the real machine.
     # Plugin-root env vars are stripped so the hook takes the platform-neutral
-    # additionalContext branch; AWOW_HUB is stripped for hermeticity.
+    # additionalContext branch; AWOW_ANCHOR and AWOW_HUB are stripped for
+    # hermeticity.
     if project is None:
         project = _tmpdir()
         os.makedirs(os.path.join(project, ".agents"))
         open(os.path.join(project, ".agents", "AGENTS.md"), "w").close()
     env = {k: v for k, v in os.environ.items()
            if k not in ("CURSOR_PLUGIN_ROOT", "CLAUDE_PLUGIN_ROOT",
-                        "COPILOT_CLI", "AWOW_HUB")}
+                        "COPILOT_CLI", "AWOW_ANCHOR", "AWOW_HUB")}
     env["CLAUDE_PROJECT_DIR"] = project
     env["HOME"] = project
     if extra_env:
@@ -98,17 +99,23 @@ def _make_hub(remote):
 CONNECTOR_REMOTE = "https://github.com/example/team-hub"
 
 
-def _spoke_project(hub_key=CONNECTOR_REMOTE, link=None):
-    """A spoke repo: root AGENTS.md connector, optional .awow/hub.json link.
+def _spoke_project(hub_key=CONNECTOR_REMOTE, link=None, key="hub",
+                   link_name="hub.json"):
+    """An anchored repo: root AGENTS.md connector, optional .awow/ link file.
 
-    `link` is (recorded_remote, recorded_path) or None for an unmapped spoke.
+    Defaults build the pre-rename spoke forms (`hub:` + hub.json) so the
+    legacy cases stay byte-for-byte the scenarios they always were; pass
+    key="anchor", link_name="anchor.json" for the anchor forms.
+    `link` is (recorded_remote, recorded_path) or None for an unmapped repo.
     """
     d = _tmpdir()
+    awow = "anchored" if key == "anchor" else "spoke"
     with open(os.path.join(d, "AGENTS.md"), "w") as f:
-        f.write("---\nawow: spoke\nhub: %s\nproject: demo-spoke\n---\n# Demo\n" % hub_key)
+        f.write("---\nawow: %s\n%s: %s\nproject: demo-spoke\n---\n# Demo\n"
+                % (awow, key, hub_key))
     if link is not None:
         os.makedirs(os.path.join(d, ".awow"))
-        with open(os.path.join(d, ".awow", "hub.json"), "w") as f:
+        with open(os.path.join(d, ".awow", link_name), "w") as f:
             json.dump({"remote": link[0], "path": link[1]}, f)
     return d
 
@@ -211,11 +218,14 @@ SPOKE_PLUGIN = _plugin(payload_skill="PAYLOAD-SENTINEL")
 # Connected: valid link, origin matches the connector remote.
 hub = _make_hub(CONNECTOR_REMOTE + ".git")
 ctx, err, rc = _run(SPOKE_PLUGIN, project=_spoke_project(link=(CONNECTOR_REMOTE, hub)))
-check("connected spoke resolves {HUB} to the recorded path", hub in ctx and "resolves to" in ctx)
+check("connected spoke resolves {ANCHOR} to the recorded path", hub in ctx and "resolves to" in ctx)
 check("connected spoke names its hub and project",
       CONNECTOR_REMOTE in ctx and "demo-spoke" in ctx)
 check("connected spoke injects the reflex", "PAYLOAD-SENTINEL" in ctx)
 check("connected spoke gets no setup nudge", "/setup-awow" not in ctx)
+# Dual-accept is SILENT: a legacy spoke resolves with no deprecation chatter.
+check("legacy spoke resolves with no deprecation text",
+      not any(w in ctx.lower() for w in ("deprecat", "legacy", "rename")))
 
 # Normalization: ssh-form connector vs https origin with case drift still connects.
 hub_n = _make_hub("https://github.com/Example/Team-Hub")
@@ -228,10 +238,13 @@ hub_env = _make_hub(CONNECTOR_REMOTE)
 ctx, _, _ = _run(SPOKE_PLUGIN, project=_spoke_project(link=None), extra_env={"AWOW_HUB": hub_env})
 check("AWOW_HUB env override connects an unmapped spoke", "resolves to" in ctx and hub_env in ctx)
 
-# Unmapped: connector, no link, no env — prompt to register, never a scan result.
+# Unmapped: connector, no link, no env — prompt to register, never a scan
+# result. New writes always use the anchor forms: the repair prompt tells the
+# model to write .awow/anchor.json and never names the pre-rename file.
 ctx, _, _ = _run(SPOKE_PLUGIN, project=_spoke_project(link=None))
-check("unmapped spoke prompts to map the hub",
-      "not mapped on this machine" in ctx and ".awow/hub.json" in ctx)
+check("unmapped spoke prompts to map the anchor",
+      "not mapped on this machine" in ctx and ".awow/anchor.json" in ctx)
+check("unmapped prompt never names hub.json", "hub.json" not in ctx)
 check("unmapped spoke injects the reflex", "PAYLOAD-SENTINEL" in ctx)
 
 # Drift, moved clone: recorded path no longer a git repo with that origin.
@@ -240,13 +253,57 @@ ctx, _, _ = _run(SPOKE_PLUGIN, project=_spoke_project(link=(CONNECTOR_REMOTE, os
 check("moved hub clone reports the link out of sync",
       "out of sync" in ctx and "moved-away" in ctx)
 check("moved hub clone prompts an update, not a re-scan",
-      "update" in ctx and ".awow/hub.json" in ctx)
+      "update" in ctx and ".awow/anchor.json" in ctx)
 
 # Drift, origin mismatch: path exists but is a different repo.
 wrong = _make_hub("https://github.com/example/other-repo")
 ctx, _, _ = _run(SPOKE_PLUGIN, project=_spoke_project(link=(CONNECTOR_REMOTE, wrong)))
 check("origin-mismatched clone reports the link out of sync and names the expected remote",
       "out of sync" in ctx and CONNECTOR_REMOTE in ctx)
+
+# --- Anchor forms (CAU-1413): preferred spellings, legacy dual-accepted ------
+# Connected anchored repo: anchor: connector key + .awow/anchor.json link.
+anchor_clone = _make_hub(CONNECTOR_REMOTE + ".git")
+ctx, _, _ = _run(SPOKE_PLUGIN, project=_spoke_project(
+    link=(CONNECTOR_REMOTE, anchor_clone), key="anchor", link_name="anchor.json"))
+check("anchored connector + anchor.json resolves to the recorded path",
+      "resolves to" in ctx and anchor_clone in ctx)
+
+# $AWOW_ANCHOR overrides: no link file, env points at a matching clone.
+anchor_env = _make_hub(CONNECTOR_REMOTE)
+ctx, _, _ = _run(SPOKE_PLUGIN, project=_spoke_project(link=None, key="anchor"),
+                 extra_env={"AWOW_ANCHOR": anchor_env})
+check("AWOW_ANCHOR env override connects an unmapped anchored repo",
+      "resolves to" in ctx and anchor_env in ctx)
+
+# Precedence: an anchor.json wins over a stale hub.json sitting next to it.
+both_links = _spoke_project(link=(CONNECTOR_REMOTE, anchor_clone),
+                            key="anchor", link_name="anchor.json")
+with open(os.path.join(both_links, ".awow", "hub.json"), "w") as f:
+    json.dump({"remote": CONNECTOR_REMOTE,
+               "path": os.path.join(_tmpdir(), "moved-away")}, f)
+ctx, _, _ = _run(SPOKE_PLUGIN, project=both_links)
+check("anchor.json wins over a stale hub.json",
+      "resolves to" in ctx and anchor_clone in ctx)
+
+# Precedence: $AWOW_ANCHOR wins over a stale $AWOW_HUB.
+ctx, _, _ = _run(SPOKE_PLUGIN, project=_spoke_project(link=None, key="anchor"),
+                 extra_env={"AWOW_ANCHOR": anchor_clone,
+                            "AWOW_HUB": os.path.join(_tmpdir(), "moved-away")})
+check("AWOW_ANCHOR wins over a stale AWOW_HUB",
+      "resolves to" in ctx and anchor_clone in ctx)
+
+# Precedence: the anchor: connector key wins over a conflicting hub: key.
+both_keys = _tmpdir()
+with open(os.path.join(both_keys, "AGENTS.md"), "w") as f:
+    f.write("---\nawow: anchored\nanchor: %s\nhub: https://github.com/example/other-repo\n"
+            "project: demo-spoke\n---\n# Demo\n" % CONNECTOR_REMOTE)
+os.makedirs(os.path.join(both_keys, ".awow"))
+with open(os.path.join(both_keys, ".awow", "anchor.json"), "w") as f:
+    json.dump({"remote": CONNECTOR_REMOTE, "path": anchor_clone}, f)
+ctx, _, _ = _run(SPOKE_PLUGIN, project=both_keys)
+check("anchor: connector key wins over hub:",
+      "resolves to" in ctx and anchor_clone in ctx)
 
 # A root AGENTS.md without a hub: key is NOT a connector — nudge as usual.
 plain = _tmpdir()
@@ -266,7 +323,7 @@ ctx, _, _ = _run(STAMPED, project=_vendored_project(
 check("maintainer drift names both stamps",
       "0.12.0+bbbb33334444" in ctx and "0.13.0+aaaa11112222" in ctx)
 check("maintainer drift explains precedence and the remedies",
-      "{HUB}-first" in ctx and "--plugin-dir dist" in ctx)
+      "{ANCHOR}-first" in ctx and "--plugin-dir dist" in ctx)
 
 # Matching stamps: silent.
 ctx, _, _ = _run(STAMPED, project=_vendored_project(

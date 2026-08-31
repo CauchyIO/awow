@@ -36,19 +36,19 @@ Phase 3 ─ Decompose & land artefact       ──→ GATE 3 (approve writes)
 
 Before any proposal lands, read:
 
-- `{HUB}/context/team/mission.md` — what the team is for
-- `{HUB}/context/team/members.md` — names, roles, focus areas
-- `{HUB}/context/team/conventions/REQUIRED/*.md` — output discipline, labels, naming
-- `{HUB}/context/knowledge-base/decisions/` — every existing decision record. Read titles + status; deep-read any whose topic overlaps the new ask.
-- `{HUB}/context/knowledge-base/patterns/` — established patterns the design must align with or supersede
-- `{HUB}/context/knowledge-base/architecture/` — current architecture documents
-- `{HUB}/context/tooling/board.md` — board family, MCP wiring
-- `{HUB}/context/tooling/design-system.md`, falling back to `../../context/tooling/design-system.md` — if `mode:` is not `absent`, any HTML artefact this flow produces (Phase 3.1 presentation track) must adopt it
-- `{HUB}/context/company/neighbouring-teams.md` — for cross-team boundary effects
+- `{ANCHOR}/context/team/mission.md` — what the team is for
+- `{ANCHOR}/context/team/members.md` — names, roles, focus areas
+- `{ANCHOR}/context/team/conventions/REQUIRED/*.md` — output discipline, labels, naming
+- `{ANCHOR}/context/knowledge-base/decisions/` — every existing decision record. Read titles + status; deep-read any whose topic overlaps the new ask.
+- `{ANCHOR}/context/knowledge-base/patterns/` — established patterns the design must align with or supersede
+- `{ANCHOR}/context/knowledge-base/architecture/` — current architecture documents
+- `{ANCHOR}/context/tooling/board.md` — board family, MCP wiring
+- `{ANCHOR}/context/tooling/design-system.md`, falling back to `../../context/tooling/design-system.md` — if `mode:` is not `absent`, any HTML artefact this flow produces (Phase 3.1 presentation track) must adopt it
+- `{ANCHOR}/context/company/neighbouring-teams.md` — for cross-team boundary effects
 
 If a knowledge-base subfolder is empty, note it but proceed. Absence improves nothing; it does not block the pipeline. The same holds for `mission.md` and `neighbouring-teams.md` — fill on first need (per the agent instructions): offer the two-to-five-sentence profile, or the neighbouring-team entry the design first touches, once at a gate; continue without on silence.
 
-**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{HUB}/context/tooling/board.md` yourself.
+**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{ANCHOR}/context/tooling/board.md` yourself.
 
 ---
 
@@ -69,8 +69,8 @@ If the user supplied a transcript, derive these from the transcript itself; do n
 
 Enumerate what already exists, scoped to the topic's nouns and verbs plus 2–3 synonyms:
 
-- Relevant decision records under `{HUB}/context/knowledge-base/decisions/` (cite by ID + status)
-- Existing patterns / architecture docs under `{HUB}/context/knowledge-base/`
+- Relevant decision records under `{ANCHOR}/context/knowledge-base/decisions/` (cite by ID + status)
+- Existing patterns / architecture docs under `{ANCHOR}/context/knowledge-base/`
 - Open and recently-closed board items in the relevant project
 - Any externally-cited repo, document, or system the user named — read it, do not infer
 
@@ -86,7 +86,7 @@ When the topic touches prior art (the common case), diff the new ask against wha
 
 ### 1.4 Transcript-review specifics
 
-When the input is a transcript file: parse it the way `/process-transcript` Phase 1 does (WEBVTT segment IDs and `<v Speaker>` tags; SRT numbered segments; plain text with speaker prefixes). Stitch consecutive segments per speaker. Reconcile garbled proper nouns against `{HUB}/context/team/members.md` and the glossary. Treat the transcript's design moves as evidence, not authority — if the team locked a decision in-meeting that conflicts with an existing decision record, surface that conflict; do not smuggle it past.
+When the input is a transcript file: parse it the way `/process-transcript` Phase 1 does (WEBVTT segment IDs and `<v Speaker>` tags; SRT numbered segments; plain text with speaker prefixes). Stitch consecutive segments per speaker. Reconcile garbled proper nouns against `{ANCHOR}/context/team/members.md` and the glossary. Treat the transcript's design moves as evidence, not authority — if the team locked a decision in-meeting that conflicts with an existing decision record, surface that conflict; do not smuggle it past.
 
 ---
 
@@ -188,9 +188,9 @@ Wait for user response. If the user re-opens the decision, return to 2.1. Otherw
 
 Choose from context. Ask only if genuinely ambiguous.
 
-- **Decision record** → `{HUB}/context/knowledge-base/decisions/<id>-<short-title>.md`. One decision per record. Use the team's decision-record template if present; otherwise fall back to: `Date / Status / Deciders / Trigger → Context → Decision → Consequences (Positive / Negative / Neutral) → Alternatives considered → Migration plan → Open questions`.
+- **Decision record** → `{ANCHOR}/context/knowledge-base/decisions/<id>-<short-title>.md`. One decision per record. Use the team's decision-record template if present; otherwise fall back to: `Date / Status / Deciders / Trigger → Context → Decision → Consequences (Positive / Negative / Neutral) → Alternatives considered → Migration plan → Open questions`.
 - **Proposal** → `{PROJECT}/proposals/<topic>.md`. Multi-phase plan with named work items, related repos, acceptance per item, and a phased implementation order.
-- **Presentation** → `{PROJECT}/proposals/<topic>/` containing `questionnaire.md → background.md → slides.md → slides.html`. Question-first; never jump to slides. When `{HUB}/context/tooling/design-system.md` (else `../../context/tooling/design-system.md`) is not `absent`, the deck adopts the design system — read the source file at its `path:`, generate `slides.html` from the matching template, and verify/export per `/artifact` Phase 4; do not hand-style. Hand off to `/artifact` for the generate-and-render mechanics rather than duplicating them here.
+- **Presentation** → `{PROJECT}/proposals/<topic>/` containing `questionnaire.md → background.md → slides.md → slides.html`. Question-first; never jump to slides. When `{ANCHOR}/context/tooling/design-system.md` (else `../../context/tooling/design-system.md`) is not `absent`, the deck adopts the design system — read the source file at its `path:`, generate `slides.html` from the matching template, and verify/export per `/artifact` Phase 4; do not hand-style. Hand off to `/artifact` for the generate-and-render mechanics rather than duplicating them here.
 - **Memo** → `{PROJECT}/proposals/<topic>.md` as plain prose when no decision and no decomposition is being asked for.
 
 Confirm the working directory before writing if there is any ambiguity. Repo-grep boundary, sibling repo, or wrong-folder writes are the most common silent failure here.
@@ -199,7 +199,7 @@ Confirm the working directory before writing if there is any ambiguity. Repo-gre
 
 Convert the locked design into a parent work item plus ranked children. Each child carries:
 
-- `## Standards` block (the team's house standards, per `{HUB}/context/team/conventions/REQUIRED/`)
+- `## Standards` block (the team's house standards, per `{ANCHOR}/context/team/conventions/REQUIRED/`)
 - `## Acceptance criteria` as a checklist
 - `## Out of scope`
 - `## Blocked by` — the sibling children (or external items) that must complete first, by title; `none` for a Layer-1 item
@@ -254,7 +254,7 @@ DONE
 
 Wrote:
 - [artefact path]
-- Wrote {HUB}/context/knowledge-base/<path>
+- Wrote {ANCHOR}/context/knowledge-base/<path>
 
 Decomposed tree ready: [N] items with stated edges.
 

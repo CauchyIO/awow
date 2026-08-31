@@ -16,7 +16,7 @@ It doesn't, yet. This harness is assigned by a tenant admin, not self-detected f
 
 - **Instructions** — an inline system prompt assembled from `agent.md` plus a generated file-index manifest (fetchable paths + one-line descriptions), capped at 8,000 characters.
 - **Conversation starters** — the declarative-agent equivalent of slash commands, capped at 12. This slice ships two: a general grounding starter ("What does awow say about how we work?") plus one ported command, `refinement-prep`.
-- **A `fetchAwowContext` action** — an OpenAPI plugin that calls the GitHub contents API directly (public-repo direct fetch; a proxied endpoint for private hubs is a later increment).
+- **A `fetchAwowContext` action** — an OpenAPI plugin that calls the GitHub contents API directly (public-repo direct fetch; a proxied endpoint for private anchors is a later increment).
 - No board actions and no `commitAwowInbox` in this slice — see Slice limits below.
 
 ## Regenerating
@@ -65,12 +65,12 @@ Before sideloading, confirm the fetch path works from any shell:
 curl -sf https://raw.githubusercontent.com/CauchyIO/awow/main/.agents/commands/refinement-prep.md | head -5
 ```
 
-Expected: the file's frontmatter prints. Unauthenticated raw fetches are throttled by GitHub — fine for a pilot. A later increment replaces this direct fetch with a proxied endpoint (design spec §4.1a) for private hubs.
+Expected: the file's frontmatter prints. Unauthenticated raw fetches are throttled by GitHub — fine for a pilot. A later increment replaces this direct fetch with a proxied endpoint (design spec §4.1a) for private anchors.
 
 ## Slice limits (stated honestly)
 
 - **Board actions aren't wired.** Drafts render in chat for the user to copy-paste into their board tool themselves — no `board.query`/`board.update` calls yet.
-- **`commitAwowInbox` is deferred.** KB captures and proposal drafts don't yet land in the hub's `kb-inbox/` from this surface.
+- **`commitAwowInbox` is deferred.** KB captures and proposal drafts don't yet land in the anchor's `kb-inbox/` from this surface.
 - **Grounding beyond the file index relies on fetch, not RAG.** There's no Graph-connector discovery index in this slice — the agent finds files via the generated manifest and named fetches, not fuzzy search.
 
 ## Reference

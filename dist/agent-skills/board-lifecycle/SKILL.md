@@ -19,7 +19,7 @@ The user's job is two actions: invoke, and approve (or reject) the exception pla
 
 ## Ground — the lifecycle contract
 
-Read the `## Lifecycle` section of `{HUB}/context/tooling/board.md`: the shape set, each shape's horizon rule, and the exception status name (see the boards reference for the section's documented form). When the section is absent, draft it from the defaults above, present it, and — only on explicit approval — append it to `{HUB}/context/tooling/board.md`. Never invent a team's lifecycle silently, and never write team context without that approval.
+Read the `## Lifecycle` section of `{ANCHOR}/context/tooling/board.md`: the shape set, each shape's horizon rule, and the exception status name (see the boards reference for the section's documented form). When the section is absent, draft it from the defaults above, present it, and — only on explicit approval — append it to `{ANCHOR}/context/tooling/board.md`. Never invent a team's lifecycle silently, and never write team context without that approval.
 
 ## Sweep — classify the estate (read-only)
 

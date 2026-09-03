@@ -7,8 +7,8 @@ Slash commands the agent can run. The files are **flat** — one `<name>.md` per
 | Phase (frontmatter) | When a team is ready for it | Commands |
 |---|---|---|
 | `seed` | Wired up by `/setup-awow` by default (first cycle) | `refinement-prep`, `process-workitem`, `process-transcript` |
-| `spread` | After the first Seed cycle | `coaching-review`, `solution-design-flow`, `project-plan`, `design-system`, `artifact`, `my-work` |
-| `standardise` | Once most of the team is active | `daily-checkin`, `daily-digest`, `kb-mine`, `kb-synthesize`, `update-context` |
+| `spread` | After the first Seed cycle | `coaching-review`, `solution-design-flow`, `project-plan`, `design-system`, `artifact`, `my-work`, `process-retro`, `setup-department`, `strategy-flow`, `okr-cascade` |
+| `standardise` | Once most of the team is active | `board-lifecycle`, `daily-checkin`, `daily-digest`, `handover`, `kb-mine`, `kb-synthesize`, `update-context` |
 
 Every command ships in the plugin payload; the phase says when a team is ready for it, not whether it is installed. `/setup-awow` Step 8 lists the Spread and Standardise commands with the pain each removes and the prerequisites each assumes.
 

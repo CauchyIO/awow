@@ -23,4 +23,4 @@ Everything the agent needs to know about *this team* in *this place*. The agent 
 
 ## How `/setup-awow` populates this folder
 
-Step-by-step. `setup-progress.md` at the repo root tracks which sub-areas have been completed. The wizard is incremental and resumable; not all of `context/` needs to be filled in to be useful — only `context/tooling/board.md` (Step 0) is required.
+Step-by-step. `setup-progress.md` at the repo root tracks which sub-areas have been completed. The wizard is incremental and resumable; not all of `context/` needs to be filled in to be useful — only `context/tooling/board.md` (Step 1) is required.

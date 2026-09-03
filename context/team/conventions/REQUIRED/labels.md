@@ -1,6 +1,6 @@
 # Labels
 
-`/setup-awow` Step 2 populates this from your team's existing pattern, or guides you to one. Stub below until then.
+`/setup-awow` Step 3 populates this from your team's existing pattern, or guides you to one. Stub below until then.
 
 ## Pattern (TODO — fill via /setup-awow)
 

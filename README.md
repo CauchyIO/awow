@@ -4,6 +4,8 @@
 
 # awow — Agentic Way of Working
 
+<p align="center"><em>Helping humans work better together, using AI.</em></p>
+
 awow gives a coding agent your team's context: the board it reads, the
 conventions it follows, and commands for the work that happens between people.
 

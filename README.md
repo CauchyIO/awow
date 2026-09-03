@@ -31,21 +31,6 @@ seen it and approved it.
 
 The full technical guide lives [here](guides/README.md).
 
-**Install options**
-
-awow can be installed using two different configurations:
-
-1. **Standalone install**. Install awow for one specific repo with its own
-   context and board wiring.
-2. **Anchored**. Run awow from an **anchor**: one centralized repo holding
-   the shared `context/` — board wiring, mission, conventions, members. Other
-   repos register as **anchored repos** and use the anchor's context instead of carrying
-   their own. Useful for teams that want to use a shared agentic core
-   throughout multiple repositories.
-
-`/setup-awow` asks which shape you want and records it — the details can be found in
-[Setup & the plugin model](guides/guide-setup-and-two-harnesses.md).
-
 ## Before you install
 
 - **A supported harness**, installed and signed in: Claude Code, Codex, Pi,
@@ -117,6 +102,16 @@ slash commands.
 wires your board (Linear, Jira, Azure DevOps, GitHub Issues) and writes your
 mission, conventions, and members into `context/` — the context every other
 command reads.
+
+Its first question is which of two shapes you want, and it records the answer:
+
+1. **Standalone.** awow set up for one repo, with its own context and board
+   wiring.
+2. **Anchored.** One centralized repo — the **anchor** — holds the shared
+   `context/`, and other repos register as **anchored repos** and read the
+   anchor's context instead of carrying their own. For teams who want a single
+   agentic core across several repositories. The details are in
+   [Setup & the plugin model](guides/guide-setup-and-two-harnesses.md).
 
 Run it once in every repo that uses awow — but it does different work depending
 on the repo. In a standalone repo or an **anchor**, it walks the full setup and

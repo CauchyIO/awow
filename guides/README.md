@@ -1,30 +1,13 @@
 # Guides
 
-What awow is, why it exists, and how to go from zero to a working setup — then every guide,
-in reading order. Plain markdown throughout: readable here on GitHub, in Obsidian, or by an
-agent as session context.
+How to go from zero to a working setup, then every guide, in reading order. Plain markdown
+throughout: readable here on GitHub, in Obsidian, or by an agent as session context.
 
 ## What awow is
 
-A coding agent is only as useful as the context it starts with, and on most teams that
-context is scattered: the board lives in one tool, the conventions live in heads and wiki
-pages, and every agent product (Claude Code, Copilot, Codex, Pi, opencode) wants its own
-copy of the instructions. Each copy drifts, and every session starts from zero.
-
-awow packages the missing context and the working habits around it:
-
-- **Commands** for the work between people — walking a board item to a PR, preparing a
-  refinement session, turning a meeting recording into decisions and tickets.
-- **Working rules** every session starts from: check the board before starting work, keep
-  the ticket current, write the least that is useful.
-- **A `context/` folder your team owns** — board wiring, a team profile, conventions,
-  members — that every command reads.
-
-There is no magic in it. The commands and rules are markdown files, authored once in a
-single source tree, built into a package each agent product installs, and versioned like
-any other dependency. Everything the agent produces goes through a draft you approve before
-it is written anywhere real — nothing touches your board or your repo without you seeing
-it first.
+The case for awow — the scattered-context problem it solves, what it gives an agent, and
+how it is built and versioned — is in the [repo README](../README.md). These guides assume
+it and pick up from there.
 
 ## From zero to working
 

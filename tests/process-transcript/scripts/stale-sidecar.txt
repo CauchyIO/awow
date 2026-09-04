@@ -1,0 +1,2 @@
+# A stale sidecar (hash mismatch) is reconverted, not read.
+Process the refinement notes at notes/notes.docx against our board (context/tooling/board.md). Stop after GATE 1.

@@ -54,7 +54,7 @@ Before reading a sidecar, hash the source:
 python3 -c "import hashlib,sys;print(hashlib.sha256(open(sys.argv[1],'rb').read()).hexdigest())" <source>
 ```
 
-(python3 is already a hard dependency of the plugin hooks, so this is portable where awow runs at all.) Hash equals `source_sha256` → read the sidecar, do not invoke markitdown. Hash differs, or no sidecar → convert, overwrite the sidecar, write a fresh header. A file at the sidecar path with no `source_sha256` header is not a sidecar — a human wrote it — and is never overwritten without asking. SHA-256 rather than mtime because mtime changes on checkout and copy; the hash does not.
+(`python3` is what the plugin hooks use; the skill falls back to `python` where only that exists, as on some Windows setups.) Hash equals `source_sha256` → read the sidecar, do not invoke markitdown. Hash differs, or no sidecar → convert, overwrite the sidecar, write a fresh header. A file at the sidecar path with no `source_sha256` header is not a sidecar — a human wrote it — and is never overwritten without asking. SHA-256 rather than mtime because mtime changes on checkout and copy; the hash does not.
 
 ### 2.4 Tracking rule
 
@@ -131,7 +131,7 @@ Leave the body as markitdown wrote it. Never edit a sidecar by hand; fix the sou
 
 Run `git check-ignore -q <source>` and branch on its exit code. 128 — no git repo: do nothing here. 0 — the source is ignored: if the sidecar is not also ignored, propose one line in the repo-root `.gitignore` and write it on confirmation. 1 — the source is tracked, or untracked and not ignored: leave the sidecar for the same commit. Never stage or commit.
 
-A sidecar carries its source's sensitivity: a converted copy of anything the user called sensitive never lands in a tracked path. When such a source is itself tracked, write the sidecar to the session scratch directory instead, read it from there, and say so.
+A sidecar carries its source's sensitivity: a converted copy of anything the user called sensitive never lands in a tracked path. When such a source is itself tracked, write the sidecar to the session scratch directory instead, read it from there, and say so; that source is reconverted every session, by design.
 
 ## 4. Say what may have been lost, when it matters
 

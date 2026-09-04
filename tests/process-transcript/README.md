@@ -40,9 +40,11 @@ Suite-wide conventions: [`../README.md`](../README.md); execution mechanics:
 and `checks/stale-sidecar.sh`, because the sidecar's header must record exactly
 that hash. `fixtures/make-office-fixtures.sh` rebuilds it from
 `fixtures/office-notes.md` with pandoc, mirrors the fixture into
-`stale-sidecar/` with a 64-zero-hash sidecar, and prints the new SHA-256; it
-refuses to overwrite an existing `notes.docx` without `--force`, and both checks
-files must be updated when it is forced. The plaintext source stays outside both
+`stale-sidecar/` with a 64-zero-hash sidecar, and prints the SHA-256; it
+refuses to overwrite an existing `notes.docx` without `--force`. The generator
+pins `SOURCE_DATE_EPOCH`, so a forced rebuild from an unchanged
+`office-notes.md` reproduces the same constant; the checks files need updating
+only when `office-notes.md` itself changes. The plaintext source stays outside both
 scenario directories on purpose — a readable twin beside the `.docx` in scratch
 would let a run skip the conversion under test.
 

@@ -34,7 +34,7 @@ Leave the body as markitdown wrote it. Never edit a sidecar by hand; fix the sou
 
 Run `git check-ignore -q <source>` and branch on its exit code. 128 — no git repo: do nothing here. 0 — the source is ignored: if the sidecar is not also ignored, propose one line in the repo-root `.gitignore` and write it on confirmation. 1 — the source is tracked, or untracked and not ignored: leave the sidecar for the same commit. Never stage or commit.
 
-A sidecar carries its source's sensitivity: a converted copy of anything the user called sensitive never lands in a tracked path. When such a source is itself tracked, write the sidecar to the session scratch directory instead, read it from there, and say so.
+A sidecar carries its source's sensitivity: a converted copy of anything the user called sensitive never lands in a tracked path. When such a source is itself tracked, write the sidecar to the session scratch directory instead, read it from there, and say so; that source is reconverted every session, by design.
 
 ## 4. Say what may have been lost, when it matters
 

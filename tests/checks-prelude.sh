@@ -45,3 +45,23 @@ file-not-contains() {
   if [ ! -f "$1" ]; then _record fail "file-not-contains $1 $2 (file missing)"; return 0; fi
   if grep -Eq -- "$2" "$1"; then _record fail "file-not-contains $1 $2"; else _record pass "file-not-contains $1 $2"; fi
 }
+
+# zip-member-contains <zip> <member> <needle> — the zip member (e.g. a .docx's
+# word/document.xml) must contain the literal needle. An unreadable zip or a
+# missing member records fail with a reason, never a crash (verbs return 0).
+zip-member-contains() {
+  local rc
+  python3 - "$1" "$2" "$3" <<'PY' 2>/dev/null
+import sys, zipfile
+z, m, needle = sys.argv[1:4]
+try:
+    data = zipfile.ZipFile(z).read(m).decode("utf-8", "replace")
+except (OSError, zipfile.BadZipFile, KeyError):
+    sys.exit(127)
+sys.exit(0 if needle in data else 1)
+PY
+  rc=$?
+  if [ "$rc" -eq 0 ]; then _record pass "zip-member-contains $1 $2 $3"
+  elif [ "$rc" -eq 127 ]; then _record fail "zip-member-contains $1 $2 $3 (unreadable)"
+  else _record fail "zip-member-contains $1 $2 $3"; fi
+}

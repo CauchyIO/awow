@@ -9,7 +9,7 @@ You read Office files through their markdown sidecar, never directly. The sideca
 
 ## 1. Check for a current sidecar
 
-Hash the source with `python3 -c "import hashlib,sys;print(hashlib.sha256(open(sys.argv[1],'rb').read()).hexdigest())" <source>`. If `<file>.<ext>.md` exists and its `source_sha256` equals the hash, read it and stop here. Otherwise convert.
+Hash the source with `python3 -c "import hashlib,sys;print(hashlib.sha256(open(sys.argv[1],'rb').read()).hexdigest())" <source>` (`python` where `python3` is absent). If `<file>.<ext>.md` exists and its `source_sha256` equals the hash, read it and stop here. A file at that path with no `source_sha256` header is not a sidecar — ask before overwriting it. Otherwise convert.
 
 ## 2. Convert
 
@@ -32,13 +32,13 @@ Leave the body as markitdown wrote it. Never edit a sidecar by hand; fix the sou
 
 ## 3. Match the source's tracking
 
-In a git repo, run `git check-ignore -q <source>`. If the source is ignored and the sidecar is not, propose one `.gitignore` line for the sidecar and write it on confirmation. If the source is tracked, leave the sidecar for the same commit. Never stage or commit. Outside git, do nothing here.
+Run `git check-ignore -q <source>` and branch on its exit code. 128 — no git repo: do nothing here. 0 — the source is ignored: if the sidecar is not also ignored, propose one line in the repo-root `.gitignore` and write it on confirmation. 1 — the source is tracked, or untracked and not ignored: leave the sidecar for the same commit. Never stage or commit.
 
-A sidecar carries its source's sensitivity: a converted copy of anything the user called sensitive never lands in a tracked path.
+A sidecar carries its source's sensitivity: a converted copy of anything the user called sensitive never lands in a tracked path. When such a source is itself tracked, write the sidecar to the session scratch directory instead, read it from there, and say so.
 
 ## 4. Say what may have been lost, when it matters
 
-Checkboxes flatten to bullets, fenced code becomes plain text, images are referenced not extracted, tracked changes and comments are not guaranteed. State the fact that bears on the task in one line; otherwise say nothing. A body that is whitespace only, or implausibly short for the source's size, means the file is likely image-only, encrypted or empty — ask for a different export instead of proceeding on nothing.
+Checkboxes flatten to bullets and lose their checked state, fenced code becomes plain text, images are referenced not extracted, tracked changes and comments are not guaranteed. State the fact that bears on the task in one line; otherwise say nothing. A body that is whitespace only, or implausibly short for the source's size, means the file is likely image-only, encrypted or empty — ask for a different export instead of proceeding on nothing.
 
 ## Boundaries
 

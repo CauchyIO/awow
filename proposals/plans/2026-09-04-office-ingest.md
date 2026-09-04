@@ -332,7 +332,7 @@ gh pr create --title "CAU-1526: Office inputs read through markitdown sidecars (
 Recorded by the build; the steps above are the plan as written, the branch is the record of what actually happened.
 
 - **Task 5 Step 1:** the plaintext source lives at `fixtures/office-notes.md`, outside the scenario directories (a `.md` twin inside the fixture lets the run skip the conversion), with a blank line between speaker turns so pandoc emits one paragraph each.
-- **Task 5 Step 2:** the generator refuses to overwrite an existing `notes.docx` without `--force`. Frozen hash: `72bf72fdd203bb3afe0860d35b763285c97bace7c136a6d70dafa889e1de64af`.
+- **Task 5 Step 2:** the generator refuses to overwrite an existing `notes.docx` without `--force`. Frozen hash: `48c559e09baab46a3472a41c7b6dc44938ae9e56693696e2e0a9fa2003c92ca4`.
 - **Task 5 Step 4:** `docx-notes` gained rubric Q6 `[no-commit]`; the suite README lists nine invariants, not five.
 - **Task 3 Step 2:** the `$ARGUMENTS` sentence follows the spec's verbatim form (§5.4), not the plan's semicolon-joined variant.
 - **Task 2 / Task 4 gates:** `.agents/AGENTS.md` and `context/quarterly/` are not in the payload; the gather gates still run but do not prove those edits ship.

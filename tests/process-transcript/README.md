@@ -29,9 +29,9 @@ Suite-wide conventions: [`../README.md`](../README.md); execution mechanics:
 - **stale-guard / apply-independence / no-force** — a stale line reports and skips; the rest still executes; nothing is overwritten.
 - **apply-report** — the DONE shape (Executed / Skipped / Failed / Manual follow-up).
 - **sidecar-first / provenance** — the `.docx` is never read directly; `<file>.<ext>.md` carries exactly `source`, `source_sha256`, `converted`, `converter`.
-- **reuse** — a source hash matching the sidecar's reads the sidecar; no second markitdown call.
+- **reuse** — a source hash matching the sidecar's reads the sidecar; no second markitdown call (judge-only, from the tool-call list).
 - **freshness / no-stale-read / no-ask** — a hash mismatch reconverts without asking, and the stale body never reaches GATE 1.
-- **no-commit** — the skill stages and commits nothing; the sidecar of a tracked source ends the run untracked (judge-only, from the tool-call list).
+- **no-commit** — the skill stages and commits nothing: no `git add`/`commit` in the tool-call list (judge-only; the evidence bundle carries no git status).
 - **gate-read / quiet** — GATE 1 attributes speakers from the sidecar, and no fidelity note fires on a fixture with nothing lossy to lose.
 
 ## The Office fixtures

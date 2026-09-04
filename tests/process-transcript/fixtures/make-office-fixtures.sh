@@ -18,6 +18,10 @@ if [ -e "$DOCX" ] && [ "${1:-}" != "--force" ]; then
 fi
 
 mkdir -p docx-notes/notes
+# pandoc stamps dcterms:created and zip mtimes from the wall clock, so two builds
+# seconds apart differ. Pinning SOURCE_DATE_EPOCH makes the rebuild byte-identical,
+# which is what lets --force reproduce the frozen hash instead of inventing a new one.
+export SOURCE_DATE_EPOCH=1788480000
 pandoc office-notes.md --from gfm --to docx -o "$DOCX"
 
 rm -rf stale-sidecar && mkdir -p stale-sidecar && cp -R docx-notes/. stale-sidecar/

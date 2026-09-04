@@ -32,7 +32,7 @@ Phase 2 ─ Refine into KRs + land draft    ──→ GATE 2 (confirm OKR set)
 
 Read the repo before you say anything.
 
-- Locate and read the team's mission and vision in `{ANCHOR}/context/team/`, and everything under `{ANCHOR}/context/quarterly/`.
+- Locate and read the team's mission and vision in `{ANCHOR}/context/team/`, and everything under `{ANCHOR}/context/quarterly/`, Office files through their `office-ingest` sidecars.
 - Read `{ANCHOR}/context/tooling/board.md` for the board pointer and read surface, then read the live board: active projects and current engagements.
 - Load the `department-coach` skill — it is the battery you will run in Phase 2 and carries the objective-level tests Phase 2's per-bet requirements come from. If the team keeps its own strategy framework doc in `{ANCHOR}/context/`, read it and follow its vocabulary where it is stricter.
 

@@ -1,0 +1,3 @@
+# Office input: sidecar written with provenance, read for Gate 1; second run reuses it (no second markitdown call).
+Process the refinement notes at notes/notes.docx against our board (context/tooling/board.md). Stop after GATE 1 — I only want the segment read for now.
+Process notes/notes.docx again the same way, stop after GATE 1.

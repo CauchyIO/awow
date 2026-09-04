@@ -34,7 +34,7 @@ This command covers the first three. Reach for `/solution-design-flow` when the 
 The user provides one of:
 
 - A short brief (one paragraph, in chat or as a file in `input/`)
-- A slidedeck or document in `input/quarterly/` to extract from
+- A slidedeck or document in `{ANCHOR}/context/quarterly/` to extract from — Office files through the `office-ingest` skill; read the sidecar it produces
 - A board issue URL to expand into stories
 - A meeting transcript output from `/process-transcript`
 

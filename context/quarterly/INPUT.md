@@ -7,6 +7,10 @@ Drop slidedecks, planning docs, OKR exports, and other quarterly-cycle artefacts
 - `<YYYY-Q[1-4]>-<source>-<name>.<ext>` — e.g. `2026-Q2-leadership-OKRs.pptx`
 - Use ISO dates so chronological sort works
 
+## Office files
+
+Drop the `.pptx`, `.docx` or `.xlsx` as-is. On first read the agent writes `<file>.<ext>.md` beside it — markitdown's conversion under a four-key provenance header — and reads that. Commit the pair together; the sidecar is regenerated whenever the source changes, and is never edited by hand. If the source is gitignored, the sidecar is too.
+
 ## What to drop here
 
 - Quarterly OKRs / strategic-objective documents

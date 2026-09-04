@@ -1,0 +1,7 @@
+---
+source: notes.docx
+source_sha256: 0000000000000000000000000000000000000000000000000000000000000000
+converted: 2026-01-01
+converter: markitdown 0.1.7
+---
+STALE

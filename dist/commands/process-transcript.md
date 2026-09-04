@@ -75,11 +75,12 @@ Validate the interpretation pack when you load it. Treat a file older than ~8 we
 
 ### 1.1 Read and parse
 
-Read the file at `$ARGUMENTS`. Support:
+Read the file at `$ARGUMENTS`. An Office extension routes through `office-ingest` before parsing. Support:
 
 - **WEBVTT** (`.vtt`) — parse segment IDs, timestamps, `<v Speaker>` tags. Combine sequential segments from the same speaker. Order by timestamp.
 - **Plain text / Markdown** — treat as pre-processed notes. Look for speaker indicators (names followed by colons, bullet prefixes, etc.).
 - **SRT** (`.srt`) — parse numbered segments with timestamps.
+- **Word notes** (`.docx`) — convert through the `office-ingest` skill, then treat the sidecar as Plain text / Markdown.
 
 Reconstruct the conversation as a list of speaker-attributed turns.
 

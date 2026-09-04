@@ -2,7 +2,7 @@
 
 pre() {
   file-exists brief.md
-  file-contains context/tooling/design-system.md "mode: absent"
+  file-contains context/tooling/design-system.md "^mode: absent"
   file-absent out/brief.docx
 }
 

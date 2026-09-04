@@ -57,6 +57,7 @@ s = s.replace("mode: absent ", "mode: in-repo", 1)
 s = s.replace('path: ""  ', 'path: "context/design-system/style-guide.html"', 1)
 s = s.replace('templates_dir: ""  ', 'templates_dir: "context/design-system/templates/"', 1)
 s = s.replace('word_reference: ""  ', 'word_reference: "context/design-system/templates/word/reference.docx"', 1)
+s = s.replace("_(none — `mode: absent`)_", "_(word_reference registered — see frontmatter)_", 1)
 open(p, "w").write(s)
 PY
 echo "fixtures built"

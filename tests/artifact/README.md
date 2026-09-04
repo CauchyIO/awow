@@ -28,6 +28,7 @@ with no live board, network, or `gh` auth. Suite-wide conventions:
 - **content-gate** — nothing is generated before the user's yes.
 - **from-markdown** — the docx comes from the markdown via `--from gfm --to docx`; no HTML intermediate.
 - **outline** — `docx_outline.py` is run over the output and its outline matches the source.
+- **round-trip** — the pandoc round trip is run and its result reported.
 - **style-report** — the report names the reference doc applied, or says stock styles were used.
 - **reference-applied** — `--reference-doc=` names the registered template.
 - **tool-absent** — `pandoc --version` is probed the moment Word is chosen, before content work.

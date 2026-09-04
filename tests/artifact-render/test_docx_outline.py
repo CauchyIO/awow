@@ -52,6 +52,10 @@ r = run(os.path.join(FIX, "titled.docx"))
 out = json.loads(r.stdout) if r.returncode == 0 else {}
 check("titled: Title style is level 0", out.get("headings") == EXPECTED_TITLED)
 
+r = run(os.path.join(FIX, "imaged.docx"))
+out = json.loads(r.stdout) if r.returncode == 0 else {}
+check("imaged: one image", out.get("images") == 1)
+
 r = run(os.path.join(FIX, "sample.md"))
 check("non-zip: exit 2", r.returncode == 2)
 check("non-zip: one stderr line", r.stderr.count("\n") == 1)

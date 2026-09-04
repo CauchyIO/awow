@@ -23,7 +23,7 @@ You run this often. It is lighter than `/design-system` (which you run once to b
 Read `{ANCHOR}/context/tooling/design-system.md`, falling back to `{AWOW_ROOT}/context/tooling/design-system.md` (a vendored copy wins over the shipped one).
 
 - **`mode: absent`** — no design system. Offer to run `/design-system` first. If the user declines, proceed with plain, accessible defaults and say so — do not invent a house style and do not pretend one exists.
-- **`mode: in-repo` / `external`** — read the source file at `path:` now (filesystem, not MCP, when `access: local-path`). Read the matching `templates_dir` template for the artifact type. Re-read the source even if the pointer has a token cache — the cache can drift.
+- **`mode: in-repo` / `external`** — read the source file at `path:` now (filesystem, not MCP, when `access: local-path`). Read the matching `templates_dir` template for the artifact type. When no template exists for the type, say so in one line and continue; a Word-only run needs none. Re-read the source even if the pointer has a token cache — the cache can drift.
 
 Read `word_reference` as well. Empty or `mode: absent` means Word output uses pandoc's stock styles, and you say so in the run's final report.
 
@@ -48,6 +48,8 @@ When Word is among the targets, state these constraints before drafting and hold
 - Images are referenced by a path relative to the markdown file's directory.
 - No slide-style layouts, columns, or positioned elements. Headings, paragraphs, lists, tables, images, code.
 
+A deck is not a Word target: offer HTML + PDF for slides, or reshape the content as a document before drafting.
+
 Run `pandoc --version` the moment Word is chosen. Anything but exit 0 — absent or broken — means you follow the `artifact-render` skill's tool-absent rule now, before content work, so the user can decide the target with the fact in hand.
 
 Draft the artifact's content as markdown — `slides.md` for a deck, `<artifact>.md` otherwise — under the working directory the user confirms. Iterate structure and tone with the user. Keep it light on text, heavy on intended visuals; note where diagrams go.
@@ -58,7 +60,9 @@ Draft the artifact's content as markdown — `slides.md` for a deck, `<artifact>
 
 ## Phase 3 — Generate the targets
 
-**HTML.** Generate the artifact HTML from the template, **preserving its `<style>` block, nav JS, and print CSS verbatim**. Map content to the template's component/slide types (cover / content / accent / emphasis, per the `TEMPLATE.md` catalog).
+Generate only the targets agreed in Phase 2.
+
+**HTML** (when HTML or PDF was chosen). Generate the artifact HTML from the template, **preserving its `<style>` block, nav JS, and print CSS verbatim**. Map content to the template's component/slide types (cover / content / accent / emphasis, per the `TEMPLATE.md` catalog).
 
 - Prefer **HTML/CSS diagrams** over raw inline SVG or Mermaid.
 - Drive any repeating layout from a **data object**, not hand-placed elements.
@@ -66,7 +70,7 @@ Draft the artifact's content as markdown — `slides.md` for a deck, `<artifact>
 
 A background agent may do the bulk HTML generation, but it must preserve the template's style block — review its output, do not trust it blind.
 
-**Word.** Generate the Word document from the agreed markdown per the `artifact-render` skill §Word. Do not generate HTML first and convert it; the markdown is the source.
+**Word** (when Word was chosen). Generate the Word document from the agreed markdown per the `artifact-render` skill §Word. Do not generate HTML first and convert it; the markdown is the source.
 
 ---
 
@@ -78,7 +82,7 @@ Verify and export every target per the `artifact-render` skill: HTML gets the Pl
 
 ## Phase 5 — Land and update the board
 
-Commit and push the markdown source and every emitted target file (HTML, PDF, `.docx`). Update the board item (in review, reviewer, link to the markdown source on the remote). Drafts land under the confirmed working directory; do not write outside it without confirming.
+Commit and push the markdown source and every target file this run emitted. Update the board item (in review, reviewer, link to the markdown source on the remote). Drafts land under the confirmed working directory; do not write outside it without confirming.
 
 ---
 

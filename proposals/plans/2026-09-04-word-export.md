@@ -859,3 +859,12 @@ Recorded by the build; the steps above are the plan as written, the branch is th
 - **Task 6** additionally generalises `/artifact`'s H1, intro, `when-to-use`, Phase 2 heading, the "until locked" line and two boundaries, and places the Target block at the top of Phase 2 (not before the gate paragraph).
 - **Task 8:** `make-fixtures.sh` also writes a minimal `style-guide.html` for `word-reference`; scripts pre-empt the design-system offer and pin the basename; rubric outline questions are graded from the report, not from tool output; `pandoc-absent` `post()` asserts only `file-absent out/brief.docx` and the board row; the suite README's "Fixture conventions" and "Adding a scenario" sections follow `tests/daily-digest` and `tests/setup-awow` (process-transcript has none). The skill sentence from spec §10.2 and its `dist/` rebuild landed in Task 8's commit.
 - **All gates:** run as `python3`; `python` is not on PATH here. Docker daemon was unreachable; the env image is unbuilt.
+
+## Amendments at review (2026-09-04)
+
+Independent review returned "ready after must-fix items"; all applied on the branch in one commit. Full list with rationale: spec §11.
+
+- **Must-fix.** M1 Phase 3 sub-sections made conditional and Phase 5 de-listed (Task 6); M2 `pandoc --version` guard before §3.2b's probe (Task 5); M3 `w:tbl` / `a:blip` witnesses in `word-default` and `word-reference` `post()` (Task 8).
+- **Should-fix.** S1 anchored pointer pre-checks; S2 `--wrap=none` plus the image-reference ignore; S3 the outline's no-extra-heading clause; S5 the missing-template one-liner; S6 the split tool-absent offers; S7 the deck rule; S9 `imaged.docx`; S10 the `round-trip` rubric question and README invariant; S11 the pointer's opening sentence.
+- **Task 9 is partly done.** S4 brought its bookkeeping forward: `design-system-capability.md`'s Status line, §3.7 paragraph and open question, and `proposals/README.md`'s row, all now say the render skill landed as `artifact-render`. **The rest of Task 9 stays PR-time:** the PR number, `proposals/README.md`'s `word-export-design` row moving to **Landed** (PR #n, date), and this spec's Status line. Do not mark them before the PR exists.
+- **Not verified, carried forward:** AC3's manual `/design-system` walk (spec §11.15), `/test-awow artifact` (§11.16), the `env/pandoc-absent/` docker build (§11.17).

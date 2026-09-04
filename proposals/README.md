@@ -29,7 +29,7 @@ When a proposal's state changes, update its `**Status:**` line *and* the row bel
 | [architecture-aware-development](architecture-aware-development.md) | **Proposed** | v2, incorporates an adversarial design review. |
 | [strategy-rollup-capability](strategy-rollup-capability.md) | **Draft** | Awaiting approval (2026-07-08). |
 | [marketplace-distribution](marketplace-distribution.md) | **Reference** | Distribution status per harness (self-hosted live; official tiers gated on portal applications). |
-| [design-system-capability](design-system-capability.md) | **Landed** | Approved; Phases 1–3 implemented (render skill, §3.7, deferred). |
+| [design-system-capability](design-system-capability.md) | **Landed** | Approved; Phases 1–3 implemented; render skill §3.7 landed as `artifact-render` via [word-export-design](word-export-design.md). |
 | [board-as-afterthought](board-as-afterthought.md) | **Draft** | Awaiting approval (2026-05-30). |
 | [archetypes-board-anchoring](archetypes-board-anchoring.md) | **Superseded** | Rolled back to generic reference (2026-05-25). |
 | [session-board-correlation](session-board-correlation.md) | **Landed** | `session-correlation` skill + footer rule + `tools/session_footer_hook.py`. |

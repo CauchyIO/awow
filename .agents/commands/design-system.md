@@ -138,6 +138,8 @@ Ask whether the team has a branded Word template. If not, leave `word_reference`
 
 If yes, take the file the user names. Require `.docx`. When handed a `.dotx`, ask the user to open it in Word and save it as `.docx` first — do not rename or convert it yourself. In-repo: copy it to `{ANCHOR}/context/design-system/templates/word/reference.docx`. External: record its absolute path and rely on `access: local-path`.
 
+Run `pandoc --version` first; if it does not exit 0, say pandoc is missing, leave `word_reference` empty for now, and tell the user to re-run §3.2b after installing it. Do not report the template as unusable.
+
 Probe it once before Gate 3: write a three-line markdown sample (a heading, a paragraph, a two-row table) to scratch and run `pandoc <sample>.md --from gfm --to docx --reference-doc=<path> -o <scratch>/probe.docx`. Exit 0 means usable. Any other exit means the file is not a usable reference doc: report pandoc's message verbatim and leave `word_reference` empty.
 
 Tell the user what carries over and what does not: pandoc takes the template's styles, page setup, headers and footers and ignores its body, so a cover page or boilerplate text in the template will not appear in generated documents.

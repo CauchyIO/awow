@@ -13,7 +13,7 @@ rule: "Always re-read the source file before generating an artifact. The source 
 
 # Design system — pointer
 
-Single source of truth for **whether** this team has a design system and **where** it lives. Every command that produces an HTML artifact (`/artifact`, `/design-system`, `/solution-design-flow`'s presentation track, the digests) reads this file first.
+Single source of truth for **whether** this team has a design system and **where** it lives. Every command that produces a styled artifact (HTML or Word) — `/artifact`, `/design-system`, `/solution-design-flow`'s presentation track, the digests — reads this file first.
 
 - **`mode: absent`** — no design system. Artifact-producing commands proceed with plain defaults and do not enforce any styling. This is the shipped default.
 - **`mode: in-repo`** — the design system lives under `context/design-system/` in this repo. Self-contained; no cross-repo path fragility.

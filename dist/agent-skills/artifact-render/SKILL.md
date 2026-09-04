@@ -34,8 +34,8 @@ Pass `--reference-doc` only when `word_reference` is set; add `--toc` only when 
 
 Verify in this order; stop at the first failure, fix at the source, regenerate:
 
-1. **Outline.** Run `python3 <skill-dir>/scripts/docx_outline.py <artifact>.docx`. Compare its JSON to the markdown: every markdown heading appears at the same level in the same order; table count and image count match. A mismatch is a generation defect — fix the markdown or the command, never the `.docx`.
-2. **Round trip.** Run `pandoc <artifact>.docx --from docx --to gfm` and diff against the source, ignoring whitespace, front matter, task-list markers (`- [ ]` returns as a plain bullet) and code-fence form. Report a missing paragraph, list item or table row to the user; ignore formatting-only noise.
+1. **Outline.** Run `python3 <skill-dir>/scripts/docx_outline.py <artifact>.docx`. Compare its JSON to the markdown: every markdown heading appears at the same level in the same order; table count and image count match; and no heading appears that the markdown does not have — a level-0 Title beside a matching H1 is exactly the duplicate the `one H1 or a title: line` rule prevents. A mismatch is a generation defect — fix the markdown or the command, never the `.docx`.
+2. **Round trip.** Run `pandoc <artifact>.docx --from docx --to gfm --wrap=none` and diff against the source, ignoring whitespace, front matter, task-list markers (`- [ ]` returns as a plain bullet), image reference form (`![…](x.png)` returns as `<img src="media/rIdN.png">`) and code-fence form. Report a missing paragraph, list item or table row to the user; ignore formatting-only noise.
 3. **Visual, only when present.** If `soffice` is on PATH, run `soffice --headless --convert-to pdf <artifact>.docx --outdir <dir>` and open the PDF to check page breaks, header and footer. Absent: say the visual check was skipped and why. Never ask the user to install LibreOffice for this.
 
 State in the final report which reference doc was applied, or that pandoc's stock styles were used.
@@ -49,7 +49,11 @@ When `pandoc --version` does not exit 0 — not installed, or installed and brok
 - Windows: `winget install --id JohnMacFarlane.Pandoc` (or `choco install pandoc`)
 - Anything else: https://pandoc.org/installing.html
 
-Run it only on an explicit yes. On no, or on a failed install, produce the other targets and state in the final report that the Word target was not produced and why. Never drop the target silently. When Word was the only target chosen, offer HTML + PDF instead and wait for the answer; do not substitute a target the user did not ask for. Minimum version: pandoc 2.6 (task lists in `gfm`); verified on 3.8.2.
+Offer the install and wait for the answer. Run it only on an explicit yes; on no, or on a failed install, produce the other targets and state in the final report that the Word target was not produced and why.
+
+Only after a decline, and only when Word was the sole target, offer HTML + PDF instead and wait. Never substitute a target the user did not choose, and never drop the target silently.
+
+Minimum version: pandoc 2.6 (task lists in `gfm`); verified on 3.8.2.
 
 ## Boundaries
 

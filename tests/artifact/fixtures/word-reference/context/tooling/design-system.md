@@ -26,4 +26,4 @@ To stand one up — or to point at an existing one — run `/design-system`. Tha
 
 Populated by `/design-system` when a system is established. Until then, empty. Keep this short: accent, background, text ramp, fonts, spacing scale, and the load-bearing principles. It exists so the agent can sanity-check without opening the full style guide — but per the `rule:` above, the agent must re-read the source file before generating, because this cache can fall out of date.
 
-_(none — `mode: absent`)_
+_(word_reference registered — see frontmatter)_

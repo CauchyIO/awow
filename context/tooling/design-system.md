@@ -4,6 +4,9 @@ path: ""              # in-repo  → context/design-system/style-guide.html
                       # external → e.g. ~/repos/design/cauchy-style-guide-v2.html
 templates_dir: ""     # in-repo  → context/design-system/templates/
                       # external → e.g. ~/repos/design/templates/
+word_reference: ""    # in-repo  → context/design-system/templates/word/reference.docx
+                      # external → e.g. ~/repos/design/word/reference.docx (access: local-path applies)
+                      # empty    → pandoc's stock styles; /artifact says so when it emits Word
 access: ""            # external only: "local-path" (read via filesystem) or "mcp" — private repos are usually local-path / gh CLI, not MCP
 rule: "Always re-read the source file before generating an artifact. The source file is authoritative; the token summary below is a convenience cache and can drift."
 ---
@@ -15,6 +18,7 @@ Single source of truth for **whether** this team has a design system and **where
 - **`mode: absent`** — no design system. Artifact-producing commands proceed with plain defaults and do not enforce any styling. This is the shipped default.
 - **`mode: in-repo`** — the design system lives under `context/design-system/` in this repo. Self-contained; no cross-repo path fragility.
 - **`mode: external`** — the design system lives in another repo, referenced by absolute path. Set `access:` so the agent knows to read it from the filesystem (the common case for a private design repo where the board MCP returns 404) rather than over MCP.
+- **`word_reference`** — optional, any mode but `absent`: the pandoc reference `.docx` that styles Word output. Registered by `/design-system` §3.2b; empty means pandoc's stock styles.
 
 To stand one up — or to point at an existing one — run `/design-system`. That flow rewrites this file's frontmatter and fills the token summary below.
 

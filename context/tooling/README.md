@@ -6,7 +6,7 @@ The team's actual tooling choices live in `board.md` (produced by `/setup-awow` 
 
 - `board.md` — the team's actual board spec (single source of truth). Filled by `/setup-awow` Step 1.
 - `knowledge-base.md` — where the durable KB (`kb_root`) and its staging `inbox` live. Ships with defaults (`context/knowledge-base/`, `context/kb-inbox/`); a team can relocate them here. Read by the KB contracts and commands. Set via `/setup-awow` Step 6.
-- `design-system.md` — pointer to the team's design system (presence + location). Ships as `mode: absent`; filled by `/design-system`. Read by every command that produces an HTML artifact.
+- `design-system.md` — pointer to the team's design system (presence + location). Ships as `mode: absent`; filled by `/design-system`. Read by every command that produces a styled artifact, and names the Word reference doc when one is registered.
 - `boards/linear/` — Linear reference (full)
 - `boards/azure-devops/` — Azure DevOps reference (full; some v0.2 TODOs)
 - `boards/jira/` — Jira reference (skeleton; v0.2 full)

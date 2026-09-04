@@ -1,0 +1,5 @@
+# No pandoc in the env container: one install offer (declined), HTML+PDF fallback offered (declined), honest final report, no docx claimed.
+Turn brief.md into a one-pager for the stakeholders. The content is final — use it as-is. We have no design system and do not want to set one up now; plain defaults are fine. Track it under AR-1 on context/tooling/board.md. Put outputs in out/, keeping the brief's basename.
+Word
+no
+no

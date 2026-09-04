@@ -49,7 +49,7 @@ When `pandoc --version` does not exit 0 — not installed, or installed and brok
 - Windows: `winget install --id JohnMacFarlane.Pandoc` (or `choco install pandoc`)
 - Anything else: https://pandoc.org/installing.html
 
-Run it only on an explicit yes. On no, or on a failed install, produce the other targets and state in the final report that the Word target was not produced and why. Never drop the target silently. Minimum version: pandoc 2.6 (task lists in `gfm`); verified on 3.8.2.
+Run it only on an explicit yes. On no, or on a failed install, produce the other targets and state in the final report that the Word target was not produced and why. Never drop the target silently. When Word was the only target chosen, offer HTML + PDF instead and wait for the answer; do not substitute a target the user did not ask for. Minimum version: pandoc 2.6 (task lists in `gfm`); verified on 3.8.2.
 
 ## Boundaries
 

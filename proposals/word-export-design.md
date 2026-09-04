@@ -1,6 +1,6 @@
 # Word Export in `/artifact` — Design Spec
 
-**Status:** Draft by Arie, 2026-09-04. Approved in conversation at the design gate; awaiting written review.
+**Status:** Implemented 2026-09-04 — [PR #87](https://github.com/CauchyIO/awow/pull/87), board item CAU-1525. Build amendments in §10, review amendments in §11; the AC3 manual walk (`/design-system` against a real Word template) is pending before merge.
 Board item: [CAU-1525](https://linear.app/cauchyio/issue/CAU-1525/add-a-word-export-target-to-artifact) (created 2026-09-04 from the §9 draft).
 Companion: [office-ingest-design.md](office-ingest-design.md) (the inbound direction: Office → markdown). The two specs are independent; this one is sequenced first.
 Closes the deferred §3.7 "render skill" of [design-system-capability.md](design-system-capability.md).

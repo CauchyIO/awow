@@ -1,6 +1,6 @@
 # Office Ingestion via markitdown — Design Spec
 
-**Status:** Draft by Arie, 2026-09-04. Approved in conversation at the design gate; awaiting written review.
+**Status:** Implemented 2026-09-04 — [PR #88](https://github.com/CauchyIO/awow/pull/88), board item CAU-1526. Build amendments in §10, review amendments in §11.
 Board item: [CAU-1526](https://linear.app/cauchyio/issue/CAU-1526/implement-office-file-ingestion-through-markitdown-sidecars) (created 2026-09-04 from the §9 draft).
 Companion: [word-export-design.md](word-export-design.md) (the outbound direction: markdown → Word). The two specs are independent; that one is sequenced first.
 

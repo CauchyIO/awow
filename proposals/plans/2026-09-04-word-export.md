@@ -846,3 +846,16 @@ gh pr create --title "CAU-1525: /artifact emits Word via pandoc; render mechanic
 ```
 
 - [ ] **Step 4: Board.** Move CAU-1525 to In Review with the PR link and the `OVERALL:` line from Task 8.
+
+---
+
+## Amendments at implementation (2026-09-04)
+
+Recorded by the build; the steps above are the plan as written, the branch is the record of what actually happened.
+
+- **Task 1 Step 1** hardcoded the main checkout's prelude path; probe against the worktree under test.
+- **Task 2:** a third fixture `titled.docx` (`--metadata title="Probe brief"`) and one assertion pin the Title-as-level-0 rule; `docx_outline.py` also catches `OSError` and `ET.ParseError`. Step 4's "every line FAIL" is overstated: the three error-path assertions pass vacuously when the script is missing; the suite still fails overall.
+- **Task 5** also updates `design-system.md` §3.3's quote of the AGENTS.md heading; **Task 7** also updates `guides/guide-design-system-and-artifacts.md`'s quote, and produces no `dist/` change.
+- **Task 6** additionally generalises `/artifact`'s H1, intro, `when-to-use`, Phase 2 heading, the "until locked" line and two boundaries, and places the Target block at the top of Phase 2 (not before the gate paragraph).
+- **Task 8:** `make-fixtures.sh` also writes a minimal `style-guide.html` for `word-reference`; scripts pre-empt the design-system offer and pin the basename; rubric outline questions are graded from the report, not from tool output; `pandoc-absent` `post()` asserts only `file-absent out/brief.docx` and the board row; the suite README's "Fixture conventions" and "Adding a scenario" sections follow `tests/daily-digest` and `tests/setup-awow` (process-transcript has none). The skill sentence from spec §10.2 and its `dist/` rebuild landed in Task 8's commit.
+- **All gates:** run as `python3`; `python` is not on PATH here. Docker daemon was unreachable; the env image is unbuilt.

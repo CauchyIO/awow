@@ -13,9 +13,9 @@ In scope:
 
 - One new frontmatter key in `context/tooling/design-system.md`: `word_reference`.
 - One new sub-step in `.agents/commands/design-system.md` Phase 3 (§3.2b, register a Word template) and one line in its Gate 3 block.
-- Edits to `.agents/commands/artifact.md`: Phase 0 reads the new key; Phase 2 asks for the target(s) and states the Word constraints; Phase 3 and Phase 4 delegate rendering and verification per target to the new skill; Phase 5 commits every emitted target; two new behavioural boundaries.
+- Edits to `.agents/commands/artifact.md`: Phase 0 reads the new key; Phase 2 asks for the target(s) and states the Word constraints before drafting; Phase 3 and Phase 4 delegate rendering and verification per target to the new skill; Phase 5 commits every emitted target; two new behavioural boundaries; and the H1, intro, `when-to-use`, the Phase 2 heading, the "do not generate HTML until locked" line and the two HTML-only boundaries generalised from "HTML artifact" to "styled artifact" so a Word-only run is not contradicted by its own command.
 - One new packaged skill `.agents/skills/artifact-render/` — `SKILL.md` plus `scripts/docx_outline.py` (stdlib only).
-- One rule broadened in `.agents/AGENTS.md` ("When you produce an HTML artifact" → styled artifacts, HTML or Word). `tools/bootstrap-claude-md.py` does not carry this rule (verified 2026-09-04), so nothing changes there.
+- One rule broadened in `.agents/AGENTS.md` ("When you produce an HTML artifact" → styled artifacts, HTML or Word), and the two live cross-references to that heading updated: `.agents/commands/design-system.md` §3.3 and `guides/guide-design-system-and-artifacts.md`. `tools/bootstrap-claude-md.py` does not carry the rule (verified 2026-09-04), and `.agents/AGENTS.md` is not in the plugin payload, so the rule binds this repo and templated adopters; plugin adopters get it through `/artifact` and the skill.
 - One-line mentions in `context/tooling/README.md`, the body of `context/tooling/design-system.md`, and `.agents/skills/README.md`.
 - A new eval suite `tests/artifact/` (three scenarios, one in an `env/` container), one stdlib test script for `docx_outline.py` wired into CI, and one new check verb in `tests/checks-prelude.sh`.
 - No CHANGELOG edit: release sections are drafted from merged PR titles at version bump, so this PR's title carries the board id and a one-line summary.
@@ -27,6 +27,7 @@ Non-goals, stated so nobody re-opens them:
 - **Generating a reference docx from the design tokens.** Teams register the branded template they already have. Token-derived Word styling is a separate item if anyone ever wants it.
 - **Word → markdown.** That is [office-ingest-design.md](office-ingest-design.md).
 - **Tracked changes, comments, footnote styling, citations.** Plain document body only.
+- **`guides/guide-design-system-and-artifacts.md`'s wider flow.** Its four-step flow and "commit markdown + HTML + PDF" line stay HTML-only; only its cross-reference to the renamed rule is updated. Rewriting the guide for Word is a follow-on.
 - **LibreOffice as a dependency.** It is used for an optional visual check when present, never required.
 - **Converting HTML to Word.** pandoc's HTML reader drops semantics the markdown already has; the markdown is the agreed source anyway.
 
@@ -76,7 +77,7 @@ Word template: [<path>  (probe: ok)  |  none — pandoc defaults]
 
 Add: *"Read `word_reference` as well. Empty or `mode: absent` means Word output uses pandoc's stock styles, and you say so in the run's final report."*
 
-### 3.2 Phase 2 — target choice and Word constraints (verbatim, inserted before the content gate)
+### 3.2 Phase 2 — target choice and Word constraints (verbatim, at the top of Phase 2, before the drafting paragraph)
 
 ```markdown
 **Target.** Before you draft, ask which outputs the user wants: HTML + PDF (the default), Word (`.docx`), or both. Record the answer; it shapes the content.
@@ -142,9 +143,9 @@ The skill is mechanics only. Content decisions, the design-system read and the b
 
 ### 4.2 Sections
 
-**§HTML layout verification** — moved verbatim from `artifact.md` Phase 4 step 2: open in a browser, inspect computed layout and overflow with Playwright, do not eyeball.
+**§HTML layout verification** — lifted from `artifact.md` Phase 4 steps 1, 2 and 4 with light restructuring and no behaviour change: open in a browser, inspect computed layout and overflow with Playwright, do not eyeball, fix overflow at the source and regenerate.
 
-**§PDF export** — moved verbatim from Phase 4 step 3: Chrome headless print-to-PDF; modern CSS survives, WeasyPrint does not; use the template's print CSS.
+**§PDF export** — lifted from Phase 4 step 3 the same way: Chrome headless print-to-PDF; modern CSS survives, WeasyPrint does not; use the template's print CSS.
 
 **§Diagrams to PNG** — one recipe: with Playwright, load the HTML fragment that carries the diagram, take an element screenshot at device scale factor 2, save as PNG beside the markdown, reference it from the markdown by relative path.
 
@@ -179,7 +180,7 @@ When `pandoc --version` does not exit 0 — not installed, or installed and brok
 - Windows: `winget install --id JohnMacFarlane.Pandoc` (or `choco install pandoc`)
 - Anything else: https://pandoc.org/installing.html
 
-Run it only on an explicit yes. On no, or on a failed install, produce the other targets and state in the final report that the Word target was not produced and why. Never drop the target silently. Minimum version: pandoc 2.6 (task lists in `gfm`); verified on 3.8.2.
+Run it only on an explicit yes. On no, or on a failed install, produce the other targets and state in the final report that the Word target was not produced and why. Never drop the target silently. When Word was the only target chosen, offer HTML + PDF instead and wait for the answer; do not substitute a target the user did not ask for. Minimum version: pandoc 2.6 (task lists in `gfm`); verified on 3.8.2.
 ```
 
 ### 4.3 `scripts/docx_outline.py` contract
@@ -189,8 +190,8 @@ Run it only on an explicit yes. On no, or on a failed install, produce the other
 - **Heading detection resolves style names, not IDs.** Parse `word/styles.xml` into a map `styleId → w:name`. A paragraph is a heading when its `w:pStyle` resolves to a name matching `^title$` or `^heading (\d)$` case-insensitively. Word stores built-in style names in English internally regardless of UI language, and a team template may carry localised or renamed style IDs, so keying on the ID is wrong.
 - **Tables:** count of `w:tbl` in `word/document.xml`. **Images:** count of `a:blip`.
 - **Dependencies:** `zipfile`, `xml.etree.ElementTree`, `json`, `sys`, `re`. Nothing else.
-- **Exit codes:** 0 success; 2 file missing, not a zip, or no `word/document.xml`, with one line on stderr.
-- Verified shape on the 2026-09-04 probe: `[('Title','Probe brief'),('Heading1','Probe brief'),('Heading2','Intent'),('Heading2','Acceptance criteria')]`, `tables: 1`, `images: 0` — the duplicated title is exactly the defect §3.2's "one H1 or a `title:` line" rule prevents.
+- **Exit codes:** 0 success; 2 file missing, unreadable, not a zip, corrupt XML, or no `word/document.xml`, with one line on stderr (catches `OSError`, `zipfile.BadZipFile`, `KeyError`, `ET.ParseError`).
+- Verified shapes, 2026-09-04, pandoc 3.8.2: `sample.md` (an H1, no `title:` metadata) yields `Probe brief` (1), `Intent` (2), `Acceptance criteria` (2), `tables: 1`, `images: 0` — no Title paragraph. The same markdown with `--metadata title="Probe brief"` yields an extra level-0 `Probe brief` first; that duplicated title is exactly the defect §3.2's "one H1 or a `title:` line" rule prevents, and the `titled.docx` fixture pins level 0.
 
 ## 5. Documentation edits
 
@@ -238,15 +239,15 @@ Every fixture follows the process-transcript convention: an inert file-based boa
 
 | Scenario | Fixture | Script (user turns) | `post()` asserts | Rubric asks |
 |---|---|---|---|---|
-| `word-default` | `design-system.md` with `mode: absent`; `brief.md` with three headings (H1, H2, H2), one table, one referenced PNG | Ask for a Word one-pager from `brief.md`; answer "Word"; agree content at the gate | `file-exists out/brief.docx`; `zip-member-contains out/brief.docx word/document.xml "Acceptance criteria"` (the H2 text); `file-absent out/brief.html` | Target asked before drafting; constraints stated; content gate honoured; the `docx_outline.py` output in the evidence bundle shows the three headings in order, `tables: 1`, `images: 1`; final report says stock styles were used |
-| `word-reference` | As above but `mode: in-repo`, `word_reference: context/design-system/templates/word/reference.docx`; the fixture reference doc is pandoc's default with `Heading1`'s colour in `styles.xml` set to a sentinel (`FF00AA`) | Same | As above plus `zip-member-contains out/brief.docx word/styles.xml FF00AA` | Report names the reference doc applied |
-| `pandoc-absent` | As `word-default`, run in `env/pandoc-absent/` — a `debian:bookworm-slim` container whose `RUN` guard fails the build if the base image ever ships pandoc (the `preflight-no-git` pattern) | Same; decline the install offer; decline the HTML + PDF fallback | `file-absent out/brief.docx`; `file-exists out/brief.md` (content was still agreed and written) | Exactly one install offer naming a platform command; final report states Word was not produced and why; no claim that a `.docx` exists; the fallback was offered, not assumed |
+| `word-default` | `design-system.md` with `mode: absent`; `brief.md` with three headings (H1, H2, H2), one table, one referenced PNG | Ask for a Word one-pager from `brief.md`; answer "Word"; agree content at the gate | `file-exists out/brief.docx`; `zip-member-contains out/brief.docx word/document.xml "Acceptance criteria"` (the H2 text); `file-absent out/brief.html` | Target asked before drafting; constraints stated; content gate honoured; the run executed `docx_outline.py` over the output and reported its outline — three headings in order, `tables: 1`, `images: 1` (the evidence bundle carries turns and tool-call lines, never tool output, so the question is graded from the report); final report says stock styles were used |
+| `word-reference` | As above but `mode: in-repo`, `word_reference: context/design-system/templates/word/reference.docx`, plus a minimal self-contained `style-guide.html` at `path:` (accent `FF00AA`) so Phase 0 has a source to read; the fixture reference doc is pandoc's default with `Heading1`'s colour in `styles.xml` set to the same sentinel (`FF00AA`) | Same | As above plus `zip-member-contains out/brief.docx word/styles.xml FF00AA` | Report names the reference doc applied |
+| `pandoc-absent` | As `word-default`, run in `env/pandoc-absent/` — a `debian:bookworm-slim` container whose `RUN` guard fails the build if the base image ever ships pandoc (the `preflight-no-git` pattern) | Same; decline the install offer; decline the HTML + PDF fallback | `file-absent out/brief.docx`; AR-1's board row is neither In Review nor Done | Exactly one install offer naming a platform command; final report states Word was not produced and why; no claim that a `.docx` exists; the fallback was offered, not assumed |
 
-`pandoc-absent` composes `indeterminate (stage: env)` without docker, as `preflight-no-git` does. Fixture binaries (`reference.docx`, the PNG) are small (≈11 KB, ≈1 KB), generated once by a documented command in the suite README, then committed.
+`pandoc-absent` composes `indeterminate (stage: env)` without docker, as `preflight-no-git` does. Each script's opening turn pre-empts Phase 0's design-system offer ("we have no design system and do not want to set one up now; plain defaults are fine") and pins the output basename, so the scripted replies stay in sync with the prompt's questions; neither touches an invariant under test. Fixture binaries (`reference.docx`, the PNG) are small (≈11 KB, ≈1 KB), generated once by a documented command in the suite README, then committed.
 
 ### 6.2 Script test — `tests/artifact-render/test_docx_outline.py`
 
-A stdlib script in the shape of `tests/hooks/test_session_start.py` (no pytest; `check(name, cond)`, exit 1 on any failure), wired into `.github/workflows/ci.yml` as one `run:` line. Frozen fixtures under `tests/artifact-render/fixtures/`, generated once by `make-fixtures.sh` (needs pandoc; CI does not) and committed: (a) `sample.docx` yields headings `Probe brief` (1), `Intent` (2), `Acceptance criteria` (2), `tables: 1`, `images: 0`; (b) `renamed.docx` — `sample.docx` with `Heading1`'s styleId renamed to `berschrift1` in both `styles.xml` and `document.xml`, `w:name` untouched — yields the same outline, proving the name-resolution rule; (c) a non-zip path exits 2 with one stderr line; (d) a missing path exits 2. Verified against these fixtures on 2026-09-04.
+A stdlib script in the shape of `tests/hooks/test_session_start.py` (no pytest; `check(name, cond)`, exit 1 on any failure), wired into `.github/workflows/ci.yml` as one `run:` line. Frozen fixtures under `tests/artifact-render/fixtures/`, generated once by `make-fixtures.sh` (needs pandoc; CI does not) and committed: (a) `sample.docx` yields headings `Probe brief` (1), `Intent` (2), `Acceptance criteria` (2), `tables: 1`, `images: 0`; (b) `renamed.docx` — `sample.docx` with `Heading1`'s styleId renamed to `berschrift1` in both `styles.xml` and `document.xml`, `w:name` untouched — yields the same outline, proving the name-resolution rule; (c) a non-zip path exits 2 with one stderr line; (d) a missing path exits 2; (e) `titled.docx` — `sample.md` rendered with `--metadata title="Probe brief"` — yields a leading level-0 `Probe brief`, pinning the Title rule. Verified against these fixtures on 2026-09-04.
 
 ### 6.3 One new check verb — `tests/checks-prelude.sh`
 
@@ -261,7 +262,7 @@ A stdlib script in the shape of `tests/hooks/test_session_start.py` (no pytest; 
 1. With Word chosen at the content gate, `/artifact` emits `<artifact>.docx` from the agreed markdown with no HTML intermediate, and `docx_outline.py` reports the markdown's headings in order and matching table and image counts. (`word-default`)
 2. With `word_reference` set, the emitted docx carries the reference doc's styles; with it empty, the final report says pandoc's stock styles were used. (`word-reference`, `word-default`)
 3. `/design-system` registers an existing `.docx` as `word_reference`, probes it with pandoc before Gate 3, and sends a `.dotx` back for save-as instead of converting it. (manual walk at implementation; no eval suite exists for `/design-system` yet)
-4. When pandoc is absent the agent offers the platform install once and, on decline, emits HTML + PDF and states that Word was not produced. (`pandoc-absent`)
+4. When pandoc is absent the agent offers the platform install once and, on decline, offers HTML + PDF instead and waits for the answer — never substituting a target the user did not choose — and states in the final report that Word was not produced. (`pandoc-absent`)
 5. The HTML verification and PDF export recipes move out of `artifact.md` into `artifact-render` with no behaviour change; `artifact.md` delegates. (diff review)
 6. `gather.py --check`, `validate-evals.py` and `tests/artifact-render/test_docx_outline.py` pass; `/test-awow artifact` runs all three scenarios.
 
@@ -296,3 +297,22 @@ Acceptance criteria
 - [ ] `tests/artifact/` covers the default, reference-doc and pandoc-absent scenarios.
 
 Spec: `proposals/word-export-design.md`. Follow-on, not in scope: PowerPoint via the same mechanism.
+
+## 10. Amendments at implementation (2026-09-04)
+
+Found by the build on branch `arie/cau-1525-add-a-word-export-target-to-artifact`; folded into the sections above and into the built files.
+
+1. **§4.3 probe shape attributed.** The Title-plus-Heading-1 shape came from a probe with `title:` metadata; plain `sample.md` yields no Title paragraph. §4.3 and §6.2 now agree, and a third fixture (`titled.docx`) pins level 0.
+2. **§4.2 / §7.4 / §6.1 contradiction on the pandoc-absent fallback resolved toward the testable statement.** "Produce the other targets" is a no-op when Word was the only target, so no offer would ever happen. The skill's tool-absent rule gained one sentence: when Word was the only target chosen, offer HTML + PDF instead and wait; never substitute a target the user did not ask for. AC4 says "offers", not "emits".
+3. **§3.2 placement corrected.** "Inserted before the content gate" put the Target question after the drafting paragraph, defeating `target-first`. The block sits at the top of Phase 2.
+4. **§6.1 pandoc-absent `post()` corrected.** `out/brief.md` cannot exist when the probe runs before content work and both offers are declined; the check is `file-absent out/brief.docx` plus the board row not advancing.
+5. **§6.1 word-reference fixture completed.** `mode: in-repo` needs a real `path:`; the generator now writes a minimal `style-guide.html` carrying the same `FF00AA` accent.
+6. **§6.1 scripts pre-empt Phase 0's design-system offer** and pin the output basename; otherwise an unscripted question would consume the `Word` reply.
+7. **§6.1 rubric wording.** The evidence bundle carries turns and tool-call lines, never tool output; outline questions are graded from the run's report of the outline.
+8. **§4.2 "moved verbatim" → "lifted with light restructuring".** Behaviour unchanged; AC5 holds.
+9. **§4.3 and §6.3 exception handling widened** to `OSError` and `ET.ParseError` so a corrupt or unreadable file yields the contracted one-line exit 2 / `(unreadable)` record instead of a traceback.
+10. **`/artifact` generalised end to end.** H1, intro, `when-to-use`, the Phase 2 heading, "do not generate HTML until locked", and the two HTML-only boundaries now say "styled artifact" and delegate to `artifact-render`.
+11. **Cross-references to the renamed AGENTS.md heading** in `design-system.md` §3.3 and `guides/guide-design-system-and-artifacts.md` updated; the guide's wider Word coverage is a named follow-on (§1).
+12. **`.agents/AGENTS.md` is not in the payload**; Task 7 produces no `dist/` change. Plugin adopters get the rule through `/artifact` and the skill.
+13. **Pre-existing drift, not touched:** `tests/process-transcript/README.md:10` links `.agents/commands/test-awow.md`, which does not exist (the runner is `.claude/commands/test-awow.md`); `python` is not on PATH here, only `python3`.
+14. **Docker not verified:** the daemon was unreachable during the build, so `env/pandoc-absent/` is unbuilt; it is byte-for-byte the `preflight-no-git` pattern with `git` → `pandoc`.

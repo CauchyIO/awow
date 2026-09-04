@@ -33,10 +33,11 @@ Examples shipped with the starter pack:
 - [`mlflow-export/`](./mlflow-export/) — export agent traces + sessions to local JSON. Ships with a Databricks-MLflow exporter; swap the script for your backend's equivalent.
 - [`prompt-skill-analysis/`](./prompt-skill-analysis/) — assess prompt quality from an agent session. Ships with parsers for raw Claude Code JSONL and the `mlflow-export` output shape; extend for other harnesses.
 - [`awow-usage-coach/`](./awow-usage-coach/) — propose AGENTS.md nudges or coach an individual based on workflow shape. Consumes the `mlflow-export` JSON; rubric is harness-agnostic.
+- [`artifact-render/`](./artifact-render/) — render and verify `/artifact` targets: Playwright layout check, Chrome headless PDF, pandoc Word with the team's reference doc. Ships `scripts/docx_outline.py` (stdlib) for the Word outline check.
 
 ### Two plugins, one source tree
 
-Skills marked `channel: telemetry` in their frontmatter build into the separate **`awow-telemetry`** plugin rather than into `awow` — `mlflow-export`, `prompt-skill-analysis`, `project-timeline`, `awow-usage-coach`, `session-export`. The base plugin keeps the behavioural skills, including `using-awow`, `workitem-write`, `board-aware-development`, `architecture-aware-development`, `knowledge-source-routing`, `adopting-okf`, and `user-story-template`. Different audience, different dependency profile, different privacy posture; and every skill description loads into every session, so a telemetry surface nobody uses is a tax on everybody.
+Skills marked `channel: telemetry` in their frontmatter build into the separate **`awow-telemetry`** plugin rather than into `awow` — `mlflow-export`, `prompt-skill-analysis`, `project-timeline`, `awow-usage-coach`, `session-export`. The base plugin keeps the behavioural skills, including `using-awow`, `workitem-write`, `board-aware-development`, `architecture-aware-development`, `knowledge-source-routing`, `artifact-render`, `adopting-okf`, and `user-story-template`. Different audience, different dependency profile, different privacy posture; and every skill description loads into every session, so a telemetry surface nobody uses is a tax on everybody.
 
 The source stays here either way — `channel:` selects the payload, not the location. Install with `/plugin install awow-telemetry@awow`. **Claude Code only this release:** `tools/sync-dist.sh` publishes only `dist/` to `awow-dist`, which is the Codex and Pi install source, so telemetry does not reach those harnesses.
 

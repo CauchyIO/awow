@@ -84,13 +84,13 @@ Record the version from `markitdown --version` (or `uvx --from … markitdown --
 
 ### 3.3 Fidelity facts
 
-Verified 2026-09-04 against markitdown 0.1.7 on a pandoc-generated `.docx`: headings, bold, links and tables survive; **task-list checkboxes flatten to plain bullets**; **fenced code blocks become plain paragraphs**; images are referenced, not extracted. Per the upstream README, to be confirmed against a fixture at implementation: `.pptx` slides arrive under `<!-- Slide number: N -->` markers with speaker notes appended; `.xlsx` yields one table per sheet. Tracked changes and comments are not guaranteed in any format.
+Verified 2026-09-04 against markitdown 0.1.7 on pandoc-generated files. `.docx`: headings, bold, links and tables survive; **task-list checkboxes flatten to plain bullets**; **fenced code blocks become plain paragraphs**; images are referenced, not extracted. `.pptx`: slides arrive under `<!-- Slide number: N -->` markers with speaker notes appended per slide under a `### Notes:` heading, and PowerPoint loses more than Word — bold, links and bullet markers are dropped, non-title headings flatten to plain text, checkboxes render as a literal `☐`, and shapes arrive in placement order rather than reading order. `.xlsx`: one `## <sheet>` heading and table per sheet. Tracked changes and comments are not guaranteed in any format. Two mechanical facts the freshness rule relies on: `markitdown -o` overwrites an existing sidecar cleanly, and pandoc 3.8.2 `.docx` output is byte-deterministic for identical input, so a same-version fixture rebuild reproduces a frozen hash.
 
 When a fact bears on the task at hand — a brief with checklists, a deck whose notes matter — say it in one line at conversion time. Otherwise stay quiet.
 
 ### 3.4 Post-conversion sanity
 
-A sidecar body under ~200 bytes, or whitespace only, is a signal, not a result: the file may be image-only (scanned, needs OCR — out of scope), encrypted, or empty. Say which is likely and ask for a different export rather than proceeding on nothing.
+A sidecar body that is whitespace only, or implausibly short for the source's size, is a signal, not a result: the file may be image-only (scanned, needs OCR — out of scope), encrypted, or empty. Say which is likely and ask for a different export rather than proceeding on nothing. No byte floor: a correct three-line brief converts to under 200 bytes.
 
 ## 4. `SKILL.md` (verbatim draft)
 
@@ -116,7 +116,7 @@ Use the first rung that applies, and no other:
 2. `markitdown` on PATH: `markitdown <source> -o <sidecar>`
 3. Neither: offer once — `uv tool install "markitdown[docx,pptx,xlsx,xls]"` (or `pipx install …`, or `python3 -m pip install --user …`) — and run it only on an explicit yes. On no or on failure, ask for a PDF export or pasted text and proceed on that. Do not claim the file was read.
 
-Then prepend the header, exactly these four keys:
+`markitdown -o` writes the body only. Convert first, then rewrite the sidecar with this header on top of the body it just wrote — exactly these four keys:
 
     ---
     source: <source filename, relative to the sidecar's directory>
@@ -135,7 +135,7 @@ A sidecar carries its source's sensitivity: a converted copy of anything the use
 
 ## 4. Say what may have been lost, when it matters
 
-Checkboxes flatten to bullets, fenced code becomes plain text, images are referenced not extracted, tracked changes and comments are not guaranteed. State the fact that bears on the task in one line; otherwise say nothing. A body under ~200 bytes or whitespace only means the file is likely image-only, encrypted or empty — ask for a different export instead of proceeding on nothing.
+Checkboxes flatten to bullets, fenced code becomes plain text, images are referenced not extracted, tracked changes and comments are not guaranteed. State the fact that bears on the task in one line; otherwise say nothing. A body that is whitespace only, or implausibly short for the source's size, means the file is likely image-only, encrypted or empty — ask for a different export instead of proceeding on nothing.
 
 ## Boundaries
 
@@ -152,6 +152,8 @@ Checkboxes flatten to bullets, fenced code becomes plain text, images are refere
 Append to the paragraph: *"A `.docx`, `.pptx` or `.xlsx` in hand → the `office-ingest` skill first, then the command the content calls for."*
 
 ### 5.2 `.agents/AGENTS.md` §Where to read context
+
+`.agents/AGENTS.md` is not part of the plugin payload (no `AGENTS.md` under `dist/`), so this bullet binds this repo's own sessions and templated adopters; plugin adopters get the route from the `using-awow` reflex in §5.1, which does ship.
 
 New bullet after **Tooling reference**: *"**Office inputs:** a `.docx`, `.pptx`, `.xlsx` or `.xls` anywhere in the context tree is read through its markdown sidecar (`<file>.<ext>.md`) — the `office-ingest` skill creates and refreshes it; never read the binary directly."*
 
@@ -174,7 +176,7 @@ New section in both, after **Naming**:
 ```markdown
 ## Office files
 
-Drop the `.pptx`, `.docx` or `.xlsx` as-is. On first read the agent writes `<file>.<ext>.md` beside it — markitdown's conversion under a four-line provenance header — and reads that. Commit the pair together; the sidecar is regenerated whenever the source changes, and is never edited by hand. If the source is gitignored, the sidecar is too.
+Drop the `.pptx`, `.docx` or `.xlsx` as-is. On first read the agent writes `<file>.<ext>.md` beside it — markitdown's conversion under a four-key provenance header — and reads that. Commit the pair together; the sidecar is regenerated whenever the source changes, and is never edited by hand. If the source is gitignored, the sidecar is too.
 ```
 
 ### 5.7 `.agents/skills/README.md`
@@ -189,13 +191,11 @@ No CHANGELOG edit in the feature PR. `tools/release-notes.py` drafts the next ve
 
 ### 6.1 Scenarios added to `tests/process-transcript/`
 
-| Scenario | Fixture | Script (user turns) | `post()` asserts | Rubric asks |
-|---|---|---|---|---|
-Both fixtures follow the suite's convention: an inert file-based board (items inline in `context/tooling/board.md`) plus `setup-progress.md`. `notes.docx` is generated once from a `notes.md` fixture with pandoc and committed; because it is frozen, its SHA-256 is a constant recorded in the checks file.
+Both fixtures follow the suite's convention: an inert file-based board (items inline in `context/tooling/board.md`) plus `setup-progress.md`. `notes.docx` is generated once from `fixtures/office-notes.md` — kept *outside* both scenario directories, because a plaintext twin inside the fixture would let the run read it instead of converting — and committed; because it is frozen, its SHA-256 is a constant recorded in the checks files, and the generator refuses to overwrite it without `--force`.
 
 | Scenario | Fixture | Script (user turns) | `post()` asserts | Rubric asks |
 |---|---|---|---|---|
-| `docx-notes` | `notes/notes.docx` (a short speaker-attributed meeting); no sidecar | Turn 1: `/process-transcript notes/notes.docx`, walk to Gate 1, stop. Turn 2: run it again on the same file. | `file-exists notes/notes.docx.md`; `file-contains` for each of `source: notes.docx`, `source_sha256: <constant>`, `converted: `, `converter: markitdown ` | Gate 1 reached with speakers attributed from the sidecar; the binary was never read directly; the tool-call list shows exactly one markitdown invocation across both turns (turn 2 reused the sidecar); no fidelity note (nothing lossy in the fixture) |
+| `docx-notes` | `notes/notes.docx` (a short speaker-attributed meeting); no sidecar | Turn 1: `/process-transcript notes/notes.docx`, walk to Gate 1, stop. Turn 2: run it again on the same file. | `file-exists notes/notes.docx.md`; `file-contains` for each of `source: notes.docx`, `source_sha256: <constant>`, `converted: `, `converter: markitdown ` | Gate 1 reached with speakers attributed from the sidecar; the binary was never read directly; the tool-call list shows exactly one markitdown invocation across both turns (turn 2 reused the sidecar); no fidelity note (nothing lossy in the fixture); the sidecar is left untracked and no `git add`/`commit` appears in the tool-call list |
 | `stale-sidecar` | As above plus a pre-written `notes/notes.docx.md` whose `source_sha256` is 64 zeros and whose body is the single line `STALE` | `/process-transcript notes/notes.docx` | `file-contains notes/notes.docx.md "source_sha256: <constant>"`; `file-not-contains notes/notes.docx.md 0000000000000000`; `file-not-contains notes/notes.docx.md STALE` | Re-converted without asking; the stale body was never treated as the meeting |
 
 Each scenario ships an executable `setup/<scenario>.sh` that `git init -q`s the scratch (its existence suppresses the runner's default, so it owns git-ness) and then exits 1 unless `uv` or `markitdown` is on PATH — so a machine without either composes `indeterminate (stage: setup)`, never `fail`.
@@ -207,9 +207,9 @@ Each scenario ships an executable `setup/<scenario>.sh` that `git init -q`s the 
 ## 7. Acceptance criteria, restated testable
 
 1. Handing a command a `.docx`, `.pptx` or `.xlsx` produces `<file>.<ext>.md` beside it with the four-key provenance header, and the command proceeds from the sidecar. (`docx-notes`)
-2. A source whose hash matches its sidecar is not reconverted; markitdown is not invoked. (`docx-notes` turn 2: rubric over the tool-call list)
+2. A source whose hash matches its sidecar is not reconverted; markitdown is not invoked. (`docx-notes` turn 2: rubric over the tool-call list — deliberately one witness; `post()` cannot see tool calls, so this criterion is judge-only and the suite README says so)
 3. A source whose hash differs from its sidecar is reconverted and the header refreshed. (`stale-sidecar`)
-4. Sidecar tracking follows the source: ignored source → one proposed `.gitignore` line; tracked source → sidecar left for the same commit; nothing staged or committed by the skill. (manual walk at implementation)
+4. Sidecar tracking follows the source: ignored source → one proposed `.gitignore` line; tracked source → sidecar left for the same commit; nothing staged or committed by the skill. (the "nothing staged or committed" clause: `docx-notes` rubric `[no-commit]` — the setup hook commits the fixture, so the sidecar must end up untracked; the ignored-source branch: manual walk)
 5. With neither `uv` nor `markitdown` available, the agent offers exactly one install path and, on decline, asks for a PDF export or pasted text instead of failing or pretending. (manual walk)
 6. refinement-prep, process-transcript and strategy-flow name the skill at their input step; refinement-prep points at `{ANCHOR}/context/quarterly/`; the quarterly README and INPUT guide document the sidecar. (diff review)
 
@@ -243,3 +243,19 @@ Acceptance criteria
 - [ ] refinement-prep, process-transcript and strategy-flow route Office inputs through the skill; the quarterly README documents the sidecar.
 
 Spec: `proposals/office-ingest-design.md`.
+
+## 10. Amendments at implementation (2026-09-04)
+
+Found by the build on branch `arie/cau-1526-implement-office-file-ingestion-through-markitdown-sidecars`; folded into the sections above and into the built files.
+
+1. **§3.3 verified for `.pptx` and `.xlsx`.** The upstream claim held and was understated: PowerPoint loses inline formatting, bullet markers and reading order. Text replaced with the observed behaviour.
+2. **§3.4 byte floor dropped.** A correct three-line brief converts to 175 bytes; "~200 bytes" was a false-positive rule. Spec and `SKILL.md` now say "whitespace only, or implausibly short for the source's size".
+3. **§4 two-step write made explicit.** `markitdown -o` writes the body only; the header is prepended afterwards. Spec and `SKILL.md` say so.
+4. **§5.2 reach corrected.** `.agents/AGENTS.md` does not ship in the payload; plugin adopters get the route from the `using-awow` reflex.
+5. **§5.6 "four-line" → "four-key".** Four keys over six lines including the fences.
+6. **§6.1 fixture placement.** The plaintext source of `notes.docx` lives at `tests/process-transcript/fixtures/office-notes.md`, outside both scenario directories: the runner copies a whole scenario directory, and a `.md` twin beside the `.docx` would let the run skip the conversion under test. Turns are separated by blank lines so pandoc emits one paragraph per speaker.
+7. **§6.1 freeze guard.** `make-office-fixtures.sh` refuses to overwrite `notes.docx` without `--force`, so the constant hash in the checks files cannot silently desynchronise.
+8. **§7.2 is judge-only by design**, stated explicitly. **§7.4's "nothing staged or committed"** gained a rubric question (`[no-commit]`) in `docx-notes`; the ignored-source branch stays a manual walk.
+9. **`context/quarterly/` is team data, not payload** (`tools/gather.py` classifies it under `TEAM_DATA_CONTEXT_PATHS`), so §5.6's text reaches templated adopters only. Accepted: the convention is documented where the files are dropped.
+10. **Accepted as written:** §5.4's process-transcript bullet names `.docx` only — the `$ARGUMENTS` sentence already routes every Office extension; a `.pptx` meeting note is not a real case.
+11. **Tooling note:** this machine has `python3` only, no `python`; the gate list in the plan and in `.claude/CLAUDE.md` is written as `python …` and runs as `python3`.

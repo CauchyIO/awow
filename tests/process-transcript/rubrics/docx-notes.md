@@ -5,3 +5,4 @@
 3. [gate-read] Did GATE 1 attribute statements to Dana and Priya from the sidecar's content?
 4. [reuse] On the second request, did the run compute the hash, find it matching, and proceed from the existing sidecar with no second markitdown invocation in the tool-call list?
 5. [quiet] Did the run avoid a fidelity warning (the fixture has no checklists, code, or images to lose)?
+6. [no-commit] Was `notes/notes.docx.md` left untracked at the end of the run (the setup hook committed the fixture, so the source is tracked), with no `git add` or `git commit` in the tool-call list?

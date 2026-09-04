@@ -19,7 +19,7 @@ Use the first rung that applies, and no other:
 2. `markitdown` on PATH: `markitdown <source> -o <sidecar>`
 3. Neither: offer once — `uv tool install "markitdown[docx,pptx,xlsx,xls]"` (or `pipx install …`, or `python3 -m pip install --user …`) — and run it only on an explicit yes. On no or on failure, ask for a PDF export or pasted text and proceed on that. Do not claim the file was read.
 
-Then prepend the header, exactly these four keys:
+`markitdown -o` writes the body only. Convert first, then rewrite the sidecar with this header on top of the body it just wrote — exactly these four keys:
 
     ---
     source: <source filename, relative to the sidecar's directory>
@@ -38,7 +38,7 @@ A sidecar carries its source's sensitivity: a converted copy of anything the use
 
 ## 4. Say what may have been lost, when it matters
 
-Checkboxes flatten to bullets, fenced code becomes plain text, images are referenced not extracted, tracked changes and comments are not guaranteed. State the fact that bears on the task in one line; otherwise say nothing. A body under ~200 bytes or whitespace only means the file is likely image-only, encrypted or empty — ask for a different export instead of proceeding on nothing.
+Checkboxes flatten to bullets, fenced code becomes plain text, images are referenced not extracted, tracked changes and comments are not guaranteed. State the fact that bears on the task in one line; otherwise say nothing. A body that is whitespace only, or implausibly short for the source's size, means the file is likely image-only, encrypted or empty — ask for a different export instead of proceeding on nothing.
 
 ## Boundaries
 

@@ -31,6 +31,7 @@ Suite-wide conventions: [`../README.md`](../README.md); execution mechanics:
 - **sidecar-first / provenance** — the `.docx` is never read directly; `<file>.<ext>.md` carries exactly `source`, `source_sha256`, `converted`, `converter`.
 - **reuse** — a source hash matching the sidecar's reads the sidecar; no second markitdown call.
 - **freshness / no-stale-read / no-ask** — a hash mismatch reconverts without asking, and the stale body never reaches GATE 1.
+- **no-commit** — the skill stages and commits nothing; the sidecar of a tracked source ends the run untracked (judge-only, from the tool-call list).
 - **gate-read / quiet** — GATE 1 attributes speakers from the sidecar, and no fidelity note fires on a fixture with nothing lossy to lose.
 
 ## The Office fixtures

@@ -50,6 +50,8 @@ jobs:
         run: python3 tests/hooks/test_session_start.py
       - name: Lifecycle seam hook
         run: python3 tests/hooks/test_lifecycle_seam_check.py
+      - name: artifact-render docx_outline
+        run: python3 tests/artifact-render/test_docx_outline.py
       - name: Release notes generator
         run: python3 tests/release/test_release_notes.py
       # The bump PR must carry its notes: the release workflow publishes this

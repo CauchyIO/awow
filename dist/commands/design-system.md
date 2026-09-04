@@ -132,9 +132,21 @@ Version it; if superseding an older guide, mark the old one deprecated explicitl
 
 For each artifact type the team produces (presentation, blog, one-pager), write `templates/<type>/template.html` plus a `templates/<type>/TEMPLATE.md` generation guide. `template.html` carries the full token block, nav/print CSS, and one example of each component/slide type. `TEMPLATE.md` carries the token values, the component catalog, and a **content → component** map so `/artifact` can generate without re-deriving. Drive visuals from a **data object**, not hand-placed elements, wherever a layout repeats.
 
+### 3.2b Register a Word template
+
+Ask whether the team has a branded Word template. If not, leave `word_reference` empty and move on; pandoc's stock styles apply and `/artifact` says so whenever it emits Word.
+
+If yes, take the file the user names. Require `.docx`. When handed a `.dotx`, ask the user to open it in Word and save it as `.docx` first — do not rename or convert it yourself. In-repo: copy it to `{ANCHOR}/context/design-system/templates/word/reference.docx`. External: record its absolute path and rely on `access: local-path`.
+
+Run `pandoc --version` first; if it does not exit 0, say pandoc is missing, leave `word_reference` empty for now, and tell the user to re-run §3.2b after installing it. Do not report the template as unusable.
+
+Probe it once before Gate 3: write a three-line markdown sample (a heading, a paragraph, a two-row table) to scratch and run `pandoc <sample>.md --from gfm --to docx --reference-doc=<path> -o <scratch>/probe.docx`. Exit 0 means usable. Any other exit means the file is not a usable reference doc: report pandoc's message verbatim and leave `word_reference` empty.
+
+Tell the user what carries over and what does not: pandoc takes the template's styles, page setup, headers and footers and ignores its body, so a cover page or boilerplate text in the template will not appear in generated documents.
+
 ### 3.3 Wire the pointer and CLAUDE.md
 
-Update `{ANCHOR}/context/tooling/design-system.md`: set `mode`, `path`, `templates_dir`, `access`, and fill the token summary cache (short — accent, background, text ramp, fonts, spacing, principles). The `rule:` line stays: re-read the source before generating. Confirm the CLAUDE.md "When you produce an HTML artifact" rule is present (it ships in the stub); if the team has a generated CLAUDE.md, ensure the rule survived bootstrap.
+Update `{ANCHOR}/context/tooling/design-system.md`: set `mode`, `path`, `templates_dir`, `word_reference`, `access`, and fill the token summary cache (short — accent, background, text ramp, fonts, spacing, principles). The `rule:` line stays: re-read the source before generating. Confirm the CLAUDE.md "When you produce a styled artifact (HTML or Word)" rule is present (it ships in the stub); if the team has a generated CLAUDE.md, ensure the rule survived bootstrap.
 
 ---
 
@@ -147,6 +159,7 @@ GATE 3 — PROPOSED WRITES
 
 Style guide:   [path]  ([N] components demonstrated)
 Templates:     templates/<type>/{template.html, TEMPLATE.md}  [list per type]
+Word template: [<path>  (probe: ok)  |  none — pandoc defaults]
 Pointer:       {ANCHOR}/context/tooling/design-system.md  (mode: <in-repo|external>, path: <path>)
 CLAUDE.md:     rule present? [yes / needs adding]
 

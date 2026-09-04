@@ -1,0 +1,4 @@
+# Registered reference doc applied; report names it.
+Turn brief.md into a one-pager for the stakeholders. The content is final — use it as-is. Track it under AR-1 on context/tooling/board.md. Put outputs in out/, keeping the brief's basename.
+Word
+yes

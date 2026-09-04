@@ -1,6 +1,6 @@
 # Proposal — Design-system capability for awow
 
-**Status:** approved; Phases 1–3 implemented (render skill, §3.7, deferred). See "Built" below.
+**Status:** approved; Phases 1–3 implemented (render skill §3.7 landed as `artifact-render` via [word-export-design.md](word-export-design.md)). See "Built" below.
 **Trigger:** the design-system + artifact-generation workflow that ran across the `design` and `linear` repos (reconstructed from MLflow session traces) is a load-bearing way of working that currently lives only in one person's head. Capture it so adopters get it without it being re-explained. Secondary: HTML artifacts (solution designs, presentations, blogs) should follow a design system when one is present.
 
 ---
@@ -74,6 +74,8 @@ After surfacing the spread/standardise extras, ask: *"Does your team produce sty
 ### 3.7 Optional — a render skill
 The Playwright-verify + Chrome-headless-PDF mechanics are reusable across `/artifact`, `/solution-design-flow`, and digests. Candidate for a small `.agents/skills/html-artifact-render` skill so the rendering recipe isn't duplicated. Flagged as optional; can fold into the commands first and extract later.
 
+**Landed** as `.agents/skills/artifact-render/` via [word-export-design.md](word-export-design.md) (CAU-1525), which needed the same seam for the Word target: the skill now carries the HTML layout check, the Chrome-headless PDF export, the diagram-to-PNG recipe and the pandoc Word recipe, and `/artifact` delegates to it.
+
 ---
 
 ## 4. Phasing
@@ -91,7 +93,7 @@ After approval, each artifact lands via the normal proposal-first loop. This fil
 
 - **Apply-command name:** `/artifact` vs `/design-artifact` vs folding entirely into `/solution-design-flow`. Leaning `/artifact` (general — slides, blogs, one-pagers all flow through it).
 - **External-mode access:** when `mode: external` and the repo is private (Cauchy's was — MCP 404, `gh`-only), the rule must tell the agent to read via local path, not MCP. Worth a one-line note in the pointer.
-- **Render skill now or later:** extract 3.7 up front, or after the two commands prove the recipe? (Deferred — recipe currently lives inline in `/artifact` Phase 4 and `/design-system`; extract once it proves out.)
+- **Render skill now or later:** extract 3.7 up front, or after the two commands prove the recipe? (Resolved — later. The recipe lived inline in `/artifact` Phase 4 until the Word target needed the same seam; it landed as `artifact-render` via [word-export-design.md](word-export-design.md).)
 
 ---
 

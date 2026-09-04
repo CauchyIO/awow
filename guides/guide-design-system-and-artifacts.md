@@ -80,7 +80,7 @@ say-so. It never fakes a house style.
 
 | Where it shows up | What it does with the design system |
 | --- | --- |
-| `CLAUDE.md` rule | "When you produce an HTML artifact" — read the pointer, adopt when present, re-read the source each time. Applies to ad-hoc HTML that never goes through `/artifact`. |
+| `CLAUDE.md` rule | "When you produce a styled artifact (HTML or Word)" — read the pointer, adopt when present, re-read the source each time. Applies to ad-hoc output that never goes through `/artifact`. |
 | `/solution-design-flow` | Phase 0 reads the pointer; the presentation track adopts the system and hands generate-and-render mechanics to `/artifact` rather than duplicating them. |
 | `/setup-awow` Step 8 | Detects an existing system; if none, asks one question — "do you produce styled HTML artifacts?" — and on yes suggests `/design-system`. Implicit, opt-in, never auto-run. |
 | Digests | A styled digest adopts the same tokens, so it looks like it belongs to the team rather than to the tool. |

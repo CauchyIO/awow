@@ -114,14 +114,15 @@ Iterate on the cheap-to-change artefact. A markdown file under `proposals/` is f
 
 When you edit any file under `.agents/commands/` or any declarative skill under `.agents/skills/`, follow the voice rules in [`.agents/skills/agent-directive-voice.md`](skills/agent-directive-voice.md). Prompts are rules the agent follows mid-session, not documentation for human readers — write them in second-person imperative.
 
-## When you produce an HTML artifact
+## When you produce a styled artifact (HTML or Word)
 
-Before generating any HTML artifact — a presentation, a solution design, a blog post, a styled digest, a one-pager — read `context/tooling/design-system.md`.
+Before generating any styled artifact — a presentation, a solution design, a blog post, a styled digest, a one-pager, a Word document — read `context/tooling/design-system.md`.
 
 - If `mode:` is `absent`, proceed with plain defaults; do not invent or enforce a house style.
 - If `mode:` is `in-repo` or `external`, **read the source file named in `path:` and adopt its tokens and templates. Do not invent styling.** Re-read the source each time — the token summary in the pointer is a convenience cache and can drift. When `mode: external` and `access: local-path`, read the file from the filesystem (a private design repo will 404 over MCP); do not guess its contents.
+- For Word output, `word_reference` names the pandoc reference doc. Empty means pandoc's stock styles, and you say so in the run's report.
 
-Drafting content first in markdown, then generating HTML from the template, is the expected order — never hand-author a styled artifact when a template exists. `/artifact` drives this end to end; `/design-system` stands the system up in the first place.
+Drafting content first in markdown, then generating each target from it, is the expected order — never hand-author a styled artifact when a template exists, and never derive Word from the HTML. `/artifact` drives this end to end; the render mechanics live in the `artifact-render` skill; `/design-system` stands the system up in the first place.
 
 ## Tracing
 

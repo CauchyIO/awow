@@ -1,0 +1,4 @@
+# Target asked before drafting; Word chosen; docx generated from the markdown; report states stock styles.
+Turn brief.md into a one-pager for the stakeholders. The content is final — use it as-is. We have no design system and do not want to set one up now; plain defaults are fine. Track it under AR-1 on context/tooling/board.md. Put outputs in out/, keeping the brief's basename.
+Word
+yes

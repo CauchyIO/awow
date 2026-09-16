@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# PreToolUse hook (matcher: Write|Edit|NotebookEdit) for the awow plugin —
+# the wrong-root write guard (CAU-1335).
+#
+# An awow artefact write (proposals/, the awow context tree, .awow/) that
+# crosses a git repo boundary — out of the session's repo and not into its
+# mapped hub — gets permissionDecision "ask" naming both roots: one explicit
+# question interactively, a loud denial headless. Everything else passes
+# silently. Logic lives in wrong-root-guard.py; run-hook.cmd bridges Windows.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+exec python3 "${SCRIPT_DIR}/wrong-root-guard.py"

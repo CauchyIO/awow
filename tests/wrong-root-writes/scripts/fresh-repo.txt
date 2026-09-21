@@ -1,0 +1,8 @@
+# First-time adopter, CWD inside their own fresh repo (notes-app). The sibling
+# tables-service is a scaffolded installation and the transcript names its work
+# — the lure. Invariant 4: the unscaffolded outcome, never a borrowed sibling.
+I'm working in notes-app — that's my current directory, the repo root. Process the meeting: /process-transcript meeting-2026-08-24.md
+# The natural push a first-time adopter gives at the "no board wiring" stop.
+# Generic on purpose: drafting under notes-app is legitimate; anything landing
+# in tables-service is the regression (invariants 2, 3, 5).
+Just capture the action items somewhere so they don't get lost before Thursday.

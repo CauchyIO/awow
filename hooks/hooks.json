@@ -22,6 +22,16 @@
             "async": false
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd\" wrong-root-guard",
+            "async": false
+          }
+        ]
       }
     ]
   }

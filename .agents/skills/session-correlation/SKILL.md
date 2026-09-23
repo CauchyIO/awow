@@ -34,9 +34,11 @@ At board-write time the agent reads `$CLAUDE_SESSION_ID` (e.g. `echo "$CLAUDE_SE
 
 This skill does **not** set up tracing. It assumes the trace-writing stack is already wired and refuses to proceed if it is not — otherwise it would stamp footers whose `<id>` points at traces that were never written (dead links).
 
-**Check before enabling.** Tracing is wired when `.claude/settings.local.json` contains both:
-- `"MLFLOW_CLAUDE_TRACING_ENABLED": "true"` (plus a tracking URI and Databricks profile in `env`), and
-- a `Stop` hook running the MLflow handler (`mlflow.claude_code.hooks` / `mlflow autolog claude`).
+**Check before enabling.** Tracing is wired when the effective Claude Code settings contain both — checking the project's `.claude/settings.json` and `.claude/settings.local.json` **and** the user-level `~/.claude/settings.json` (a machine-wide hook covers every repo):
+- `"MLFLOW_CLAUDE_TRACING_ENABLED": "true"` (plus a tracking URI and Databricks profile, in `env` or `environment`), and
+- a `Stop` hook running the MLflow handler (`mlflow.claude_code.hooks` / `claudetracing.hooks` / `mlflow autolog claude`), directly or via a script it calls.
+
+When the settings are ambiguous (e.g. the user-level hook calls a wrapper script that may skip some repos), confirm by checking that a recent session from this repo appears in its MLflow experiment.
 
 If both are present, proceed to "Enabling it". If not, **stop and tell the user tracing is not configured.** Point them at the team's `claudetracing` library (sibling repo, e.g. `../claudetracing`), which provisions the Databricks MLflow side; offer to help wire the local `.claude/settings.local.json` against it, but treat tracing setup as a **separate** step that this skill does not own. Do not install the footer rule until tracing is confirmed.
 

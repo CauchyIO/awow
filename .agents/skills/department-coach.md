@@ -2,6 +2,7 @@
 name: department-coach
 description: "The single home of the KR challenge battery — loaded by /okr-cascade (Refine, Review), /strategy-flow (Gate 2), and the bet-refinement-coach skill. Per-KR tests (outcome-not-output through gameability), objective-level tests (leading/lagging balance, commercial face), the admin-burden test for tracking mechanisms, the one-decision-at-a-time session discipline, and the standard moves for fixing what fails."
 layer: department
+channel: workflows
 ---
 
 # department-coach

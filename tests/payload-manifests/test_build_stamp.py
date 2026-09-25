@@ -39,27 +39,33 @@ def stamp_of(plans, root):
 def main() -> int:
     version = json.loads(gather.PLUGIN_MANIFEST.read_text())["version"]
     plans = gather.dist_surface_plans()
-    stamp = stamp_of(plans, gather.DIST_DIR)
+    # The stamp digests the Claude Code plugin alone: session-start reads it
+    # from ${CLAUDE_PLUGIN_ROOT}, and no other harness folder carries one.
+    root = gather.CLAUDE_DIR
+    stamp = stamp_of(plans, root)
     others = [p for p in plans
-              if p.target != gather.DIST_DIR / ".claude-plugin" / "build.json"]
+              if root in p.target.parents
+              and p.target != root / ".claude-plugin" / "build.json"]
 
     check("stamp carries the canonical version", stamp.get("version") == version)
     check("digest is sha256:<12 hex>",
           re.fullmatch(r"sha256:[0-9a-f]{12}", stamp.get("content", "")) is not None)
     check("a second plan build produces an identical stamp",
-          stamp == stamp_of(gather.dist_surface_plans(), gather.DIST_DIR))
+          stamp == stamp_of(gather.dist_surface_plans(), root))
     check("digest recomputes from the non-stamp stubs alone",
-          json.loads(gather.payload_stamp(gather.DIST_DIR, others, version))["content"]
+          json.loads(gather.payload_stamp(root, others, version))["content"]
           == stamp.get("content"))
     check("stub order does not affect the digest",
           json.loads(gather.payload_stamp(
-              gather.DIST_DIR, list(reversed(others)), version))["content"]
+              root, list(reversed(others)), version))["content"]
           == stamp.get("content"))
     mutated = [gather.Stub(others[0].target, others[0].content + "x",
                            others[0].mode)] + others[1:]
     check("a planned content change flips the digest",
-          json.loads(gather.payload_stamp(gather.DIST_DIR, mutated, version))["content"]
+          json.loads(gather.payload_stamp(root, mutated, version))["content"]
           != stamp.get("content"))
+    check("no other plugin folder enters the Claude digest input",
+          all(root in p.target.parents for p in others))
     check("m365 never enters the dist digest input",
           all(gather.M365_ROOT not in p.target.parents for p in others))
 

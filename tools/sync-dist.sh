@@ -74,15 +74,15 @@ gh auth status >/dev/null 2>&1 || die "gh not authenticated — run 'gh auth log
 
 git -C "$UPSTREAM" rev-parse --is-inside-work-tree >/dev/null 2>&1 || die "upstream '$UPSTREAM' is not a git checkout"
 [[ -d "$DIST" ]]          || die "no dist/ payload at $DIST — run 'python3 tools/gather.py' first"
-[[ -f "$DIST/.codex-plugin/plugin.json" ]] || die "dist/ is missing the Codex manifest — run gather"
+[[ -f "$DIST/codex/awow/.codex-plugin/plugin.json" ]] || die "dist/ is missing the Codex manifest — run gather"
 
 # The published dist/ must not be stale relative to .agents/. --check fails loud
 # if a source edit hasn't been re-gathered, so we never publish a stale payload.
 python3 "$UPSTREAM/tools/gather.py" --check >/dev/null \
   || die "dist/ is out of sync with .agents/ — run 'python3 tools/gather.py' and commit before publishing"
 
-VERSION="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$DIST/.codex-plugin/plugin.json")"
-[[ -n "$VERSION" ]] || die "could not read 'version' from dist/.codex-plugin/plugin.json"
+VERSION="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$DIST/codex/awow/.codex-plugin/plugin.json")"
+[[ -n "$VERSION" ]] || die "could not read 'version' from dist/codex/awow/.codex-plugin/plugin.json"
 
 UPSTREAM_BRANCH="$(cd "$UPSTREAM" && git branch --show-current)"
 UPSTREAM_SHA="$(cd "$UPSTREAM" && git rev-parse HEAD)"

@@ -22,7 +22,6 @@ flowchart TD
   router --> signal["Specialised signal — what does this specifically tell us?"]
   action --> fallback["local analysis, stays in the router:<br>generic lenses + team guidance"]
   pattern --> retro["/process-retro — retrospective"]
-  pattern --> coach["/coaching-review — teacher/learner session"]
   signal --> design["/solution-design-flow — design session"]
   signal --> future["future leaves: /course-review,<br>/discovery-review, /interview-review"]
 ```
@@ -188,10 +187,10 @@ Once items exist, open one agent session per item and let each pick up its work 
 
 ## Variants live inside a specialist, not beside it
 
-Some session types have variants that share a pattern library. `/coaching-review` handles both 1:1
-coaching (pairing, demo, onboarding) and 1:many teaching (course, lecture, cohort): same
-teacher/learner dynamic, slightly different patterns to watch. The shared core stays in one place
-and adopters learn one skill instead of five — the variant is detected, not declared. Rule of
+Some session types have variants that share a pattern library — a 1:1 coaching session and a
+1:many course share the teacher/learner dynamic, with slightly different patterns to watch. Keep
+the shared core in one specialist so adopters learn one skill instead of five, and detect the
+variant rather than declaring it. Rule of
 thumb: add a variant to an existing specialist first; split out a new one only when the two stop
 sharing most of their logic.
 
@@ -227,7 +226,6 @@ files directly or let `/setup-awow` draft them; no file means the generic behavi
 ## Sources of truth
 
 - [`.agents/commands/process-transcript.md`](../.agents/commands/process-transcript.md) — the pipeline, the two gates, and the detection rules
-- [`.agents/commands/coaching-review.md`](../.agents/commands/coaching-review.md) — the sub-mode leaf and its pattern library
 - [`.agents/commands/solution-design-flow.md`](../.agents/commands/solution-design-flow.md), [`.agents/commands/process-retro.md`](../.agents/commands/process-retro.md) — the other transcript-consuming leaves
 - [`.agents/commands/README.md`](../.agents/commands/README.md) — the full command catalogue this guide deliberately is not
 - `context/tooling/board.md` — the board integration Gate 2 writes through; written by `/setup-awow`

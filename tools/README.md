@@ -6,8 +6,8 @@ Python scripts the team runs occasionally to keep the repo coherent. None of the
 
 | Script | Purpose | When to run |
 |---|---|---|
-| `gather.py` | Build `.agents/` into the plugin payloads under `dist/` and `dist-telemetry/` | After edits to `.agents/`; `--check` runs in CI |
-| `bootstrap-claude-md.py` | Generate the team's `CLAUDE.md` from the stub + answers | `/setup-awow` Step 4; also after major context changes |
+| `gather.py` | Build `.agents/` into one self-contained plugin per harness, under `dist/<harness>/<plugin>/` | After edits to `.agents/`; `--check` runs in CI |
+| `bootstrap-claude-md.py` | Legacy skeleton: generate a team `CLAUDE.md` from the stub | No command runs it; `/setup-awow` writes a short `AGENTS.md` pointer instead |
 | `validate-context.py` | Lint `context/` for staleness and missing required files | Quarterly, or after refactors |
 | `distribute.py` | Push core updates into sibling repos (mono-repo mode) | When the team has grown into multiple repos |
 | `session_timeline.py` | Build an interactive timeline + meta-analysis of a project's Claude Code sessions from `~/.claude/projects/` logs (no tracing needed) | Via `project-timeline`; see `guides/guide-session-timeline.md` |
@@ -18,7 +18,7 @@ Python scripts the team runs occasionally to keep the repo coherent. None of the
 
 `gather.py` is real — it is the payload build CI depends on. The rest are **skeletons**: they document the intended shape and the operations they will perform, and real implementations land as the team encounters the friction each one resolves:
 
-- `bootstrap-claude-md.py` becomes real when `/setup-awow` Step 4 is needed in anger.
+- `bootstrap-claude-md.py` stays a skeleton; `/setup-awow` no longer has a bootstrap step.
 - `validate-context.py` becomes real after the first Seed cycle when staleness becomes a real signal.
 - `distribute.py` becomes real when the team has more than one repo to keep in sync.
 

@@ -22,10 +22,10 @@ A *kind of work item* that has its own validation steps, planning rules, and com
 | `spike` | Time-boxed investigation, no code deliverable: capture, decide, spawn follow-ups | **Shipped** — `spike.md` |
 | `incident` | Post-mortem / RCA of something that broke: timeline, root cause, remediation tickets | **Shipped** — `incident.md` |
 | `infra-change` | Modifying infrastructure: state-file safety, ordering, idempotency | Example |
-| `doc` | Documentation updates: scope, placement, accuracy | Example |
+| `doc` | Documentation and small chores: target and reader, placement, verified facts | **Shipped** — `doc.md` |
 | `api-change` | Public API surface: versioning, deprecation, caller enumeration | Example |
 
-The five **shipped** handlers cover the universal work shapes, so `/process-workitem` has something to dispatch to on day one. The `Example` rows are named starting points with no file behind them yet — write the ones your team actually needs, and keep them generic enough to reuse.
+The six **shipped** handlers cover the universal work shapes, so `/process-workitem` has something to dispatch to on day one. The `Example` rows are named starting points with no file behind them yet — write the ones your team actually needs, and keep them generic enough to reuse.
 
 ## Adding a new archetype
 

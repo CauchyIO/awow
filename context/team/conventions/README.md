@@ -13,7 +13,7 @@ The minimum set the agent needs to operate. Four files:
 - `branches.md` — branch naming rules
 - `output-discipline.md` — board-output brevity and placement rules
 
-`/setup-awow` Step 2 populates these. The wizard refuses to consider the team bootstrapped without them.
+`/setup-awow` proposes these from the board's observed patterns; each is a proposal the team can strike or edit.
 
 ### OPTIONAL/
 

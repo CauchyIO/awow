@@ -16,4 +16,4 @@ This file covers the *voice* and *shape* of board output beyond the brevity rule
 - Story body: one-sentence intent + acceptance criteria checklist + link to knowledge base (if applicable). Nothing else.
 - Comments: status, blocker, intermediate finding. One paragraph max.
 
-`/setup-awow` Step 3 customises this file based on the team's pushback. The skeleton above is the default.
+Customise this file where the team pushes back. The skeleton above is the default.

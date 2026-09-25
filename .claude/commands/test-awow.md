@@ -2,7 +2,7 @@
 description: "Run an awow eval suite — the maintainer-only regression runner over tests/<suite>/, with scripted replies and an independent grading pass"
 ---
 
-# /test-awow [<suite>] [<scenario>] [--keep] — execute an eval suite
+# /test-awow [<suite> | core | all] [<scenario>] [--keep] — execute an eval suite
 
 > **Maintainer-only command.** Part of awow's own regression suite. If you templated this repo and are not maintaining awow itself, delete this file and the `tests/` directory.
 
@@ -11,6 +11,16 @@ You will execute a command prompt against fresh scratch workspaces with scripted
 ## Discover suites and scenarios
 
 A suite is a directory `tests/<suite>/` containing a `suite.md` whose frontmatter names the prompt under test — a `command:` (resolving to `.agents/commands/<name>.md`) or a `skill:` (resolving to `.agents/skills/<name>/SKILL.md`, falling back to `.agents/skills/<name>.md`). If the user named a suite, use it; if exactly one suite exists, use that; otherwise list the suites and stop for the user to pick.
+
+**Several suites in one run.** `core` runs every suite whose `suite.md` frontmatter carries `gate: release` — the suites the release bar counts. `all` runs every suite. A scenario name cannot be combined with either. Run the suites one after another in alphabetical order, each exactly as a single-suite run: every scenario through all eight phases, then that suite's final summary. A failing or indeterminate suite never stops the run; go on to the next one.
+
+Before the first scenario of a `core` or `all` run, print once:
+
+```
+=== Run: <core|all> — <suite>, <suite>, … | build <git rev-parse --short HEAD> ===
+```
+
+Then report, without stopping: uncommitted changes under `.agents/`, `tests/` or `context/` (the build SHA would not describe what ran); a `gh` token without the `project` scope when `setup-awow` is in the run (`gh auth refresh -s repo,project,read:org`); and `docker` missing when a scenario in the run has an `env/` directory (those scenarios will be `indeterminate`).
 
 Within the suite: if the user named a scenario, run only that one. Otherwise list every `<name>` that has both `tests/<suite>/scripts/<name>.txt` and `tests/<suite>/rubrics/<name>.md`, and run them in alphabetical order.
 
@@ -76,7 +86,7 @@ Print exactly: `=== Phase 3: command run begins ===`
    ```
    This is your proof to the self-check in Phase 7 that the prompt was actually loaded.
 
-2. **Read the script:** `Read tests/<suite>/scripts/<scenario>.txt`. Strip comment lines (starting with `#`) and blank lines. The remaining lines are the script.
+2. **Read the script:** `Read tests/<suite>/scripts/<scenario>.txt`. A comment line of the form `# args: <arguments>` gives the arguments the command is invoked with — `# args: --check` runs `/<command> --check`; without one, invoke the command bare. Then strip comment lines (starting with `#`) and blank lines. The remaining lines are the script.
 
 3. **Execute the command against `$SCRATCH`.** Apply `--root $SCRATCH` discipline: every command-directed tool call uses an absolute path under `$SCRATCH`. Make real `Read`, `Write`, `Bash` calls.
 
@@ -134,6 +144,7 @@ Assemble an evidence bundle at `/tmp/awow-test-runs/<suite>-<scenario>-<ts>-evid
 2. `## Agent turns` — every `--- AGENT TURN <N> ---` block from Phase 3, verbatim.
 3. `## Tool calls` — one line per tool call you made during Phase 3 (`Bash: <command>`, `Write: <path>`, `Read: <path>`).
 4. `## Post-run state` — the Phase 4 listing.
+5. `## File contents` — for every file a rubric question names (in the scratch or an anchor checkout), a `### <path>` heading followed by its full post-run contents, or `absent`. A listing shows a file exists, not what it says; a question about contents that the judge cannot read is graded no.
 
 The bundle must **not** contain the Phase 2/5 check results — the two witnesses stay independent.
 
@@ -207,9 +218,21 @@ After all scenarios, print one line each:
 
 End with `OVERALL: <P> pass / <F> fail / <I> indeterminate of <N> scenarios`. If any `triage` list is non-empty, print `TRIAGE:` followed by each entry — witness disagreement is a signal that either a rubric question, a check, or the prompt drifted.
 
+After a `core` or `all` run, print each suite's summary block as above, then one combined block:
+
+```
+=== Run summary: <core|all> | build <sha> ===
+<suite>: <P> pass / <F> fail / <I> indeterminate of <N> → <PASS|FAIL>
+…
+RUN: <suites passed> of <suites run> suites passed
+```
+
+A suite passes only when every scenario in it passes; an `indeterminate` scenario means the suite did not pass. List every failing and indeterminate scenario under the block with its suite, the question or check that failed, and any triage entry.
+
 ## Discipline
 
 - Every `=== Phase N ===` marker is required. The Phase 7 self-check depends on them.
+- Run every scenario yourself, in this session, one at a time. Never hand a suite or a scenario to a subagent and never run two at once — the only subagent is the Phase 6 judge, and a scenario starts only after the previous one's Phase 8. A run that breaks this does not count toward the release bar.
 - Every "ask the user" point gets an `--- AGENT TURN <N> ---` block in your visible output, not just in your reasoning. Phase 7 composes `indeterminate` if none are present.
 - The response inside an AGENT TURN block must be the **actual response** — full plan listings, full questions, full instructions — not a summary like "[wizard lists steps]".
 - Use absolute `$SCRATCH/...` paths for every command-directed tool call. Never write to the repo checkout by accident.

@@ -314,7 +314,7 @@ def plan_m365(repo_root: Path):
     commands = included_commands(repo_root, tracked)
     index = build_file_index(repo_root, config.index_roots, tracked)
     instructions = assemble_instructions(config, commands, index)
-    pkg = repo_root / "dist" / "m365" / "appPackage"
+    pkg = repo_root / "dist" / "m365" / "awow" / "appPackage"
     text_stubs = [
         Stub(pkg / "declarativeAgent.json", dump_json(build_declarative_agent(config, instructions, commands))),
         Stub(pkg / "manifest.json", dump_json(build_teams_manifest(config))),

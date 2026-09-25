@@ -27,7 +27,18 @@ import re
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-PAYLOAD_ROOTS = ("dist", "dist-telemetry")
+# One entry per plugin folder: a tool reference resolves inside its own plugin.
+PAYLOAD_ROOTS = (
+    "dist/claude/awow",
+    "dist/claude/awow-telemetry",
+    "dist/claude/awow-workflows",
+    "dist/codex/awow",
+    "dist/codex/awow-workflows",
+    "dist/pi/awow",
+    "dist/opencode/awow",
+    "dist/copilot/awow",
+    "dist/copilot/awow-workflows",
+)
 
 # The two rendered forms of {AWOW_TOOLS}/<path> (gather.py PLUGIN_TOKEN_SUBSTITUTIONS
 # and AGENT_SKILLS_TOKEN_SUBSTITUTIONS). The path class stops at whitespace,
@@ -45,10 +56,11 @@ def _shipped_files(root: Path) -> list[Path]:
     )
 
 
-def _references(path: Path) -> list[tuple[str, Path]]:
-    """(reference as written, resolved target) for every tool path in the file."""
+def _references(path: Path, root: Path) -> list[tuple[str, Path]]:
+    """(reference as written, resolved target) for every tool path in the file.
+    `root` is the plugin folder the file ships in — what ${CLAUDE_PLUGIN_ROOT}
+    resolves to once installed."""
     text = path.read_text(encoding="utf-8")
-    root = REPO_ROOT / path.relative_to(REPO_ROOT).parts[0]
     found = []
     for rel in PLUGIN_FORM.findall(text):
         found.append((f"${{CLAUDE_PLUGIN_ROOT}}/tools/{rel}", root / "tools" / rel))
@@ -65,7 +77,7 @@ def main() -> int:
         if not root.is_dir():
             continue
         for path in _shipped_files(root):
-            for written, target in _references(path):
+            for written, target in _references(path, root):
                 checked += 1
                 if target.is_file():
                     continue

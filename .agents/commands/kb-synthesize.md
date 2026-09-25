@@ -5,6 +5,7 @@ prerequisites:
   - "{ANCHOR}/context/kb-inbox/ holds one or more candidate files (produced by /kb-mine or /update-context)"
   - "{ANCHOR}/context/knowledge-base/ set up (the durable layer the drain writes into)"
 removes_pain: "mined candidates piling up in the inbox because promoting them is a manual slog"
+channel: workflows
 ---
 
 # /kb-synthesize — drain the inbox into the durable knowledge base

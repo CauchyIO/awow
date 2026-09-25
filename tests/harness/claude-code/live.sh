@@ -37,9 +37,9 @@ live() {
   rm -f "$out"
 
   # --- anchored deploy wiring (deterministic, through the shipped hook) ---
-  if [ ! -d "$HARNESS_REPO_ROOT/dist/commands" ]; then skip "dist/ payload absent (payload not built on this branch)"; return 0; fi
-  cmd-succeeds "dist plugin.json valid" -- python3 -c "import json; json.load(open('$HARNESS_REPO_ROOT/dist/.claude-plugin/plugin.json'))"
-  if ls "$HARNESS_REPO_ROOT"/dist/commands/*.md >/dev/null 2>&1; then _record pass "dist payload carries commands"; else _record fail "dist payload has no commands"; fi
+  if [ ! -d "$HARNESS_REPO_ROOT/dist/claude/awow/commands" ]; then skip "dist/ payload absent (payload not built on this branch)"; return 0; fi
+  cmd-succeeds "dist plugin.json valid" -- python3 -c "import json; json.load(open('$HARNESS_REPO_ROOT/dist/claude/awow/.claude-plugin/plugin.json'))"
+  if ls "$HARNESS_REPO_ROOT"/dist/claude/awow/commands/*.md >/dev/null 2>&1; then _record pass "dist payload carries commands"; else _record fail "dist payload has no commands"; fi
   local anchored; anchored="$(make_anchored_fixture "$(mktemp -d)/anchored")" || { _record fail "anchored fixture build"; return 0; }
   # T1-equivalent (read path): the shipped dist hook resolves {ANCHOR} for a
   # connected anchored repo — identity from the committed connector, path from
@@ -48,21 +48,14 @@ live() {
   anchordir="$(python3 -c "import json; print(json.load(open('$anchored/.awow/anchor.json'))['path'])")"
   file-exists "$anchordir/context/tooling/board.md"
   tier_out="$(mktemp)"
-  ( CLAUDE_PLUGIN_ROOT="$HARNESS_REPO_ROOT/dist" CLAUDE_PROJECT_DIR="$anchored" \
-      bash "$HARNESS_REPO_ROOT/dist/hooks/session-start" ) >"$tier_out" 2>/dev/null
+  ( CLAUDE_PLUGIN_ROOT="$HARNESS_REPO_ROOT/dist/claude/awow" CLAUDE_PROJECT_DIR="$anchored" \
+      bash "$HARNESS_REPO_ROOT/dist/claude/awow/hooks/session-start" ) >"$tier_out" 2>/dev/null
   file-contains "$tier_out" 'resolves to'
   # T3-equivalent (fail-loud): with the link gone the hook prompts to map the
   # anchor — never a scan, never improvised conventions.
   rm -f "$anchored/.awow/anchor.json"
-  ( CLAUDE_PLUGIN_ROOT="$HARNESS_REPO_ROOT/dist" CLAUDE_PROJECT_DIR="$anchored" \
-      bash "$HARNESS_REPO_ROOT/dist/hooks/session-start" ) >"$tier_out" 2>/dev/null
+  ( CLAUDE_PLUGIN_ROOT="$HARNESS_REPO_ROOT/dist/claude/awow" CLAUDE_PROJECT_DIR="$anchored" \
+      bash "$HARNESS_REPO_ROOT/dist/claude/awow/hooks/session-start" ) >"$tier_out" 2>/dev/null
   file-contains "$tier_out" 'not mapped on this machine'
-  # Legacy regression (CAU-1415): the pre-rename spoke forms still resolve
-  # through the shipped hook, silently — upgraded adopters keep working.
-  local spoke; spoke="$(make_legacy_spoke_fixture "$(mktemp -d)/spoke")" || { _record fail "legacy spoke fixture build"; return 0; }
-  ( CLAUDE_PLUGIN_ROOT="$HARNESS_REPO_ROOT/dist" CLAUDE_PROJECT_DIR="$spoke" \
-      bash "$HARNESS_REPO_ROOT/dist/hooks/session-start" ) >"$tier_out" 2>/dev/null
-  file-contains "$tier_out" 'resolves to'
-  file-not-contains "$tier_out" 'deprecat'
   rm -f "$tier_out"
 }

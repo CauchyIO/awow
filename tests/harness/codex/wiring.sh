@@ -9,7 +9,7 @@ wiring() {
 
   # Codex plugin manifest — emitted into dist/ by gather. dist/ published as a git
   # repo IS the Codex marketplace, so the plugin sits at its root.
-  local m="$r/dist/.codex-plugin/plugin.json"
+  local m="$r/dist/codex/awow/.codex-plugin/plugin.json"
   cmd-succeeds "codex plugin.json is valid JSON" -- python3 -c "import json; json.load(open('$m'))"
   file-contains "$m" '"hooks"[[:space:]]*:[[:space:]]*\{\}'
   file-contains "$m" '"skills"[[:space:]]*:[[:space:]]*"\./agent-skills/"'
@@ -18,13 +18,24 @@ wiring() {
   local mk="$r/dist/.agents/plugins/marketplace.json"
   cmd-succeeds "codex marketplace.json is valid JSON" -- python3 -c "import json; json.load(open('$mk'))"
   file-contains "$mk" '"name"[[:space:]]*:[[:space:]]*"awow"'
+  # The plugin sits in a harness folder; the marketplace at the dist/ root
+  # reaches it with a `local` source relative to the marketplace root.
+  cmd-succeeds "codex marketplace source resolves to the plugin folder" -- python3 -c "
+import json, os
+src = json.load(open('$mk'))['plugins'][0]['source']
+ok = src.get('source') == 'local' and src.get('path', '').startswith('./') \
+    and os.path.isfile(os.path.join('$r/dist', src['path'], '.codex-plugin', 'plugin.json'))
+raise SystemExit(0 if ok else 1)"
 
   # Commands-as-skills surface — every command AND skill rendered as <name>/SKILL.md.
-  file-exists "$r/dist/agent-skills/setup-awow/SKILL.md"
-  file-exists "$r/dist/agent-skills/daily-digest/SKILL.md"
+  file-exists "$r/dist/codex/awow/agent-skills/setup-awow/SKILL.md"
+  file-exists "$r/dist/codex/awow/agent-skills/my-work/SKILL.md"
+  # A workflows command ships in the bundle folder, and in core never.
+  file-exists "$r/dist/codex/awow-workflows/agent-skills/daily-digest/SKILL.md"
+  file-absent "$r/dist/codex/awow/agent-skills/daily-digest/SKILL.md"
 
   # The anchored-repo registration flow must reach the commands-as-skills render.
-  file-contains "$r/dist/agent-skills/setup-awow/SKILL.md" 'Anchored track'
+  file-contains "$r/dist/codex/awow/agent-skills/setup-awow/SKILL.md" 'Connect a repo'
 
   # Version lockstep: the codex manifest is derived from the one canonical plugin
   # manifest, so it cannot ship a stale version.

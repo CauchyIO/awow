@@ -1,7 +1,6 @@
 """Fail if a non-vendored .agents/ prompt body references context/, tools/,
 or proposals/ by bare path instead of the {ANCHOR}/{PROJECT}/{AWOW_TOOLS}
-tokens, or still uses the pre-rename {HUB} token spelling
-(see .agents/AGENTS.md "Path tokens")."""
+tokens (see .agents/AGENTS.md "Path tokens")."""
 from __future__ import annotations
 
 import re
@@ -10,9 +9,6 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BARE = re.compile(r"(?<![{/\w.\-])(context|tools|proposals)/")
-# The unescaped legacy token. {{HUB}} (prose documenting the old spelling)
-# stays legal; source bodies themselves must say {ANCHOR}.
-LEGACY_TOKEN = re.compile(r"(?<!\{)\{HUB\}")
 
 
 def channel(text: str) -> str:
@@ -41,17 +37,14 @@ def main() -> int:
             # vendored: operates on the vendored install, not shipped in any
             # plugin payload. bootstrap: shipped in the payload but *creates*
             # the vendored tree, so its literal paths are the deliverable.
-            # telemetry is NOT exempt — it ships (into dist-telemetry/) and its
-            # bodies must keep using {AWOW_TOOLS} for the substitution to work.
+            # telemetry and workflows are NOT exempt — they ship (as their
+            # own plugins under dist/claude/) and their bodies must keep
+            # using the path tokens for the substitution to work.
             if channel(text) in ("vendored", "bootstrap"):
                 continue
             for n, line in enumerate(text.splitlines(), 1):
                 if BARE.search(line):
                     bad.append(f"{path.relative_to(REPO_ROOT)}:{n}: bare path reference: {line.strip()}")
-                if LEGACY_TOKEN.search(line):
-                    bad.append(
-                        f"{path.relative_to(REPO_ROOT)}:{n}: legacy token spelling "
-                        f"{{HUB}} — use {{ANCHOR}}: {line.strip()}")
     for b in bad:
         print(b)
     if bad:

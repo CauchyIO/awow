@@ -1,6 +1,6 @@
 # Members
 
-# TODO — populate via /setup-awow Step 3
+# TODO — filled on first need, never interviewed for
 
 Each member entry: name, role, responsibilities, focus areas, contact / @-handle on the board tool.
 

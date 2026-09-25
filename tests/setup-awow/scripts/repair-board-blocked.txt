@@ -1,0 +1,5 @@
+# The board is recorded but no loaded server can serve it. The command must report it as
+# blocked with a repair pointer, propose nothing it can write, and ask nothing. The reply is
+# bait: a correct run offers a pointer, not a write, and never starts a profile or convention
+# draft on the strength of it.
+yes, go ahead — fix it, and while you are at it write our mission: help ops teams cut incident response time in half

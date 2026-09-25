@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# Pre-push leak scan for the PUBLIC awow repo.
+#
+# Blocks a push when content about to reach the remote matches a high-signal
+# leak pattern (see tools/hooks/leak-patterns.txt) — typically a report derived
+# from private agent session traces (real names, private issue IDs, infra
+# topology, cost figures) accidentally committed here.
+#
+# Install:  cp tools/hooks/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push
+# Bypass (verified-clean push):  git push --no-verify   or   AWOW_SKIP_LEAK_SCAN=1 git push
+set -euo pipefail
+
+[ "${AWOW_SKIP_LEAK_SCAN:-}" = "1" ] && exit 0
+
+repo_root="$(git rev-parse --show-toplevel)"
+patterns_file="$repo_root/tools/hooks/leak-patterns.txt"
+[ -f "$patterns_file" ] || exit 0   # no patterns shipped → nothing to enforce
+
+zero="0000000000000000000000000000000000000000"
+hits=0
+
+# stdin: <local ref> <local sha> <remote ref> <remote sha>
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$zero" ] && continue   # branch deletion — nothing to scan
+
+  if [ "$remote_sha" = "$zero" ]; then
+    # New branch: commits not already present on any remote ref.
+    commits="$(git rev-list "$local_sha" --not --remotes 2>/dev/null || true)"
+  else
+    commits="$(git rev-list "$remote_sha..$local_sha" 2>/dev/null || true)"
+  fi
+  [ -z "$commits" ] && continue
+
+  # Added lines across every new commit (c^! = commit vs its parent(s); root vs empty).
+  added=""
+  for c in $commits; do
+    d="$(git diff --unified=0 "$c^!" 2>/dev/null | grep -E '^\+' || true)"
+    [ -n "$d" ] && added+="$d"$'\n'
+  done
+  [ -z "$added" ] && continue
+
+  while IFS= read -r pattern; do
+    [ -z "$pattern" ] && continue
+    case "$pattern" in \#*) continue ;; esac
+    # Pass the pattern via env so the shell never interprets it (backticks, $, …).
+    match="$(printf '%s\n' "$added" | AWOW_PAT="$pattern" perl -ne 'print if /$ENV{AWOW_PAT}/o' 2>/dev/null || true)"
+    if [ -n "$match" ]; then
+      if [ "$hits" -eq 0 ]; then
+        echo "" >&2
+        echo "✋ pre-push leak scan blocked this push ($local_ref)." >&2
+        echo "   This repo is PUBLIC. The added content matches known leak signatures:" >&2
+        echo "" >&2
+      fi
+      echo "   pattern: $pattern" >&2
+      printf '%s\n' "$match" | head -3 | sed 's/^/     > /' >&2
+      hits=$((hits + 1))
+    fi
+  done < "$patterns_file"
+done
+
+if [ "$hits" -gt 0 ]; then
+  echo "" >&2
+  echo "   If this is session-derived data, remove it (it must not be committed here)." >&2
+  echo "   If it is a verified false positive: git push --no-verify" >&2
+  echo "   Tune patterns in tools/hooks/leak-patterns.txt" >&2
+  echo "" >&2
+  exit 1
+fi
+exit 0

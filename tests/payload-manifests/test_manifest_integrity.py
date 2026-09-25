@@ -26,16 +26,15 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CANONICAL_MANIFEST = REPO_ROOT / ".claude-plugin" / "plugin.json"
-PAYLOAD_ROOTS = ("dist", "dist-telemetry")
+PAYLOAD_ROOTS = ("dist",)
 
 # Manifests that are payload *inputs* rather than shipped artifacts, or that
 # declare no filesystem paths at all.
 NO_DECLARED_PATHS: tuple[str, ...] = (
-    # source "./" is the payload root itself, which trivially exists.
-    "dist/.agents/plugins/marketplace.json",
     # Build stamps: version + content digest, no filesystem paths (CAU-1338).
-    "dist/.claude-plugin/build.json",
-    "dist-telemetry/.claude-plugin/build.json",
+    "dist/claude/awow/.claude-plugin/build.json",
+    "dist/claude/awow-telemetry/.claude-plugin/build.json",
+    "dist/claude/awow-workflows/.claude-plugin/build.json",
 )
 
 FAILURES: list[str] = []
@@ -91,13 +90,33 @@ def _hook_paths(doc: dict) -> list[str]:
     return found
 
 
+def _codex_marketplace_paths(doc: dict) -> list[str]:
+    """A `local` plugin source names a folder relative to the marketplace root.
+    dist/ IS that root once published, so the path must exist under dist/ — a
+    typo here is a marketplace that lists a plugin Codex cannot find."""
+    found = []
+    for plugin in doc.get("plugins", []):
+        source = plugin.get("source")
+        if isinstance(source, dict) and isinstance(source.get("path"), str):
+            found.append(source["path"])
+    return found
+
+
+# manifest -> (extractor, the directory its declared paths resolve against).
+# A harness manifest resolves inside its own plugin folder; the two manifests a
+# harness reads at the root of the installed repo resolve against dist/, which
+# is published as that root (CAU-1653).
 EXTRACTORS = {
-    "dist/.claude-plugin/plugin.json": _claude_paths,
-    "dist/.codex-plugin/plugin.json": _codex_paths,
-    "dist/.github/plugin/plugin.json": _copilot_paths,
-    "dist/package.json": _package_paths,
-    "dist/hooks/hooks.json": _hook_paths,
-    "dist-telemetry/.claude-plugin/plugin.json": _claude_paths,
+    "dist/claude/awow/.claude-plugin/plugin.json": (_claude_paths, "dist/claude/awow"),
+    "dist/claude/awow/hooks/hooks.json": (_hook_paths, "dist/claude/awow"),
+    "dist/claude/awow-telemetry/.claude-plugin/plugin.json": (_claude_paths, "dist/claude/awow-telemetry"),
+    "dist/claude/awow-workflows/.claude-plugin/plugin.json": (_claude_paths, "dist/claude/awow-workflows"),
+    "dist/codex/awow/.codex-plugin/plugin.json": (_codex_paths, "dist/codex/awow"),
+    "dist/codex/awow-workflows/.codex-plugin/plugin.json": (_codex_paths, "dist/codex/awow-workflows"),
+    "dist/copilot/awow/.github/plugin/plugin.json": (_copilot_paths, "dist/copilot/awow"),
+    "dist/copilot/awow-workflows/.github/plugin/plugin.json": (_copilot_paths, "dist/copilot/awow-workflows"),
+    "dist/package.json": (_package_paths, "dist"),
+    "dist/.agents/plugins/marketplace.json": (_codex_marketplace_paths, "dist"),
 }
 
 
@@ -124,7 +143,6 @@ def main() -> int:
     known = set(EXTRACTORS) | set(NO_DECLARED_PATHS)
     for manifest in _payload_manifests():
         rel = manifest.relative_to(REPO_ROOT).as_posix()
-        root = REPO_ROOT / rel.split("/", 1)[0]
         doc = json.loads(manifest.read_text())
 
         if rel not in known:
@@ -134,7 +152,9 @@ def main() -> int:
             )
             continue
 
-        for declared in EXTRACTORS.get(rel, lambda _doc: [])(doc):
+        extractor, base = EXTRACTORS.get(rel, (lambda _doc: [], "dist"))
+        root = REPO_ROOT / base
+        for declared in extractor(doc):
             # Prefix strip, not lstrip: lstrip("./") would eat the leading dot
             # of a dotfile path like ".github/plugin/skills/".
             relative = declared[2:] if declared.startswith("./") else declared

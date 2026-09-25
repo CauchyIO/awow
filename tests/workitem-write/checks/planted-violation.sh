@@ -22,8 +22,9 @@ post() {
   # The planted violations must not survive into the written issue.
   file-not-contains board/issues/T-103.md 'URGENT'
   file-not-contains board/issues/T-103.md 'stuff broken maybe'
-  file-not-contains board/issues/T-103.md 'standup'
-  file-not-contains board/issues/T-103.md 'Jamie'
+  # The standup recap may move to a comment (correct placement); only the body must be clean.
+  body-not-contains board/issues/T-103.md 'standup'
+  body-not-contains board/issues/T-103.md 'Jamie'
   # Neighbouring issues untouched.
   file-contains board/issues/T-101.md '^state: done'
   file-contains board/issues/T-102.md '^state: todo'

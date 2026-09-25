@@ -1,5 +1,6 @@
 ---
 command: setup-awow
+gate: release
 ---
 
 # Suite — setup-awow

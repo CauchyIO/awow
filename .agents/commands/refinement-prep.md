@@ -3,11 +3,12 @@ description: "Use when the user has a feature brief, quarterly slidedeck, or boa
 phase: seed
 layer: team
 prerequisites:
-  - "Step 0 of /setup-awow complete (the agent can read and write the board)"
+  - "A board connected (/setup-awow) — the agent can read and write the board"
 removes_pain: "the scramble-the-day-before-refinement problem"
 m365:
   include: true
   conversation_starter: "Draft a feature for the next refinement"
+channel: workflows
 ---
 
 # /refinement-prep — draft a feature for the next refinement
@@ -44,7 +45,7 @@ The user provides one of:
 
 Read:
 
-- `{ANCHOR}/context/team/mission.md` — the feature must serve the team's purpose. If you cannot see how, ask the user before drafting. Absent? Fill on first need: offer a two-to-five-sentence profile drafted from the repo and board (the `/setup-awow` Step 2 method), and proceed without one if declined.
+- `{ANCHOR}/context/team/mission.md` — the feature must serve the team's purpose. If you cannot see how, ask the user before drafting. Absent? Fill on first need: offer a two-to-five-sentence profile drafted from the repo and board (from the repo's README and manifests and the board's containers), and proceed without one if declined.
 - The convention set the `workitem-write` skill reads in steps 2–3 — issue titles, labels, output discipline, board voice.
 - `{ANCHOR}/context/knowledge-base/glossary.md` — domain terms; use these consistently
 - `{ANCHOR}/context/knowledge-base/patterns/` — link to existing patterns rather than restating
@@ -101,7 +102,7 @@ the section.>
 
 ## Stories
 
-<3–7 user stories. Use the shape defined by the `user-story-template` skill.>
+<3–7 user stories. Use the shape defined by `story-shape.md`, bundled with the `workitem-write` skill.>
 
 ## Dependencies
 
@@ -120,11 +121,11 @@ the section.>
 <Screenshots, sample data, references to upstream documents. Link, do not embed.>
 ```
 
-For the per-story shape inside `## Stories`, follow the `user-story-template` skill. The template defines what every story carries, what to add only when needed, and the anti-patterns to avoid. Do not duplicate the per-story structure here.
+For the per-story shape inside `## Stories`, follow `story-shape.md`, bundled with the `workitem-write` skill. It defines what every story carries, what to add only when needed, and the anti-patterns to avoid. Do not duplicate the per-story structure here.
 
 ## Anti-patterns
 
-See the anti-patterns table in the `user-story-template` skill. The same rules apply to every story produced by this command.
+See the anti-patterns table in `story-shape.md`, bundled with the `workitem-write` skill. The same rules apply to every story produced by this command.
 
 ## Quality bar
 

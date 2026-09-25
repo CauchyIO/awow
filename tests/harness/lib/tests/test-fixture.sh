@@ -16,10 +16,4 @@ grep -q 'anchor:' "$tmp/anchored/AGENTS.md" 2>/dev/null || { echo "FAIL: anchore
 grep -q 'awow: anchored' "$tmp/anchored/AGENTS.md" 2>/dev/null || { echo "FAIL: anchored AGENTS.md missing awow: anchored"; fail=1; }
 [ -f "$tmp/anchored/.awow/anchor.json" ] || { echo "FAIL: anchored fixture missing anchor.json"; fail=1; }
 
-# Legacy regression: the pre-rename spoke forms must stay buildable — they are
-# what upgraded adopter repos still carry, and the dual-accept reads them.
-make_legacy_spoke_fixture "$tmp/spoke" >/dev/null || { echo "FAIL: legacy spoke fixture build"; fail=1; }
-grep -q 'hub:' "$tmp/spoke/AGENTS.md" 2>/dev/null || { echo "FAIL: legacy spoke AGENTS.md missing hub"; fail=1; }
-[ -f "$tmp/spoke/.awow/hub.json" ] || { echo "FAIL: legacy spoke fixture missing hub.json"; fail=1; }
-
 [ $fail -eq 0 ] && echo "test-fixture: PASS" || { echo "test-fixture: FAIL"; exit 1; }

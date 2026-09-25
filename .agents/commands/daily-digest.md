@@ -3,11 +3,12 @@ description: "Use when the user asks what the team shipped today or this week, w
 phase: standardise
 argument-hint: "[--week | YYYY-Www | YYYY-MM-DD] (optional — omit for today)"
 prerequisites:
-  - "Step 0 of /setup-awow complete (the agent can read and write the board)"
+  - "A board connected (/setup-awow) — the agent can read and write the board"
   - "Most of the team actively committing"
   - "Team has shipped at least three Seed cycles"
   - "For a weekly window only: daily digests exist for at least four working days of it"
 removes_pain: "the I-have-no-idea-what-the-other-team-shipped-this-week problem"
+channel: workflows
 ---
 
 # /daily-digest — aggregate a day or a week of activity into a team-wide synthesis
@@ -69,7 +70,7 @@ Collect the day's activity once, via the shared collection step, then project th
 
 Follow `{ANCHOR}/context/tooling/activity-collection.md`, falling back to `{AWOW_ROOT}/context/tooling/activity-collection.md` (a vendored copy wins over the shipped one): **reuse `activity/YYYY-MM-DD.json` if it already exists for the day, otherwise produce it.** That step owns the board / code / chat queries (all keyed off `{ANCHOR}/context/tooling/board.md`), the normalised snapshot schema, and the private-team gate — so you do not re-query per lens, and the private-team exclusion is already applied. Scope every board query to the board-team filter in `{ANCHOR}/context/tooling/board.md` when one is declared; the digest covers this installation's slice only.
 
-**An absent board pointer is a question, not a stop.** If `{ANCHOR}/context/tooling/board.md` is missing, infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess a board from a GitLab, Bitbucket, or Azure DevOps remote; those map to several products. With no remote, or with `gh` absent or unauthenticated, ask the user once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line, and read it instead of asking again — ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make the answer durable; never write `{ANCHOR}/context/tooling/board.md` yourself.
+**Resolve the target first.** Settle which installation and which board this is — including when `board.md` is absent or names several boards — with the `board-target` skill, before the first board read. Do not restate its rules here.
 
 This relaxation covers an absent pointer only. **A fatal auth failure on a data source still stops the run** — surface it and do not synthesise from a half-snapshot.
 

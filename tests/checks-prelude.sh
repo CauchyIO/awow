@@ -45,3 +45,18 @@ file-not-contains() {
   if [ ! -f "$1" ]; then _record fail "file-not-contains $1 $2 (file missing)"; return 0; fi
   if grep -Eq -- "$2" "$1"; then _record fail "file-not-contains $1 $2"; else _record pass "file-not-contains $1 $2"; fi
 }
+
+# body-not-contains <path> <extended-regex> — like file-not-contains, but only
+# above the first `## Comments` heading: status moved to a comment is correct
+# placement, not a leak into the body.
+body-not-contains() {
+  if [ ! -f "$1" ]; then _record fail "body-not-contains $1 $2 (file missing)"; return 0; fi
+  if awk '/^## Comments/{exit} {print}' "$1" | grep -Eq -- "$2"; then _record fail "body-not-contains $1 $2"; else _record pass "body-not-contains $1 $2"; fi
+}
+
+# file-count-min <path> <n> <extended-regex> — at least n lines match.
+file-count-min() {
+  if [ ! -f "$1" ]; then _record fail "file-count-min $1 $2 $3 (file missing)"; return 0; fi
+  local n; n=$(grep -Ec -- "$3" "$1")
+  if [ "$n" -ge "$2" ]; then _record pass "file-count-min $1 $2 $3"; else _record fail "file-count-min $1 $2 $3 (found $n)"; fi
+}

@@ -1,5 +1,6 @@
 ---
 command: my-work
+gate: release
 ---
 
 # Suite — context-resolution

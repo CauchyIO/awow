@@ -52,7 +52,7 @@ The capability is deliberately small. It sits on top of a tracing stack that is 
 | **`session_env_hook.py`** *(correlation)* | `.agents/skills/session-correlation/scripts/` | The accessor: exposing the session id as `$CLAUDE_SESSION_ID` via a `SessionStart` hook. |
 | **Footer rule (Rule 4)** *(correlation)* | `context/team/conventions/REQUIRED/output-discipline.md` | Instructing the agent to append `_session: <id>_` to board entries it authors. |
 | **`gather.py`** | `tools/` | Copying the rule and skill into the folders each tool reads (`.claude/`, `.github/`) so Claude Code and Copilot both see them. |
-| **`/setup-awow` Step 8 · the skill's enabling steps** | `.agents/commands/` | The opt-in moment: runs the tracing prerequisite check, then installs the accessor + footer rule. |
+| **The skill's enabling steps** | `.agents/skills/session-correlation/` | The opt-in moment: runs the tracing prerequisite check, then installs the accessor + footer rule. |
 
 ## How the configuration happens
 
@@ -135,5 +135,4 @@ usage coaching — is [trace analysis](guide-trace-analysis.md).
 - [`.agents/skills/session-correlation/SKILL.md`](../.agents/skills/session-correlation/SKILL.md) — the capability: the accessor hook, the footer rule, and the opt-in flow
 - [`.agents/skills/session-correlation/scripts/session_env_hook.py`](../.agents/skills/session-correlation/scripts/session_env_hook.py) — the accessor itself
 - [`context/team/conventions/REQUIRED/output-discipline.md`](../context/team/conventions/REQUIRED/output-discipline.md) — where Rule 4 is written for a team that opted in
-- [`.agents/commands/setup-awow.md`](../.agents/commands/setup-awow.md) (Step 8) — the opt-in moment
 - Companion guides: [trace analysis](guide-trace-analysis.md) — the read side that consumes the join; [session timeline](guide-session-timeline.md) — the visual read of the same sessions

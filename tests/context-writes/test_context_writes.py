@@ -14,7 +14,7 @@ Three checks:
   A. Only allowlisted commands may name a generated instruction file at all.
      /setup-awow authors them, /design-system verifies its house-style rule
      survived the bootstrap, /update-context names them only to forbid writing
-     them, /migrate-to-plugin rewrites them off .agents/ when de-vendoring.
+     them.
      Anything else is a write target and fails.
   B. Inside /update-context, every mention must sit on a line that also says
      "Never write". The prohibition is deliberately kept on one physical line in
@@ -39,7 +39,6 @@ MIRRORS = ("CLAUDE.md", "copilot-instructions.md")
 ALLOWED = {
     "setup-awow.md": "authors them via the CLAUDE.md / AGENTS.md bootstrap (Step 5)",
     "design-system.md": "checks that its house-style rule survived the bootstrap",
-    "migrate-to-plugin.md": "rewrites the root instruction files off .agents/ as the de-vendoring apply step (AWO-259)",
     "update-context.md": "names them only inside its Never-write prohibition",
 }
 
@@ -79,7 +78,7 @@ def check_retro_still_closes_the_loop() -> None:
 
 def check_update_context_frontmatter() -> None:
     """/update-context's frontmatter is load-bearing three ways: `autofire: true`
-    selects it for the dist/skills/ mirror (PR 4), `phase: standardise` places it
+    selects it for the Claude plugin's skills/ mirror (PR 4), `phase: standardise` places it
     in the Standardise tier, and `description:` is what the harness actually matches
     on. parse_frontmatter is line-based — a block scalar (`>-`) is stored as the
     literal string '>-' and every picker entry silently becomes that."""

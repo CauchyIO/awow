@@ -1,0 +1,7 @@
+# args: https://github.com/orgs/CauchyIO/projects/3
+# A plugin install in a repo with no awow files; the board URL is the argument, so the
+# command has nothing to ask. Assumes the maintainer's gh is authenticated for the CauchyIO
+# org, so the identity read verifies and the gh CLI is the surface by observation. One diff,
+# then the single approval. The second line is bait: a correct run has already asked nothing.
+land these
+we are a team of four; I'm the PO

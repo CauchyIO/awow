@@ -33,6 +33,15 @@ seen it and approved it.
 
 The full technical guide lives [here](guides/README.md).
 
+## Four terms
+
+| Term | Meaning |
+|---|---|
+| **core** | The `awow` plugin itself: `/awow-help`, `/setup-awow`, `/process-workitem`, `/my-work`, `/update-context`. Everything else ships as a separate, optional plugin. |
+| **anchor** | A repo whose committed `context/` other repos reuse. Any awow repo can be one; nothing marks it as special. |
+| **anchored repo** | A repo that reads an anchor's context instead of carrying its own. Its root `AGENTS.md` commits the anchor's git URL; where that anchor sits on your machine stays out of git. |
+| **scope** | Which board — and which of its teams' items — a repo's work belongs to. Recorded in `context/board-scope.md` when an anchor serves several boards. |
+
 ## Before you install
 
 - **A supported harness**, installed and signed in: Claude Code, Codex, Pi,
@@ -93,70 +102,99 @@ opencode:
 opencode plugin awow@git+https://github.com/CauchyIO/awow-dist.git
 ```
 
-Claude Code and Copilot install from this repo, which carries the marketplace
-manifest both read. Codex, Pi and opencode install from `awow-dist`, which
+Claude Code and Copilot install from this repo, which carries a marketplace
+manifest for each. Codex, Pi and opencode install from `awow-dist`, which
 carries the built payload. Copilot exposes the commands as skills rather than
 slash commands.
 
+**Then type `/awow-help`** in the repo you want to work in. It says where that
+repo stands, names anything that needs fixing, and gives you one next step —
+so you never have to guess which command comes first.
+
+### The workflows bundle
+
+`awow` is the core: `/awow-help`, `/setup-awow`, `/process-workitem`,
+`/my-work` and `/update-context`. The broader workflows — meeting
+transcripts and retros, design and planning, digests, strategy and OKRs,
+knowledge capture, styled documents — ship as a second, optional plugin,
+`awow-workflows`. Install it beside `awow` in the repos where those
+conversations happen:
+
+| Agent product | Install the bundle |
+|---|---|
+| Claude Code | `/plugin install awow-workflows@awow` |
+| Codex | `codex plugin add awow-workflows@awow` |
+| GitHub Copilot | `copilot plugin install awow-workflows@awow` |
+| Pi, opencode | nothing to do — see below |
+
+Each plugin is self-contained; `awow-workflows` declares no dependency on
+`awow`, but expects a repo already configured by `/setup-awow`. Pi and opencode
+install a whole repository as one package and cannot add a plugin from a
+subfolder, so their `awow` package already carries the core and the bundle
+together.
+
 ## First: run `/setup-awow`
 
-`/setup-awow` is the first command to run after installing the plugin. It
-wires your board (Linear, Jira, Azure DevOps, GitHub Issues) and writes your
-mission, conventions, and members into `context/` — the context every other
-command reads.
+`/setup-awow` connects your board (Linear, Jira, Azure DevOps, GitHub Issues) and writes what it
+observed there into `context/` — the context every other command reads. It is one command, not
+a wizard: it inspects what the repo already has, asks only for what is missing, shows one
+configuration diff, and applies it when you approve.
 
-Its first question is which of two shapes you want, and it records the answer:
+```
+/setup-awow <board-url>                 # set this repo up against its board
+/setup-awow --anchor <git-url>          # connect this repo to a team's shared repo
+/setup-awow                             # on a configured repo: check and repair
+/setup-awow --check                     # report, change nothing
+```
 
-1. **Standalone.** awow set up for one repo, with its own context and board
-   wiring.
-2. **Anchored.** One centralized repo — the **anchor** — holds the shared
-   `context/`, and other repos register as **anchored repos** and read the
-   anchor's context instead of carrying their own. For teams who want a single
-   agentic core across several repositories. The details are in
-   [Setup & the plugin model](guides/guide-setup-and-two-harnesses.md).
+It works two ways, and asks nothing up front: **standalone**, where this repo gets its own
+`context/`, or **anchored**, where it reads a shared repo's instead. What it asks and writes in
+each case, and how to undo it, are on one page — **[SETUP.md](SETUP.md)**.
 
-Run it once in every repo that uses awow — but it does different work depending
-on the repo. In a standalone repo or an **anchor**, it walks the full setup and
-writes that repo's own `context/`. In an **anchored** repo it detects the anchor
-from the root `AGENTS.md` and runs a short registration track instead: it
-records which anchor the repo belongs to and which board scope it maps to, then
-takes the board wiring, conventions and members from the anchor rather than
-building a second copy. So an anchored team sets up the anchor first, then runs
-`/setup-awow` again — briefly — in each repo that anchors to it.
-
-How you run it is up to you — the format, the pace, and how far you take it:
-
-- Choose a guided walkthrough, or a 25–30 minute team workshop whose
-  transcript becomes the same gated setup proposals.
-- It is incremental and resumable: stop after any step, pick up where you
-  left off.
-- Only Steps 0 and 1 (install shape and board) are required; the rest are
-  recommended in any order.
-
-The other commands do run without setup — they ask for what's missing and
-carry on — but they work better with it.
+The other commands do run without setup — they ask for what's missing and carry on — but they
+work better with it. Nothing about your team is interviewed for: a team that wants to talk its
+way of working through runs `/team-workshop` from the optional `awow-workflows` plugin.
 
 ## Then: explore the commands
 
-The commands work in any repo (anchor or anchored).
+The commands work in any repo (anchor or anchored). Each carries a one-line
+description of the situation it applies to, so you can describe what you need
+instead of typing the command name. The list below is generated from those
+descriptions; `/awow-help` shows the same list inside a session.
 
-| | |
-|---|---|
-| `/my-work` | what the board says needs you, grouped by blocked, waiting, or yours now |
-| `/process-workitem` | a board item from refinement through a planned change to an opened PR |
-| `/refinement-prep` | a brief or a deck broken into right-sized stories before the session |
-| `/process-transcript` | a meeting recording turned into decisions, owners, and board items |
-| `/solution-design-flow` | an architecture argument turned into a decision record |
-| `/artifact` | a deck, one-pager, or report as HTML or PDF |
+<!-- COMMAND-CATALOG:START — generated by tools/gather.py, do not edit -->
+### `awow` — the core
 
-Each command carries a description of the situation it applies to, so you can
-describe what you need instead of typing the command name.
+| Command | Use when |
+| --- | --- |
+| `/setup-awow [<board-url>] [--anchor <git-url>] [--check]` | Use when a repo needs awow set up or repaired: connect its board, anchor it to a team's shared repo, join a configured repo on a new machine, or check what is wired. |
+| `/process-workitem <item-id> [explain | refine | plan | implement]` | Use when the user points at a board item — a ticket ID, issue link, or “let's pick up X” — and wants it explained, refined, planned, or carried through a code change to an opened PR. |
+| `/my-work` | Use when the user asks what they should work on, what is pending or waiting on them, or says they have lost track of the board and want to get oriented before starting a block of work. |
+| `/update-context` | Use when a session is wrapping up — a commit, a PR, a sign-off — and the user stated a durable rule about how the team works, so it lands in the context tree. |
+| `/awow-help [--commands | <command> | what you want to do]` | Use when the user asks what awow can do here, what a command does, what to run next, or has just installed the plugin and does not know where to start. |
 
-Those six are the ones most teams reach for first; `.agents/commands/` holds
-twenty-two in all. `/daily-checkin`, `/handover`, `/process-retro`,
-`/board-lifecycle`, `/strategy-flow` and `/okr-cascade` are among the rest. The full set, grouped by
-the adoption phase each belongs to, is catalogued in
-[`.agents/commands/`](.agents/commands/README.md).
+### `awow-workflows` — the optional bundle
+
+| Command | Use when |
+| --- | --- |
+| `/artifact` | Use when the user asks for a deck, slides, a blog post, one-pager, or report as HTML or PDF — any styled document that should follow the team's house style instead of hand-written CSS. |
+| `/board-lifecycle [--check] [--snapshot <path>] [--ledger]` | Use when the board's project layer needs governing — projects without owners or end conditions piling up, nobody sure which containers are alive, or a planning round that needs a trustworthy project overview first. Declares shapes and horizons, sweeps the estate, and turns expiry into a visible exception instead of silent rot or a silent auto-close. |
+| `/daily-checkin [path to a written or voice account, e.g. checkins/<user>/YYYY-MM-DD.md] (optional — omit to capture live or to reconstruct from board + code)` | Use when the user recounts their day, points at a check-in note or voice memo, or wants the board to reflect today's work — end-of-day logging, standup prep, catching untracked work. |
+| `/daily-digest [--week | YYYY-Www | YYYY-MM-DD] (optional — omit for today)` | Use when the user asks what the team shipped today or this week, wants a daily or weekly digest written up and raised as a PR, or says they have no idea what other people are working on. |
+| `/design-system` | Use when the user wants one house style for the HTML they generate — asks to stand up or adopt a design system, points at a site or brand to derive tokens from, or says every deck looks different. |
+| `/handover [who it is for, e.g. 'my morning read' or 'another agent to challenge the design'] (optional — omit and you will be asked)` | Use when a session's work must survive it — the user asks for a handover, a resume prompt or a brief for another agent, says they are signing off, switching sessions, running out of context, or wants to pick this up tomorrow. |
+| `/kb-mine` | Use when the user asks what's worth writing down from a day's work, wants to backfill knowledge-base candidates for a past day, or says hard-won insight is evaporating unrecorded. |
+| `/kb-synthesize` | Use when mined knowledge candidates are piling up unpromoted, or the user asks to drain the KB inbox, review staged candidates, or fold recent learnings into the durable knowledge base. |
+| `/okr-cascade` | Use when a department's quarterly OKR cascade needs attention — starting the quarter's objectives, refining key results, translating objectives into team PI-plan proposals, or reviewing drift and KR movement partway through the quarter. |
+| `/process-retro` | Use when the user points at or pastes a retrospective transcript or recording notes, or asks to turn a retro into named anti-patterns, owned actions, and diffs to their agent instructions. |
+| `/process-transcript` | Use when the user hands over a meeting transcript or recording notes (.vtt, .srt, pasted text), or asks to turn a meeting, standup, refinement, or stakeholder interview into board items. |
+| `/project-plan [path to a design artefact from /solution-design-flow, or a parent work-item ID] (optional — omit to be asked)` | Use when a design is locked and decomposed but nothing says what blocks what — the user asks for build order, sequencing, a delivery plan, or a critical path, or just finished /solution-design-flow. |
+| `/refinement-prep` | Use when the user has a feature brief, quarterly slidedeck, or board issue and wants it broken into right-sized stories before a refinement session, or asks to prep work for the next refinement. |
+| `/setup-department` | Use when a department repo has no identity or OKR surface yet, or the user asks to stand up a department, register a team submodule, or scaffold the department's quarterly OKR doc. |
+| `/solution-design-flow` | Use when the user is weighing architectural or solution options, is about to lock a design decision, or points at a transcript of a design discussion — before the decision only exists in chat. |
+| `/strategy-flow` | Use when a team or department has a vision but no measurable goals yet — the user wants to name strategic bets and refine each into committed and aspirational KRs with baselines and dated targets, landed as a draft OKR set. Start-of-quarter, or whenever the strategy layer above the board is missing. |
+| `/team-workshop [prepare | <transcript.vtt|.srt|notes.md>]` | Use when a team wants to talk its way of working through and needs a meeting brief, or has the workshop transcript back to turn into team context proposals. |
+<!-- COMMAND-CATALOG:END -->
 
 ## What the agent picks up
 
@@ -181,8 +219,9 @@ coaching. It runs on Claude Code only.
 
 ## Contributing to awow
 
-- **`.agents/` is the source.** `tools/gather.py` builds it into the payloads
-  under `dist/` and `dist-telemetry/`. CI fails on drift with `--check`.
+- **`.agents/` is the source.** `tools/gather.py` builds it into one
+  self-contained plugin per harness, under `dist/<harness>/<plugin>/`. CI fails
+  on drift with `--check`.
 - **Nothing is mirrored into this repo's `.claude/` or `.github/`.** The
   marketplace that Claude Code and Copilot install from *is* this repo. A merge
   to `main` is therefore what reaches a maintainer's own sessions, after
@@ -193,19 +232,14 @@ coaching. It runs on Claude Code only.
 To exercise a branch's payload before it merges:
 
 ```bash
-python tools/gather.py && claude --plugin-dir dist
+python tools/gather.py && claude --plugin-dir dist/claude/awow
 ```
 
 ## Status
 
-**v0.13.0 — pre-1.0, in use.** Working end to end: the installs on all five
+**v1.0.0 — first public release.** Working end to end: the installs on all five
 harnesses, the command set, canonical knowledge-source routing, the session
 context, and the build with its drift check in CI.
-
-Being pre-1.0, names and file shapes can still change between releases. The
-one migration currently in flight is the `hub` → `anchor` rename: the legacy
-spellings (`hub:`, `$AWOW_HUB`, `.awow/hub.json`, `{HUB}`) are still accepted
-everywhere, so pre-rename repos need no action.
 
 What each release changed is in [`CHANGELOG.md`](CHANGELOG.md).
 

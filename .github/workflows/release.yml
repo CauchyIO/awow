@@ -17,6 +17,9 @@ permissions:
 
 jobs:
   release:
+    # CauchyIO/awow only. A copy of this repo — the lab — carries the same
+    # version and workflow, and must never tag, release, or publish to awow-dist.
+    if: github.repository == 'CauchyIO/awow'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

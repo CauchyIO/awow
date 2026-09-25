@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-PKG = REPO_ROOT / "dist" / "m365" / "appPackage"
+PKG = REPO_ROOT / "dist" / "m365" / "awow" / "appPackage"
 
 
 def run_gather(*args):
@@ -30,7 +30,7 @@ class TestEmit(unittest.TestCase):
         # Regeneration must reproduce exactly the committed bytes — catches a stale
         # committed package (e.g. one regenerated before a routing/config change landed).
         diff = subprocess.run(
-            ["git", "diff", "--quiet", "HEAD", "--", "dist/m365"],
+            ["git", "diff", "--quiet", "HEAD", "--", "dist/m365/awow"],
             cwd=REPO_ROOT, capture_output=True, text=True,
         )
         self.assertEqual(diff.returncode, 0, diff.stdout + diff.stderr)
@@ -46,7 +46,7 @@ class TestEmit(unittest.TestCase):
             target.write_bytes(original + b"\n")
             check = run_gather("--check")
             self.assertEqual(check.returncode, 1, check.stdout + check.stderr)
-            self.assertIn("dist/m365/appPackage/declarativeAgent.json", check.stdout)
+            self.assertIn("dist/m365/awow/appPackage/declarativeAgent.json", check.stdout)
         finally:
             target.write_bytes(original)
 

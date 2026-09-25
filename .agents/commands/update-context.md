@@ -60,6 +60,8 @@ Phase 4 ─ GATE (diff + verbatim quote) ──→ write / stage / drop
 
 ## Phase 0 — Load the batch
 
+**No awow context here.** When `{ANCHOR}/context/team/` does not exist, say in one line that this repo is not set up for awow yet, point to `/setup-awow <board-url>` — or `/setup-awow --anchor <git-url>` when the team keeps its context in a shared repo — and stop. Stage nothing and create no inbox: a candidate staged where nothing reads it is lost anyway.
+
 The batch is what you noticed during this session and acknowledged in line. It is not
 stored anywhere — no file, no state, no transcript re-read. If you did not notice a rule
 while it was said, it is not a candidate now.
@@ -95,8 +97,9 @@ those lines at the gate. A silent drop is indistinguishable from a miss, and the
 cannot correct what they cannot see.
 
 **A P3 failure that is a fact, not a preference, is not yours but is not waste.** Carry
-it to Phase 4 as an inbox candidate with `kind: knowledge` and `source: update-context`,
-and let `/kb-synthesize` drain it into the knowledge base.
+it to Phase 4 as an inbox candidate with `kind: knowledge` and `source: update-context`.
+Draining the inbox into the knowledge base is `/kb-synthesize`, in the optional `awow-workflows`
+plugin; without it the candidate stays in the inbox as a committed, readable file — say which.
 
 ---
 
@@ -119,21 +122,22 @@ An existing meeting file is a tier 1 destination when the candidate explicitly
 corrects how this team runs or interprets that ritual. Amend the file in its
 existing plain-Markdown format.
 
-**Tier 3 — no suitable destination exists.** Stage the candidate with
-`suggested_target: UNROUTED` and stop there. **Never create a new convention or style
-file.** A file you invent is one no README indexes, no command reads, and `/setup-awow`
-does not know about — created at the moment of least deliberation in the whole flow.
-Unrouted candidates piling up is useful signal about what the context tree is missing;
-an invented file destroys that signal by looking like a resolution.
+**Tier 3 — no suitable destination exists.** For a convention, propose a new file at
+`{ANCHOR}/context/team/conventions/OPTIONAL/<topic>.md` as its own diff line marked `new file`,
+together with the line that lists it in that folder's `README.md`, and offer `defer` beside it.
+Never propose a new file under `REQUIRED/`, and never a new style file. Any other candidate —
+or a deferred one — is staged with `suggested_target: UNROUTED`, and you stop there.
+Unrouted candidates piling up is useful signal about what the context tree is missing.
 
 Never create a new meeting file at a completion edge either. Stage it as
-`UNROUTED` and point the user to the `/setup-awow` meeting route, where the team
+`UNROUTED` and point the user to `/team-workshop` (`awow-workflows`), where the team
 can describe the ritual deliberately.
 
 A destination that is documented but absent is tier 3. `{ANCHOR}/context/tooling/board.md`
 and `{ANCHOR}/context/tooling/architecture.md` are referenced across the command set and may
-not exist in this repo. Stage `UNROUTED` and name the step that creates them —
-`/setup-awow` Step 1 for the board pointer, Step 8 for the architecture plane.
+not exist in this repo. Stage `UNROUTED` and name what creates them —
+`/setup-awow <board-url>` for the board pointer; for the architecture plane, the team writes
+`{ANCHOR}/context/tooling/architecture.md` itself — `/process-workitem` reads it when planning.
 
 ### Accretion duty
 
@@ -188,23 +192,25 @@ UPDATE CONTEXT — 2 candidates from this session
 
 [2] UNROUTED — no existing file covers release timing
     Heard: "we never merge on a Friday afternoon"
-    Staging as a guidance candidate for the next /kb-synthesize drain.
+    Staged in the knowledge inbox (`<inbox path>`) as a guidance candidate. awow-workflows' /kb-synthesize drains it.
 
-Dropped: 1
+Dropped (heard, but not a team rule): 1
   - "stop saying you're absolutely right" — P3: one person's preference, not a team rule.
 
-Reply: 1  /  all  /  none  /  none, stop asking  /  2 → <path>  /  1 defer
+Reply with one of: `1` or `all` — apply and commit · `none` — apply nothing · `none, stop asking` — and never offer again · `2 → <path>` — put #2 in that file instead · `1 defer` — stage #1 in the knowledge inbox (`<inbox path>`) and commit it
 ```
+
+Label the dropped list `Dropped (heard, but not a team rule)`, and name the inbox by its resolved path wherever the block mentions it. Say in the options that applying or deferring also commits.
 
 The options, exactly:
 
 | Reply | You do |
 |---|---|
-| a number, or `all` | Apply those diffs and leave the rest. |
+| a number, or `all` | Apply those diffs, commit them, and leave the rest. |
 | `none` | Apply nothing. Do not ask again this session. |
 | `none, stop asking` | Apply nothing, create an empty `.awow/no-context-prompt`, confirm in one line, and never offer again in any session. |
-| `N → <path>` | Retarget candidate N to that path and re-show its diff. An existing file only. |
-| `N defer` | Stage candidate N in the inbox instead of writing it. |
+| `N → <path>` | Retarget candidate N to that path and re-show its diff. An existing file, or a new file under `conventions/OPTIONAL/` shown as a `new file` line. |
+| `N defer` | Stage candidate N in the inbox instead of writing it, and commit it. |
 
 On approval:
 
@@ -224,7 +230,7 @@ Say in one line what landed and what was staged. Then stop; do not re-offer.
 ## Behavioral boundaries
 
 - **Never write `.claude/CLAUDE.md`, `.github/copilot-instructions.md`, the root `AGENTS.md`, or `.agents/AGENTS.md`.** The first three are regenerated by `gather.py` on every build, so a diff landed there is destroyed by the next one; the fourth is the team's own instruction source and is not yours to edit opportunistically. Write under `{ANCHOR}/context/team/` and let propagation happen.
-- **Never create a convention, style, or meeting file.** No destination means tier 3, always.
+- **Never create a style or meeting file, or a convention file outside a gated `new file` line under `conventions/OPTIONAL/`.** No destination means tier 3, always.
 - **Never write outside the gate**, and never treat an earlier session's approval as
   standing consent.
 - **Never run autonomously.** There is no `--auto` mode and no unattended variant, for the

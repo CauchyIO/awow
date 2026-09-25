@@ -12,8 +12,8 @@ activity.
 ## When this layer makes sense
 
 Reporting earns its keep only once there is a steady stream of activity to synthesise: at least
-three delivery cycles shipped, most of the team actively committing, and Step 0 of `/setup-awow`
-complete. The week window adds one prerequisite — dailies covering at least four working days of
+three delivery cycles shipped, most of the team actively committing, and a board connected with
+`/setup-awow`. The week window adds one prerequisite — dailies covering at least four working days of
 it, because they are its richest input.
 
 ## The two zoom levels

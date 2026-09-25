@@ -21,13 +21,11 @@ The board is the single source of truth for planning, and awow exists to keep it
 
 ## Paths
 
-`{{ANCHOR}}` is the team context root, `{{PROJECT}}` this project's; both resolve to the repo root here. In an anchored repo (root `AGENTS.md` frontmatter with an `anchor:` key; `hub:` pre-rename), resolve `{{ANCHOR}}` as `$AWOW_ANCHOR`, else the path recorded in the gitignored `.awow/anchor.json` after its origin check (the pre-rename `$AWOW_HUB` and `.awow/hub.json` are still honoured) — a missing or drifted link is a prompt to (re)map interactively and a loud stop headless, never a scan. Machinery reads `{{ANCHOR}}` first, then `{{AWOW_ROOT}}` (its scripts at `{{AWOW_TOOLS}}`). Unresolvable `{{ANCHOR}}`? Stop and say so. Several candidate installations or boards, or CWD outside any scaffolded repo? Resolve per the contract at `{ANCHOR}/context/tooling/context-resolution.md`, falling back to `{AWOW_ROOT}/context/tooling/context-resolution.md` — never guess across a repo boundary.
-
-**The write boundary.** An awow artefact — `{PROJECT}/proposals/`, the `{ANCHOR}/context/` tree, `.awow/` state, a board spec — belongs to the installation you resolved, or its mapped anchor. Announce that installation before your first write and land every `{PROJECT}`-anchored file inside it — never at a bare workspace root. Never write across a git repo boundary on your own judgment, however strongly the content points there: crossing needs the user's answer to a question naming both repos, and a generic plan approval ("go") is not that answer. Headless with nobody to ask? Stop loudly, naming the write you refused.
+`{{ANCHOR}}` is the team context root, `{{PROJECT}}` this project's; both resolve to the repo root here. In an anchored repo (root `AGENTS.md` frontmatter with an `anchor:` key), resolve `{{ANCHOR}}` as `$AWOW_ANCHOR`, else the path recorded in the gitignored `.awow/anchor.json` after its origin check — a missing or drifted link is a prompt to (re)map interactively and a loud stop headless, never a scan. Machinery reads `{{ANCHOR}}` first, then `{{AWOW_ROOT}}` (its scripts at `{{AWOW_TOOLS}}`). Unresolvable `{{ANCHOR}}`? Stop and say so. Several candidate installations or boards? Resolve per the `board-target` skill — never guess across a repo boundary.
 
 ## Board first
 
-Before work with a discernible outcome, read `{ANCHOR}/context/tooling/board.md` and search for an existing item; link with no ceremony. No match? Draft under `{PROJECT}/proposals/`, approve, create. Move state and comment as you go. Gated to initiatives — would a teammate expect to find it on the board next week? An absent `board.md` is one question (infer from a GitHub remote, else ask once), not a stop.
+Before work with a discernible outcome, settle the board with the `board-target` skill, read `{ANCHOR}/context/tooling/board.md`, and search for an existing item; link with no ceremony. No match? Draft under `{PROJECT}/proposals/`, approve, create. Move state and comment as you go. Gated to initiatives — would a teammate expect to find it on the board next week? An absent `board.md` is one question (infer from a GitHub remote, else ask once), not a stop.
 
 ## Draft first, land second
 
@@ -43,8 +41,19 @@ match is read-only and must be referenced rather than copied into the ANCHOR.
 
 ## Route to the moment
 
-Meeting notes in hand → `/process-transcript`. A board item to execute → `/process-workitem`. A board item to create or update → the `workitem-write` skill. Day wrapping up → `/daily-checkin`. "What did we ship?" → `/daily-digest`. A locked design to sequence → `/project-plan`. Lost track of your plate → `/my-work`. Vision but no measurable goals → `/strategy-flow`. One bet in a live board session → the `bet-refinement-coach` skill. The quarter's standing OKR machinery, including the recurring review → `/okr-cascade`. Reach for the catalog in your skill listing before hand-rolling.
+A board item to explain, refine, plan, or build → `/process-workitem`, at the depth the user asked for. A board item to create or update → the `workitem-write` skill. Lost track of your plate → `/my-work`. A rule about how the team works, stated in passing → `/update-context`. Is this repo wired? → `/setup-awow --check`. What can awow do here, what does a command do, what next? → `/awow-help`.
 
-## Engines and rules in passing
+With the optional `awow-workflows` plugin: meeting notes in hand → `/process-transcript`; the team wants to talk its way of working through → `/team-workshop`; day wrapping up → `/daily-checkin`; "what did we ship?" → `/daily-digest`; a locked design to sequence → `/project-plan`; vision but no measurable goals → `/strategy-flow`; one bet in a live board session → the `bet-refinement-coach` skill; the quarter's standing OKR machinery, including the recurring review → `/okr-cascade`. When one of these is absent from your skill listing, `awow-workflows` is not installed here: say so and name the plugin; do not hand-roll the flow.
 
-With a build engine installed, its lifecycle skills are your board cues — see `board-aware-development` (and `architecture-aware-development` when an architecture plane is declared). When someone states how the team works, note it and offer `/update-context` once, at a completion edge.
+Reach for the catalog before hand-rolling: your skill listing, or `{AWOW_ROOT}/context/tooling/command-catalog.md`, which lists every command and the plugin it ships in.
+
+## Through the build
+
+Whatever you build with — your own editing, a coding subagent, an inner-loop engine's skills — the board moves at the same four beats, and the moment itself is the cue. Gated to initiatives, like every board rule above.
+
+- **Work starting.** Ticket exists → **In Progress**. No ticket and it is an initiative → the plan draft under `{PROJECT}/proposals/` is your board moment: approve, create, then move it.
+- **Building.** Comment findings and blockers *as you go*. A blocker discovered at 10:00 and reported at 18:00 was unreported all day.
+- **Claiming done.** Verification evidence exists before the item reaches **In Review** or **Done** — paste it into a comment. No evidence, no move.
+- **Handing over.** **In Review** with a what-to-review comment when the PR opens; **Done** with the PR link and a one-line outcome when it lands.
+
+Where `{ANCHOR}/context/tooling/architecture.md` declares an architecture plane, plans are checked against it — `/process-workitem` step 4 carries that check. When someone states how the team works, note it and offer `/update-context` once, at a completion edge.

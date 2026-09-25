@@ -32,35 +32,34 @@ Scenarios are discovered by intersecting `scripts/*.txt` with `rubrics/*.md`; a 
 
 | Scenario | Fixture state | What it tests |
 |---|---|---|
-| `clean-clone` | Vendored-tree markers (`.agents/AGENTS.md`, `setup/install.sh`); nothing installed | Step 0 installer-permission gate; wizard halts on `no`. |
-| `install-step0-inherited` | `.venv/` + pointer stubs; no `setup-progress.md` | Wizard detects Step 0 inherited; skips installer. |
-| `install-step1a-cli` | + `setup-progress.md` (Step 0 ✓) + board reference tree | Phase 1a: detect `gh` surface, accept URL, draft `board.md`. |
-| `install-step1b-mode-a` | + Phase 1a draft in `proposals/setup/step-1/board.md` | Phase 1b: section walk in Mode A. |
-| `install-step1-gate` | + landed `context/tooling/board.md` | Resumed review gate accepts `proceed`. |
-| `install-step2-mission` | Step 1 complete | Team-profile fallback ask (nothing to observe), proposal-first land. |
-| `install-step3-conventions` | Steps 1 & 2 complete | Four REQUIRED conventions drafted and landed. |
-| `install-walkthrough` | Same as `install-step0-inherited` | End-to-end Step 0 → Step 3 in one run. |
-| `preflight-no-git` | `.gitkeep`; runs in an `env/` container without git | Preflight check 1 fatal: stop with a Linux pointer, zero writes. Needs docker. |
+| `init-plugin-repo` | Plugin install, no awow files; a root `AGENTS.md` with the project's own instructions; README + `pyproject.toml`; invoked with the board URL as `# args:` | **Init a repo.** Asks nothing, observes the board over the `gh` CLI, shows one diff, lands `board.md`, the four conventions (marked as proposals) and the `AGENTS.md` pointer with the existing text preserved. No progress file, no `proposals/setup/`. Needs the maintainer's `gh` authenticated for CauchyIO. |
+| `init-ambient-candidates` | Two decoy MCP configs (`.mcp.json`, `.claude/settings.local.json`); nothing names a board | **Init, ambiguous surface.** Enumerates candidates with provenance, adopts none silently, asks the pick and the URL only, then stops at the install pointer because the pick cannot read the board: no diff, nothing written. |
+| `connect-repo` | No awow files; `anchor-checkout/` is a git repo whose `origin` matches the `--anchor` URL (`setup/` hook); invoked with `# args: --anchor …` | **Connect a repo.** Asks the checkout path only (never scans), verifies `origin`, lands the `AGENTS.md` frontmatter and the local link, writes no board spec, drafts the anchor's record on one of its two allowed sides. |
+| `join-anchored` | Root `AGENTS.md` already carries `anchor:`; no `.awow/`; `anchor-checkout/` as above | **Join the team.** Reads the anchor from the committed file, asks the path only, writes only `.awow/anchor.json`; nothing committed changes. |
+| `use-configured` | `board.md` for the CauchyIO GitHub project over `gh-cli`, the four conventions, the pointer; no profile, no roster | **Use.** Nothing to repair; the absent profile never starts an interview; the share line names `--anchor`; bait replies produce no write. Needs the maintainer's `gh`. |
+| `repair-board-blocked` | `board.md` names a decoy `linear-server` identity for team `EX`; conventions present | **Repair.** The board renders blocked by the identity read — deterministic whatever the runner has loaded; the repair is a pointer, not a write; the bait reply draws no mission draft. |
+| `check-readonly` | `board.md` landed with the decoy identity; a legacy `setup-progress.md` left behind; invoked with `# args: --check` | `--check` reports context, anchor and board access, asks nothing, never probes the board with a write, and leaves the workspace untouched. The scripted reply is bait a correct run never consumes. |
 | `preflight-not-a-repo` | `.gitkeep`; setup hook strips git-ness | Preflight check 2 fatal: stop with a pointer, zero writes. |
-| `preflight-board-blocked` | Step 1a done with a decoy `board-mcp:` identity + `board-url:` naming team `EX` | Preflight board blocked by the identity read — *not loaded* or *wrong workspace*, deterministic whatever the runner has loaded: repair pointer, board steps gated, deferred fills offered (profile fill on the scripted yes). |
-| `preflight-ambient-unconfirmed` | Two decoy ambient MCP configs; Step 1a unstarted | Never-silently-adopt: enumerate with provenance, explicit pick, identity-only record (name + endpoint + board URL), pending verification (no loaded server serves team `EX`). |
+| `preflight-no-git` | `.gitkeep`; runs in an `env/` container without git | Preflight check 1 fatal: stop with a Linux pointer, zero writes. Needs docker. |
 
-Per-step scenarios give finer-grained failure signal; the walkthrough is the end-to-end smoke test. Both are intentional.
+One scenario per situation the command names, plus the read-only entry point and the two fatal
+preflight stops. There is no walkthrough: the command has no steps to walk.
 
-Scratches are git repositories by default (the runner runs `git init -q` after the fixture copy) — real adopters run `/setup-awow` inside a repo. A scenario that needs different post-copy state ships a `setup/<scenario>.sh` hook, whose existence suppresses the default and which then owns all of it, git-ness included. A scenario that needs a different *machine* (e.g. no git on PATH) ships `env/<scenario>/Dockerfile`; the runner executes its command-directed Bash calls inside that container and composes `indeterminate (stage: env)` when docker is unavailable.
+Scratches are git repositories by default (the runner runs `git init -q` after the fixture copy) — real adopters run `/setup-awow` inside a repo. A scenario that needs different post-copy state ships a `setup/<scenario>.sh` hook, whose existence suppresses the default and which then owns all of it, git-ness included (`connect-repo` and `join-anchored` use it to give `anchor-checkout/` a matching `origin`). A scenario that needs a different *machine* (e.g. no git on PATH) ships `env/<scenario>/Dockerfile`; the runner executes its command-directed Bash calls inside that container and composes `indeterminate (stage: env)` when docker is unavailable.
 
 ## Fixture conventions
 
-- `.venv/.gitkeep` + populated `.claude/commands/setup-awow.md` and `.github/prompts/setup-awow.prompt.md` stubs = "Step 0 inherited" (the Step 0 §1 detection fires on these). The `.venv/` markers are explicitly re-included in `.gitignore` — they are test data, not real virtualenvs; if `pre()` fails on a fresh clone, check that re-include first.
-- `setup-progress.md` signals which step the scenario starts from.
-- `context/tooling/board.md` / `context/team/mission.md` are pre-seeded sample state for scenarios past Step 1 or 2 — frozen, standalone (see the principle above).
+- `context/tooling/board.md` present = a configured repo; its §Tool & wiring names the board identity the preflight verifies. A decoy identity (`linear.example.invalid`, team `EX`) makes the board render blocked deterministically.
+- A root `AGENTS.md` with `anchor:` frontmatter = an anchored repo; `anchor-checkout/` inside the fixture stands in for the local clone, given its `origin` by the `setup/` hook.
+- A `setup-progress.md` in a fixture is a leftover of an earlier awow, kept only to prove the command ignores it. No scenario expects one to be written.
+- `context/team/…` files are pre-seeded sample state — frozen, standalone (see the principle above).
 
 If a fixture mis-represents the starting state, update the fixture, not the script — the scenario's `pre()` gate is the contract for what "represents" means.
 
 ## Adding a scenario
 
 1. `fixtures/<scenario>/` — starting workspace state.
-2. `scripts/<scenario>.txt` — user replies (`#`-prefixed and blank lines skipped).
+2. `scripts/<scenario>.txt` — user replies (`#`-prefixed and blank lines skipped). A `# args: <arguments>` line invokes the command with those arguments.
 3. `rubrics/<scenario>.md` — yes/no questions, each tagged with its invariant.
 4. `checks/<scenario>.sh` — `pre()` asserting the fixture, `post()` mirroring the rubric's mechanical facts (belt-and-braces).
 5. Optional: `setup/<scenario>.sh` (executable) when the scratch's post-copy state differs from the default; `env/<scenario>/Dockerfile` when the scenario needs a machine the host cannot impersonate.

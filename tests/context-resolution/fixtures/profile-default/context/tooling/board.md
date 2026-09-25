@@ -1,7 +1,6 @@
 # Board tooling — index (frozen test fixture)
 
-This repo runs two boards. Resolution rules: §Context resolution in the agent
-instructions (AGENTS.md).
+This repo runs two boards. Resolution rules: the `board-target` skill.
 
 ## Boards
 

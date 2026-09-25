@@ -6,6 +6,7 @@ prerequisites:
   - "{ANCHOR}/context/department/ scaffolding present (definition.md, teams.md, templates/) — ships with the department layer"
   - "gather.py has run at least once so this command's own stubs are discoverable"
 removes_pain: "a department with no shared home: no definition, no OKR surface, no MD entry point"
+channel: workflows
 ---
 
 # /setup-department — stand up the department layer and join teams to it

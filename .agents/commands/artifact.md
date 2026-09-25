@@ -2,12 +2,13 @@
 description: "Use when the user asks for a deck, slides, a blog post, one-pager, or report as HTML or PDF — any styled document that should follow the team's house style instead of hand-written CSS."
 phase: spread
 prerequisites:
-  - "Step 1 of /setup-awow complete (the agent can read and write the board)"
+  - "A board connected (/setup-awow) — the agent can read and write the board"
   - "A design system is configured ({ANCHOR}/context/tooling/design-system.md, else {AWOW_ROOT}/context/tooling/design-system.md, mode is not absent) — recommended, not required"
 removes_pain: "the hand-styled-artifact-that-ignores-the-house-style problem"
 consumes: "a content brief plus the team's design system"
 when-to-use: "You need to produce a styled HTML artifact — a presentation, blog post, one-pager, or report — that should follow the team's design system. The frequent counterpart to /design-system."
 when-not-to-use: "No design system exists and you do not want to establish one (run /design-system first, or accept plain defaults). The artifact is a design decision record or a board proposal — use /solution-design-flow."
+channel: workflows
 ---
 
 # /artifact — generate a styled HTML artifact from the design system

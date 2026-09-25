@@ -41,7 +41,7 @@ The transport is resolved by available credential (`tests/harness/lib/gateway.sh
   git repo, mirroring `tools/sync-dist.sh` → `CauchyIO/awow-dist`) and assert a flow is discoverable —
   no model needed. Anchor resolution is asserted deterministically through the shipped `dist/` session-start
   hook (AWO-133): connected read path and unmapped fail-loud against the identity-carrying anchored
-  fixture, plus the pre-rename spoke fixture as the legacy dual-accept regression (CAU-1415).
+  fixture.
   Model-driven behaviour (does the agent *act* on the resolved anchor) remains eval territory.
 - **Pi apim mode** needs a `models.json` provider block (Pi ignores `OPENAI_BASE_URL`); openrouter mode
   uses Pi's built-in `openrouter` provider.

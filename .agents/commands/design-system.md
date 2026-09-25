@@ -2,12 +2,13 @@
 description: "Use when the user wants one house style for the HTML they generate — asks to stand up or adopt a design system, points at a site or brand to derive tokens from, or says every deck looks different."
 phase: spread
 prerequisites:
-  - "Step 1 of /setup-awow complete (the agent can read and write the board)"
+  - "A board connected (/setup-awow) — the agent can read and write the board"
   - "Team produces styled HTML artifacts (decks, blogs, solution designs)"
 removes_pain: "the every-artifact-reinvents-its-own-styling problem"
 consumes: "a reference site, brand, or existing style guide"
 when-to-use: "The team produces styled HTML artifacts and has no design system yet, or has one in another repo that awow doesn't know about. First time standing up a house style, or pointing awow at an existing one."
 when-not-to-use: "A design system is already configured ({ANCHOR}/context/tooling/design-system.md, else {AWOW_ROOT}/context/tooling/design-system.md, mode is not absent) and you only want to produce an artifact — use /artifact. The team ships only board items and no styled HTML."
+channel: workflows
 ---
 
 # /design-system — stand up or adopt a design system

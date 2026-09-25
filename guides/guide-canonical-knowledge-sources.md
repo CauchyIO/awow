@@ -58,7 +58,7 @@ material, the agent asks before writing rather than keeping two copies.
 
 ## Setup
 
-`/setup-awow` Step 6 offers to catalog external sources. It drafts the records for you to
+`/kb-mine` (`awow-workflows`) offers to catalog external sources on its first run. It drafts the records for you to
 review, then writes the approved ones to `context/knowledge-sources/`. Teams can add or retire
 records later through the same review-then-write process.
 
@@ -67,8 +67,8 @@ records later through the same review-then-write process.
 - `context/tooling/knowledge-sources.md` — record profile and resolver contract.
 - `context/knowledge-sources/index.md` — this team's registered sources.
 - `.agents/skills/knowledge-source-routing/SKILL.md` — agent routing and capture behavior.
-- `.agents/skills/adopting-okf/SKILL.md` — opt-in OKF adoption for an explicitly writable repo.
 - `proposals/canonical-knowledge-source-routing-design.md` — accepted design and boundaries.
 
-Companion guides: [setup & the plugin model](guide-setup-and-two-harnesses.md) — setup and
-distribution; [the core delivery loop](guide-core-delivery-loop.md) — governed writes.
+Companion guides: [SETUP.md](../SETUP.md) — setup; [how awow is built and
+shipped](guide-setup-and-two-harnesses.md) — distribution; [the core delivery
+loop](guide-core-delivery-loop.md) — governed writes.

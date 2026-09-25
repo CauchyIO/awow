@@ -12,7 +12,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Payloads in sync (dist/, dist-telemetry/, dist/m365)
+      - name: Payloads in sync (every dist/<harness>/<plugin>/)
         run: python tools/gather.py --check
       - name: Path-token lint
         run: python tools/lint-paths.py
@@ -32,28 +32,44 @@ jobs:
         run: python3 tests/payload-manifests/test_build_stamp.py
       - name: Payload command surface
         run: python3 tests/payload-commands/test_command_surface.py
-      - name: Migration surface (AWO-259)
-        run: python3 tests/payload-commands/test_migrate_surface.py
       - name: Strategy routing (AWO-268)
         run: python3 tests/payload-commands/test_strategy_routing.py
       - name: Telemetry split
         run: python3 tests/telemetry-split/test_telemetry_split.py
       - name: Orphan detection across payload roots
         run: python3 tests/telemetry-split/test_orphan_roots.py
+      - name: Workflows split
+        run: python3 tests/workflows-split/test_workflows_split.py
+      - name: Payload layout (dist/<harness>/<plugin>/)
+        run: python3 tests/payload-layout/test_layout.py
+      - name: One board path
+        run: python3 tests/board-path/test_one_path.py
+      - name: Setup --check
+        run: python3 tests/setup-check/test_setup_check.py
+      - name: Setup contract (CAU-1633)
+        run: python3 tests/setup-contract/test_setup_contract.py
+      - name: Core prompts
+        run: python3 tests/core-prompts/test_core_prompts.py
+      - name: Process-workitem depth
+        run: python3 tests/process-depth/test_depth.py
+      - name: Release evidence page
+        run: python3 tests/evidence/test_evidence.py
+      - name: Command catalog
+        run: python3 tests/command-catalog/test_catalog.py
+      - name: /awow-help
+        run: python3 tests/awow-help/test_awow_help.py
       - name: M365 Copilot harness tests
         run: python3 -m unittest discover -s tests/m365
       - name: Department layer tests
         run: python3 -m unittest discover -s tests/department
-      - name: awow-lock tests
-        run: python3 -m unittest discover -s tests/awow-lock
       - name: Session-start hook tiers
         run: python3 tests/hooks/test_session_start.py
-      - name: Lifecycle seam hook
-        run: python3 tests/hooks/test_lifecycle_seam_check.py
-      - name: Wrong-root write guard hook
-        run: python3 tests/hooks/test_wrong_root_guard.py
+      - name: Lifecycle and story skills retired (CAU-1639)
+        run: python3 tests/lifecycle-retired/test_retired.py
       - name: Release notes generator
         run: python3 tests/release/test_release_notes.py
+      - name: Publishing jobs run in awow only
+        run: python3 tests/release/test_publish_gate.py
       # The bump PR must carry its notes: the release workflow publishes this
       # section as the release body the moment the bump lands on main.
       - name: CHANGELOG.md carries the canonical version
@@ -64,8 +80,10 @@ jobs:
   # Main only. On a PR the published payload is legitimately behind, so this
   # would fail every PR. On main it goes red exactly when the canonical version
   # was bumped and not yet released, which is the signal that forces the publish.
+  # CauchyIO/awow only: awow-dist mirrors that repo. A copy of it — the lab —
+  # runs ahead of the mirror on purpose and publishes nothing.
   dist-published:
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.repository == 'CauchyIO/awow' && github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

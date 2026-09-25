@@ -29,6 +29,15 @@ subject; board content is minimal set dressing).
   *after* the fixture commit — `.awow/` is gitignored at any depth, so the profile
   must arrive untracked, exactly as it does in real life.
 
+## Anchored scenario (journey 5)
+
+- `anchored-repo` — the project carries `anchor:` in its root `AGENTS.md` and an untracked
+  `.awow/anchor.json` (written by the setup hook with the scratch's absolute path) pointing
+  at `anchor-checkout/`, a git repo whose `origin` matches the anchor URL. The project has
+  no `context/` of its own: `{ANCHOR}` must resolve to the checkout, the board is read from
+  there, and nothing is asked, scanned or written. `anchor-checkout/` is gitignored in the
+  project so it reads as a separate checkout, not a subtree.
+
 ## Profile scenarios (Stage-2 rungs 5 and 1)
 
 - `profile-default` — no scope evidence in the ask; the invoker-default rung must

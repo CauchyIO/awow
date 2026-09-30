@@ -31,7 +31,7 @@ The draft **cites** which conventions shaped it — title pattern, labels chosen
 
 - Story shape per `story-shape.md`, beside this skill; voice per `{ANCHOR}/context/team/style/board-output.md`.
 - Placement per `{ANCHOR}/context/team/conventions/REQUIRED/output-discipline.md` Rule 2: intent + acceptance criteria → body; status, blockers, execution decisions → comment; durable rationale → `{ANCHOR}/context/knowledge-base/`, through the `knowledge-source-routing` skill's Capture rule whenever `{ANCHOR}/context/knowledge-sources/index.md` exists. Label every section by placement before the gate — the user approves placement, not just words.
-- **No invented specifics.** A draft may not name a technology, path, endpoint, count, limit, or time window the source material or `{ANCHOR}/context/` did not state — those are design decisions; surface them as open questions. Never fill in Owner or Cycle unless the user named them.
+- **No invented specifics.** A draft may not name a technology, path, endpoint, count, limit, or time window the source material or `{ANCHOR}/context/` did not state — those are design decisions; surface them as open questions. Never fill in Cycle unless the user named it, and never fill in Owner / assignee except as step 4's **Assignment** rule allows.
 - **Source every action.** Record where each proposed action comes from — the transcript segment, user statement, board item, or convention that motivates it. Step 4 refuses a line with no source.
 
 ## 4. Gate — reuse the authorisation you have, then the board plan
@@ -42,7 +42,12 @@ Ask only for authorisation you do not already hold. Three kinds of action never 
 - **Agent-owned transitions.** A state move that `{ANCHOR}/context/tooling/board.md` assigns to the agent in its state machine — typically In Progress on pick-up, Done on merge — is already authorised by the team. Make it, and report it in one line. A move `board.md` does not name as agent-owned, or names as human-confirmed, is gated.
 - **A concrete change already approved in this conversation.** The user stated the exact change ("close PROJ-42 as duplicate of PROJ-40"), or approved it in a calling flow's plan. Execute it; do not ask again.
 
-Everything else — creating an item, editing a body, any other state move — requires explicit approval in this conversation. **Show the concrete change before you ask.** Never request approval in the abstract ("shall I make a ticket for this?"): the question is always a board plan the user can read. Present every batch of gated actions as one **board plan**: a fenced `diff` block, one numbered line per action, a counts footer.
+Two rules sit on top of those three:
+
+- **Assignment is consent.** Setting or changing an assignee is never agent-owned, and never rides along with a state move — picking an item up moves it to In Progress, it does not assign anyone. Assign a person only when that person asked for it themselves in this conversation ("assign it to me", "I'll take it"), or approved a plan whose board-writes line names the assignment (`/process-workitem` step 4). Someone else volunteering them is not consent; neither is the person merely being the one who invoked you. With neither, leave the assignee as it is.
+- **Deferral unassigns and stays open.** When the user defers an item — "defer", "not now", "park it", or stops an item the session moved to In Progress without finishing it — move it back to the open pre-work state it held before (the pre-image, else Todo), clear the assignee whoever it is, and comment with the date, the reason, and who was unassigned. Never close it: Done, Canceled and Duplicate are not deferral. The user's defer instruction is the approval for all three writes; report them in one line.
+
+Everything else — creating an item, editing a body, any other state move, any assignee change — requires explicit approval in this conversation. **Show the concrete change before you ask.** Never request approval in the abstract ("shall I make a ticket for this?"): the question is always a board plan the user can read. Present every batch of gated actions as one **board plan**: a fenced `diff` block, one numbered line per action, a counts footer.
 
 ```diff
 BOARD PLAN · board: <name> [<tool>]
@@ -50,7 +55,8 @@ BOARD PLAN · board: <name> [<tool>]
 + 1  <Type> "<Title>"   → <initial state>
 ~ 2  <ID>  body: <what changes>
 ~ 3  <ID>  <from> → <to>
-- 4  <ID>  close — <reason>
+~ 4  <ID>  assignee: <old | —> → <new | —>
+- 5  <ID>  close — <reason>
 
 Plan: <n> add · <n> change · <n> close
 ```

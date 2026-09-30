@@ -41,6 +41,8 @@ awow repo items carry one `type:*` label, plus `area:process` when the item is w
 
 Priority is Linear's native field — never a label. Estimates and cycle assignment are human calls; the agent leaves them untouched unless asked.
 
+Assignee: the agent only acts on unassigned or self-assigned Issues, and sets an assignee only when that person asked for it or approved a plan naming it. A deferred Issue goes back to its open pre-work state, unassigned (`workitem-write` step 4).
+
 ## Avoiding duplicates
 
 Search before creating, and read Linear's similar-issue suggestions before saving. Found an existing issue? Comment or advance it — do not open a second. Genuine duplicate: use **Mark as duplicate** (not a bare cancel) so the link to the canonical issue is preserved.

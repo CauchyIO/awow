@@ -277,7 +277,7 @@ UPDATE #[ID] — [Title]
     - [context, decisions, next steps from the meeting]
 ```
 
-**New items** to create — title, labels, body, and container per `workitem-write` steps 2–3. Present each as `CREATE [Type] "[Title]"` with the shaped draft and its cited conventions available at the gate. Assignee and cycle only if discussed in the meeting; parent if applicable.
+**New items** to create — title, labels, body, and container per `workitem-write` steps 2–3. Present each as `CREATE [Type] "[Title]"` with the shaped draft and its cited conventions available at the gate. Assignee only when that person took the item on themselves in the meeting — someone else naming them is not enough (`workitem-write` §4, **Assignment is consent**); cycle only if discussed in the meeting; parent if applicable.
 
 **Cross-team escalations**:
 

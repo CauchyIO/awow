@@ -8,7 +8,7 @@ GitHub Issues itself has very few native fields (assignee, labels, milestone). P
 | Priority | Projects v2 custom field (single-select) | Recommended options: Urgent / High / Medium / Low. |
 | Iteration | Projects v2 native field | Optional; for teams running cycles. |
 | Estimate | Projects v2 custom field (number) | Optional. |
-| Assignee | Issue native | Agent only acts on unassigned or self-assigned. |
+| Assignee | Issue native | Agent only acts on unassigned or self-assigned; assigns only on the person's ask, unassigns on deferral. |
 | Milestone | Issue native | Used for date-bound chunks; optional. |
 
 ## Wizard responsibilities
@@ -26,7 +26,7 @@ GitHub Issues itself has very few native fields (assignee, labels, milestone). P
 - Priority: <Projects v2 custom field, options listed>.
 - Iteration: <in use | not used>.
 - Estimate: <in use | not used>.
-- Assignee: agent only acts on unassigned or self-assigned (reference default).
+- Assignee: agent only acts on unassigned or self-assigned, assigns someone only on their own ask or an approved plan naming them, and unassigns on deferral (reference default).
 - Milestone: <"for date-bound chunks" | not used>.
 
 Divergence from reference: <none | list>.

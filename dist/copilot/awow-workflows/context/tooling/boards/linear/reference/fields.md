@@ -34,6 +34,8 @@ Linear estimates are configurable per team (Fibonacci, T-shirt, linear 0–5). T
 
 The agent **only** acts on Issues that are unassigned or assigned to the human invoking the agent. It refuses to pick up work assigned to another human (read access only; no state changes, no comments).
 
+It sets an assignee only when that person asked for it or approved a plan that names the assignment — never as a side effect of moving an Issue to In Progress. A deferred Issue goes back to its open pre-work state with the assignee cleared and a comment giving the reason; it is never closed. Full rule: the `workitem-write` skill, step 4.
+
 ## Wizard responsibilities
 
 **Mode A (from reference).**
@@ -59,7 +61,7 @@ Resolved decisions land in `## Required fields` of `context/tooling/board.md`.
 - Estimate: <scale, or "not used">
 - Cycle: <in use | not used>
 - Due date: <"only when external deadline" | other>
-- Assignee: agent only acts on unassigned or self-assigned Issues (reference default).
+- Assignee: agent only acts on unassigned or self-assigned Issues, assigns someone only on their own ask or an approved plan naming them, and unassigns on deferral (reference default).
 - Project: <observed rule, or "every Issue lives under an L2 Project (reference default)">.
 
 Divergence from reference: <none | list>.

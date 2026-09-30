@@ -99,6 +99,10 @@ Write the plan to `{PROJECT}/proposals/<work-item-id>.md` — at `plan` depth th
 - `path/to/new.ext` — new file, summary of contents
 - Story body / comments / knowledge base writes, if any
 
+## Board writes
+- State: <current> → In Progress on start
+- Assign: <person — only one who asked or approves this plan> | none
+
 ## Risks
 - <risk> — <mitigation>
 
@@ -125,11 +129,11 @@ Query the governing decisions and patterns with the plan's *domain nouns* — sp
 
 Iterate on the plan with the user. Do not touch code or the board until approved.
 
-At `plan` depth the approved plan is the deliverable: stop here. When you ask for approval, say what it does — you set the plan file's status to `APPROVED`, and it becomes what `implement` depth builds from; approval writes nothing to the board.
+At `plan` depth the approved plan is the deliverable: stop here. When you ask for approval, say what it does — you set the plan file's status to `APPROVED`, and it becomes what `implement` depth builds from; approval writes nothing to the board now, and its `Board writes` section — including any assignment it names — is what `implement` depth may write later.
 
 ### 5. Apply
 
-When work starts, move the item to In Progress through the `workitem-write` skill, with a dated comment naming the branch and the approved plan. Every state move carries its comment.
+When work starts, move the item to In Progress through the `workitem-write` skill, with a dated comment naming the branch and the approved plan. Every state move carries its comment. Set the assignee only as the approved plan's `Board writes` line names it — `Assign: none` means the assignee stays as it is (`workitem-write` §4, **Assignment is consent**).
 
 Execute the plan with the harness's own coding capability — yourself, or a coding subagent when the harness offers one. Hand over the approved plan and the story's acceptance criteria, never the bare ID.
 
@@ -170,6 +174,10 @@ PR opened: <url> (draft)
 
 Surface any manual follow-ups.
 
+### Deferring — at any step
+
+When the user defers the item — "defer", "not now", "park it", or stops before the PR — the item leaves the session back, not parked: through the `workitem-write` skill, move it to the open state it held before step 5 (Todo if it never had one), clear the assignee, and comment with the date, the reason, and who was unassigned. It stays open — never Done or Canceled. Leave the plan file as it is; picking the item up again starts from it.
+
 ---
 
 ## Behavioural boundaries
@@ -177,6 +185,7 @@ Surface any manual follow-ups.
 - **Stay at the requested depth.** The user's words set it; only the user deepens it.
 - **Stay in scope.** The story defines it. Surface related work as separate proposals.
 - **Never act on un-validated assumptions about state.**
+- **Assign no one unasked.** Only the person's own ask or an approved plan that names them puts a name on the item; a deferral takes it off again.
 - **Never read outside this repo, its anchor and its board.** A missing reference is a finding, not a hunt across the machine.
 - **The plan is the cheap-to-change artefact** — iterate there, not in production.
 - **Don't gold-plate.** First story delivers the feature; observability, refactors, and docs are follow-up stories.

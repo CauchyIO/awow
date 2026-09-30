@@ -12,7 +12,7 @@
 |---|---|---|
 | Backlog / Todo | Backlog, Todo | Human refines into Todo |
 | In Progress | In Progress | Agent (on pick-up / first commit) |
-| In Review | In Review | Agent (on PR open) |
+| In Review | In Review | Human (on marking the PR ready for review) |
 | Blocked | Blocked (workflow state) | Agent flags with a comment; human confirms |
 | Done | Done | Agent (on merge) |
 

@@ -170,13 +170,14 @@ Open the PR with a link to the work item, summary of changes, verification resul
 
 **Leave the item's state alone.** Opening the PR is not a state move. Update the work item through the `workitem-write` skill with a what-to-review comment carrying the PR link — plus session ID and commit SHA if the team has wired up that integrity link. Who moves it to In Review is the owner `board.md` names for that state: the human, or an integration when the owner reads `Automatic — …`.
 
-**End with the hand-off**, PR link included. Line 2 ends per that owner — `then move <ID> to In Review` for a human, `<ID> then moves to In Review automatically` for `Automatic — …`:
+**End with the hand-off**, PR link included. The last line follows that owner — `move it yourself once the PR is ready` for a human, `automatic, <the trigger board.md names>` for `Automatic — …`:
 
 ```
 PR opened: <url> (draft)
   1. Review it.
-  2. Mark it ready for review (if a draft); <how In Review happens>.
+  2. Mark it ready for review (if a draft).
   3. Add a reviewer.
+<ID> → In Review: <how it happens>.
 ```
 
 Surface any manual follow-ups.

@@ -8,7 +8,7 @@ ADO ships many native fields. The load-bearing ones for the operating model:
 | Effort / Story Points | Optional | Used for cycle-time analysis. Set by humans, not the agent. |
 | Iteration Path | Yes | Scopes "what is in this sprint". Agent reads but does not change autonomously. |
 | Area Path | Yes | Board scoping; see `labels.md`. |
-| Assigned To | Yes | Agent only acts on unassigned or self-assigned work items. |
+| Assigned To | Yes | Agent only acts on unassigned or self-assigned work items; assigns only on the person's ask, unassigns on deferral. |
 
 ## Wizard responsibilities
 
@@ -25,7 +25,7 @@ ADO ships many native fields. The load-bearing ones for the operating model:
 - Effort: <scale, or "not used">.
 - Iteration Path: <root>/<team>/<iteration>.
 - Area Path: <root>/<team>/<area>.
-- Assigned To: agent only acts on unassigned or self-assigned (reference default).
+- Assigned To: agent only acts on unassigned or self-assigned, assigns someone only on their own ask or an approved plan naming them, and unassigns on deferral (reference default).
 
 Divergence from reference: <none | list>.
 ```

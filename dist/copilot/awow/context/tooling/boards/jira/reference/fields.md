@@ -6,7 +6,7 @@
 | Story Points | Optional | Common in Scrum teams; agent reads but does not set. |
 | Sprint | Yes if running Scrum | Agent reads to scope "what's in flight". |
 | Components | Yes | See `labels.md`. |
-| Assignee | Yes | Agent only acts on unassigned or self-assigned. |
+| Assignee | Yes | Agent only acts on unassigned or self-assigned; assigns only on the person's ask, unassigns on deferral. |
 
 ## Wizard responsibilities
 
@@ -23,7 +23,7 @@
 - Story Points: <scale, or "not used">.
 - Sprint: <2-week | 1-week | flow-only>.
 - Components: <list>.
-- Assignee: agent only acts on unassigned or self-assigned (reference default).
+- Assignee: agent only acts on unassigned or self-assigned, assigns someone only on their own ask or an approved plan naming them, and unassigns on deferral (reference default).
 
 Divergence from reference: <none | list>.
 ```

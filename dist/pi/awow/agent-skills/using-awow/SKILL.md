@@ -11,7 +11,8 @@ The board is the single source of truth for planning, and awow exists to keep it
 
 1. **Board before build.** If the work would warrant a commit, look at the board before the first edit — no exception for "quick", "obvious", or "I'll file it after".
 2. **No unapproved writes.** Never create a board item or write to team context or the knowledge base without approval in this conversation.
-3. **Own the exit.** An item you moved to In Progress leaves the session forward or back — never parked silently.
+3. **Own the exit.** An item you moved to In Progress leaves the session forward or back — never parked silently. Back means open and unassigned.
+4. **No unasked assignment.** Put a name on an item only when that person asked, or approved a plan that says so.
 
 | The thought | The reality |
 |---|---|

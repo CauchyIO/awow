@@ -30,6 +30,10 @@ As edits and commits land, move the item's state forward ("In progress" when you
 
 Bound this by `output-discipline.md`: status and progress go in **comments**, not the body; minimum useful body; durable rationale goes to the knowledge base. Currency is not licence to sprawl.
 
+## Rule 5 — Assignment is consent; deferral unassigns
+
+A name on an item says someone is working it, so only that person puts it there: assign someone only when they asked for it, or approved a plan that says it will assign them. Moving state never assigns anyone. When work is deferred — even work already assigned — move the item back to its open pre-work state, clear the assignee, and say why in a comment; never close it. Full rule: the `workitem-write` skill, step 4.
+
 ## What this is not
 
 - **Not "never touch the board."** Developers still read it and pick up work there. What lifts is the *coordination overhead*, not the board.

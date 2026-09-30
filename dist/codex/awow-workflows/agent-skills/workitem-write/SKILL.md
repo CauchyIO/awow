@@ -39,7 +39,7 @@ The draft **cites** which conventions shaped it — title pattern, labels chosen
 Ask only for authorisation you do not already hold. Three kinds of action never reach the gate:
 
 - **Links and comments.** Linking an existing item and commenting need no approval.
-- **Agent-owned transitions.** A state move that `{ANCHOR}/context/tooling/board.md` assigns to the agent in its state machine — typically In Progress on pick-up, In Review on PR open, Done on merge — is already authorised by the team. Make it, and report it in one line. A move `board.md` does not name as agent-owned, or names as human-confirmed, is gated.
+- **Agent-owned transitions.** A state move that `{ANCHOR}/context/tooling/board.md` assigns to the agent in its state machine — typically In Progress on pick-up, Done on merge — is already authorised by the team. Make it, and report it in one line. A move `board.md` does not name as agent-owned, or names as human-confirmed, is gated.
 - **A concrete change already approved in this conversation.** The user stated the exact change ("close PROJ-42 as duplicate of PROJ-40"), or approved it in a calling flow's plan. Execute it; do not ask again.
 
 Everything else — creating an item, editing a body, any other state move — requires explicit approval in this conversation. **Show the concrete change before you ask.** Never request approval in the abstract ("shall I make a ticket for this?"): the question is always a board plan the user can read. Present every batch of gated actions as one **board plan**: a fenced `diff` block, one numbered line per action, a counts footer.

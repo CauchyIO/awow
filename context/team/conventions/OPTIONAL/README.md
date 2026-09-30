@@ -15,6 +15,7 @@ Each of these files solves a real problem — but the problem usually only becom
 | `infra-naming.md` | When the team starts creating cloud resources with `/process-workitem` and the names drift |
 | `data-objects.md` | When schemas, catalogues, or tables start being created via the agent |
 | `code-style.md` | When language-specific style choices fall outside what the linter / formatter enforces |
+| `pull-requests.md` | When the team wants `/process-workitem` to open normal PRs instead of drafts |
 
 ## `/setup-awow` does NOT ask about these
 

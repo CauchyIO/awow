@@ -160,7 +160,22 @@ Never call code reviewed because its tests pass. This review comes before hand-o
 
 ### 8. Report
 
-Open the PR with a link to the work item, summary of changes, verification results, and the review record from step 7. Update the work item through the `workitem-write` skill — the state move (agent-owned where `board.md` says so, gated otherwise) and a comment recording session ID and commit SHA if the team has wired up that integrity link. Surface any manual follow-ups.
+Open the PR with a link to the work item, summary of changes, verification results, and the review record from step 7.
+
+**Open it as a draft.** Read `{ANCHOR}/context/team/conventions/OPTIONAL/pull-requests.md`: open a normal PR only when it says `Draft PRs: no`; absent, a stub, or silent → draft (`gh pr create --draft`, or the host's equivalent). When the host refuses a draft, open a normal PR instead and say so in one line — never stop over it.
+
+**Leave the item's state alone.** Opening the PR is not a state move. Update the work item through the `workitem-write` skill with a what-to-review comment carrying the PR link — plus session ID and commit SHA if the team has wired up that integrity link. The human moves it to In Review when they mark the PR ready.
+
+**End with the hand-off**, PR link included:
+
+```
+PR opened: <url> (draft)
+  1. Review it.
+  2. Mark it ready for review (if a draft), then move <ID> to In Review.
+  3. Add a reviewer.
+```
+
+Surface any manual follow-ups.
 
 ---
 

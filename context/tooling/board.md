@@ -12,11 +12,11 @@
 |---|---|---|
 | Backlog / Todo | Backlog, Todo | Human refines into Todo |
 | In Progress | In Progress | Agent (on pick-up / first commit) |
-| In Review | In Review | Human (on marking the PR ready for review) |
+| In Review | In Review | Automatic — Linear GitHub integration (on PR marked ready for review) |
 | Blocked | Blocked (workflow state) | Agent flags with a comment; human confirms |
 | Done | Done | Agent (on merge) |
 
-**Owner of transition is the approval rule.** A move this table assigns to the agent is authorised by the team in advance: the agent makes it without an approval prompt and reports it in one line (`workitem-write` step 4). A move it assigns to a human, or does not list, goes through the approval gate — as does every create and every body edit.
+**Owner of transition is the approval rule.** A move this table assigns to the agent is authorised by the team in advance: the agent makes it without an approval prompt and reports it in one line (`workitem-write` step 4). A move it assigns to a human, or does not list, goes through the approval gate — as does every create and every body edit. A move it assigns as `Automatic — <integration>` is made by that integration; the agent never makes it.
 
 Terminal non-success states: `Canceled` and `Duplicate`. Humans move work there; the agent proposes, never executes.
 

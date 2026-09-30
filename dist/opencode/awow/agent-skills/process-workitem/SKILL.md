@@ -161,15 +161,16 @@ Open the PR with a link to the work item, summary of changes, verification resul
 
 **Open it as a draft.** Read `{ANCHOR}/context/team/conventions/OPTIONAL/pull-requests.md`: open a normal PR only when it says `Draft PRs: no`; absent, a stub, or silent → draft (`gh pr create --draft`, or the host's equivalent). When the host refuses a draft, open a normal PR instead and say so in one line — never stop over it.
 
-**Leave the item's state alone.** Opening the PR is not a state move. Update the work item through the `workitem-write` skill with a what-to-review comment carrying the PR link — plus session ID and commit SHA if the team has wired up that integrity link. The human moves it to In Review when they mark the PR ready.
+**Leave the item's state alone.** Opening the PR is not a state move. Update the work item through the `workitem-write` skill with a what-to-review comment carrying the PR link — plus session ID and commit SHA if the team has wired up that integrity link. Who moves it to In Review is the owner `board.md` names for that state: the human, or an integration when the owner reads `Automatic — …`.
 
-**End with the hand-off**, PR link included:
+**End with the hand-off**, PR link included. The last line follows that owner — `move it yourself once the PR is ready` for a human, `automatic, <the trigger board.md names>` for `Automatic — …`:
 
 ```
 PR opened: <url> (draft)
   1. Review it.
-  2. Mark it ready for review (if a draft), then move <ID> to In Review.
+  2. Mark it ready for review (if a draft).
   3. Add a reviewer.
+<ID> → In Review: <how it happens>.
 ```
 
 Surface any manual follow-ups.

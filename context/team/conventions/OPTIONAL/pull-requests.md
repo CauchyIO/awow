@@ -1,6 +1,6 @@
 # Pull requests
 
-How `/process-workitem` opens the PR for a board work item.
+How `/process-workitem` opens the PR for a board work item, and who merges it.
 
 Draft PRs: yes
 
@@ -9,6 +9,7 @@ Draft PRs: yes
 
 A host that refuses drafts gets a normal PR, and the agent says so.
 
-## Merging
+Approver merges: yes
 
-The reviewer who approves the PR also merges it. Approval and merge are one act: the author does not merge after an approval, and the agent never merges on the author's behalf. When several reviewers approve, the last one to approve merges.
+- `yes` (the default, also when this file is absent) — the reviewer who approves the PR also merges it. Approval and merge are one act: the author does not merge after an approval, and the agent never merges on the author's behalf. When several reviewers approve, the last one to approve merges.
+- `no` — the team opts out and decides for itself who merges.

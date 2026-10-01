@@ -8,3 +8,7 @@ Draft PRs: yes
 - `no` — the PR opens ready for review; the reminder and the In Review move stay the same.
 
 A host that refuses drafts gets a normal PR, and the agent says so.
+
+## Merging
+
+The reviewer who approves the PR also merges it. Approval and merge are one act: the author does not merge after an approval, and the agent never merges on the author's behalf. When several reviewers approve, the last one to approve merges.

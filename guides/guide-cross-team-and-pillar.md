@@ -141,7 +141,6 @@ translation directive — no new human role.
 
 ## Sources of truth
 
-- [`proposals/cross-team-feedback-and-service-drift.md`](../proposals/cross-team-feedback-and-service-drift.md) — the proposal this page accompanies: full argument and open questions
 - `context/services/` — a pillar's activity map, service distillation, and exceptions log (not shipped; the required setup)
 - [`.agents/commands/okr-cascade.md`](../.agents/commands/okr-cascade.md) — the department-tier read surface the up-aggregation feeds
 - Companion guides: [program portfolio view](program-portfolio-view.md) — the up-aggregation rendered

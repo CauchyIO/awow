@@ -39,6 +39,8 @@ Skills marked `channel: telemetry` in their frontmatter build into the separate 
 
 The source stays here either way — `channel:` selects the payload, not the location. Install with `/plugin install awow-telemetry@awow`. **Claude Code only this release:** `tools/sync-dist.sh` publishes only `dist/` to `awow-dist`, which is the Codex and Pi install source, so telemetry does not reach those harnesses.
 
+Two more channels route skills elsewhere. `channel: workflows` builds into the optional **`awow-workflows`** plugin — `bet-refinement-coach` (a live board session refining one strategic bet) and `department-coach.md` (the KR challenge battery that `/okr-cascade`, `/strategy-flow` and `bet-refinement-coach` load). `channel: vendored` ships in no plugin — `session-correlation` (links agent-authored issues and PRs back to their session trace) operates on a vendored install only.
+
 When present, the script is the deterministic part. The judgement still lives in `SKILL.md`.
 
 ### These ship as starters, not as required ingredients

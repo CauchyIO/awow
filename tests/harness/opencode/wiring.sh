@@ -15,7 +15,13 @@ wiring() {
   # Payload half: the plugin module package.json `main` resolves to.
   local js="$r/dist/opencode/awow/.opencode/plugins/awow.js"
   file-exists "$js"
-  cmd-succeeds "plugin module is valid JS" -- node --check "$js"
+  # A maintainer machine may have no node; CI always runs the check, so a
+  # missing node there still fails.
+  if command -v node >/dev/null 2>&1 || [ -n "${CI:-}" ]; then
+    cmd-succeeds "plugin module is valid JS" -- node --check "$js"
+  else
+    skip "plugin module is valid JS — node not installed (runs in CI)"
+  fi
   # opencode plugins cannot declare skills in a manifest — the config hook is the
   # only registration path, and the bootstrap is what makes a global install
   # non-dormant in a repo with no root AGENTS.md.

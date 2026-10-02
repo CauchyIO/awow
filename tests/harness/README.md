@@ -1,6 +1,6 @@
 # tests/harness — per-harness wiring test suite
 
-Two layers (design: [`proposals/harness-wiring-test-suite.md`](../../proposals/harness-wiring-test-suite.md)):
+Two layers:
 
 - **Layer 1 (wiring)** — deterministic, no model, runs in CI:
   ```bash

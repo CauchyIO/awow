@@ -16,6 +16,8 @@ jobs:
         run: python tools/gather.py --check
       - name: Path-token lint
         run: python tools/lint-paths.py
+      - name: Relative Markdown links resolve
+        run: python tools/lint-links.py
       - name: Instruction-file write targets
         run: python3 tests/context-writes/test_context_writes.py
       - name: Command frontmatter contract

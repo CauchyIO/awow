@@ -48,7 +48,3 @@ Install path: `opencode plugin awow@git+<awow-dist repo>`. `tools/sync-dist.sh` 
 ## Status
 
 Shipping under AWO-48: the `dist/` plugin module, `/setup-awow` detection, and wiring plus live regression tests under `tests/harness/opencode/`. The in-repo `.opencode/commands/` surface was retired under AWO-257.
-
-## Reference
-
-- Design: [`2026-07-28-opencode-harness-design.md`](../../../docs/superpowers/specs/2026-07-28-opencode-harness-design.md)

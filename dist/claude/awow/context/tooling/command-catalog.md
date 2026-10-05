@@ -9,10 +9,10 @@ Every command awow ships, one line each, generated from each command's own front
 | Command | Use when |
 | --- | --- |
 | `/setup-awow [<board-url>] [--anchor <git-url>] [--check]` | Use when a repo needs awow set up or repaired: connect its board, anchor it to a team's shared repo, join a configured repo on a new machine, or check what is wired. |
-| `/process-workitem <item-id> [explain | refine | plan | implement]` | Use when the user points at a board item — a ticket ID, issue link, or “let's pick up X” — and wants it explained, refined, planned, or carried through a code change to an opened PR. |
+| `/process-workitem <item-id> [explain \| refine \| plan \| implement]` | Use when the user points at a board item — a ticket ID, issue link, or “let's pick up X” — and wants it explained, refined, planned, or carried through a code change to an opened PR. |
 | `/my-work` | Use when the user asks what they should work on, what is pending or waiting on them, or says they have lost track of the board and want to get oriented before starting a block of work. |
 | `/update-context` | Use when a session is wrapping up — a commit, a PR, a sign-off — and the user stated a durable rule about how the team works, so it lands in the context tree. |
-| `/awow-help [--commands | <command> | what you want to do]` | Use when the user asks what awow can do here, what a command does, what to run next, or has just installed the plugin and does not know where to start. |
+| `/awow-help [--commands \| <command> \| what you want to do]` | Use when the user asks what awow can do here, what a command does, what to run next, or has just installed the plugin and does not know where to start. |
 
 ### `awow-workflows` — the optional bundle
 
@@ -21,7 +21,7 @@ Every command awow ships, one line each, generated from each command's own front
 | `/artifact` | Use when the user asks for a deck, slides, a blog post, one-pager, or report as HTML or PDF — any styled document that should follow the team's house style instead of hand-written CSS. |
 | `/board-lifecycle [--check] [--snapshot <path>] [--ledger]` | Use when the board's project layer needs governing — projects without owners or end conditions piling up, nobody sure which containers are alive, or a planning round that needs a trustworthy project overview first. Declares shapes and horizons, sweeps the estate, and turns expiry into a visible exception instead of silent rot or a silent auto-close. |
 | `/daily-checkin [path to a written or voice account, e.g. checkins/<user>/YYYY-MM-DD.md] (optional — omit to capture live or to reconstruct from board + code)` | Use when the user recounts their day, points at a check-in note or voice memo, or wants the board to reflect today's work — end-of-day logging, standup prep, catching untracked work. |
-| `/daily-digest [--week | YYYY-Www | YYYY-MM-DD] (optional — omit for today)` | Use when the user asks what the team shipped today or this week, wants a daily or weekly digest written up and raised as a PR, or says they have no idea what other people are working on. |
+| `/daily-digest [--week \| YYYY-Www \| YYYY-MM-DD] (optional — omit for today)` | Use when the user asks what the team shipped today or this week, wants a daily or weekly digest written up and raised as a PR, or says they have no idea what other people are working on. |
 | `/design-system` | Use when the user wants one house style for the HTML they generate — asks to stand up or adopt a design system, points at a site or brand to derive tokens from, or says every deck looks different. |
 | `/handover [who it is for, e.g. 'my morning read' or 'another agent to challenge the design'] (optional — omit and you will be asked)` | Use when a session's work must survive it — the user asks for a handover, a resume prompt or a brief for another agent, says they are signing off, switching sessions, running out of context, or wants to pick this up tomorrow. |
 | `/kb-mine` | Use when the user asks what's worth writing down from a day's work, wants to backfill knowledge-base candidates for a past day, or says hard-won insight is evaporating unrecorded. |
@@ -34,7 +34,7 @@ Every command awow ships, one line each, generated from each command's own front
 | `/setup-department` | Use when a department repo has no identity or OKR surface yet, or the user asks to stand up a department, register a team submodule, or scaffold the department's quarterly OKR doc. |
 | `/solution-design-flow` | Use when the user is weighing architectural or solution options, is about to lock a design decision, or points at a transcript of a design discussion — before the decision only exists in chat. |
 | `/strategy-flow` | Use when a team or department has a vision but no measurable goals yet — the user wants to name strategic bets and refine each into committed and aspirational KRs with baselines and dated targets, landed as a draft OKR set. Start-of-quarter, or whenever the strategy layer above the board is missing. |
-| `/team-workshop [prepare | <transcript.vtt|.srt|notes.md>]` | Use when a team wants to talk its way of working through and needs a meeting brief, or has the workshop transcript back to turn into team context proposals. |
+| `/team-workshop [prepare \| <transcript.vtt\|.srt\|notes.md>]` | Use when a team wants to talk its way of working through and needs a meeting brief, or has the workshop transcript back to turn into team context proposals. |
 
 ### Installing `awow-workflows`
 

@@ -320,7 +320,7 @@ scratch contents.
 | 2026-09-24 | 2 | `setup-awow` / `check-readonly` | `9f35de8` | **pass** — checks all pass, rubric 7/7. |
 | 2026-09-24 | 5 | `setup-awow` / `connect-repo` | `9f35de8` | **pass** — checks all pass, rubric 12/12. |
 | 2026-09-24 | 2 | `setup-awow` / `init-ambient-candidates` | `9f35de8` | **pass** — checks all pass, rubric 9/9. |
-| 2026-09-24 | 1 | `setup-awow` / `init-plugin-repo` | `9f35de8` | **fail** — rubric 11/11; check `file-contains board.md gh-cli|pending` failed: board.md named "the gh CLI" in prose, not `surface: gh-cli`, the value the GitHub reference records and later commands read. Triage: Q8 yes vs check fail. Prompt defect: step 3 now names the token (this PR). |
+| 2026-09-24 | 1 | `setup-awow` / `init-plugin-repo` | `9f35de8` | **fail** — rubric 11/11; check `file-contains board.md gh-cli\|pending` failed: board.md named "the gh CLI" in prose, not `surface: gh-cli`, the value the GitHub reference records and later commands read. Triage: Q8 yes vs check fail. Prompt defect: step 3 now names the token (this PR). |
 | 2026-09-24 | 5 | `setup-awow` / `join-anchored` | `9f35de8` | **pass** — checks all pass, rubric 9/9. |
 | 2026-09-24 | 2 | `setup-awow` / `preflight-no-git` | `9f35de8` | **pass** — checks all pass, rubric 7/7. First run in its container (Docker Desktop). |
 | 2026-09-24 | 2 | `setup-awow` / `preflight-not-a-repo` | `9f35de8` | **pass** — checks all pass, rubric 8/8. |

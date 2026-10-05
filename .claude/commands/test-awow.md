@@ -2,7 +2,7 @@
 description: "Run an awow eval suite — the maintainer-only regression runner over tests/<suite>/, with scripted replies and an independent grading pass"
 ---
 
-# /test-awow [<suite> | core | all] [<scenario>] [--keep] — execute an eval suite
+# `/test-awow [<suite> | core | all] [<scenario>] [--keep]` — execute an eval suite
 
 > **Maintainer-only command.** Part of awow's own regression suite. If you templated this repo and are not maintaining awow itself, delete this file and the `tests/` directory.
 

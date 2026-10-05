@@ -132,7 +132,7 @@ Query the governing decisions and patterns with the plan's *domain nouns* — sp
 
 - **Flag** the specific plan tasks that touch a governed surface, in the plan itself — step 5 re-checks those and no others.
 - **Conflict** with a ratified decision or established pattern → do not proceed silently. Surface it concretely — the id, the file path, the specific contradiction — and seek human reconciliation. `strictness: warn-only` downgrades this to a warning the user can wave through.
-- **Alignment** → cite **"checked against: <the decisions and patterns you actually retrieved>"**. Never write "no conflicts found": that claims a completeness retrieval cannot give you. The citation states the scope of the check, not a guarantee.
+- **Alignment** → cite **"checked against: `<the decisions and patterns you actually retrieved>`"**. Never write "no conflicts found": that claims a completeness retrieval cannot give you. The citation states the scope of the check, not a guarantee.
 
 Iterate on the plan with the user. Do not touch code or the board until approved.
 

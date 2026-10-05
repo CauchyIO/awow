@@ -132,7 +132,7 @@ For each piece of work done today:
 3. Does this create a dependency or overlap that isn't formally tracked?
 4. Would knowledge of this work change how another team member approaches their own tasks?
 
-Be specific. "<Name>'s rate-limit work could inform <Name>'s gateway redesign" is useful. "Everyone should stay aligned" is not.
+Be specific. "`<Name>`'s rate-limit work could inform `<Name>`'s gateway redesign" is useful. "Everyone should stay aligned" is not.
 
 ### Personalized takeaways
 

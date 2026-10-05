@@ -508,7 +508,10 @@ def _catalog_tables(rows: list[dict[str, str]]) -> str:
             if row["plugin"] != plugin:
                 continue
             invocation = f"/{row['name']}" + (f" {row['hint']}" if row["hint"] else "")
-            out.append(f"| `{invocation}` | {row['description']} |")
+            # GFM splits cells on `|` even inside code spans; escape it so hints
+            # like `[explain | refine]` stay in one cell.
+            cells = (invocation.replace("|", "\\|"), row["description"].replace("|", "\\|"))
+            out.append(f"| `{cells[0]}` | {cells[1]} |")
         out.append("")
     return "\n".join(out).rstrip("\n") + "\n"
 

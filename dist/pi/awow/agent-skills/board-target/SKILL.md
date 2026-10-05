@@ -33,7 +33,7 @@ A single-board `board.md` is the board; done — no ladder. An index-form `board
 
 ## 3. An absent `board.md` is a question, not a stop
 
-Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; those map to several products, so ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. A board URL the user gave to another command earlier in this session is a candidate, not an answer: name it in the one question ("Use <url>?"). Offer `/setup-awow <board-url>` to make the answer durable; never write `{ANCHOR}/context/tooling/board.md` yourself.
+Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; those map to several products, so ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. A board URL the user gave to another command earlier in this session is a candidate, not an answer: name it in the one question ("Use `<url>`?"). Offer `/setup-awow <board-url>` to make the answer durable; never write `{ANCHOR}/context/tooling/board.md` yourself.
 
 ## 4. Record once, announce once
 

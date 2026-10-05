@@ -39,7 +39,7 @@ Query **the one board `board-target` resolved** (surface per `{ANCHOR}/context/t
 
 Do not dump a status list. Re-group into action buckets. **Every item you pulled appears exactly once**, in the bucket that says what to do about it — a blocked In Progress item goes under Waiting, with its staleness as a flag on that line, not a second entry under In flight. Every `<n>` is the number of items listed under that heading — count the IDs you print, never estimate. A line that stands for several items names every ID it covers.
 
-An item not assigned to the user may appear only when it blocks the user's own work and nobody holds it; put it under **Waiting**, never under Needs you now, and label it on its line — *not assigned to you — blocks <ID>* — so it is never read as theirs.
+An item not assigned to the user may appear only when it blocks the user's own work and nobody holds it; put it under **Waiting**, never under Needs you now, and label it on its line — *not assigned to you — blocks `<ID>`* — so it is never read as theirs.
 
 - **Needs you now** — In Review awaiting *your* review, blocked-on-you, overdue, or high-priority Todo. These are the things that move only if you act. An overdue item goes here even when it is also blocked: it needs you to chase or re-plan it; note the blocker on its line.
 - **In flight** — your In Progress items. Flag any that are **stale** (no update in N working days; default 3) — these are the ones quietly stuck.

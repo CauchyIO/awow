@@ -6,6 +6,6 @@ Seed this file from any glossary the team already has, or let `/kb-synthesize` (
 
 ## Template
 
-### <Term>
+### `<Term>`
 
-<One-paragraph definition. Plain language. Note any common confusion with related terms.>
+`<One-paragraph definition. Plain language. Note any common confusion with related terms.>`

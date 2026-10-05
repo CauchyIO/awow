@@ -55,7 +55,7 @@ down?*
   compliance audit needs a hard data boundary, accepting the migration cost."
 - KEEP → `patterns/`: "We wrap every board write in the idempotency helper so a retried
   MCP call can't double-post a comment."
-- DROP: "Moved <TEAM>-123 to In Review." / "Fixed the typo in the config loader."
+- DROP: "Moved `<TEAM>`-123 to In Review." / "Fixed the typo in the config loader."
 
 ---
 

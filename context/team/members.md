@@ -8,9 +8,9 @@ A CV or résumé is a reasonable starting point for the first version of an entr
 
 ## Template
 
-### <Name>
+### `<Name>`
 
-- **Role:** <e.g. Tech lead>
-- **Responsibilities:** <what they own>
-- **Focus areas:** <current work>
-- **Board handle:** <@name>
+- **Role:** `<e.g. Tech lead>`
+- **Responsibilities:** `<what they own>`
+- **Focus areas:** `<current work>`
+- **Board handle:** `<@name>`

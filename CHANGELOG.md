@@ -8,6 +8,42 @@ that same PR. When the PR lands on `main`, the release workflow publishes the
 section as the body of the GitHub release and tags the commit. Releases before
 v0.9.2 were not tagged individually; `git log` is their record.
 
+## v1.0.0
+
+The first public release. awow now ships as two plugins: **awow**, a small core of five commands, and **awow-workflows**, an optional preview bundle with everything else.
+
+### Breaking changes
+- **API** The core is five commands: `/setup-awow`, `/my-work`, `/process-workitem`, `/update-context` and the new `/awow-help`. Seventeen commands moved to the optional `awow-workflows` plugin. (#7, #22)
+- **API** `/migrate-to-plugin` and its lockfile are gone, and so are the old hub names (`hub:`, `awow: spoke`, `$AWOW_HUB`, `.awow/hub.json`, `{HUB}`). Only the anchor forms are read. (#19)
+- **API** `/setup-awow` is now a small configuration command. `--check` reports without writing, and board access is checked without a probe write. (#10, #16)
+- **Enhancement** The standalone lifecycle and story skills are retired. Board reads and writes follow one path. (#8, #21)
+
+### Commands
+- **Feature** `/awow-help` says what awow can do in this repo and what to run next. (#22)
+- **Enhancement** `/process-workitem` does as much as you ask: explain, refine, plan or implement. (#12)
+- **Enhancement** The core commands were polished across three dry runs, on Claude Code, Codex and a clean VM. (#25, #41, #42, #43)
+- **Enhancement** A fresh install leads straight to a useful command, and a configured install is no longer nudged to run `/setup-awow`. (#9, #26)
+- **Enhancement** The command catalog is generated from each command's frontmatter. (#20)
+
+### Harnesses and distribution
+- **Enhancement** The build is `dist/<harness>/<plugin>/`, and the workflows bundle ships for every harness. (#5, #6)
+- **Enhancement** The six supported harnesses are named, with what "supported" promises. (#27)
+
+### Docs
+- **Enhancement** One setup page, and a README a stranger can follow. (#29)
+
+### Testing
+- **Enhancement** Eval suites for `/setup-awow`, `/process-workitem`, the `workitem-write` skill and context resolution, run as a set with `/test-awow core`. Every command is mapped to its evidence in `tests/EVIDENCE.md`. (#15, #28, #33)
+
+### Known gaps
+- **Tested to the bar:** on Claude Code, journeys 1–5 (install, connect a board, take a work item to a PR, create or update a board item, and work in an anchored repo) each passed three graded eval runs.
+- **The workflows plugin is a preview.** Its journey (meeting notes → board items) has a suite, but no graded run is on record. `/board-lifecycle` and `/daily-digest` are in the same position. Seven more workflows commands that write to a board or files have no eval suite: `/project-plan`, `/daily-checkin`, `/solution-design-flow`, `/process-retro`, `/strategy-flow`, `/okr-cascade` and `/team-workshop`.
+- **`/update-context` has no eval suite.** It writes team rules only after approval, but that flow has not been graded.
+- **Other harnesses are untested.** Codex, Copilot, Pi, opencode and the M365 surface are built from their docs. Only Claude Code was install-tested.
+- **`knowledge-source-routing` has no test.** Low risk: it only reads external sources.
+- **Commands that only read or report** (`/awow-help`, `/my-work`) get one worked example each, not a release-gating suite.
+- **Deferred:** `adopting-okf` and `coaching-review`.
+
 ## v0.13.0
 
 ### Migration — hub → anchor rename

@@ -12,7 +12,6 @@ The original shape. One markdown file at `.agents/skills/<name>.md` whose body d
 
 Examples shipped with the starter pack:
 
-- [`user-story-template.md`](./user-story-template.md) — the shape of a well-structured user story.
 - [`agent-directive-voice.md`](./agent-directive-voice.md) — voice rules for authoring or editing any prompt under `.agents/`.
 
 ### Packaged skill — a directory with `SKILL.md` and optional resources
@@ -36,15 +35,17 @@ Examples shipped with the starter pack:
 
 ### Two plugins, one source tree
 
-Skills marked `channel: telemetry` in their frontmatter build into the separate **`awow-telemetry`** plugin rather than into `awow` — `mlflow-export`, `prompt-skill-analysis`, `project-timeline`, `awow-usage-coach`, `session-export`. The base plugin keeps the behavioural skills, including `using-awow`, `workitem-write`, `board-aware-development`, `architecture-aware-development`, `knowledge-source-routing`, `adopting-okf`, and `user-story-template`. Different audience, different dependency profile, different privacy posture; and every skill description loads into every session, so a telemetry surface nobody uses is a tax on everybody.
+Skills marked `channel: telemetry` in their frontmatter build into the separate **`awow-telemetry`** plugin rather than into `awow` — `mlflow-export`, `prompt-skill-analysis`, `project-timeline`, `awow-usage-coach`, `session-export`. The base plugin keeps the behavioural skills, including `using-awow`, `workitem-write`, `board-target` and `knowledge-source-routing`. Different audience, different dependency profile, different privacy posture; and every skill description loads into every session, so a telemetry surface nobody uses is a tax on everybody.
 
 The source stays here either way — `channel:` selects the payload, not the location. Install with `/plugin install awow-telemetry@awow`. **Claude Code only this release:** `tools/sync-dist.sh` publishes only `dist/` to `awow-dist`, which is the Codex and Pi install source, so telemetry does not reach those harnesses.
+
+Two more channels route skills elsewhere. `channel: workflows` builds into the optional **`awow-workflows`** plugin — `bet-refinement-coach` (a live board session refining one strategic bet) and `department-coach.md` (the KR challenge battery that `/okr-cascade`, `/strategy-flow` and `bet-refinement-coach` load). `channel: vendored` ships in no plugin — `session-correlation` (links agent-authored issues and PRs back to their session trace) operates on a vendored install only.
 
 When present, the script is the deterministic part. The judgement still lives in `SKILL.md`.
 
 ### These ship as starters, not as required ingredients
 
-Every operational skill in this folder is opinionated about *some* part of the stack — the tracing backend, the harness session format, the analysis rubric. That is fine for a starter pack; it is not fine for a long-lived team config. `/setup-awow` Step 8 (Skills review) walks the team through each shipped skill and asks: keep as-is, customise to your stack, or drop. Re-run that step whenever the stack changes.
+Every operational skill in this folder is opinionated about *some* part of the stack — the tracing backend, the harness session format, the analysis rubric. That is fine for a starter pack; it is not fine for a long-lived team config. A team customises a skill by copying it into its own repo-local skills home, where it outranks the plugin's copy; nothing walks the team through the set.
 
 ## When to write a skill
 

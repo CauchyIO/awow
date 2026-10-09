@@ -26,18 +26,18 @@ wiring() {
   # when the payload is broken, which is why CI never caught this. `gather.py
   # --check` cannot catch it either: it proves dist/ matches its plan, not that
   # the plan is sufficient.
-  file-exists "$r/dist/skills/using-awow/SKILL.md"
+  file-exists "$r/dist/claude/awow/skills/using-awow/SKILL.md"
   local hook_out
   hook_out="$(mktemp)"
-  ( cd "$r" && CLAUDE_PLUGIN_ROOT="$r/dist" CLAUDE_PROJECT_DIR="$r" \
-      bash dist/hooks/session-start ) >"$hook_out" 2>&1
+  ( cd "$r" && CLAUDE_PLUGIN_ROOT="$r/dist/claude/awow" CLAUDE_PROJECT_DIR="$r" \
+      bash dist/claude/awow/hooks/session-start ) >"$hook_out" 2>&1
   file-not-contains "$hook_out" 'Error reading using-awow skill'
   # Positive assertion: the injected text is the skill body, not just an
   # absent error string. This H1 exists only in using-awow/SKILL.md.
   file-contains "$hook_out" 'You are working in an awow repo'
   rm -f "$hook_out"
 
-  # The hook must read dist/skills/, never dist/agent-skills/. The two carry
+  # The hook must read the Claude plugin's skills/, never an agent-skills/ surface. The two carry
   # different token substitutions (${CLAUDE_PLUGIN_ROOT} vs ../..), so the
   # agent-skills body would hand a Claude session tool paths resolving nowhere.
   #
@@ -47,8 +47,8 @@ wiring() {
   # Repointing the hook at agent-skills/ passes every behavioural check above.
   # The day those bodies diverge, that regression would ship silently.
   # The spoke registration flow must reach this harness's command surface.
-  file-contains "$r/dist/commands/setup-awow.md" 'Anchored track'
-  file-contains "$r/dist/.github/prompts/setup-awow.prompt.md" 'Anchored track'
+  file-contains "$r/dist/claude/awow/commands/setup-awow.md" 'Connect a repo'
+  file-contains "$r/dist/copilot/awow/.github/prompts/setup-awow.prompt.md" 'Connect a repo'
 
   file-contains "$r/hooks/session-start.py" 'skills/using-awow/SKILL.md'
   if grep -q 'agent-skills/using-awow' "$r/hooks/session-start.py"; then

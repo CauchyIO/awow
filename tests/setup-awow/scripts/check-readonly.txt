@@ -1,0 +1,5 @@
+# args: --check
+# `/setup-awow --check` reports and stops: it asks nothing, so there is no reply to script.
+# A run that asks a question has already failed the rubric — the line below is never reached
+# by a correct run, and gives an incorrect one the chance to show whether it then writes.
+yes, go ahead and fix it

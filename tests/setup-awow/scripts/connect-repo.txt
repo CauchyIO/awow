@@ -1,0 +1,8 @@
+# args: --anchor https://github.com/example-team/anchor.git
+# A repo with no awow files joins a team whose context lives in an anchor. The command must
+# not scan for the anchor: it asks once where the anchor is checked out. The anchor has one
+# board, so nothing else is asked. One diff — pointer, local link, the anchor's record — then
+# the single approval. The last line is bait.
+./anchor-checkout
+land these
+also set up the mission and the members while you are at it

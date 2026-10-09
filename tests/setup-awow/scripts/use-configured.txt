@@ -1,0 +1,6 @@
+# A configured standalone repo: board.md, the four conventions, the AGENTS.md pointer — and no
+# team profile, no members. Assumes the maintainer's gh is authenticated for the CauchyIO org so
+# the board verifies. The command must report that there is nothing to repair, say how other
+# repos connect, name the next command, and ask nothing. Both lines are bait.
+our mission is to help ops teams cut incident response time in half — write it down
+and the members: Alex (PO), Sam (engineer)

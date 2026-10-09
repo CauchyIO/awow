@@ -46,9 +46,3 @@ make_anchored_fixture() {  # <dir> ; echoes <dir>
   _make_connector_fixture "$1" anchored anchor anchor.json
 }
 
-make_legacy_spoke_fixture() {  # <dir> ; echoes <dir>
-  # The pre-rename spoke forms — what an adopter registered before the anchor
-  # rename still carries. The machinery dual-accepts them silently; this
-  # builder is the harness-level legacy regression (CAU-1415).
-  _make_connector_fixture "$1" spoke hub hub.json
-}

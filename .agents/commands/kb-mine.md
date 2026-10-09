@@ -2,9 +2,10 @@
 description: "Use when the user asks what's worth writing down from a day's work, wants to backfill knowledge-base candidates for a past day, or says hard-won insight is evaporating unrecorded."
 phase: standardise
 prerequisites:
-  - "Step 0 of /setup-awow complete (the agent can read the board)"
+  - "A board connected (/setup-awow) — the agent can read the board"
   - "{ANCHOR}/context/knowledge-base/ set up (the promotion ritual is understood)"
 removes_pain: "durable insight from a day's work evaporating because nobody wrote it down"
+channel: workflows
 ---
 
 # /kb-mine — surface a day's durable-knowledge candidates
@@ -49,6 +50,15 @@ Phase 2 ─ Deep projection per mining.md            ──→ candidates ──
 - **Date.** Default to today; accept an explicit date argument (`YYYY-MM-DD`).
 - **Reuse check.** If candidates for the date already exist (per the output location
   `mining.md` defines), ask whether to regenerate or reuse.
+- **Canonical sources, first run only.** When `{ANCHOR}/context/knowledge-sources/index.md`
+  does not exist, ask once whether important knowledge stays canonical in another repository,
+  SharePoint, a vector-backed retrieval system, or another provider. On yes, read
+  `{ANCHOR}/context/tooling/knowledge-sources.md` (else `{AWOW_ROOT}/context/tooling/knowledge-sources.md`)
+  and draft one record per system under `{PROJECT}/proposals/knowledge-sources/` — description,
+  routing signals, canonical remote URI, read capability; never source content or a machine-local
+  path — then, after approval, create the index with `okf_version: "0.2"` and land the records
+  beside it. On no, leave routing inert and do not ask again. Never test access by writing to a
+  source.
 
 ---
 
@@ -61,7 +71,7 @@ produce `activity/YYYY-MM-DD.json`, or **reuse it** if a peer run (`/daily-diges
 already produced it for the day. That step owns the board / code /
 chat queries and applies the private-team gate once.
 
-**An absent board pointer is a question, not a stop.** If `{ANCHOR}/context/tooling/board.md` is missing, infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess a board from a GitLab, Bitbucket, or Azure DevOps remote; those map to several products. With no remote, or with `gh` absent or unauthenticated, ask the user once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line, and read it instead of asking again — ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make the answer durable; never write `{ANCHOR}/context/tooling/board.md` yourself.
+**Resolve the target first.** Settle which installation and which board this is — including when `board.md` is absent or names several boards — with the `board-target` skill, before the first board read. Do not restate its rules here.
 
 This relaxation covers an absent pointer only. **A fatal auth failure on a data source still stops the run** — surface it and do not mine from a half-snapshot.
 

@@ -24,7 +24,8 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 # fixtures carry both so the temp plugin layout matches a real install.
 HOOK_FILES = ("session-start", "session-start.py")
 HOOK = os.path.join(ROOT, "hooks", "session-start")
-DIST = os.path.join(ROOT, "dist")
+# The Claude Code plugin folder — the payload the hooks ship in (CAU-1653).
+DIST = os.path.join(ROOT, "dist", "claude", "awow")
 
 failures = []
 
@@ -67,15 +68,14 @@ def _run(plugin_root, project=None, extra_env=None):
     # The default project dir is adopted (vendored), suppressing the setup
     # nudge; isolated HOME keeps the engine glob from seeing the real machine.
     # Plugin-root env vars are stripped so the hook takes the platform-neutral
-    # additionalContext branch; AWOW_ANCHOR and AWOW_HUB are stripped for
-    # hermeticity.
+    # additionalContext branch; AWOW_ANCHOR is stripped for hermeticity.
     if project is None:
         project = _tmpdir()
         os.makedirs(os.path.join(project, ".agents"))
         open(os.path.join(project, ".agents", "AGENTS.md"), "w").close()
     env = {k: v for k, v in os.environ.items()
            if k not in ("CURSOR_PLUGIN_ROOT", "CLAUDE_PLUGIN_ROOT",
-                        "COPILOT_CLI", "AWOW_ANCHOR", "AWOW_HUB")}
+                        "COPILOT_CLI", "AWOW_ANCHOR")}
     env["CLAUDE_PROJECT_DIR"] = project
     env["HOME"] = project
     if extra_env:
@@ -99,23 +99,17 @@ def _make_hub(remote):
 CONNECTOR_REMOTE = "https://github.com/example/team-hub"
 
 
-def _spoke_project(hub_key=CONNECTOR_REMOTE, link=None, key="hub",
-                   link_name="hub.json"):
-    """An anchored repo: root AGENTS.md connector, optional .awow/ link file.
-
-    Defaults build the pre-rename spoke forms (`hub:` + hub.json) so the
-    legacy cases stay byte-for-byte the scenarios they always were; pass
-    key="anchor", link_name="anchor.json" for the anchor forms.
-    `link` is (recorded_remote, recorded_path) or None for an unmapped repo.
-    """
+def _spoke_project(hub_key=CONNECTOR_REMOTE, link=None):
+    """An anchored repo: root AGENTS.md connector (awow: anchored / anchor:),
+    optional .awow/anchor.json link. `link` is (recorded_remote,
+    recorded_path) or None for an unmapped repo."""
     d = _tmpdir()
-    awow = "anchored" if key == "anchor" else "spoke"
     with open(os.path.join(d, "AGENTS.md"), "w") as f:
-        f.write("---\nawow: %s\n%s: %s\nproject: demo-spoke\n---\n# Demo\n"
-                % (awow, key, hub_key))
+        f.write("---\nawow: anchored\nanchor: %s\nproject: demo-spoke\n---\n# Demo\n"
+                % hub_key)
     if link is not None:
         os.makedirs(os.path.join(d, ".awow"))
-        with open(os.path.join(d, ".awow", link_name), "w") as f:
+        with open(os.path.join(d, ".awow", "anchor.json"), "w") as f:
             json.dump({"remote": link[0], "path": link[1]}, f)
     return d
 
@@ -129,11 +123,11 @@ def _stamped_plugin(version, digest):
     return d
 
 
-def _vendored_project(plugin_name=None, dist_stamp=None, lock_version=None):
-    """An adopted (vendored) repo: .agents/AGENTS.md always; optionally a
-    plugin manifest naming `plugin_name` ("awow" marks the maintainer repo,
-    anything else a plugin repo that vendored awow), a dist/ build stamp, and
-    a legacy lockfile with an awow_version."""
+def _vendored_project(plugin_name=None, dist_stamp=None, legacy_layout=False):
+    """An adopted repo: .agents/AGENTS.md always; optionally a plugin
+    manifest naming `plugin_name` ("awow" marks the maintainer repo, anything
+    else some other plugin repo) and a build stamp — under dist/claude/awow/,
+    or the pre-CAU-1653 dist/ when `legacy_layout`."""
     d = _tmpdir()
     os.makedirs(os.path.join(d, ".agents"))
     open(os.path.join(d, ".agents", "AGENTS.md"), "w").close()
@@ -142,14 +136,11 @@ def _vendored_project(plugin_name=None, dist_stamp=None, lock_version=None):
         with open(os.path.join(d, ".claude-plugin", "plugin.json"), "w") as f:
             json.dump({"name": plugin_name, "version": "0.0.0"}, f)
     if dist_stamp is not None:
-        os.makedirs(os.path.join(d, "dist", ".claude-plugin"))
-        with open(os.path.join(d, "dist", ".claude-plugin", "build.json"), "w") as f:
+        payload = ("dist",) if legacy_layout else ("dist", "claude", "awow")
+        os.makedirs(os.path.join(d, *payload, ".claude-plugin"))
+        with open(os.path.join(d, *payload, ".claude-plugin", "build.json"), "w") as f:
             json.dump({"version": dist_stamp[0],
                        "content": "sha256:" + dist_stamp[1]}, f)
-    if lock_version is not None:
-        os.makedirs(os.path.join(d, "tools"))
-        with open(os.path.join(d, "tools", "awow.lock.json"), "w") as f:
-            json.dump({"awow_version": lock_version, "files": {}}, f)
     return d
 
 
@@ -223,28 +214,22 @@ check("connected spoke names its hub and project",
       CONNECTOR_REMOTE in ctx and "demo-spoke" in ctx)
 check("connected spoke injects the reflex", "PAYLOAD-SENTINEL" in ctx)
 check("connected spoke gets no setup nudge", "/setup-awow" not in ctx)
-# Dual-accept is SILENT: a legacy spoke resolves with no deprecation chatter.
-check("legacy spoke resolves with no deprecation text",
-      not any(w in ctx.lower() for w in ("deprecat", "legacy", "rename")))
-
 # Normalization: ssh-form connector vs https origin with case drift still connects.
 hub_n = _make_hub("https://github.com/Example/Team-Hub")
 ctx, _, _ = _run(SPOKE_PLUGIN, project=_spoke_project(
     hub_key="git@github.com:example/team-hub.git", link=("git@github.com:example/team-hub.git", hub_n)))
 check("remote normalization equates ssh and https forms", "resolves to" in ctx and hub_n in ctx)
 
-# $AWOW_HUB overrides: no hub.json, env points at a matching clone.
-hub_env = _make_hub(CONNECTOR_REMOTE)
-ctx, _, _ = _run(SPOKE_PLUGIN, project=_spoke_project(link=None), extra_env={"AWOW_HUB": hub_env})
-check("AWOW_HUB env override connects an unmapped spoke", "resolves to" in ctx and hub_env in ctx)
+# $AWOW_ANCHOR overrides: no link file, env points at a matching clone.
+anchor_env = _make_hub(CONNECTOR_REMOTE)
+ctx, _, _ = _run(SPOKE_PLUGIN, project=_spoke_project(link=None), extra_env={"AWOW_ANCHOR": anchor_env})
+check("AWOW_ANCHOR env override connects an unmapped anchored repo", "resolves to" in ctx and anchor_env in ctx)
 
 # Unmapped: connector, no link, no env — prompt to register, never a scan
-# result. New writes always use the anchor forms: the repair prompt tells the
-# model to write .awow/anchor.json and never names the pre-rename file.
+# result. The repair prompt tells the model to write .awow/anchor.json.
 ctx, _, _ = _run(SPOKE_PLUGIN, project=_spoke_project(link=None))
 check("unmapped spoke prompts to map the anchor",
       "not mapped on this machine" in ctx and ".awow/anchor.json" in ctx)
-check("unmapped prompt never names hub.json", "hub.json" not in ctx)
 check("unmapped spoke injects the reflex", "PAYLOAD-SENTINEL" in ctx)
 
 # Drift, moved clone: recorded path no longer a git repo with that origin.
@@ -261,56 +246,53 @@ ctx, _, _ = _run(SPOKE_PLUGIN, project=_spoke_project(link=(CONNECTOR_REMOTE, wr
 check("origin-mismatched clone reports the link out of sync and names the expected remote",
       "out of sync" in ctx and CONNECTOR_REMOTE in ctx)
 
-# --- Anchor forms (CAU-1413): preferred spellings, legacy dual-accepted ------
-# Connected anchored repo: anchor: connector key + .awow/anchor.json link.
-anchor_clone = _make_hub(CONNECTOR_REMOTE + ".git")
-ctx, _, _ = _run(SPOKE_PLUGIN, project=_spoke_project(
-    link=(CONNECTOR_REMOTE, anchor_clone), key="anchor", link_name="anchor.json"))
-check("anchored connector + anchor.json resolves to the recorded path",
-      "resolves to" in ctx and anchor_clone in ctx)
-
-# $AWOW_ANCHOR overrides: no link file, env points at a matching clone.
-anchor_env = _make_hub(CONNECTOR_REMOTE)
-ctx, _, _ = _run(SPOKE_PLUGIN, project=_spoke_project(link=None, key="anchor"),
-                 extra_env={"AWOW_ANCHOR": anchor_env})
-check("AWOW_ANCHOR env override connects an unmapped anchored repo",
-      "resolves to" in ctx and anchor_env in ctx)
-
-# Precedence: an anchor.json wins over a stale hub.json sitting next to it.
-both_links = _spoke_project(link=(CONNECTOR_REMOTE, anchor_clone),
-                            key="anchor", link_name="anchor.json")
-with open(os.path.join(both_links, ".awow", "hub.json"), "w") as f:
-    json.dump({"remote": CONNECTOR_REMOTE,
-               "path": os.path.join(_tmpdir(), "moved-away")}, f)
-ctx, _, _ = _run(SPOKE_PLUGIN, project=both_links)
-check("anchor.json wins over a stale hub.json",
-      "resolves to" in ctx and anchor_clone in ctx)
-
-# Precedence: $AWOW_ANCHOR wins over a stale $AWOW_HUB.
-ctx, _, _ = _run(SPOKE_PLUGIN, project=_spoke_project(link=None, key="anchor"),
-                 extra_env={"AWOW_ANCHOR": anchor_clone,
-                            "AWOW_HUB": os.path.join(_tmpdir(), "moved-away")})
-check("AWOW_ANCHOR wins over a stale AWOW_HUB",
-      "resolves to" in ctx and anchor_clone in ctx)
-
-# Precedence: the anchor: connector key wins over a conflicting hub: key.
-both_keys = _tmpdir()
-with open(os.path.join(both_keys, "AGENTS.md"), "w") as f:
-    f.write("---\nawow: anchored\nanchor: %s\nhub: https://github.com/example/other-repo\n"
-            "project: demo-spoke\n---\n# Demo\n" % CONNECTOR_REMOTE)
-os.makedirs(os.path.join(both_keys, ".awow"))
-with open(os.path.join(both_keys, ".awow", "anchor.json"), "w") as f:
-    json.dump({"remote": CONNECTOR_REMOTE, "path": anchor_clone}, f)
-ctx, _, _ = _run(SPOKE_PLUGIN, project=both_keys)
-check("anchor: connector key wins over hub:",
-      "resolves to" in ctx and anchor_clone in ctx)
-
-# A root AGENTS.md without a hub: key is NOT a connector — nudge as usual.
+# A root AGENTS.md without an anchor: key is NOT a connector — nudge as usual.
 plain = _tmpdir()
 with open(os.path.join(plain, "AGENTS.md"), "w") as f:
     f.write("# Just docs, not an awow connector\n")
 ctx, _, _ = _run(SPOKE_PLUGIN, project=plain)
-check("plain root AGENTS.md still gets the setup nudge", "/setup-awow" in ctx)
+check("plain root AGENTS.md gets the first-run pointer", "no board configuration yet" in ctx)
+
+# --- First-run pointer vs. a configured plugin install (CAU-1654, CAU-1645) --
+# A plugin install never has .agents/AGENTS.md — that file is the vendored
+# tree. What marks a configured repo is context/tooling/board.md, written by
+# /setup-awow or on first need. An unconfigured repo gets a pointer that asks
+# nothing: no first-reply offer, no opt-out file, no setup wall (CAU-1645).
+POINTER = "no board configuration yet"
+
+
+def _plugin_install(board=False, stale_progress=False):
+    d = _tmpdir()
+    if board:
+        os.makedirs(os.path.join(d, "context", "tooling"))
+        open(os.path.join(d, "context", "tooling", "board.md"), "w").close()
+    if stale_progress:
+        open(os.path.join(d, "setup-progress.md"), "w").close()
+    return d
+
+
+ctx, _, _ = _run(SPOKE_PLUGIN, project=_plugin_install())
+check("an unconfigured repo gets the first-run pointer", POINTER in ctx)
+check("the pointer never instructs a first-reply offer",
+      "IN YOUR FIRST REPLY" not in ctx and "offer once" not in ctx)
+check("the pointer names no opt-out file", "no-setup-prompt" not in ctx)
+check("the pointer says every command works and names /awow-help",
+      "Every awow command works" in ctx and "/awow-help" in ctx)
+ctx, _, _ = _run(SPOKE_PLUGIN, project=_plugin_install(board=True))
+check("a repo with a board.md gets no pointer", POINTER not in ctx)
+# setup-progress.md is an earlier awow's state file: it is not a marker of
+# anything, so a repo carrying only that one is still unconfigured.
+ctx, _, _ = _run(SPOKE_PLUGIN, project=_plugin_install(stale_progress=True))
+check("a stale setup-progress.md alone does not count as configured", POINTER in ctx)
+# CAU-1639 retired the engine nudge: it argued for an optional plugin every
+# session, half on the strength of a seam that no longer exists. No repo gets
+# it now — not a configured plugin install, and not the vendored tree it was
+# once keyed on.
+ctx, _, _ = _run(SPOKE_PLUGIN, project=_plugin_install(board=True))
+check("a configured plugin install gets no engine nudge either",
+      "inner-loop build engine" not in ctx)
+ctx, _, _ = _run(SPOKE_PLUGIN)
+check("a vendored repo gets no engine nudge", "inner-loop build engine" not in ctx)
 
 # --- Vendored drift tier (CAU-1338) -----------------------------------------
 # Messages begin "awow drift:", the silence sentinel for every negative check.
@@ -323,7 +305,17 @@ ctx, _, _ = _run(STAMPED, project=_vendored_project(
 check("maintainer drift names both stamps",
       "0.12.0+bbbb33334444" in ctx and "0.13.0+aaaa11112222" in ctx)
 check("maintainer drift explains precedence and the remedies",
-      "{ANCHOR}-first" in ctx and "--plugin-dir dist" in ctx)
+      "{ANCHOR}-first" in ctx and "--plugin-dir dist/claude/awow" in ctx)
+
+# A checkout still on the pre-CAU-1653 layout stamps dist/ itself: the hook
+# must read it there rather than report the branch as unstamped.
+ctx, _, _ = _run(STAMPED, project=_vendored_project(
+    plugin_name="awow", dist_stamp=("0.12.0", "bbbb33334444"), legacy_layout=True))
+check("legacy-layout maintainer stamp is still read",
+      "0.12.0+bbbb33334444" in ctx and "unstamped" not in ctx)
+ctx, _, _ = _run(STAMPED, project=_vendored_project(
+    plugin_name="awow", dist_stamp=("0.13.0", "aaaa11112222"), legacy_layout=True))
+check("legacy-layout matching stamps stay silent", "awow drift" not in ctx)
 
 # Matching stamps: silent.
 ctx, _, _ = _run(STAMPED, project=_vendored_project(
@@ -343,28 +335,10 @@ ctx, _, _ = _run(STAMPED, project=_vendored_project(plugin_name="other-plugin"))
 check("a non-awow plugin repo that vendored awow stays silent",
       "awow drift" not in ctx)
 
-# The maintainer repo also carries a stale legacy lockfile; the maintainer
-# compare must win or the repo that builds the plugin would be told to
-# /migrate-to-plugin (misroute guard).
-ctx, _, _ = _run(STAMPED, project=_vendored_project(
-    plugin_name="awow", dist_stamp=("0.12.0", "bbbb33334444"), lock_version="0.7.0"))
-check("maintainer with stale lockfile gets the maintainer message",
-      "--plugin-dir dist" in ctx and "/migrate-to-plugin" not in ctx)
-
-# Legacy vendored adopter behind the installed payload: warn, name the exit.
-ctx, _, _ = _run(STAMPED, project=_vendored_project(lock_version="0.7.0"))
-check("older vendored adopter is pointed at /migrate-to-plugin",
-      "0.7.0" in ctx and "/migrate-to-plugin" in ctx)
-
-# Adopter at, ahead of, or unparseable vs the payload: silent.
-for v in ("0.13.0", "0.14.0", "not-a-version"):
-    ctx, _, _ = _run(STAMPED, project=_vendored_project(lock_version=v))
-    check(f"adopter lock {v} vs 0.13.0 stays silent", "awow drift" not in ctx)
-
 # Pre-stamp installed payload (no build.json): nothing to compare — silent
 # even when the repo looks maximally drifty.
 ctx, _, _ = _run(_plugin(payload_skill="PAYLOAD-SENTINEL"),
-                 project=_vendored_project(plugin_name="awow", lock_version="0.7.0"))
+                 project=_vendored_project(plugin_name="awow"))
 check("unstamped installed payload stays silent", "awow drift" not in ctx)
 
 # Payload guard: every probe group a dist hook cats resolves inside dist/.
@@ -376,7 +350,7 @@ check("dist hooks probe only paths that exist in the payload",
 for name in HOOK_FILES:
     with open(os.path.join(ROOT, "hooks", name)) as f_src, \
          open(os.path.join(DIST, "hooks", name)) as f_dist:
-        check(f"dist/hooks/{name} matches hooks/{name}", f_src.read() == f_dist.read())
+        check(f"dist/claude/awow/hooks/{name} matches hooks/{name}", f_src.read() == f_dist.read())
 
 if failures:
     print(f"\n{len(failures)} failing: {failures}")

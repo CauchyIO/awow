@@ -10,15 +10,15 @@ wiring() {
   # the package (pointing pi.skills at the commands-as-skills surface) is all it needs.
   local p="$r/dist/package.json"
   cmd-succeeds "pi package.json is valid JSON" -- python3 -c "import json; json.load(open('$p'))"
-  cmd-succeeds "pi.skills registers ./agent-skills" -- python3 -c "
+  cmd-succeeds "pi.skills registers ./pi/awow/agent-skills" -- python3 -c "
 import json
 skills = json.load(open('$p')).get('pi', {}).get('skills', [])
-raise SystemExit(0 if './agent-skills' in skills else 1)"
+raise SystemExit(0 if './pi/awow/agent-skills' in skills else 1)"
 
   # The commands-as-skills surface pi.skills points at, carrying the anchored-repo
   # registration flow.
-  file-exists "$r/dist/agent-skills/setup-awow/SKILL.md"
-  file-contains "$r/dist/agent-skills/setup-awow/SKILL.md" 'Anchored track'
+  file-exists "$r/dist/pi/awow/agent-skills/setup-awow/SKILL.md"
+  file-contains "$r/dist/pi/awow/agent-skills/setup-awow/SKILL.md" 'Connect a repo'
 
   # No .pi extension ships — package-only is the WI-5 decision. Guard against a
   # regression that re-introduces the dropped .ts extension.

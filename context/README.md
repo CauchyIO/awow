@@ -21,6 +21,6 @@ Everything the agent needs to know about *this team* in *this place*. The agent 
 - **Code, scripts, schemas** live in the codebase (which may be this repo if the team has grown into a mono-repo, or sibling repos).
 - **Externally canonical knowledge** stays in its source repository, SharePoint site, vector-backed collection, or other provider. `knowledge-sources/` points to it; HUB notes reference it rather than copy it.
 
-## How `/setup-awow` populates this folder
+## How this folder gets filled
 
-Step-by-step. `setup-progress.md` at the repo root tracks which sub-areas have been completed. The wizard is incremental and resumable; not all of `context/` needs to be filled in to be useful — only `context/tooling/board.md` (Step 1) is required.
+`/setup-awow` writes `context/tooling/board.md` from the live board, proposes the conventions it observed, and drafts a team profile only when the repo and board make one observable. Everything else fills on first need: the command that needs a file offers to draft it in the moment. Only `context/tooling/board.md` is required; the landed files are the only record of what is set up.

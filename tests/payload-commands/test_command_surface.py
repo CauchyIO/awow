@@ -30,7 +30,18 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-PAYLOAD_ROOTS = ("dist", "dist-telemetry")
+# One entry per plugin folder (dist/<harness>/<plugin>/, CAU-1653).
+PAYLOAD_ROOTS = (
+    "dist/claude/awow",
+    "dist/claude/awow-telemetry",
+    "dist/claude/awow-workflows",
+    "dist/codex/awow",
+    "dist/codex/awow-workflows",
+    "dist/pi/awow",
+    "dist/opencode/awow",
+    "dist/copilot/awow",
+    "dist/copilot/awow-workflows",
+)
 
 # Directories a harness auto-discovers commands/prompts from, relative to a
 # payload root. Every .md below one of these must be an invokable command.

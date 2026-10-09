@@ -1,5 +1,6 @@
 ---
 skill: workitem-write
+gate: release
 ---
 
 # Suite — workitem-write

@@ -1,6 +1,6 @@
 # .agents/
 
-The single source of truth for everything the agent reads at session start. This folder is harness-agnostic: `tools/gather.py` builds it into the plugin payloads under `dist/` and `dist-telemetry/`, rendered once per harness — full command copies for Claude Code, a commands-as-skills surface for Codex, Pi and opencode, and the Copilot plugin under `dist/.github/plugin/`. Nothing here is mirrored into this repo's own `.claude/` or `.github/`; commands and skills reach a maintainer's session through the same plugin an adopter installs.
+The single source of truth for everything the agent reads at session start. This folder is harness-agnostic: `tools/gather.py` builds it into one self-contained plugin per harness under `dist/<harness>/<plugin>/` — full command copies for Claude Code (`dist/claude/`), a commands-as-skills surface for Codex, Pi and opencode, and the Copilot plugin under `dist/copilot/awow/`. Nothing here is mirrored into this repo's own `.claude/` or `.github/`; commands and skills reach a maintainer's session through the same plugin an adopter installs.
 
 **Edit `.agents/`, then run `python tools/gather.py`.** `gather.py --check` fails CI on any drift between the source and the payloads.
 
@@ -15,7 +15,7 @@ The single source of truth for everything the agent reads at session start. This
 ## Building the payloads
 
 ```bash
-python tools/gather.py            # build dist/ and dist-telemetry/
+python tools/gather.py            # build every dist/<harness>/<plugin>/
 python tools/gather.py --check    # report what would change, do not write
 ```
 

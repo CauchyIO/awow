@@ -1,0 +1,4 @@
+# args: plan T-102
+# Plan depth: one plan file under proposals/, then the approval gate. An approved plan is
+# the deliverable — after "approved" the command stops without touching code or the board.
+approved as written

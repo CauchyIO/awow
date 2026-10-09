@@ -2,24 +2,24 @@
 
 Design spec section 4.3: five skills (mlflow-export, prompt-skill-analysis,
 project-timeline, awow-usage-coach, session-export) move out of the base plugin
-into a second Claude-Code-only plugin built at dist-telemetry/. Four stay
-(using-awow, board-aware-development, architecture-aware-development,
-user-story-template).
+into a second Claude-Code-only plugin built at dist/claude/awow-telemetry/.
+using-awow stays; the split's three other stayers were retired by CAU-1639
+(see tests/lifecycle-retired/).
 
 Asserts, in order of how badly each would fail silently:
 
   1. Channel routing — every skill source declares the channel it should, and
      gather.py's parser agrees with tools/lint-paths.py's independent one on
      every file both scan. Two parsers, one answer.
-  2. Placement, both directions — a telemetry skill is under dist-telemetry/
-     and under NEITHER dist/skills/ nor dist/agent-skills/; a staying skill is
+  2. Placement, both directions — a telemetry skill is under dist/claude/awow-telemetry/
+     and under NEITHER dist/claude/awow/skills/ nor a dist/<harness>/awow/agent-skills/; a staying skill is
      the mirror image. A one-directional check passes a skill that shipped
      twice.
   3. Tool split — each plugin carries its own runtime tooling and only its own.
-  4. Claude-Code-only — dist-telemetry/ has no Codex manifest, no Pi package,
+  4. Claude-Code-only — dist/claude/awow-telemetry/ has no Codex manifest, no Pi package,
      no agent-skills surface, and no hooks.
   5. Executable dependencies resolve — every {AWOW_TOOLS} path a telemetry
-     skill body names is a file that ships in dist-telemetry/tools/.
+     skill body names is a file that ships in dist/claude/awow-telemetry/tools/.
 
 Pure stdlib; no pytest, no network.
 
@@ -57,12 +57,12 @@ TELEMETRY_SKILLS = [
     "session-export",
 ]
 STAYING_SKILLS = [
-    "architecture-aware-development",
-    "board-aware-development",
     "using-awow",
 ]
 # Declarative skills (a bare <name>.md, not a <name>/SKILL.md directory).
-STAYING_DECLARATIVE = ["user-story-template"]
+# None ship today — the only one left, agent-directive-voice, is vendored.
+# Kept as a list so a new one is covered by adding its name here.
+STAYING_DECLARATIVE: list[str] = []
 VENDORED_SKILLS = ["session-correlation"]
 VENDORED_DECLARATIVE = ["agent-directive-voice"]
 
@@ -77,8 +77,6 @@ TELEMETRY_TOOL_FILES = {
 BASE_TOOL_FILES = {
     "hooks/leak-patterns.txt",
     "hooks/pre-push",
-    "awow_lock.py",
-    "cascade_check.py",  # /okr-cascade and /setup-department sweep
 }
 
 
@@ -130,8 +128,11 @@ def check_channels() -> None:
 
 
 def check_placement() -> None:
-    dist_skills = files_under(gather.DIST_DIR / "skills")
-    dist_agent = files_under(gather.DIST_DIR / "agent-skills")
+    dist_skills = files_under(gather.CLAUDE_DIR / "skills")
+    # Every harness folder that carries the commands-as-skills surface.
+    dist_agent = set()
+    for root in gather.AGENT_SKILLS_ROOTS:
+        dist_agent |= files_under(root / "agent-skills")
     tele_skills = files_under(gather.DIST_TELEMETRY_DIR / "skills")
 
     def owns(files, name):
@@ -139,32 +140,32 @@ def check_placement() -> None:
 
     for name in TELEMETRY_SKILLS:
         if not owns(tele_skills, name):
-            FAILURES.append(f"{name} is telemetry but absent from dist-telemetry/skills/")
+            FAILURES.append(f"{name} is telemetry but absent from dist/claude/awow-telemetry/skills/")
         if owns(dist_skills, name):
-            FAILURES.append(f"{name} is telemetry but still in dist/skills/ — it shipped twice")
+            FAILURES.append(f"{name} is telemetry but still in dist/claude/awow/skills/ — it shipped twice")
         if owns(dist_agent, name):
             FAILURES.append(
-                f"{name} is telemetry but still in dist/agent-skills/ — it reached "
+                f"{name} is telemetry but still in a dist/<harness>/awow/agent-skills/ — it reached "
                 "Codex and Pi, which awow-telemetry does not target"
             )
     for name in STAYING_SKILLS + STAYING_DECLARATIVE:
         if not owns(dist_skills, name):
-            FAILURES.append(f"{name} stays in the base plugin but is absent from dist/skills/")
+            FAILURES.append(f"{name} stays in the base plugin but is absent from dist/claude/awow/skills/")
         if owns(tele_skills, name):
-            FAILURES.append(f"{name} stays in the base plugin but leaked into dist-telemetry/skills/")
+            FAILURES.append(f"{name} stays in the base plugin but leaked into dist/claude/awow-telemetry/skills/")
     for name in VENDORED_SKILLS + VENDORED_DECLARATIVE:
         if owns(dist_skills, name) or owns(tele_skills, name):
             FAILURES.append(f"{name} is vendored and must ship in no payload")
 
 
 def check_tools_and_isolation() -> None:
-    base_tools = files_under(gather.DIST_DIR / "tools")
+    base_tools = files_under(gather.CLAUDE_DIR / "tools")
     tele_tools = files_under(gather.DIST_TELEMETRY_DIR / "tools")
     if base_tools != BASE_TOOL_FILES:
-        FAILURES.append(f"dist/tools/ == {sorted(base_tools)}, expected {sorted(BASE_TOOL_FILES)}")
+        FAILURES.append(f"dist/claude/awow/tools/ == {sorted(base_tools)}, expected {sorted(BASE_TOOL_FILES)}")
     if tele_tools != TELEMETRY_TOOL_FILES:
         FAILURES.append(
-            f"dist-telemetry/tools/ == {sorted(tele_tools)}, expected {sorted(TELEMETRY_TOOL_FILES)}"
+            f"dist/claude/awow-telemetry/tools/ == {sorted(tele_tools)}, expected {sorted(TELEMETRY_TOOL_FILES)}"
         )
 
     # Claude-Code-only (design spec 4.3): no Codex manifest, no Pi package, no
@@ -181,7 +182,7 @@ def check_tools_and_isolation() -> None:
         "context",
     ):
         if (gather.DIST_TELEMETRY_DIR / rel).exists():
-            FAILURES.append(f"dist-telemetry/{rel} exists — awow-telemetry is Claude-Code-only")
+            FAILURES.append(f"dist/claude/awow-telemetry/{rel} exists — awow-telemetry is Claude-Code-only")
 
     # Every {AWOW_TOOLS} path a telemetry skill names must ship beside it.
     import re
@@ -190,7 +191,7 @@ def check_tools_and_isolation() -> None:
         for ref in sorted(set(pat.findall(skill_text(name)))):
             if ref not in TELEMETRY_TOOL_FILES:
                 FAILURES.append(
-                    f"{name} references {{AWOW_TOOLS}}/{ref}, which dist-telemetry/tools/ "
+                    f"{name} references {{AWOW_TOOLS}}/{ref}, which dist/claude/awow-telemetry/tools/ "
                     "does not ship — add it to TELEMETRY_TOOL_PATHS or drop the reference"
                 )
 
@@ -198,12 +199,17 @@ def check_tools_and_isolation() -> None:
 def check_marketplace() -> None:
     mk = json.loads((REPO_ROOT / ".claude-plugin" / "marketplace.json").read_text())
     entries = {p["name"]: p for p in mk.get("plugins", [])}
-    if set(entries) != {"awow", "awow-telemetry"}:
+    # awow-workflows is tests/workflows-split/'s to assert; this suite only
+    # requires that its own two entries are present and correct.
+    if not {"awow", "awow-telemetry"} <= set(entries):
         FAILURES.append(
-            f"marketplace declares {sorted(entries)}, expected ['awow', 'awow-telemetry']"
+            f"marketplace declares {sorted(entries)}, missing one of ['awow', 'awow-telemetry']"
         )
         return
-    for name, want_source in (("awow", "./dist"), ("awow-telemetry", "./dist-telemetry")):
+    for name, want_source in (
+        ("awow", "./dist/claude/awow"),
+        ("awow-telemetry", "./dist/claude/awow-telemetry"),
+    ):
         got = entries[name].get("source")
         if got != want_source:
             FAILURES.append(f"marketplace entry {name} source == {got!r}, expected {want_source!r}")
@@ -215,9 +221,9 @@ def check_marketplace() -> None:
     # Lockstep (design spec 8): awow-telemetry versions with awow this release.
     canonical = json.loads((REPO_ROOT / ".claude-plugin" / "plugin.json").read_text())["version"]
     for rel in (
-        "dist/.claude-plugin/plugin.json",
-        "dist-telemetry/.claude-plugin/plugin.json",
-        "dist/.codex-plugin/plugin.json",
+        "dist/claude/awow/.claude-plugin/plugin.json",
+        "dist/claude/awow-telemetry/.claude-plugin/plugin.json",
+        "dist/codex/awow/.codex-plugin/plugin.json",
         "dist/package.json",
     ):
         built = json.loads((REPO_ROOT / rel).read_text())["version"]

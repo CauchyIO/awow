@@ -32,10 +32,10 @@ BLOCK_SCALARS = [">", ">-", ">+", "|", "|-", "|+", ">2", "|2-", ">4+"]
 # The fifteen shipped commands (design spec 7), all under .agents/commands/.
 # awowify was the sixteenth until the vendoring route was retired (CAU-1340).
 SHIPPED = [
-    "artifact", "coaching-review", "daily-checkin", "daily-digest",
+    "artifact", "awow-help", "daily-checkin", "daily-digest",
     "design-system", "kb-mine", "kb-synthesize", "my-work", "process-retro",
     "process-transcript", "process-workitem", "project-plan",
-    "refinement-prep", "setup-awow", "solution-design-flow",
+    "refinement-prep", "setup-awow", "solution-design-flow", "team-workshop",
 ]
 
 
@@ -43,7 +43,7 @@ SHIPPED = [
 # proposals/AWO-120.md). The rule, not the list: a command autofires unless a
 # misfire is damage (consequential and hard to reverse) or noise (trigger too
 # broad). Excluded on those grounds: my-work, daily-digest, kb-mine, artifact,
-# coaching-review, process-retro, refinement-prep, solution-design-flow (too
+# process-retro, refinement-prep, solution-design-flow (too
 # broad); setup-awow, design-system, kb-synthesize (consequential).
 # The 6th always-available surface, workitem-write, is a skill under
 # .agents/skills/ — not a command, so it is not elected here.
@@ -162,18 +162,30 @@ def main() -> int:
     for extra in sorted(seen - want):
         FAILURES.append(f"{extra}: carries `autofire: true` but is not in the elected set")
 
-    # Each elected command is mirrored into dist/skills/, and nothing else is.
-    # Without the mirror, autofire buys a better picker on Claude Code and
-    # nothing more — the model cannot elect a slash command.
+    # Each elected command is mirrored into skills/ of the Claude plugin it
+    # ships in — awow, or awow-workflows for a `channel: workflows` command —
+    # and into the other one never. Without the mirror, autofire buys a better
+    # picker on Claude Code and nothing more — the model cannot elect a slash
+    # command.
+    def homes(name: str) -> tuple[Path, Path]:
+        in_bundle = gather.is_workflows_channel(source_for(name).read_text())
+        own, other = gather.DIST_WORKFLOWS_DIR, gather.CLAUDE_DIR
+        if not in_bundle:
+            own, other = other, own
+        return own / "skills" / name / "SKILL.md", other / "skills" / name / "SKILL.md"
+
     for name in sorted(want):
-        if not (gather.DIST_DIR / "skills" / name / "SKILL.md").is_file():
-            FAILURES.append(f"{name}: autofire but no dist/skills/{name}/SKILL.md")
+        mirror, stray = homes(name)
+        if not mirror.is_file():
+            FAILURES.append(f"{name}: autofire but no {mirror.relative_to(REPO_ROOT)}")
+        if stray.is_file():
+            FAILURES.append(f"{name}: mirrored into the plugin it does not ship in, at {stray.relative_to(REPO_ROOT)}")
     for name in sorted(set(SHIPPED) - set(AUTOFIRE)):
-        if (gather.DIST_DIR / "skills" / name / "SKILL.md").is_file():
-            FAILURES.append(
-                f"{name}: not elected for autofire but mirrored at "
-                f"dist/skills/{name}/SKILL.md"
-            )
+        for mirror in homes(name):
+            if mirror.is_file():
+                FAILURES.append(
+                    f"{name}: not elected for autofire but mirrored at {mirror.relative_to(REPO_ROOT)}"
+                )
 
     for f in FAILURES:
         print(f"FAIL {f}")

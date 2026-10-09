@@ -2,13 +2,14 @@
 description: "Use when the user is weighing architectural or solution options, is about to lock a design decision, or points at a transcript of a design discussion — before the decision only exists in chat."
 phase: spread
 prerequisites:
-  - "Step 0 of /setup-awow complete (the agent can read and write the board)"
+  - "A board connected (/setup-awow) — the agent can read and write the board"
   - "Team has shipped at least one Seed cycle"
   - "/process-transcript live and used at least once"
 removes_pain: "the design-decisions-vanish-into-chat problem"
 consumes: transcript
 when-to-use: "Transcript segment shows a solution-design conversation: architectural choice being made, options weighed against trade-offs, a decision being locked. \"Let's go with X over Y because…\" framing."
 when-not-to-use: "Coaching or teaching session. Pure status or planning meeting. Retrospective. Bug-fix discussion without alternatives being weighed. A meeting that mentions design topics but does not produce a design choice."
+channel: workflows
 ---
 
 # /solution-design-flow — drive or capture a solution-design session
@@ -56,7 +57,7 @@ Before any proposal lands, read:
 
 If a knowledge-base subfolder is empty, note it but proceed. Absence improves nothing; it does not block the pipeline. The same holds for `mission.md` and `neighbouring-teams.md` — fill on first need (per the agent instructions): offer the two-to-five-sentence profile, or the neighbouring-team entry the design first touches, once at a gate; continue without on silence.
 
-**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{ANCHOR}/context/tooling/board.md` yourself.
+**Resolve the target first.** Settle which installation and which board this is — including when `board.md` is absent or names several boards — with the `board-target` skill, before the first board read. Do not restate its rules here.
 
 ---
 

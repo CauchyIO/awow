@@ -1,0 +1,5 @@
+# args: T-102 — explain it
+# Explain depth: the command loads T-102, explains it, offers the next depth in one line
+# and stops. It should ask nothing, so the line below is consumed only by a run that
+# already deviated — it closes the conversation without deepening.
+that's all for now, thanks

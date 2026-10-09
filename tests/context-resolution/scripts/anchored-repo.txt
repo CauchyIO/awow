@@ -1,0 +1,6 @@
+# The project repo is anchored: root AGENTS.md names the anchor, .awow/anchor.json maps it
+# to anchor-checkout/ here. The project has no context/ of its own. {ANCHOR} must resolve to
+# the recorded checkout, the board must be read from there, and nothing may be asked or
+# written. The reply below is consumed only by a run that asked something it should not.
+Run /my-work — what needs me?
+the anchor is wherever you found it, just use it

@@ -13,10 +13,10 @@ it and pick up from there.
 
 1. **Install the plugin.** The per-product install commands are in the
    [repo README](../README.md).
-2. **Run `/setup-awow`.** A handful of questions and one review: it wires your board
-   (Linear, Jira, Azure DevOps, GitHub Issues), drafts a team profile from what it can
-   observe in your board and repo, and writes both into `context/`. Works solo or for a
-   team, standalone or attached to a shared team repo (an *anchor*).
+2. **Run `/setup-awow`.** One command, not a wizard: it wires your board (Linear, Jira,
+   Azure DevOps, GitHub Issues), drafts a team profile from what it can observe, and writes
+   both into `context/` on your approval. Works solo or for a team, standalone or attached to
+   a shared team repo (an *anchor*). One page covers it: [SETUP.md](../SETUP.md).
 3. **Work the loop.** `/my-work` for what needs you, `/refinement-prep` before the session,
    `/process-workitem` from ticket to PR, `/daily-checkin` to cap the day.
 4. **Grow when it earns its place.** Digests, design systems, transcript processing,
@@ -24,10 +24,10 @@ it and pick up from there.
 
 ## Reading order
 
-Three guides carry the core; read them in this order:
+Three pages carry the core; read them in this order:
 
-1. [Setup & the plugin model](guide-setup-and-two-harnesses.md) — the wizard, and how one
-   source tree serves every agent product without drifting copies.
+1. [SETUP.md](../SETUP.md) — the one setup page: what `/setup-awow` asks, what it writes in
+   each situation, and how to undo it.
 2. [The core delivery loop](guide-core-delivery-loop.md) — the day-to-day: board to PR,
    with a human approval before anything irreversible.
 3. [Board & MCP integration](guide-board-and-mcp.md) — how the agent actually reaches your
@@ -49,10 +49,10 @@ each guide covers.
 | Guide | What it covers |
 |---|---|
 | [The core delivery loop](guide-core-delivery-loop.md) | `/refinement-prep` drafts a right-sized story, `/process-workitem` walks one from board to PR, `/daily-checkin` caps the day — all on the same check-the-board-first, propose-then-approve pattern. |
-| [Setup & the plugin model](guide-setup-and-two-harnesses.md) | The resumable `/setup-awow` wizard — only Steps 0 and 1 required — and how one `.agents/` source becomes the plugin package every agent product installs. |
+| [How awow is built and shipped](guide-setup-and-two-harnesses.md) | How one `.agents/` source becomes the plugin package every agent product installs, and the maintainer loop for exercising a branch's payload. Setup itself is [SETUP.md](../SETUP.md). |
 | [Board & MCP integration](guide-board-and-mcp.md) | How a board URL becomes the one file the agent reads, and how an approved MCP gets wired into both harnesses. |
 | [Canonical knowledge sources](guide-canonical-knowledge-sources.md) | Routing from the anchor's context to authoritative repositories, SharePoint, and vector-backed sources without copying their contents. |
-| [Updating awow](guide-update-and-versioning.md) | Plugin updates replace the plugin's files wholesale; `/migrate-to-plugin` cleans up an older copied-in install once, edits preserved, parity proven. |
+| [Updating awow](guide-update-and-versioning.md) | Plugin updates replace the plugin's files wholesale; team context is never part of it. |
 | [Transcript router](guide-transcript-router.md) | One entry point reads the transcript, recommends a specialist, and pauses for approval before anything reaches the board. |
 | [Solution design collaboration](guide-solution-design-collaboration.md) | The three things a recorded decision needs — a place, a lifecycle, and a feedback channel that doesn't drift into chat. |
 | [Agentic retro workflow](guide-agentic-retro-workflow.md) | Turning retros into named anti-patterns, owned actions, and concrete diffs to your agent instructions. |

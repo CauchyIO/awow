@@ -2,8 +2,9 @@
 description: "Use when the user points at or pastes a retrospective transcript or recording notes, or asks to turn a retro into named anti-patterns, owned actions, and diffs to their agent instructions."
 phase: spread
 prerequisites:
-  - "Step 0 of /setup-awow complete (board MCP wired)"
+  - "A board connected (/setup-awow)"
 removes_pain: "the team-keeps-tripping-over-the-same-things problem"
+channel: workflows
 ---
 
 # /process-retro — gated pipeline for retrospective transcripts
@@ -78,7 +79,7 @@ Before touching the transcript, read what's available:
 - `retro-reports/<team>/` (optional) — prior retro outputs. Enables trajectory analysis. Discover the team name from filename, prose, or `members.md`.
 - A reachable agent-activity / token-spend log (optional) — enables cost analysis. Don't fabricate; if it's not there, omit the section.
 
-**An absent `board.md` is a question, not a stop.** Infer the board from the git remote — a GitHub remote means GitHub Issues via `gh`. Do not guess from a GitLab, Bitbucket, or Azure DevOps remote; ask. With no remote, or with `gh` absent or unauthenticated, ask once which board they use and how to reach it, and do not offer the `gh` path. Record the answer at `.awow/board-session.md` with a `session:` line and read it rather than asking twice; ignore a note whose `session:` does not match this session. Offer `/setup-awow` Step 1 to make it durable; never write `{ANCHOR}/context/tooling/board.md` yourself.
+**Resolve the target first.** Settle which installation and which board this is — including when `board.md` is absent or names several boards — with the `board-target` skill, before the first board read. Do not restate its rules here.
 
 ### 0.3 Context validation
 
@@ -336,7 +337,7 @@ For each diff approved at Gate 2, edit `.agents/AGENTS.md` (or the named prompt 
 
 Tell the user where the report landed and what diffs you applied. Then offer:
 
-1. Create board issues for any of the section-6 actions?
+1. Create board issues for any of the section-6 actions? On a yes, route them through the `workitem-write` skill.
 2. Open a PR with the instruction diffs?
 3. Generate an email-formatted version of section 12c (sponsor one-pager)?
 

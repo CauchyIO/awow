@@ -41,14 +41,14 @@ _oc_plugin_registers_skills() {
   cmd-succeeds "plugin config hook registers agent-skills" -- python3 -c "
 import json, sys
 paths = (json.load(open('$out')).get('skills') or {}).get('paths') or []
-sys.exit(0 if any(p.endswith('awow-pkg/agent-skills') for p in paths) else 1)"
+sys.exit(0 if any(p.endswith('awow-pkg/opencode/awow/agent-skills') for p in paths) else 1)"
 
   curl -s -m 10 -o "$out" "http://127.0.0.1:$port/skill" 2>/dev/null
   _oc_kill "$port"
   cmd-succeeds "opencode discovers awow skills through the plugin" -- python3 -c "
 import json, sys
 d = json.load(open('$out'))
-awow = [s for s in d if 'awow-pkg/agent-skills' in (s.get('location') or '')]
+awow = [s for s in d if 'awow-pkg/opencode/awow/agent-skills' in (s.get('location') or '')]
 sys.exit(0 if len(awow) >= 20 and any(s['name'] == 'using-awow' for s in awow) else 1)"
 
   rm -f "$out"; rm -rf "$(dirname "$stage")"
@@ -58,7 +58,7 @@ sys.exit(0 if len(awow) >= 20 and any(s['name'] == 'using-awow' for s in awow) e
 # them from server state, and it covers the double-injection guard the server
 # cannot show without a model turn.
 _oc_plugin_hooks() {
-  local js="$HARNESS_REPO_ROOT/dist/.opencode/plugins/awow.js" t
+  local js="$HARNESS_REPO_ROOT/dist/opencode/awow/.opencode/plugins/awow.js" t
   t="$(mktemp -d)/t.mjs"
   cat >"$t" <<EOF
 import { AwowPlugin } from '$js';

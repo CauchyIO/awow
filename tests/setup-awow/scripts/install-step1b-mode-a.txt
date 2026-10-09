@@ -1,4 +1,0 @@
-# Phase 1b drafts all reference sections in one pass (Mode A, greenfield:
-# <10 closed issues) — no per-decision accept/override/skip replies. The one
-# reply is `land` at the single review gate that follows the draft.
-land

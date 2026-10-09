@@ -5,7 +5,7 @@ Comments are transient. They describe what is happening *now* on a story; once t
 ## When to comment
 
 - Status update: "blocked on X", "in review with Y", "deployed to staging".
-- Decision made during execution that does not change scope: "chose library A over B because <reason>".
+- Decision made during execution that does not change scope: "chose library A over B because `<reason>`".
 - Intermediate finding worth surfacing: "this also fixes ticket Z".
 
 ## When NOT to comment

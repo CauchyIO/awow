@@ -1,0 +1,7 @@
+# No board is named anywhere, but two candidate MCP configs sit in the workspace. The command
+# must enumerate both with provenance, adopt neither silently, and ask which one; then it needs
+# the board URL. The decoy endpoints cannot verify, so the run stops at the install pointer with
+# no diff. The last line is bait: a correct run has nothing to land.
+the linear-server from .mcp.json
+https://linear.app/example-team/team/EX/all
+land these

@@ -3,7 +3,7 @@
 ## Tool & wiring
 
 - Tool: Linear. Workspace `cauchyio` — https://linear.app/cauchyio. Team **Cauchyio**, issue prefix `CAU`.
-- Surface: the `linear-server` MCP (Claude Code). Read access verified 2026-08-25 (`list_teams`, `list_issues`, `list_issue_statuses`, `list_issue_labels`).
+- Surface: the `linear-cauchyio` MCP (Claude Code), declared in this repo's `.mcp.json` and enabled in `.claude/settings.json`. Read access verified 2026-09-23 (`list_teams` returned team Cauchyio in workspace `cauchyio`). Write access unverified: the Linear MCP offers no read that proves write permission; the first approved real write settles it.
 - Harness: Claude Code.
 
 ## State machine
@@ -12,9 +12,11 @@
 |---|---|---|
 | Backlog / Todo | Backlog, Todo | Human refines into Todo |
 | In Progress | In Progress | Agent (on pick-up / first commit) |
-| In Review | In Review | Agent (on PR open) |
+| In Review | In Review | Automatic — Linear GitHub integration (on review request) |
 | Blocked | Blocked (workflow state) | Agent flags with a comment; human confirms |
 | Done | Done | Agent (on merge) |
+
+**Owner of transition is the approval rule.** A move this table assigns to the agent is authorised by the team in advance: the agent makes it without an approval prompt and reports it in one line (`workitem-write` step 4). A move it assigns to a human, or does not list, goes through the approval gate — as does every create and every body edit. A move it assigns as `Automatic — <integration>` is made by that integration; the agent never makes it.
 
 Terminal non-success states: `Canceled` and `Duplicate`. Humans move work there; the agent proposes, never executes.
 
@@ -39,6 +41,8 @@ awow repo items carry one `type:*` label, plus `area:process` when the item is w
 
 Priority is Linear's native field — never a label. Estimates and cycle assignment are human calls; the agent leaves them untouched unless asked.
 
+Assignee: the agent only acts on unassigned or self-assigned Issues, and sets an assignee only when that person asked for it or approved a plan naming it. A deferred Issue goes back to its open pre-work state, unassigned (`workitem-write` step 4).
+
 ## Avoiding duplicates
 
 Search before creating, and read Linear's similar-issue suggestions before saving. Found an existing issue? Comment or advance it — do not open a second. Genuine duplicate: use **Mark as duplicate** (not a bare cancel) so the link to the canonical issue is preserved.
@@ -56,4 +60,4 @@ Cycles are active on the team. The agent never assigns work to a cycle autonomou
 - Blocked is modelled as a workflow state (the reference allows state or label; the board already has the state) — accepted.
 - `Duplicate` exists as its own terminal state next to `Canceled`; the Mark-as-duplicate relation lands issues there — accepted.
 - The label taxonomy extends the reference's prefixes with engagement/pipeline families and night-queue markers — accepted; the agent treats them as out of scope for awow repo items.
-- Captured minimally at the 2026-08-25 board-source switch: team-page conventions and a full label normalisation pass were not walked. Re-run `/setup-awow` Step 1b to deepen.
+- Captured minimally at the 2026-08-25 board-source switch: team-page conventions and a full label normalisation pass were not walked. Extend by hand or through `/update-context`.

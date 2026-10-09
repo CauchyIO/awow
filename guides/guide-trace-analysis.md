@@ -67,8 +67,8 @@ python3 .agents/skills/awow-usage-coach/scripts/awow_extract.py \
 These ship as starters for **Databricks MLflow** + **Claude Code**. The analysis rubrics are
 harness-agnostic — only the input parsing assumes MLflow's JSON layout. A team on another backend
 either emits the same layout `mlflow-export` produces, or extends the extractor scripts
-(`extract_prompts.py`, `awow_extract.py`) with a reader for their format. That customisation is
-what `/setup-awow` Step 9 (Skills review) is for.
+(`extract_prompts.py`, `awow_extract.py`) with a reader for their format. That customisation lives
+in a repo-local copy of the skill, which outranks the plugin's.
 
 ## Sources of truth
 

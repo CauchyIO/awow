@@ -8,7 +8,7 @@ must honour the stale-guard (`workitem-write` step 5). Fixture boards are
 file-based samples — the items are markdown table rows, a write edits the row —
 so the whole flow runs real prompts against real files with no live board.
 Suite-wide conventions: [`../README.md`](../README.md); execution mechanics:
-[`.agents/commands/test-awow.md`](../../.agents/commands/test-awow.md).
+[`.claude/commands/test-awow.md`](../../.claude/commands/test-awow.md).
 
 ## Scenarios
 

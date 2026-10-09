@@ -11,10 +11,10 @@ The four conventions every team needs to make the agent useful. These are non-ne
 
 ## Populated by
 
-`/setup-awow` Step 3. If the board has been used and shows existing patterns, the wizard *observes* and drafts from what it sees. Greenfield teams are *guided* through sensible defaults.
+`/setup-awow`. Where the board shows existing patterns it drafts from what it observes, with real examples; on a new board it proposes the reference defaults. Every draft is a proposal.
 
 ## The "REQUIRED" name is load-bearing
 
-The agent treats these as hard constraints. The team is free to disagree with the defaults the wizard suggests — but the file must exist with *some* content that the agent can apply consistently.
+The agent treats these as hard constraints. The team is free to disagree with the proposed defaults — but the file must exist with *some* content that the agent can apply consistently.
 
 `output-discipline.md` is the strictest of the four. Without it, every agent-driven board over-produces, and the noise problem this repo is meant to prevent shows up on day one.

@@ -2,7 +2,7 @@
 
 How a board URL becomes one configured file the agent reads — and how an approved MCP gets wired into both harnesses.
 
-> **TL;DR** — Give `/setup-awow` Step 1 a board URL. It wires up a connection the agent can
+> **TL;DR** — Give `/setup-awow` a board URL. It wires up a connection the agent can
 > read and write the board through (an MCP server, or the `gh` CLI for GitHub), then walks the
 > per-tool `reference/` files one section at a time and writes the team's real spec into
 > `context/tooling/board.md` — thereafter the only board file the agent reads. MCP servers are
@@ -15,7 +15,7 @@ Two kinds of board knowledge, read at two different times by two different actor
 
 | | Read by | What it is |
 | --- | --- | --- |
-| `<tool>/reference/` under `context/tooling/boards/` | The wizard, at setup time only | Best-practice templates per board tool. `/setup-awow` Step 1 reads them section by section to drive the configuration conversation. **Never consulted at runtime.** |
+| `<tool>/reference/` under `context/tooling/boards/` | `/setup-awow`, at setup time only | Best-practice templates per board tool. `/setup-awow` reads them for the install snippet and the shape of each section, to drive the configuration conversation. **Never consulted at runtime.** |
 | `context/tooling/board.md` | The runtime agent | The team's actual board spec, composed from the reference plus the team's choices. The **one file** the agent reads when it needs to act on the board. |
 
 The split means the references can grow in depth over releases without changing anything the
@@ -25,7 +25,7 @@ agent reads day to day.
 
 ```mermaid
 flowchart LR
-  url[Board URL] -->|infers tool| wiz["/setup-awow Step 1<br/>1a wire surface · 1b configure"]
+  url[Board URL] -->|infers tool| wiz["/setup-awow<br/>wire surface · observe board"]
   wiz -->|reads section by section| ref["&lt;tool&gt;/reference/<br/>setup-time only"]
   wiz -->|writes the team's spec| board["context/tooling/board.md"]
   board -->|the only file read at runtime| agent["Runtime agent: /process-workitem,<br/>digests, daily-checkin…"]
@@ -34,23 +34,23 @@ flowchart LR
 ## Supported boards (v0.1)
 
 One subfolder per tool under `context/tooling/boards/`. Depth varies; all share the same
-`reference/` layout so the wizard treats them uniformly.
+`reference/` layout so `/setup-awow` treats them uniformly.
 
 | Folder | Board tool | Depth |
 | --- | --- | --- |
-| `linear/` | Linear | Full reference. Takes a new (greenfield) team all the way to a working board inside the wizard. The reference the other tools are modelled on. |
+| `linear/` | Linear | Full reference. Takes a new (greenfield) team all the way to a working board. The reference the other tools are modelled on. |
 | `azure-devops/` | Azure DevOps | Full reference; some sections marked TODO for v0.2. |
 | `jira/` | Jira | Skeleton. Mode B (assess an existing board — see below) is the expected path; v0.2 fills in Mode A. |
 | `github-issues/` | GitHub Issues + Projects v2 | Skeleton, plus a `gh` CLI alternative to the MCP. |
 
 Step 1 infers the tool family from the board URL hostname — `linear.app`,
 `dev.azure.com`/`*.visualstudio.com`, `*.atlassian.net`, `github.com/.../issues`. Anything else
-is unsupported and the wizard stops.
+is unsupported and `/setup-awow` stops.
 
-## What the wizard reads, and what it writes
+## What `/setup-awow` reads, and what it writes
 
 **Read — per-tool `reference/`.** Same shape for every tool; one file per concern, so the team
-can accept or change each one when the wizard pauses for review.
+can accept or strike each one at the single review gate.
 
 - `states.md` — maps awow's five standard states onto the tool's own workflow states
 - `hierarchy.md` — maps the four work levels (outcome → epic → feature → story) onto the tool's
@@ -80,7 +80,7 @@ Step 1b picks a mode automatically by counting closed (or `Done`) issues. The th
 ## The override model — two layers
 
 The reference is a starting point, not a mandate. It is overridable at two layers, applied in
-precedence order; the wizard always says which layer it read from for each section.
+precedence order; `/setup-awow` says which layer it read from for each section.
 
 | Layer | Lives in | Behaviour |
 | --- | --- | --- |
@@ -151,7 +151,7 @@ Copilot fires MCP tools only in Agent mode, not inline or Ask.
 
 ## Install & verify shape
 
-Every `reference/mcp.md` has the same structure so the wizard knows where to look: a **Source
+Every `reference/mcp.md` has the same structure so `/setup-awow` knows where to look: a **Source
 docs** reference (authoritative — the in-repo snippet is a summary and may have drifted),
 **Install — Claude Code**, **Install — Copilot**, and **Verify**. The wizard always runs the
 verify step:
@@ -162,13 +162,13 @@ verify step:
 3. **Record the verification status** in `context/tooling/board.md` (`Tool & wiring`).
 
 If the install cannot be completed in-session (token in another browser, IT ticket), the
-connection is recorded as `pending` and the wizard continues with Step 1b so the repo is at
+connection is recorded as `pending` and `/setup-awow` lands the rest so the repo is at
 least partially usable; write-dependent items are marked `pending-write`.
 
 ## Sources of truth
 
 - [`context/tooling/boards/README.md`](../context/tooling/boards/README.md) — board references and the two modes
 - [`mcps/README.md`](../mcps/README.md) — catalogue, intake, harness wiring
-- [`.agents/commands/setup-awow.md`](../.agents/commands/setup-awow.md) — Step 1, the kickoff flow
+- [`.agents/commands/setup-awow.md`](../.agents/commands/setup-awow.md) — the configuration command
 - `context/tooling/board.md` — the board surface every command reads and writes through; written by Step 1, not present until setup runs
-- Companion guides: [setup & the plugin model](guide-setup-and-two-harnesses.md) — the wizard this is Step 1 of, and authoring once for both harnesses
+- Companion guides: [SETUP.md](../SETUP.md) — the setup command this belongs to; [how awow is built and shipped](guide-setup-and-two-harnesses.md) — authoring once for every harness

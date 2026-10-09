@@ -80,7 +80,7 @@ def main() -> int:
 
     # Bidirectional: the built payload must equal the payload manifest exactly.
     # An unshipped contract file fails as loudly as a shipped team-data file.
-    dist_context = gather.DIST_DIR / "context"
+    dist_context = gather.CLAUDE_DIR / "context"
     shipped = set()
     if dist_context.is_dir():
         for p in dist_context.rglob("*"):
@@ -110,11 +110,11 @@ def main() -> int:
     for missing in sorted(wanted - shipped):
         FAILURES.append(f"classified payload but not shipped: context/{missing}")
     for extra in sorted(shipped - wanted):
-        FAILURES.append(f"shipped but not classified payload: dist/context/{extra}")
+        FAILURES.append(f"shipped but not classified payload: dist/claude/awow/context/{extra}")
 
     # Archetypes are handlers, not commands: their routers read them at runtime,
-    # so both registries ship as data under dist/handlers/ — never under
-    # dist/commands/, which every harness auto-discovers as a picker surface
+    # so both registries ship as data under <plugin>/handlers/ — never under
+    # <plugin>/commands/, which every harness auto-discovers as a picker surface
     # (AWO-161). README.md is registry documentation, not a lens, so it stays
     # out of the payload.
     registries = {
@@ -123,7 +123,7 @@ def main() -> int:
     }
     for registry, representative in registries.items():
         arch_src = gather.AGENTS_DIR / "commands" / registry
-        arch_dst = gather.DIST_DIR / gather.HANDLERS_DIR_NAME / registry
+        arch_dst = gather.CLAUDE_DIR / gather.HANDLERS_DIR_NAME / registry
         want_arch = {
             p.name for p in arch_src.glob("*.md")
             if p.name not in gather.SKIP_FILENAMES
@@ -135,14 +135,14 @@ def main() -> int:
             FAILURES.append(f"{registry} handler not shipped: {missing}")
         for extra in sorted(got_arch - want_arch):
             FAILURES.append(f"{registry} handler shipped but not in source: {extra}")
-        if (gather.DIST_DIR / "commands" / registry).exists():
+        if (gather.CLAUDE_DIR / "commands" / registry).exists():
             FAILURES.append(
-                f"{registry} registry leaked into dist/commands/, where it "
+                f"{registry} registry leaked into dist/claude/awow/commands/, where it "
                 f"ships as picker entries"
             )
-        if (gather.DIST_DIR / "commands" / representative).exists():
+        if (gather.CLAUDE_DIR / "commands" / representative).exists():
             FAILURES.append(
-                f"{registry} handler leaked into dist/commands/: {representative}"
+                f"{registry} handler leaked into dist/claude/awow/commands/: {representative}"
             )
 
     for f in FAILURES:

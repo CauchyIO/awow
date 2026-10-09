@@ -1,0 +1,18 @@
+{
+  "name": "awow",
+  "owner": {
+    "name": "awow maintainers"
+  },
+  "plugins": [
+    {
+      "name": "awow",
+      "source": "./dist/copilot/awow",
+      "description": "Bring the Agentic Way of Working to any repo. The setup-awow prompt connects your issue board and your team's conventions; the delivery prompts and skills then keep the board current as a byproduct of the work."
+    },
+    {
+      "name": "awow-workflows",
+      "source": "./dist/copilot/awow-workflows",
+      "description": "The optional workflow bundle for awow: design and planning, meetings and retros, digests, strategy and OKRs, knowledge capture, and styled documents. Installs beside awow; self-contained, and expects a repo configured by awow's setup-awow prompt."
+    }
+  ]
+}

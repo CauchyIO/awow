@@ -11,7 +11,7 @@ a line in the split suite.
 
 Three assertions:
   1. Both payload roots are registered as fully generated.
-  2. An unplanned probe under dist-telemetry/ IS reported as an orphan.
+  2. An unplanned probe under dist/claude/awow-telemetry/ IS reported as an orphan.
   3. A file inside a nested git checkout under a payload root is NOT — the
      sweep never crosses into another checkout's tracked files (AWO-62).
 
@@ -71,7 +71,7 @@ def main() -> int:
             )
 
     # 2. Unplanned probe under the telemetry payload root IS an orphan.
-    tele_probe = getattr(gather, "DIST_TELEMETRY_DIR", REPO_ROOT / "dist-telemetry")
+    tele_probe = getattr(gather, "DIST_TELEMETRY_DIR", REPO_ROOT / "dist" / "claude" / "awow-telemetry")
     tele_probe = tele_probe / "skills" / "_orphan-probe" / "SKILL.md"
     created = make_probe(tele_probe)
     try:
@@ -79,7 +79,7 @@ def main() -> int:
         if tele_probe not in found:
             FAILURES.append(
                 f"{tele_probe.relative_to(REPO_ROOT)} was NOT reported as an orphan — "
-                "dist-telemetry/ is not being treated as a fully generated root."
+                "dist/claude/awow-telemetry/ is not being treated as a fully generated root."
             )
     finally:
         remove_probe(tele_probe, created)

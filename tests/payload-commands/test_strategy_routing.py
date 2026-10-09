@@ -25,11 +25,16 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DIST = REPO_ROOT / "dist"
+# Routes are asserted on the Claude Code plugins; the sweep below covers every
+# harness. The strategy family ships in the workflows bundle; the using-awow
+# reflex that routes to it stays in core.
+CLAUDE = DIST / "claude" / "awow"
+BUNDLE = DIST / "claude" / "awow-workflows"
 
 FAMILY = {
-    "strategy-flow": DIST / "commands" / "strategy-flow.md",
-    "bet-refinement-coach": DIST / "skills" / "bet-refinement-coach" / "SKILL.md",
-    "okr-cascade": DIST / "commands" / "okr-cascade.md",
+    "strategy-flow": BUNDLE / "commands" / "strategy-flow.md",
+    "bet-refinement-coach": BUNDLE / "skills" / "bet-refinement-coach" / "SKILL.md",
+    "okr-cascade": BUNDLE / "commands" / "okr-cascade.md",
 }
 
 # Every family member must name the other two's territory.
@@ -63,7 +68,7 @@ def main() -> int:
                     f"{path.relative_to(REPO_ROOT)} never names `{target}` — the route is broken"
                 )
 
-    reflex = DIST / "skills" / "using-awow" / "SKILL.md"
+    reflex = CLAUDE / "skills" / "using-awow" / "SKILL.md"
     if not reflex.is_file() or "strategy-flow" not in reflex.read_text():
         FAILURES.append("using-awow reflex carries no strategy route (strategy-flow unmentioned)")
 

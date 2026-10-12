@@ -8,6 +8,25 @@ that same PR. When the PR lands on `main`, the release workflow publishes the
 section as the body of the GitHub release and tags the commit. Releases before
 v0.9.2 were not tagged individually; `git log` is their record.
 
+## v1.1.0
+
+A small release that tightens how awow hands work over, on the board and in pull requests.
+
+### Commands
+- **Enhancement** `/process-workitem` opens the pull request as a draft and reminds you to review it, mark it ready and add a reviewer. (#93)
+- **Enhancement** The move to In Review can belong to the board's integration. `/process-workitem` words its hand-off from `board.md` and leaves a move the board makes itself alone. (#95)
+
+### Board
+- **Enhancement** Assignment is consent: an item is assigned only when that person asked, or approved a plan that says so. Deferring an item moves it back to its open state and unassigns it. (#94)
+
+### Conventions
+- **Feature** A new optional convention makes the reviewer who approves a pull request the one who merges it. Teams can opt out. (#96)
+
+### Docs
+- **Fix** Stale doc links and the tool and skill indexes are corrected, and CI now fails on a broken relative Markdown link. (#97)
+- **Fix** Argument hints containing `|` no longer break the README's command table. (#98)
+- **Fix** Placeholders such as `<Name>` are wrapped in backticks so GitHub renders them. (#99)
+
 ## v1.0.0
 
 The first public release. awow now ships as two plugins: **awow**, a small core of five commands, and **awow-workflows**, an optional preview bundle with everything else.

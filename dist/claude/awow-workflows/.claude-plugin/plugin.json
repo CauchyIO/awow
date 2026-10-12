@@ -2,7 +2,7 @@
   "name": "awow-workflows",
   "displayName": "awow-workflows — team, organisation and knowledge workflows",
   "description": "The optional workflow bundle for awow: design and planning, meetings and retros, digests, strategy and OKRs, knowledge capture, and styled documents. Self-contained; expects a repo configured by awow@awow's /setup-awow.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": {
     "name": "Casper Lubbers"
   },

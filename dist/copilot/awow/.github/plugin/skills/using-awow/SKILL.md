@@ -57,6 +57,6 @@ Whatever you build with — your own editing, a coding subagent, an inner-loop e
 - **Claiming done.** Verification evidence exists before the item reaches **In Review** or **Done** — paste it into a comment. No evidence, no move.
 - **Handing over.** The PR opens as a draft with a what-to-review comment on the item; it reaches **In Review** the way `board.md` says — the human moves it once the PR is ready, or the board's integration does on its trigger. **Done** with the PR link and a one-line outcome when it lands.
 
-**One session owns the item's state.** When you brief a subagent or hand the work to another session, name the item, its current state, and who moves it. Briefed that way, read the item, comment your findings on it, and leave its state to the owner.
+**One session owns the item.** When you brief a subagent or hand the work to another session, name the item, its current state, and who owns it. As a subagent, report to the session that briefed you and write nothing to the board. Taking the work over, you become the owner: comment and move the item as you go.
 
 Where `{ANCHOR}/context/tooling/architecture.md` declares an architecture plane, plans are checked against it — `/process-workitem` step 4 carries that check. When someone states how the team works, note it and offer `/update-context` once, at a completion edge.

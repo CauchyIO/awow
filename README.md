@@ -237,7 +237,7 @@ python tools/gather.py && claude --plugin-dir dist/claude/awow
 
 ## Status
 
-**v1.0.0 — first public release.** Working end to end: the installs on all five
+**v1.1.0.** Working end to end: the installs on all five
 harnesses, the command set, canonical knowledge-source routing, the session
 context, and the build with its drift check in CI.
 

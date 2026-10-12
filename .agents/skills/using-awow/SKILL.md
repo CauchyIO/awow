@@ -19,7 +19,6 @@ The board is the single source of truth for planning, and awow exists to keep it
 | "Small change, I'll ticket it after" | After is never. Look first. |
 | "The user is in a hurry" | Linking an existing item is one line. |
 | "I'll batch board updates at the end" | End-of-session updates evaporate. Move state as you go. |
-| "They asked for a ticket, I'll just create it" | Search first. A duplicate costs more than the search. |
 
 ## Paths
 
@@ -43,7 +42,7 @@ match is read-only and must be referenced rather than copied into the ANCHOR.
 
 ## Route to the moment
 
-A board item to explain, refine, plan, or build → `/process-workitem`, at the depth the user asked for. A board item to create, or its title, body, fields or assignee to change — a plain "make an issue for this" included → the `workitem-write` skill, which searches for a duplicate before it drafts. A comment, a link, or a state move `board.md` gives you → make it directly. Lost track of your plate → `/my-work`. A rule about how the team works, stated in passing → `/update-context`. Is this repo wired? → `/setup-awow --check`. What can awow do here, what does a command do, what next? → `/awow-help`.
+A board item to explain, refine, plan, or build → `/process-workitem`, at the depth the user asked for. A board item to create or update → the `workitem-write` skill. Lost track of your plate → `/my-work`. A rule about how the team works, stated in passing → `/update-context`. Is this repo wired? → `/setup-awow --check`. What can awow do here, what does a command do, what next? → `/awow-help`.
 
 With the optional `awow-workflows` plugin: meeting notes in hand → `/process-transcript`; the team wants to talk its way of working through → `/team-workshop`; day wrapping up → `/daily-checkin`; "what did we ship?" → `/daily-digest`; a locked design to sequence → `/project-plan`; vision but no measurable goals → `/strategy-flow`; one bet in a live board session → the `bet-refinement-coach` skill; the quarter's standing OKR machinery, including the recurring review → `/okr-cascade`. When one of these is absent from your skill listing, `awow-workflows` is not installed here: say so and name the plugin; do not hand-roll the flow.
 

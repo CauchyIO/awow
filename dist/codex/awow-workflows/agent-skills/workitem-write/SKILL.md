@@ -1,11 +1,15 @@
 ---
 name: workitem-write
-description: "Use for any board item create or update — an ad-hoc make-a-ticket request or a flow's write step. The one convention-wired path: resolve the target, look first, cite conventions, shape, gate, write, report."
+description: "Use when the user asks to make, file, open or log a ticket, issue, story or task (\"make an issue for this\"), or to change an item's title, body, fields or assignee — and as a flow's write step. The one convention-wired path: resolve the target, look first, cite conventions, shape, gate, write, report. Comments, links and agent-owned state moves go direct, under its rules."
 ---
 
 # workitem-write — the one path for board creates and updates
 
-Every board item create or update routes through these steps, in this plugin and from any other: a flow delegating its write step (in `awow-workflows`: `/daily-checkin`, `/project-plan`, `/refinement-prep`, `/process-transcript`) or an ad-hoc "make a ticket for X" mid-session. A delegating flow keeps its own discovery, templates, and flow-specific rules; this skill owns the generic write discipline. It is deliberately type-agnostic — work-type rules live in the `_workitem-archetypes/` handlers at execution time, never here at creation time.
+Every board item create or update follows this skill, in this plugin and from any other: a flow delegating its write step (in `awow-workflows`: `/daily-checkin`, `/project-plan`, `/refinement-prep`, `/process-transcript`) or an ad-hoc "make a ticket for X" mid-session. A delegating flow keeps its own discovery, templates, and flow-specific rules; this skill owns the generic write discipline. It is deliberately type-agnostic — work-type rules live in the `_workitem-archetypes/` handlers at execution time, never here at creation time.
+
+**Two lanes, one path.** Creating an item, or changing its title, body, fields or assignee, runs every step below. A comment, a link, or a state move `{ANCHOR}/context/tooling/board.md` assigns to the agent is the fast lane: make it directly, without running the steps, on the board `board-target` settled — step 4's assignment and deferral rules and step 6's update-versus-edit rule still bind it.
+
+A plain request to create — "make an issue for this" — is not the fast lane. It still starts at step 1: search before you draft, and leave the assignee alone unless step 4 allows it.
 
 ## 1. Resolve the target, then look first
 

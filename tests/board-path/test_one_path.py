@@ -16,8 +16,8 @@ files. Asserts, in order of how badly each would fail silently:
      names `board-target` or `workitem-write` — it does not resolve the board
      on its own.
   4. One approval rule. `workitem-write` exempts the transitions `board.md`
-     assigns to the agent, asks only for authorisation it does not hold, and
-     resumes an interrupted plan; every `board.md` reference says the same
+     assigns to the agent, asks only for authorisation it does not hold,
+     resumes an interrupted plan, and names its two lanes (CAU-2096); every `board.md` reference says the same
      thing from its side, so the two read as one rule (CAU-1522).
 
 Pure stdlib; no pytest, no network.
@@ -117,6 +117,7 @@ def check_one_approval_rule() -> None:
         ("already approved in this conversation", "re-asks for authorisation it already holds"),
         ("Show the concrete change before you ask", "may ask for approval in the abstract"),
         ("Resume, never restart", "has no rule for an interrupted plan"),
+        ("Two lanes, one path", "does not say which writes run every step and which go direct — it and the reflex read as two rules"),
     ):
         if needle not in skill:
             FAILURES.append(f"workitem-write {why} (expected {needle!r})")

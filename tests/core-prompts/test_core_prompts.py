@@ -22,6 +22,10 @@ may be absent, and the reflex says what to do when it is. Asserts:
      items in the query, counts what it prints, keeps unassigned blockers
      under Waiting and judges acceptance criteria only on a full read;
      /update-context stops in a repo awow has not set up.
+  6. The repo conventions layer holds (CAU-2128): the reflex, AGENTS.md and
+     workitem-write read `{PROJECT}/context/team/conventions/` over the
+     anchor's, /update-context can scope a rule to the repo, and
+     /setup-awow --check names REQUIRED overrides.
 
 Pure stdlib; no pytest, no network.
 
@@ -160,12 +164,27 @@ def check_second_dry_run() -> None:
             FAILURES.append(f"/update-context {what}")
 
 
+def check_conventions_layer() -> None:
+    for rel, needles in (
+        ("skills/using-awow/SKILL.md", ("{{PROJECT}}/context/team/conventions/<path>", "`REQUIRED/board-linkage.md` is add-only")),
+        ("AGENTS.md", ("**Conventions are the one exception: they have a repo layer.**", "`replaces: true`", "add-only")),
+        ("skills/workitem-write/SKILL.md", ("{PROJECT}/context/team/conventions/",)),
+        ("commands/update-context.md", ("**Repo words scope; they do not veto.**", "`N → repo` / `N → team`")),
+        ("commands/setup-awow.md", ("this repo overrides labels.md, branches.md",)),
+    ):
+        text = (AGENTS / rel).read_text()
+        for needle in needles:
+            if needle not in text:
+                FAILURES.append(f".agents/{rel} has lost the repo conventions layer ({needle!r})")
+
+
 def main() -> int:
     check_bundle_commands_named_with_plugin()
     check_reflex_routes()
     check_setup_first_suggestion()
     check_vocabulary()
     check_second_dry_run()
+    check_conventions_layer()
     for f in FAILURES:
         print(f"FAIL {f}")
     if FAILURES:

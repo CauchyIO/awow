@@ -8,6 +8,17 @@ that same PR. When the PR lands on `main`, the release workflow publishes the
 section as the body of the GitHub release and tags the commit. Releases before
 v0.9.2 were not tagged individually; `git log` is their record.
 
+## v1.2.0
+
+A small release that lets each repo keep conventions of its own on top of the team's.
+
+### Conventions
+- **Feature** A repo can keep its own conventions at `context/team/conventions/`, in the same `REQUIRED/` and `OPTIONAL/` layout as the anchor. The agent reads the anchor's file, then the repo's, and the repo's rule wins where they conflict; `replaces: true` replaces the anchor's file whole, and `REQUIRED/board-linkage.md` is add-only. A repo without its own conventions behaves exactly as before. (#102)
+
+### Commands
+- **Enhancement** `/update-context` can land a rule in the repo instead of the anchor when you scope it to the repo ("in this repo we…"), and `N → repo` / `N → team` move a candidate between the two at the gate. (#102)
+- **Enhancement** `/setup-awow --check` names each `REQUIRED/` convention the repo overrides, and flags a repo `board-linkage.md` that changes or drops an anchor rule. (#102)
+
 ## v1.1.0
 
 A small release that tightens how awow hands work over, on the board and in pull requests.

@@ -22,7 +22,7 @@ The board is the single source of truth for planning, and awow exists to keep it
 
 ## Paths
 
-`{{ANCHOR}}` is the team context root, `{{PROJECT}}` this project's; both resolve to the repo root here. In an anchored repo (root `AGENTS.md` frontmatter with an `anchor:` key), resolve `{{ANCHOR}}` as `$AWOW_ANCHOR`, else the path recorded in the gitignored `.awow/anchor.json` after its origin check — a missing or drifted link is a prompt to (re)map interactively and a loud stop headless, never a scan. Machinery reads `{{ANCHOR}}` first, then `{{AWOW_ROOT}}` (its scripts at `{{AWOW_TOOLS}}`). Unresolvable `{{ANCHOR}}`? Stop and say so. Several candidate installations or boards? Resolve per the `board-target` skill — never guess across a repo boundary.
+`{{ANCHOR}}` is the team context root, `{{PROJECT}}` this project's; both resolve to the repo root here. In an anchored repo (root `AGENTS.md` frontmatter with an `anchor:` key), resolve `{{ANCHOR}}` as `$AWOW_ANCHOR`, else the path recorded in the gitignored `.awow/anchor.json` after its origin check — a missing or drifted link is a prompt to (re)map interactively and a loud stop headless, never a scan. Machinery reads `{{ANCHOR}}` first, then `{{AWOW_ROOT}}` (its scripts at `{{AWOW_TOOLS}}`). Conventions layer: wherever you read `{{ANCHOR}}/context/team/conventions/<path>`, also read `{{PROJECT}}/context/team/conventions/<path>` — the repo's rule wins on conflict, `replaces: true` frontmatter replaces the whole file, `REQUIRED/board-linkage.md` is add-only, and no repo file means the anchor's alone. Unresolvable `{{ANCHOR}}`? Stop and say so. Several candidate installations or boards? Resolve per the `board-target` skill — never guess across a repo boundary.
 
 ## Board first
 

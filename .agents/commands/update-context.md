@@ -20,10 +20,15 @@ reply already being written. It never interrupts and it never invokes you. You r
 later, when the work is done and nothing competes for the turn.
 
 **Read-only until the gate.** You propose diffs and wait. Nothing is written to
-`{ANCHOR}/context/`, to the inbox, or to git before explicit approval.
+`{ANCHOR}/context/`, to `{PROJECT}/context/team/conventions/`, to the inbox, or to git before
+explicit approval.
 
 **Paths.** Convention, style, and meeting destinations are team data: `{ANCHOR}` only, no fallback,
-and absence is information. Before any inbox write, resolve `inbox` and `kb_root` from
+and absence is information. Conventions alone also have a repo layer at
+`{PROJECT}/context/team/conventions/`, which overrides the anchor's per rule (`.agents/AGENTS.md`,
+"Conventions are the one exception"); a convention candidate therefore has a **scope** — *team*
+(lands in `{ANCHOR}`) or *repo* (lands in `{PROJECT}`). Where `{PROJECT}` and `{ANCHOR}` are the
+same root there is one folder, every candidate is team-scoped, and scope never comes up. Before any inbox write, resolve `inbox` and `kb_root` from
 `{ANCHOR}/context/tooling/knowledge-base.md`, falling back to
 `{AWOW_ROOT}/context/tooling/knowledge-base.md` (a vendored copy wins over the shipped
 one).
@@ -88,9 +93,15 @@ A candidate qualifies only if **all three** predicates hold. Test each one expli
 | **P2** | **Asserted.** Stated as a rule, in the present tense, as settled. | It was floated: *"we should probably standardise filenames at some point"*. |
 | **P3** | **Normative and team-scoped.** A rule the team obeys. | It is a fact about the world — *"the staging DB is eu-west-1"* — which is knowledge, not guidance. Or it is one person's preference — *"stop saying you're absolutely right"* — and a dislike committed to git binds everyone to it. |
 
-**Scoping words veto unconditionally.** *here*, *for this one*, *just this time*, *in
-this file*, *for now* — the speaker has already told you the rule does not generalise.
-Drop it without testing further.
+**Scoping words veto unconditionally.** *here*, *for this one*, *just this time*, *in this
+file*, *for now* — the speaker has already told you the rule does not generalise. Drop it
+without testing further.
+
+**Repo words scope; they do not veto.** *in this repo*, *for this project* — the
+speaker has told you the rule generalises across this repo's sessions but not the team's. P3
+reads "team-scoped" as "repo-scoped" for it, and Phase 2 routes it to the repo layer. Where
+`{PROJECT}` and `{ANCHOR}` are one root there is no repo layer to land in: repo words veto
+there, exactly like the words above.
 
 For every candidate you drop, keep one line naming the predicate that failed, and report
 those lines at the gate. A silent drop is indistinguishable from a miss, and the user
@@ -107,9 +118,20 @@ plugin; without it the candidate stays in the inbox as a committed, readable fil
 
 List the destinations before you choose one. Read the file names under
 `{ANCHOR}/context/team/conventions/REQUIRED/`, `{ANCHOR}/context/team/conventions/OPTIONAL/`,
-`{ANCHOR}/context/team/style/`, and `{ANCHOR}/context/team/meetings/`, and read any file
-you are about to propose writing into.
+`{ANCHOR}/context/team/style/`, and `{ANCHOR}/context/team/meetings/` — and, where `{PROJECT}`
+is a different root, `{PROJECT}/context/team/conventions/REQUIRED/` and `OPTIONAL/` — and read
+any file you are about to propose writing into.
 Do not route from memory of what the tree usually holds.
+
+**Settle the scope of each convention candidate first.** Team-scoped → route in the anchor as
+below. Repo-scoped → route in `{PROJECT}/context/team/conventions/`: to the file at the same
+path as the anchor file whose rule it changes or adds to (create it if absent — allowed under
+`REQUIRED/`, because it overlays an anchor file that exists), else tier 3 at
+`{PROJECT}/context/team/conventions/OPTIONAL/<topic>.md`. A repo-scoped rule for
+`REQUIRED/board-linkage.md` may only add a rule; one that would change or drop an anchor rule
+there is a team-scoped candidate or nothing. Scope unclear in an anchored repo — a team rule
+heard while working on one repo — is tier 2: offer the anchor file and the repo file as the
+picker's choices. Style and meeting candidates are always team-scoped.
 
 Then, per candidate:
 
@@ -125,7 +147,9 @@ existing plain-Markdown format.
 **Tier 3 — no suitable destination exists.** For a convention, propose a new file at
 `{ANCHOR}/context/team/conventions/OPTIONAL/<topic>.md` as its own diff line marked `new file`,
 together with the line that lists it in that folder's `README.md`, and offer `defer` beside it.
-Never propose a new file under `REQUIRED/`, and never a new style file. Any other candidate —
+Never propose a new file under `REQUIRED/` — a repo-layer file mirroring an existing anchor
+`REQUIRED/` file is not tier 3 and stays allowed, per the scope rule above — and never a new
+style file. Any other candidate —
 or a deferred one — is staged with `suggested_target: UNROUTED`, and you stop there.
 Unrouted candidates piling up is useful signal about what the context tree is missing.
 
@@ -141,7 +165,8 @@ not exist in this repo. Stage `UNROUTED` and name what creates them —
 
 ### Accretion duty
 
-Count the rules in the destination file before drafting. A rule is one `## Rule N`
+Count the rules in the destination file before drafting — for a repo-layer file, the
+anchor file's rules plus the repo file's, since every session reads both. A rule is one `## Rule N`
 section, one row of a rules table, or one item of a numbered rules list — whichever unit
 that file already uses.
 
@@ -157,7 +182,12 @@ so an eleventh rule taxes every future turn in this repo.
 There is no convention-file template, and three formats coexist in the tree: numbered
 `## Rule N` sections, a table of rows, and bulleted prose under a heading. **Infer the
 format from the file you are writing into** by reading its existing rules. Add no
-frontmatter — the durable layer stays frontmatter-light.
+frontmatter — the durable layer stays frontmatter-light. A new repo-layer file opens with one
+`# <Topic> — this repo` heading and follows the anchor file's format.
+
+A repo-scoped rule that changes an anchor rule names the rule it replaces — *"Replaces the
+anchor's branch pattern rule."* — and one that drops an anchor rule says so outright. Silence
+in the repo file keeps the anchor rule.
 
 Write the rule in agent-directive voice: second person, imperative, two sentences at most
 — the rule, then at most one guardrail. Keep the evidence out of the imperative; the
@@ -181,7 +211,7 @@ is not a gate.
 ```
 UPDATE CONTEXT — 2 candidates from this session
 
-[1] {ANCHOR}/context/team/conventions/REQUIRED/branches.md   (3 rules → 4)
+[1] team · {ANCHOR}/context/team/conventions/REQUIRED/branches.md   (3 rules → 4)
     Heard: "we always put the ticket ID in the branch name"
 
     + ## Rule 4 — Ticket ID first in every branch name
@@ -202,6 +232,8 @@ Reply with one of: `1` or `all` — apply and commit · `none` — apply nothing
 
 Label the dropped list `Dropped (heard, but not a team rule)`, and name the inbox by its resolved path wherever the block mentions it. Say in the options that applying or deferring also commits.
 
+Where `{PROJECT}` and `{ANCHOR}` are different roots, prefix each convention candidate with its scope — `team ·` or `repo ·` — and add `N → repo` / `N → team` to the options line. In a standalone repo, leave both out.
+
 The options, exactly:
 
 | Reply | You do |
@@ -209,19 +241,23 @@ The options, exactly:
 | a number, or `all` | Apply those diffs, commit them, and leave the rest. |
 | `none` | Apply nothing. Do not ask again this session. |
 | `none, stop asking` | Apply nothing, create an empty `.awow/no-context-prompt`, confirm in one line, and never offer again in any session. |
-| `N → <path>` | Retarget candidate N to that path and re-show its diff. An existing file, or a new file under `conventions/OPTIONAL/` shown as a `new file` line. |
+| `N → <path>` | Retarget candidate N to that path and re-show its diff. An existing file, a new file under `conventions/OPTIONAL/`, or a new repo-layer file mirroring an existing anchor convention file — a new file shown as a `new file` line. |
 | `N defer` | Stage candidate N in the inbox instead of writing it, and commit it. |
+| `N → repo` / `N → team` | Re-scope convention candidate N, route it again per Phase 2, and re-show its diff. Only where `{PROJECT}` and `{ANCHOR}` differ. |
 
 On approval:
 
-1. Apply each approved diff to its destination file under `{ANCHOR}/context/team/`.
+1. Apply each approved diff to its destination file — under `{ANCHOR}/context/team/` for a
+   team-scoped candidate, under `{PROJECT}/context/team/conventions/` for a repo-scoped one.
 2. Write each deferred and each unrouted candidate to the resolved `inbox` — one file per
    candidate, following the schema in `{ANCHOR}/context/kb-inbox/README.md` (falling back to
    `{AWOW_ROOT}/context/kb-inbox/README.md`): `kind: guidance`, `source: update-context`,
    `source_ref` naming this session's branch or PR, `suggested_target` set to the
    destination path or `UNROUTED`, and `source_quote` holding the verbatim sentence.
 3. Commit both in one commit naming `/update-context` as the source. A staged candidate
-   has to be committed to be seen — the drain reads committed state only.
+   has to be committed to be seen — the drain reads committed state only. Where `{PROJECT}`
+   and `{ANCHOR}` are different roots, make one such commit per checkout that changed:
+   repo-layer writes in this repo, anchor writes and inbox files in the anchor.
 
 Say in one line what landed and what was staged. Then stop; do not re-offer.
 
@@ -229,8 +265,8 @@ Say in one line what landed and what was staged. Then stop; do not re-offer.
 
 ## Behavioral boundaries
 
-- **Never write `.claude/CLAUDE.md`, `.github/copilot-instructions.md`, the root `AGENTS.md`, or `.agents/AGENTS.md`.** The first three are regenerated by `gather.py` on every build, so a diff landed there is destroyed by the next one; the fourth is the team's own instruction source and is not yours to edit opportunistically. Write under `{ANCHOR}/context/team/` and let propagation happen.
-- **Never create a style or meeting file, or a convention file outside a gated `new file` line under `conventions/OPTIONAL/`.** No destination means tier 3, always.
+- **Never write `.claude/CLAUDE.md`, `.github/copilot-instructions.md`, the root `AGENTS.md`, or `.agents/AGENTS.md`.** The first three are regenerated by `gather.py` on every build, so a diff landed there is destroyed by the next one; the fourth is the team's own instruction source and is not yours to edit opportunistically. Write under `{ANCHOR}/context/team/` — or, for a repo-scoped convention, `{PROJECT}/context/team/conventions/` — and let propagation happen.
+- **Never create a style or meeting file, or a convention file outside a gated `new file` line under `conventions/OPTIONAL/`** — the one exception being a repo-layer file that mirrors an existing anchor convention file. No destination means tier 3, always.
 - **Never write outside the gate**, and never treat an earlier session's approval as
   standing consent.
 - **Never run autonomously.** There is no `--auto` mode and no unattended variant, for the

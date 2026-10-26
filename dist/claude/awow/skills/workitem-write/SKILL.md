@@ -25,6 +25,8 @@ Before shaping a draft, read and apply:
 - `{ANCHOR}/context/team/conventions/REQUIRED/labels.md` — the label taxonomy
 - The board's existing projects / containers and their naming
 
+Each convention file has a repo layer: also read `{PROJECT}/context/team/conventions/` at the same path, where present, and let its rules win where they conflict (`.agents/AGENTS.md`, "Conventions are the one exception").
+
 The draft **cites** which conventions shaped it — title pattern, labels chosen, container — so the user approves against the team's rules, not your taste. Placing an item in a new container requires stating why no existing one fits.
 
 ## 3. Shape the body
